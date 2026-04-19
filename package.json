@@ -1,11 +1,9 @@
 {
-  "name": "spacenova",
+  "name": "spacenova-functions",
   "version": "1.0.0",
-  "private": true,
-  "scripts": {
-    "build": "echo \"no build\""
-  },
+  "description": "Netlify serverless functions for spacenova",
   "dependencies": {
-    "stripe": "^16.0.0"
+    "stripe": "^16.0.0",
+    "@supabase/supabase-js": "^2.0.0"
   }
 }
