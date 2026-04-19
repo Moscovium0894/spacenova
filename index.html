@@ -9,6 +9,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="css/style.css"/>
 <script src="https://js.stripe.com/v3/"></script>
+<script>
+  window.ENV = {
+    STRIPE_PUBLISHABLE_KEY: "pk_live_51TNtFFGnvROGMUU3OTHqQLdFA6BL1hee48MJqm9wFqBylclW6hgy7cSIJDsbO7rs2sKpHr1XWI0Z8AGYv8d7hTBu00tRsWW7mr"
+  };
+</script>
 <style>
 .nav-logo-img{height:88px;width:auto;display:block}
 .nav-logo{gap:8px;align-items:center}
@@ -379,11 +384,30 @@ var checkoutStep = 0, productQty = 1, orderRef = '';
 var stripe = null, stripeElements = null, stripePaymentElement = null, stripeClientSecret = null;
 var paymentConfirmed = false; // CRITICAL: must be true before order placed
 
-try{var sb=localStorage.getItem('cfBasket4');if(sb)basket=JSON.parse(sb);}catch(e){}
-try{var sw=localStorage.getItem('cfWishlist4');if(sw)wishlist=JSON.parse(sw);}catch(e){}
+try {
+  var sb = localStorage.getItem('cfBasket4');
+  if (sb) basket = JSON.parse(sb);
+} catch (e) {}
 
-var STRIPE_PK=(typeof STRIPE_PUBLISHABLE_KEY!=='undefined')?STRIPE_PUBLISHABLE_KEY:(window.ENV_STRIPE_PK||'pk_test_placeholder');
-try{if(STRIPE_PK!=='pk_test_placeholder')stripe=Stripe(STRIPE_PK);}catch(e){console.warn('Stripe init:',e);}
+try {
+  var sw = localStorage.getItem('cfWishlist4');
+  if (sw) wishlist = JSON.parse(sw);
+} catch (e) {}
+
+// Stripe init using window.ENV (set in <head>)
+var STRIPE_PK = (window.ENV && window.ENV.STRIPE_PUBLISHABLE_KEY)
+  ? window.ENV.STRIPE_PUBLISHABLE_KEY
+  : 'pk_test_placeholder';
+
+try {
+  if (STRIPE_PK && STRIPE_PK !== 'pk_test_placeholder') {
+    stripe = Stripe(STRIPE_PK);
+  } else {
+    console.warn('Stripe publishable key not configured.');
+  }
+} catch (e) {
+  console.warn('Stripe init:', e);
+}
 
 // ═══════════════════════════════════════════════ HELPERS
 function gbp(n){return '£'+parseFloat(n).toFixed(2);}
