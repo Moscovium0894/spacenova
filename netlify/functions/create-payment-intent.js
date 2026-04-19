@@ -1,42 +1,38 @@
-const Stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+// netlify/functions/create-payment-intent.js
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 exports.handler = async (event) => {
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: JSON.stringify({ error: 'Method not allowed' }) };
+  if (event.httpMethod !== "POST") {
+    return { statusCode: 405, body: "Method Not Allowed" };
   }
 
   try {
-    const { amount, currency = 'gbp', items } = JSON.parse(event.body || '{}');
+    const data = JSON.parse(event.body || "{}");
+    const amount = data.amount; // in pence from your front-end
+    const currency = data.currency || "gbp";
 
     if (!amount || amount < 50) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: 'Invalid amount' })
+        body: JSON.stringify({ error: "Invalid amount" }),
       };
     }
 
-    const paymentIntent = await Stripe.paymentIntents.create({
-      amount,           // in pence, e.g. 34999 = £349.99
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount,
       currency,
       automatic_payment_methods: { enabled: true },
-      metadata: {
-        items: JSON.stringify((items || []).map(i => `${i.name} x${i.qty}`).join(', ')).substring(0, 500)
-      }
     });
 
     return {
       statusCode: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      },
-      body: JSON.stringify({ clientSecret: paymentIntent.client_secret })
+      body: JSON.stringify({ clientSecret: paymentIntent.client_secret }),
     };
   } catch (err) {
-    console.error('PaymentIntent error:', err);
+    console.error(err);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: err.message })
+      body: JSON.stringify({ error: "Failed to create PaymentIntent" }),
     };
   }
 };
