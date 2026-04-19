@@ -356,7 +356,7 @@ try { var sb = localStorage.getItem('cfBasket3'); if (sb) basket = JSON.parse(sb
 try { var sw = localStorage.getItem('cfWishlist3'); if (sw) wishlist = JSON.parse(sw); } catch(e){}
 
 // Init Stripe with env-injected key or placeholder
-var STRIPE_PK = (typeof SPACENOVA_STRIPE_PK !== 'undefined') ? SPACENOVA_STRIPE_PK : (window.ENV_STRIPE_PK || 'pk_test_placeholder');
+var STRIPE_PK = (typeof STRIPE_PUBLISHABLE_KEY !== 'undefined') ? STRIPE_PUBLISHABLE_KEY : (window.ENV_STRIPE_PK || 'pk_test_placeholder');
 try { if (STRIPE_PK !== 'pk_test_placeholder') stripe = Stripe(STRIPE_PK); } catch(e){ console.warn('Stripe init:', e); }
 
 // ─── HELPERS ──────────────────────────────────────────────────────
@@ -550,15 +550,53 @@ function mountStripeElement() {
 }
 
 function submitStripePayment() {
-  if (!stripe || !stripeClientSecret || !stripeElements) { checkoutStep=3; renderDrawer(); return; }
+  if (!stripe || !stripeClientSecret || !stripeElements) {
+    // No Stripe – just show error instead of skipping to review
+    var errEl = document.getElementById('stripe-error');
+    if (errEl) errEl.textContent = 'Payments are not configured yet.';
+    return;
+  }
+
   var btn = document.getElementById('stripe-submit-btn');
-  if (btn) { btn.disabled=true; btn.textContent='Processing…'; }
-  var errEl = document.getElementById('stripe-error'); if (errEl) errEl.textContent='';
-  stripeElements.submit().then(function(r){
-    if (r.error) { if(errEl) errEl.textContent=r.error.message; if(btn){btn.disabled=false;btn.textContent='Review order →';} return; }
-    stripe.confirmPayment({ elements:stripeElements, clientSecret:stripeClientSecret, confirmParams:{ return_url: window.location.origin+'/success.html', payment_method_data:{ billing_details:{ name:(document.getElementById('f-fname')||{}).value||'', email:(document.getElementById('f-email')||{}).value||'' } } }, redirect:'if_required' }).then(function(res){
-      if (res.error) { if(errEl) errEl.textContent=res.error.message; if(btn){btn.disabled=false;btn.textContent='Review order →';} }
-      else { checkoutStep=3; renderDrawer(); }
+  if (btn) { btn.disabled = true; btn.textContent = 'Processing…'; }
+  var errEl = document.getElementById('stripe-error'); 
+  if (errEl) errEl.textContent = '';
+
+  stripeElements.submit().then(function(r) {
+    if (r.error) {
+      if (errEl) errEl.textContent = r.error.message;
+      if (btn) { btn.disabled = false; btn.textContent = 'Review order →'; }
+      return;
+    }
+
+    stripe.confirmPayment({
+      elements: stripeElements,
+      clientSecret: stripeClientSecret,
+      confirmParams: {
+        return_url: window.location.origin + '/success.html',
+        payment_method_data: {
+          billing_details: {
+            name: (document.getElementById('f-fname')||{}).value || '',
+            email: (document.getElementById('f-email')||{}).value || ''
+          }
+        }
+      },
+      redirect: 'if_required'
+    }).then(function(res) {
+      if (res.error) {
+        if (errEl) errEl.textContent = res.error.message;
+        if (btn) { btn.disabled = false; btn.textContent = 'Review order →'; }
+      } else {
+        // Only proceed if Stripe says the intent is succeeded or requires no further action
+        var pi = res.paymentIntent;
+        if (pi && pi.status === 'succeeded') {
+          checkoutStep = 3;
+          renderDrawer();
+        } else {
+          if (errEl) errEl.textContent = 'Payment not completed yet.';
+          if (btn) { btn.disabled = false; btn.textContent = 'Review order →'; }
+        }
+      }
     });
   });
 }
