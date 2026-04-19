@@ -667,15 +667,41 @@ function exportImageParts(){
 
 // ── SAVE TO STORE (via Netlify function) ──────────────────────────
 function saveToStore(){
-  syncBack();var project=getProject(),product=project.products[0];
+  syncBack();
+  var project = getProject(), product = project.products[0];
+  var pw = sessionStorage.getItem('admin_pw') || '';
+
+  if (!pw) {
+    pw = prompt('Enter admin password to save:') || '';
+    if (!pw) {
+      toast('Save cancelled','danger');
+      crStatus('Save cancelled');
+      return;
+    }
+    sessionStorage.setItem('admin_pw', pw);
+  }
+
   crStatus('Saving…','saving');
-  fetch('/.netlify/functions/save-product',{
-    method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({password:sessionStorage.getItem('admin_pw')||'',product:product})
-  }).then(function(r){return r.json();}).then(function(d){
-    if(d.ok){toast('Saved to store catalogue ✓');crStatus('Saved','saving');}
-    else{toast('Save failed: '+( d.error||'unknown'),'danger');crStatus('Save failed');}
-  }).catch(function(){toast('Save failed — check console','danger');crStatus('Error');});
+  fetch('/.netlify/functions/save-product', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ password: pw, product: product })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if (d.ok) {
+      toast('Saved to store catalogue ✓');
+      crStatus('Saved','saving');
+    } else {
+      sessionStorage.removeItem('admin_pw');
+      toast('Save failed: ' + (d.error || 'unknown'),'danger');
+      crStatus('Save failed');
+    }
+  })
+  .catch(function(){
+    toast('Save failed — check console','danger');
+    crStatus('Error');
+  });
 }
 
 // ── BIND ──────────────────────────────────────────────────────────
