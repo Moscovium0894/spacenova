@@ -314,7 +314,7 @@ function doAuth() {
   fetch('/.netlify/functions/auth', { method:'POST', body:JSON.stringify({password:pw}) })
     .then(function(r){ return r.json(); })
     .then(function(d){
-      if (d.ok) { sessionStorage.setItem('admin','1'); document.getElementById('auth-screen').style.display='none'; }
+    if (d.ok) { sessionStorage.setItem('admin','1'); sessionStorage.setItem('admin_pw', pw); ...
       else { document.getElementById('auth-err').style.display='block'; document.getElementById('auth-pw').value=''; }
     })
     .catch(function(){
