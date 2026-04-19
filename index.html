@@ -10,122 +10,104 @@
 <link rel="stylesheet" href="css/style.css"/>
 <script src="https://js.stripe.com/v3/"></script>
 <style>
-/* ── LOGO IMAGE ────────────────────────────────────────────────── */
-.nav-logo-img { height:88px; width:auto; display:block; }
-.nav-logo { gap: 8px; align-items: center; }
+.nav-logo-img{height:88px;width:auto;display:block}
+.nav-logo{gap:8px;align-items:center}
 
-/* ── SERIES/COLLECTION TAGS ────────────────────────────────────── */
-.type-tag {
-  font-family: var(--fm); font-size: .58rem; letter-spacing: .14em; text-transform: uppercase;
-  padding: 3px 9px; border-radius: 999px; font-weight: 700;
-  display: inline-flex; align-items: center; gap: 5px;
-}
-.type-tag.series { background: rgba(232,130,10,.12); color: var(--accent); border: 1px solid rgba(232,130,10,.35); }
-.type-tag.collection { background: rgba(201,169,110,.12); color: var(--gold); border: 1px solid rgba(201,169,110,.35); }
-.type-tag::before { content:''; display:inline-block; width:5px; height:5px; border-radius:50%; }
-.type-tag.series::before { background: var(--accent); }
-.type-tag.collection::before { background: var(--gold); }
+/* ── TYPE TAGS ── */
+.type-tag{font-family:var(--fm);font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;padding:3px 9px;border-radius:999px;font-weight:700;display:inline-flex;align-items:center;gap:5px}
+.type-tag.series{background:rgba(232,130,10,.12);color:var(--accent);border:1px solid rgba(232,130,10,.35)}
+.type-tag.collection{background:rgba(201,169,110,.12);color:var(--gold);border:1px solid rgba(201,169,110,.35)}
+.type-tag::before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%}
+.type-tag.series::before{background:var(--accent)}
+.type-tag.collection::before{background:var(--gold)}
 
-/* ── SERIES/COLLECTION TAGS ────────────────────────────────────── */
-.type-tag {
-  font-family: var(--fm); font-size: .58rem; letter-spacing: .14em; text-transform: uppercase;
-  padding: 3px 9px; border-radius: 999px; font-weight: 700;
-  display: inline-flex; align-items: center; gap: 5px;
-}
-.type-tag.series { background: rgba(232,130,10,.12); color: var(--accent); border: 1px solid rgba(232,130,10,.35); }
-.type-tag.collection { background: rgba(201,169,110,.12); color: var(--gold); border: 1px solid rgba(201,169,110,.35); }
-.type-tag::before { content:''; display:inline-block; width:5px; height:5px; border-radius:50%; }
-.type-tag.series::before { background: var(--accent); }
-.type-tag.collection::before { background: var(--gold); }
+/* ── ANIMATIONS ── */
+@keyframes orbitPulse{0%,100%{box-shadow:0 0 24px rgba(232,130,10,.7),0 0 48px rgba(232,130,10,.3)}50%{box-shadow:0 0 40px rgba(232,130,10,.9),0 0 80px rgba(232,130,10,.5)}}
+@keyframes glowPulse{0%,100%{text-shadow:0 0 20px rgba(201,169,110,.4)}50%{text-shadow:0 0 40px rgba(201,169,110,.8),0 0 80px rgba(201,169,110,.3)}}
+@keyframes borderGlow{0%,100%{border-color:rgba(232,130,10,.15)}50%{border-color:rgba(232,130,10,.4)}}
+@keyframes nebulaDrift{0%,100%{transform:scale(1) translate(0,0)}33%{transform:scale(1.03) translate(-1%,.5%)}66%{transform:scale(1.02) translate(.5%,-1%)}}
+@keyframes cardReveal{from{opacity:0;transform:translateY(32px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
 
-/* ── ENHANCED ANIMATIONS ────────────────────────────────────────── */
-@keyframes starFloat {
-  0%,100% { transform: translateY(0) scale(1); opacity:.7; }
-  50% { transform: translateY(-8px) scale(1.1); opacity:1; }
-}
-@keyframes orbitPulse {
-  0%,100% { box-shadow: 0 0 24px rgba(232,130,10,.7), 0 0 48px rgba(232,130,10,.3); }
-  50% { box-shadow: 0 0 40px rgba(232,130,10,.9), 0 0 80px rgba(232,130,10,.5), 0 0 120px rgba(232,130,10,.2); }
-}
-@keyframes shimmer {
-  0% { background-position: -200% center; }
-  100% { background-position: 200% center; }
-}
-@keyframes cardReveal {
-  from { opacity:0; transform: translateY(32px) scale(.97); }
-  to { opacity:1; transform: translateY(0) scale(1); }
-}
-@keyframes glowPulse {
-  0%,100% { text-shadow: 0 0 20px rgba(201,169,110,.4); }
-  50% { text-shadow: 0 0 40px rgba(201,169,110,.8), 0 0 80px rgba(201,169,110,.3); }
-}
-@keyframes borderGlow {
-  0%,100% { border-color: rgba(232,130,10,.25); }
-  50% { border-color: rgba(232,130,10,.6); }
-}
-@keyframes nebulaDrift {
-  0%,100%{ transform:scale(1) translate(0,0); }
-  33%{ transform:scale(1.03) translate(-1%,.5%); }
-  66%{ transform:scale(1.02) translate(.5%,-1%); }
-}
-.nav-logo-mark { animation: orbitPulse 3s ease-in-out infinite; }
-.hero h1 em { animation: glowPulse 4s ease-in-out infinite; }
-.hero-bg img { animation: nebulaDrift 18s ease-in-out infinite; }
-nav { animation: borderGlow 6s ease-in-out infinite; }
-.card { transition: transform .3s cubic-bezier(.22,1,.36,1), border-color .3s, box-shadow .3s; }
-.card:hover { transform: translateY(-6px) scale(1.008); box-shadow: 0 28px 72px rgba(0,0,0,.5), 0 0 0 1px rgba(232,130,10,.2); }
-.card-media img { transition: transform .7s cubic-bezier(.22,1,.36,1); }
-.card:hover .card-media img { transform: scale(1.08); }
-.btn { transition: all .22s cubic-bezier(.22,1,.36,1); }
-.btn-gold { background: linear-gradient(135deg, var(--gold), var(--gold2), #f0d899, var(--gold)); background-size: 300% auto; }
-.btn-gold:hover { background-position: right center; transform: translateY(-2px); box-shadow: 0 8px 32px rgba(201,169,110,.5); }
-.grid { --col-delay: 0; }
-.grid .card:nth-child(1) { animation: cardReveal .6s .05s both; }
-.grid .card:nth-child(2) { animation: cardReveal .6s .12s both; }
-.grid .card:nth-child(3) { animation: cardReveal .6s .19s both; }
-.grid .card:nth-child(4) { animation: cardReveal .6s .26s both; }
-.grid .card:nth-child(5) { animation: cardReveal .6s .33s both; }
-.grid .card:nth-child(6) { animation: cardReveal .6s .40s both; }
-.hero-stat { transition: transform .2s; }
-.hero-stat:hover { transform: scale(1.08); }
-.hero-stat-num { animation: glowPulse 5s ease-in-out infinite; animation-delay: var(--d, 0s); }
-.hero-stat:nth-child(1) .hero-stat-num { --d: 0s; }
-.hero-stat:nth-child(2) .hero-stat-num { --d: .8s; }
-.hero-stat:nth-child(3) .hero-stat-num { --d: 1.6s; }
-.hero-stat:nth-child(4) .hero-stat-num { --d: 2.4s; }
-.testimonial { transition: transform .3s, box-shadow .3s; }
-.testimonial:hover { transform: translateY(-3px); box-shadow: 0 16px 48px rgba(0,0,0,.4); }
-.filter-pill { transition: all .2s cubic-bezier(.22,1,.36,1); }
+.nav-logo-mark{animation:orbitPulse 3s ease-in-out infinite}
+.hero h1 em{animation:glowPulse 4s ease-in-out infinite}
+.hero-bg img{animation:nebulaDrift 18s ease-in-out infinite}
+nav{animation:borderGlow 6s ease-in-out infinite}
+.card{transition:transform .3s cubic-bezier(.22,1,.36,1),border-color .3s,box-shadow .3s}
+.card:hover{transform:translateY(-6px) scale(1.006);box-shadow:0 28px 72px rgba(0,0,0,.5),0 0 0 1px rgba(232,130,10,.15)}
+.card-media img{transition:transform .7s cubic-bezier(.22,1,.36,1)}
+.card:hover .card-media img{transform:scale(1.08)}
+.btn{transition:all .22s cubic-bezier(.22,1,.36,1)}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold2),#f0d899,var(--gold));background-size:300% auto}
+.btn-gold:hover{background-position:right center;transform:translateY(-2px);box-shadow:0 8px 32px rgba(201,169,110,.5)}
+.hero-stat{transition:transform .2s}
+.hero-stat:hover{transform:scale(1.08)}
+.hero-stat-num{animation:glowPulse 5s ease-in-out infinite;animation-delay:var(--d,0s)}
+.hero-stat:nth-child(1) .hero-stat-num{--d:0s}
+.hero-stat:nth-child(2) .hero-stat-num{--d:.8s}
+.hero-stat:nth-child(3) .hero-stat-num{--d:1.6s}
+.hero-stat:nth-child(4) .hero-stat-num{--d:2.4s}
+.testimonial{transition:transform .3s,box-shadow .3s}
+.testimonial:hover{transform:translateY(-3px);box-shadow:0 16px 48px rgba(0,0,0,.4)}
+.grid .card:nth-child(1){animation:cardReveal .6s .05s both}
+.grid .card:nth-child(2){animation:cardReveal .6s .12s both}
+.grid .card:nth-child(3){animation:cardReveal .6s .19s both}
+.grid .card:nth-child(4){animation:cardReveal .6s .26s both}
+.grid .card:nth-child(5){animation:cardReveal .6s .33s both}
+.grid .card:nth-child(6){animation:cardReveal .6s .40s both}
 
-/* ── STRIPE PAYMENT ELEMENT ─────────────────────────────────────── */
-#stripe-payment-element { padding: 16px; background: var(--surface); border: 1px solid var(--border2); border-radius: var(--rs); margin-bottom: 12px; min-height: 80px; }
-#stripe-error { color: var(--danger); font-size: .82rem; margin-bottom: 10px; min-height: 1.2em; }
-.stripe-secure-note { display: flex; align-items: center; gap: 7px; font-family: var(--fm); font-size: .63rem; letter-spacing: .08em; color: var(--muted); margin-bottom: 14px; }
+/* ── STRIPE ── */
+#stripe-payment-element{padding:16px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--rs);margin-bottom:12px;min-height:80px}
+#stripe-error{color:var(--danger);font-size:.82rem;margin-bottom:10px;min-height:1.2em}
+.stripe-secure-note{display:flex;align-items:center;gap:7px;font-family:var(--fm);font-size:.63rem;letter-spacing:.08em;color:var(--muted);margin-bottom:14px}
 
-/* ── TEAM SECTION ───────────────────────────────────────────────── */
-.team-login-wrap { display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 48px 24px; text-align: center; }
-.team-login-icon { width: 72px; height: 72px; background: var(--surface2); border: 1px solid var(--border2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin: 0 auto; }
-.team-login-form { background: var(--surface); border: 1px solid var(--border2); border-radius: var(--r); padding: 28px; width: 100%; max-width: 380px; }
-.team-login-form h3 { font-family: var(--fd); font-size: 1.6rem; font-weight: 300; margin-bottom: 6px; }
-.team-login-form p { color: var(--muted); font-size: .88rem; margin-bottom: 20px; }
+/* ── TEAM ── */
+.team-login-wrap{display:flex;flex-direction:column;align-items:center;gap:20px;padding:48px 24px;text-align:center}
+.team-login-icon{width:72px;height:72px;background:var(--surface2);border:1px solid var(--border2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin:0 auto}
+.team-login-form{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);padding:28px;width:100%;max-width:380px}
+.team-login-form h3{font-family:var(--fd);font-size:1.6rem;font-weight:300;margin-bottom:6px}
+.team-login-form p{color:var(--muted);font-size:.88rem;margin-bottom:20px}
 
-/* ── SCROLLBAR STYLING ──────────────────────────────────────────── */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: rgba(232,130,10,.3); border-radius: 4px; }
+/* ── WALL ART PAGE TABS ── */
+.wa-tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border2);border-radius:999px;padding:4px;width:fit-content;margin-bottom:36px}
+.wa-tab{padding:10px 28px;border-radius:999px;font-family:var(--fm);font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;border:none;background:transparent;color:var(--muted);transition:.2s}
+.wa-tab.active{background:var(--accent);color:#fff;box-shadow:0 4px 16px rgba(232,130,10,.35)}
+
+/* ── ARTIFACTS PAGE ── */
+.artifacts-hero{text-align:center;padding:72px 24px 48px;position:relative}
+.artifacts-hero h1{font-family:var(--fd);font-size:clamp(2.5rem,6vw,4.5rem);font-weight:300;margin-bottom:16px}
+.artifacts-hero p{color:var(--muted);font-size:1rem;max-width:560px;margin:0 auto 40px}
+.artifact-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:24px;padding:0 24px 80px;max-width:1280px;margin:0 auto}
+.artifact-card{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);overflow:hidden;transition:transform .3s,box-shadow .3s}
+.artifact-card:hover{transform:translateY(-4px);box-shadow:0 24px 64px rgba(0,0,0,.5)}
+.artifact-card-img{width:100%;height:200px;object-fit:cover;display:block;background:linear-gradient(135deg,var(--surface2),var(--surface))}
+.artifact-card-body{padding:20px}
+.artifact-card-body h3{font-family:var(--fd);font-size:1.25rem;font-weight:400;margin-bottom:6px}
+.artifact-card-body p{color:var(--muted);font-size:.87rem;line-height:1.65;margin-bottom:14px}
+.artifact-tag{font-family:var(--fm);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:999px;border:1px solid var(--border2);color:var(--muted);display:inline-block;margin-bottom:10px}
+.artifact-price{font-family:var(--fd);font-size:1.6rem;color:var(--gold);margin-bottom:14px}
+
+/* ── PAYMENT GATE ── */
+.payment-gate-notice{background:rgba(224,80,80,.08);border:1px solid rgba(224,80,80,.25);border-radius:var(--rs);padding:12px 16px;font-size:.84rem;color:var(--danger);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.payment-gate-notice::before{content:'🔒';font-size:.9rem}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:rgba(232,130,10,.3);border-radius:4px}
 </style>
 </head>
 <body>
 
-<nav class="mobile-bottom-nav" id="mobile-bottom-nav" style="display:none;">
+<!-- MOBILE NAV -->
+<nav class="mobile-bottom-nav" id="mobile-bottom-nav" style="display:none">
   <a class="mobile-nav-item" href="#home" data-route="home">
     <svg class="mobile-nav-icon" viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg>Home
   </a>
-  <a class="mobile-nav-item" href="#series" data-route="series">
-    <svg class="mobile-nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Series
+  <a class="mobile-nav-item" href="#wall-art" data-route="wall-art">
+    <svg class="mobile-nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Wall Art
   </a>
-  <a class="mobile-nav-item" href="#collections" data-route="collections">
-    <svg class="mobile-nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>Collections
+  <a class="mobile-nav-item" href="#artifacts" data-route="artifacts">
+    <svg class="mobile-nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Artifacts
   </a>
   <a class="mobile-nav-item" href="#bundles" data-route="bundles">
     <svg class="mobile-nav-icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>Bundles
@@ -145,8 +127,8 @@ nav { animation: borderGlow 6s ease-in-out infinite; }
   </a>
   <div class="nav-links">
     <a class="nav-link" href="#home" data-route="home">Home</a>
-    <a class="nav-link" href="#series" data-route="series">Series</a>
-    <a class="nav-link" href="#collections" data-route="collections">Collections</a>
+    <a class="nav-link" href="#wall-art" data-route="wall-art">Wall Art</a>
+    <a class="nav-link" href="#artifacts" data-route="artifacts">Artifacts</a>
     <a class="nav-link" href="#bundles" data-route="bundles">Bundles</a>
     <a class="nav-link" href="#about" data-route="about">About</a>
   </div>
@@ -169,19 +151,19 @@ nav { animation: borderGlow 6s ease-in-out infinite; }
   <div class="drawer-footer" id="drawer-footer"></div>
 </div>
 
-<!-- HOME -->
+<!-- ═══════════════════════════════════════════════════════ HOME -->
 <div class="page active" data-page="home">
   <div class="hero">
     <div class="hero-bg">
       <img src="https://images.unsplash.com/photo-1446776877081-d282a0f896e2?auto=format&fit=crop&w=1800&q=85" alt="Space"/>
     </div>
     <div class="hero-content">
-      <p class="hero-eyebrow afu">Limited-edition wall art</p>
+      <p class="hero-eyebrow afu">Limited-edition wall art &amp; artifacts</p>
       <h1 class="afu d1">The Universe,<br/><em>framed.</em></h1>
       <p class="hero-sub afu d2">Multi-panel magnetic sets that transform your walls into a continuous celestial mural. Gallery quality. Deep-space atmosphere.</p>
       <div class="hero-actions afu d3">
-        <a class="btn btn-gold" href="#series">Shop all series</a>
-        <a class="btn btn-ghost" href="#about">How it works</a>
+        <a class="btn btn-gold" href="#wall-art">Shop Wall Art</a>
+        <a class="btn btn-ghost" href="#artifacts">View Artifacts</a>
       </div>
       <div class="hero-stats afu d4">
         <div class="hero-stat"><div class="hero-stat-num">12</div><div class="hero-stat-label">Series</div></div>
@@ -199,7 +181,7 @@ nav { animation: borderGlow 6s ease-in-out infinite; }
   <section class="section">
     <div class="section-head">
       <div><p class="section-eyebrow">Curated picks</p><h2>Featured series</h2></div>
-      <a class="btn btn-ghost" href="#series">View all →</a>
+      <a class="btn btn-ghost" href="#wall-art">View all →</a>
     </div>
     <div class="grid" id="featured-series"></div>
   </section>
@@ -216,23 +198,61 @@ nav { animation: borderGlow 6s ease-in-out infinite; }
   </section>
 </div>
 
-<!-- SERIES -->
-<div class="page" data-page="series">
+<!-- ═══════════════════════════════════════════════════ WALL ART -->
+<div class="page" data-page="wall-art">
   <section class="section">
     <div class="section-head">
-      <div><p class="section-eyebrow">All series</p><h2>The collection</h2></div>
+      <div><p class="section-eyebrow">All products</p><h2>Wall Art</h2></div>
       <div class="search-wrap">
         <span class="search-icon">⌕</span>
-        <input class="search-input" type="text" id="series-search" placeholder="Search series…" oninput="renderSeries()"/>
+        <input class="search-input" type="text" id="wallart-search" placeholder="Search…" oninput="renderWallArt()"/>
       </div>
     </div>
-    <div class="filter-bar" id="filter-bar"></div>
-    <div id="series-filter-banner"></div>
-    <div class="grid" id="series-grid"></div>
+
+    <!-- Tabs: Series / Collections -->
+    <div class="wa-tabs">
+      <button class="wa-tab active" id="wa-tab-series" onclick="setWaTab('series')">Series</button>
+      <button class="wa-tab" id="wa-tab-collections" onclick="setWaTab('collections')">Collections</button>
+    </div>
+
+    <!-- Series sub-view -->
+    <div id="wa-series-view">
+      <div class="filter-bar" id="filter-bar"></div>
+      <div id="series-filter-banner"></div>
+      <div class="grid" id="series-grid"></div>
+    </div>
+
+    <!-- Collections sub-view -->
+    <div id="wa-collections-view" style="display:none">
+      <div style="margin-bottom:24px">
+        <p style="color:var(--muted);font-size:.93rem;line-height:1.7">Each panel is a standalone portrait — display any combination, in any order, on any wall.</p>
+      </div>
+      <div class="tiles-grid" id="collections-grid" style="padding:0;max-width:100%"></div>
+    </div>
+
   </section>
 </div>
 
-<!-- BUNDLES -->
+<!-- ═══════════════════════════════════════════════════ ARTIFACTS -->
+<div class="page" data-page="artifacts">
+  <div class="artifacts-hero">
+    <p class="section-eyebrow">Space-inspired objects</p>
+    <h1 style="font-family:var(--fd);font-size:clamp(2.5rem,6vw,4.5rem);font-weight:300;margin-bottom:16px">Artifacts</h1>
+    <p style="color:var(--muted);font-size:1rem;max-width:560px;margin:0 auto 40px">Functional objects that bring deep space into everyday life. Mouse pads, desk accessories, apparel and more — each designed with the same celestial aesthetic.</p>
+  </div>
+  <div class="artifact-grid" id="artifact-grid"></div>
+
+  <!-- Wholesale sourcing section -->
+  <section class="section" style="padding-top:0;border-top:1px solid var(--border)">
+    <div class="section-head" style="margin-top:60px">
+      <div><p class="section-eyebrow">Source &amp; supply</p><h2>Wholesale sourcing</h2></div>
+    </div>
+    <p style="color:var(--muted);line-height:1.8;max-width:700px;margin-bottom:40px">The platforms below are where you can wholesale custom-printed artifacts — mouse pads, apparel, mugs, phone cases and more — with your Spacenova designs applied. Most offer white-label drop-shipping so you never hold stock.</p>
+    <div class="grid" id="wholesale-grid"></div>
+  </section>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ BUNDLES -->
 <div class="page" data-page="bundles">
   <section class="section">
     <div class="section-head">
@@ -243,15 +263,15 @@ nav { animation: borderGlow 6s ease-in-out infinite; }
   </section>
 </div>
 
-<!-- ABOUT -->
+<!-- ═══════════════════════════════════════════════════ ABOUT -->
 <div class="page" data-page="about">
   <section class="section">
     <div class="about-grid">
       <div>
         <p class="section-eyebrow">Our craft</p>
-        <h2 style="font-family:var(--fd);font-size:clamp(2rem,4vw,3.4rem);font-weight:300;margin-bottom:16px;">Bringing deep space<br/><em style="font-style:italic;color:var(--gold)">to your walls.</em></h2>
-        <p style="color:var(--muted);line-height:1.8;margin-bottom:16px;">Each spacenova series begins as a single large-format artwork, meticulously divided across 3–9 individually framed panels. Tiny magnets hidden inside each frame edge ensure precise, clean alignment — no measuring tape required.</p>
-        <p style="color:var(--muted);line-height:1.8;">Our materials are gallery-grade: heavyweight matte papers, museum-quality UV inks, and matte-black powder-coated aluminium frames. Built to last decades.</p>
+        <h2 style="font-family:var(--fd);font-size:clamp(2rem,4vw,3.4rem);font-weight:300;margin-bottom:16px">Bringing deep space<br/><em style="font-style:italic;color:var(--gold)">to your walls.</em></h2>
+        <p style="color:var(--muted);line-height:1.8;margin-bottom:16px">Each spacenova series begins as a single large-format artwork, meticulously divided across 3–9 individually framed panels. Tiny magnets hidden inside each frame edge ensure precise, clean alignment — no measuring tape required.</p>
+        <p style="color:var(--muted);line-height:1.8">Our materials are gallery-grade: heavyweight matte papers, museum-quality UV inks, and matte-black powder-coated aluminium frames. Built to last decades.</p>
         <div class="feature-list">
           <div class="feature-item"><div class="feature-icon">🔲</div><div><h4>Magnetic edge alignment</h4><p>Panels snap into precise position. No measuring, no guesswork, no crooked frames.</p></div></div>
           <div class="feature-item"><div class="feature-icon">🎨</div><div><h4>Museum-grade print quality</h4><p>UV-resistant inks on 280gsm cotton rag paper, rated for 100+ years of display life.</p></div></div>
@@ -264,7 +284,6 @@ nav { animation: borderGlow 6s ease-in-out infinite; }
     </div>
   </section>
 
-  <!-- TEAM / ADMIN SECTION -->
   <section class="section" style="padding-top:0">
     <div class="section-divider" style="margin-bottom:60px"></div>
     <div class="section-head" style="margin-bottom:32px">
@@ -285,18 +304,9 @@ nav { animation: borderGlow 6s ease-in-out infinite; }
   </section>
 </div>
 
-<!-- PRODUCT -->
+<!-- ═══════════════════════════════════════════════════ PRODUCT -->
 <div class="page" data-page="product">
   <div class="product-wrap" id="page-product"></div>
-</div>
-
-<!-- COLLECTIONS -->
-<div class="page" data-page="collections">
-  <div class="tiles-hero">
-    <h1>Collections</h1>
-    <p>Each panel is a standalone portrait — display any combination, in any order, on any wall.</p>
-  </div>
-  <div class="tiles-grid" id="collections-grid"></div>
 </div>
 
 <footer>
@@ -307,7 +317,7 @@ nav { animation: borderGlow 6s ease-in-out infinite; }
       </div>
       <p>Multi-panel magnetic wall art for discerning interiors. Gallery quality, deep-space atmosphere.</p>
     </div>
-    <div class="footer-col"><h4>Shop</h4><a href="#series">All series</a><a href="#collections">Collections</a><a href="#bundles">Bundles</a></div>
+    <div class="footer-col"><h4>Shop</h4><a href="#wall-art">All series</a><a href="#wall-art">Collections</a><a href="#artifacts">Artifacts</a><a href="#bundles">Bundles</a></div>
     <div class="footer-col"><h4>Company</h4><a href="#about">About</a><a href="#about">Sustainability</a><a href="#about">Press</a></div>
     <div class="footer-col"><h4>Support</h4><a href="#about">FAQ</a><a href="#about">Shipping &amp; returns</a><a href="#about">Contact us</a></div>
   </div>
@@ -318,22 +328,20 @@ nav { animation: borderGlow 6s ease-in-out infinite; }
 </footer>
 
 <script>
-// ─── DATA ─────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════ DATA
 var products = [
-  // SERIES (isCollection: false or omitted = series)
-  {slug:"saturn-rings-arc",name:"Saturn Rings Arc",pieces:"3-panel wall set",panelHint:"3-panel elegant arc",price:179,priceLabel:"£149–£199",short:"Saturn's iconic rings fill the frame — amber bands glowing against the dark void in breathtaking close-up.",description:"An extraordinary close-up of Saturn's ring system across three landscape panels. The amber, gold and shadow-bands create a natural triptych composition.",image:"https://static.scientificamerican.com/dam/m/3360d68d1ff517ac/original/saturn_from_its_rings.jpg?m=1752790178.212&crop=1%3A1%2Csmart&w=1000",category:"planets",accent:"Amber / gold / black",size:"Triptych",material:"Matte-black magnetic frame",note:"This set forms a single Saturn rings image only.",isCollection:false},
-  {slug:"black-hole-nebula",name:"Black Hole Nebula",pieces:"5-panel wall set",panelHint:"5-panel magnetic mural",price:229,priceLabel:"£189–£249",short:"A dark-core nebula with deep blues, glowing dust lanes and a dramatic event-horizon feel.",description:"One complete black-hole-inspired nebula artwork divided across five matching framed panels.",image:"https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1200&q=80",category:"nebula",accent:"Deep space / blue",size:"Large panoramic",material:"Matte-black magnetic frame",note:"This full image connects only within the Black Hole Nebula series.",isCollection:false},
-  {slug:"nebula-crown",name:"Nebula Crown",pieces:"9-panel wall set",panelHint:"9-panel statement grid",price:349,priceLabel:"£299–£389",short:"A richly layered nebula in blue-green fire — a statement piece built for gallery walls.",description:"A statement piece designed as one complete nebula artwork broken into a nine-panel gallery grid.",image:"https://images.unsplash.com/photo-1464802686167-b939a6910659?auto=format&fit=crop&w=1200&q=80",category:"nebula",accent:"Blue / green / teal",size:"Large mural grid",material:"Matte-black magnetic frame",note:"Nebula Crown panels connect only within the same nine-panel artwork.",isCollection:false},
-  {slug:"andromeda-galaxy",name:"Andromeda Galaxy",pieces:"6-panel panoramic set",panelHint:"6-panel panoramic mural",price:279,priceLabel:"£239–£309",short:"The Andromeda galaxy in full — a sweeping panoramic spanning 2.5 million light years.",description:"One complete Andromeda-inspired galaxy image divided into six panels for a wide panoramic wall installation.",image:"https://images.unsplash.com/photo-1502134249126-9f3755a50d78?auto=format&fit=crop&w=1200&q=80",category:"galaxy",accent:"Blue / silver / warm core",size:"Wide panoramic",material:"Matte-black magnetic frame",note:"All six panels belong to one artwork.",isCollection:false},
-  {slug:"deep-field",name:"Deep Field",pieces:"4-panel wall set",panelHint:"4-panel deep field",price:219,priceLabel:"£179–£249",short:"Thousands of galaxies in a single Hubble-inspired deep-field — infinite depth on your wall.",description:"This Hubble-inspired deep-field composition spreads across four matching panels.",image:"https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=1200&q=80",category:"galaxy",accent:"Blue / violet / black",size:"Wide set",material:"Matte-black magnetic frame",note:"Deep Field is its own complete mural.",isCollection:false},
-  {slug:"aurora-over-earth",name:"Aurora over Earth",pieces:"5-panel wall set",panelHint:"5-panel aurora mural",price:229,priceLabel:"£189–£259",short:"Glowing auroral curtains sweep across Earth's limb in electric green against infinite black.",description:"A single aurora artwork split across five matching panels.",image:"https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?auto=format&fit=crop&w=1200&q=80",category:"earth",accent:"Green / blue / black",size:"Mid panoramic",material:"Matte-black magnetic frame",note:"Aurora over Earth connects only within its five-panel series.",isCollection:false},
-  {slug:"earth-from-space",name:"Earth from Space",pieces:"4-panel wall set",panelHint:"4-panel orbital set",price:209,priceLabel:"£169–£229",short:"A luminous Earth horizon — cloud bands, ocean glow and the razor-thin line of the atmosphere.",description:"One complete Earth artwork split into four elegant framed pieces.",image:"https://images.unsplash.com/photo-1446776877081-d282a0f896e2?auto=format&fit=crop&w=1200&q=80",category:"earth",accent:"Blue / black / white",size:"Wide wall set",material:"Matte-black magnetic frame",note:"This series forms one large Earth image.",isCollection:false},
-  {slug:"moon-landing",name:"Moon Landing",pieces:"3-panel wall set",panelHint:"3-panel triptych",price:179,priceLabel:"£149–£199",short:"A stark lunar scene with crater textures, hard shadow and the pure silence of the Moon's surface.",description:"One continuous Moon landing artwork across three coordinated framed panels.",image:"https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80",category:"lunar",accent:"Grey / black / soft blue",size:"Triptych",material:"Matte-black magnetic frame",note:"The Moon Landing panels magnetically align with each other only.",isCollection:false},
-  {slug:"cosmic-hourglass",name:"Cosmic Hourglass",pieces:"6-panel panoramic set",panelHint:"6-panel portrait grid",price:269,priceLabel:"£229–£299",short:"The MyCn18 hourglass nebula — one of the most geometrically perfect structures in the universe.",description:"The striking hourglass nebula rendered across six panels in two rows of three.",image:"https://images.unsplash.com/photo-1543722530-d2c3201371e7?auto=format&fit=crop&w=1200&q=80",category:"nebula",accent:"Pink / teal / black",size:"6-panel portrait grid",material:"Matte-black magnetic frame",note:"The Cosmic Hourglass panels form one complete symmetrical composition.",isCollection:false},
-  {slug:"mars-surface",name:"Mars Surface",pieces:"4-panel wall set",panelHint:"4-panel terrain panoramic",price:209,priceLabel:"£169–£235",short:"The russet plains of Mars stretching to the horizon — desolate, vast and hauntingly beautiful.",description:"A wide Martian surface panoramic across four framed panels.",image:"https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?auto=format&fit=crop&w=1200&q=80",category:"planets",accent:"Red / copper / dusty pink",size:"Wide panoramic",material:"Matte-black magnetic frame",note:"This Mars surface panoramic is exclusive to this series.",isCollection:false},
-  {slug:"stellar-nursery",name:"Stellar Nursery",pieces:"9-panel wall set",panelHint:"9-panel immersive grid",price:369,priceLabel:"£319–£409",short:"Inside the Pillars of Creation — towering columns of gas and dust where stars are born.",description:"The iconic Pillars of Creation reimagined as a nine-panel immersive grid.",image:"https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1200&q=80",category:"nebula",accent:"Emerald / gold / deep blue",size:"Large immersive grid",material:"Matte-black magnetic frame",note:"Stellar Nursery panels form one continuous pillar composition.",isCollection:false},
-  // COLLECTIONS (isCollection: true) — shown in Collections only, NOT in series
-  {slug:"planetary-series",name:"Planetary Collection",pieces:"9-panel wall set",panelHint:"9 panels — one planet each",price:349,priceLabel:"£299–£389",short:"All nine planets rendered as individual studio portraits — hang any combination.",description:"Nine individually framed portraits — one per planet, Mercury through Pluto.",image:"https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?auto=format&fit=crop&w=1200&q=80",category:"planets",accent:"Black / gold / multicolour",size:"9-panel gallery grid",material:"Matte-black magnetic frame",note:"Each panel features one planet. Any combination works.",isCollection:true,panelImages:["https://images.unsplash.com/photo-1614314107768-6018061b5b72?w=400","https://images.unsplash.com/photo-1614313913007-2b4ae8ce32d6?w=400","https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400","https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?w=400","https://images.unsplash.com/photo-1614732414444-096e5f1122d5?w=400","https://static.scientificamerican.com/dam/m/3360d68d1ff517ac/original/saturn_from_its_rings.jpg","https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?w=400","https://images.unsplash.com/photo-1614732414444-096e5f1122d5?w=400","https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?w=400"],panelNames:["Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto"]}
+  {slug:"saturn-rings-arc",name:"Saturn Rings Arc",pieces:"3",panelHint:"3-panel elegant arc",price:179,priceLabel:"£149–£199",short:"Saturn's iconic rings fill the frame — amber bands glowing against the dark void in breathtaking close-up.",description:"An extraordinary close-up of Saturn's ring system across three landscape panels. The amber, gold and shadow-bands create a natural triptych composition.",image:"https://static.scientificamerican.com/dam/m/3360d68d1ff517ac/original/saturn_from_its_rings.jpg?m=1752790178.212&crop=1%3A1%2Csmart&w=1000",category:"planets",accent:"Amber / gold / black",size:"Triptych",material:"Matte-black magnetic frame",note:"This set forms a single Saturn rings image only.",isCollection:false},
+  {slug:"black-hole-nebula",name:"Black Hole Nebula",pieces:"5",panelHint:"5-panel magnetic mural",price:229,priceLabel:"£189–£249",short:"A dark-core nebula with deep blues, glowing dust lanes and a dramatic event-horizon feel.",description:"One complete black-hole-inspired nebula artwork divided across five matching framed panels.",image:"https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1200&q=80",category:"nebula",accent:"Deep space / blue",size:"Large panoramic",material:"Matte-black magnetic frame",note:"This full image connects only within the Black Hole Nebula series.",isCollection:false},
+  {slug:"nebula-crown",name:"Nebula Crown",pieces:"9",panelHint:"9-panel statement grid",price:349,priceLabel:"£299–£389",short:"A richly layered nebula in blue-green fire — a statement piece built for gallery walls.",description:"A statement piece designed as one complete nebula artwork broken into a nine-panel gallery grid.",image:"https://images.unsplash.com/photo-1464802686167-b939a6910659?auto=format&fit=crop&w=1200&q=80",category:"nebula",accent:"Blue / green / teal",size:"Large mural grid",material:"Matte-black magnetic frame",note:"Nebula Crown panels connect only within the same nine-panel artwork.",isCollection:false},
+  {slug:"andromeda-galaxy",name:"Andromeda Galaxy",pieces:"6",panelHint:"6-panel panoramic mural",price:279,priceLabel:"£239–£309",short:"The Andromeda galaxy in full — a sweeping panoramic spanning 2.5 million light years.",description:"One complete Andromeda-inspired galaxy image divided into six panels for a wide panoramic wall installation.",image:"https://images.unsplash.com/photo-1502134249126-9f3755a50d78?auto=format&fit=crop&w=1200&q=80",category:"galaxy",accent:"Blue / silver / warm core",size:"Wide panoramic",material:"Matte-black magnetic frame",note:"All six panels belong to one artwork.",isCollection:false},
+  {slug:"deep-field",name:"Deep Field",pieces:"4",panelHint:"4-panel deep field",price:219,priceLabel:"£179–£249",short:"Thousands of galaxies in a single Hubble-inspired deep-field — infinite depth on your wall.",description:"This Hubble-inspired deep-field composition spreads across four matching panels.",image:"https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=1200&q=80",category:"galaxy",accent:"Blue / violet / black",size:"Wide set",material:"Matte-black magnetic frame",note:"Deep Field is its own complete mural.",isCollection:false},
+  {slug:"aurora-over-earth",name:"Aurora over Earth",pieces:"5",panelHint:"5-panel aurora mural",price:229,priceLabel:"£189–£259",short:"Glowing auroral curtains sweep across Earth's limb in electric green against infinite black.",description:"A single aurora artwork split across five matching panels.",image:"https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?auto=format&fit=crop&w=1200&q=80",category:"earth",accent:"Green / blue / black",size:"Mid panoramic",material:"Matte-black magnetic frame",note:"Aurora over Earth connects only within its five-panel series.",isCollection:false},
+  {slug:"earth-from-space",name:"Earth from Space",pieces:"4",panelHint:"4-panel orbital set",price:209,priceLabel:"£169–£229",short:"A luminous Earth horizon — cloud bands, ocean glow and the razor-thin line of the atmosphere.",description:"One complete Earth artwork split into four elegant framed pieces.",image:"https://images.unsplash.com/photo-1446776877081-d282a0f896e2?auto=format&fit=crop&w=1200&q=80",category:"earth",accent:"Blue / black / white",size:"Wide wall set",material:"Matte-black magnetic frame",note:"This series forms one large Earth image.",isCollection:false},
+  {slug:"moon-landing",name:"Moon Landing",pieces:"3",panelHint:"3-panel triptych",price:179,priceLabel:"£149–£199",short:"A stark lunar scene with crater textures, hard shadow and the pure silence of the Moon's surface.",description:"One continuous Moon landing artwork across three coordinated framed panels.",image:"https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80",category:"lunar",accent:"Grey / black / soft blue",size:"Triptych",material:"Matte-black magnetic frame",note:"The Moon Landing panels magnetically align with each other only.",isCollection:false},
+  {slug:"cosmic-hourglass",name:"Cosmic Hourglass",pieces:"6",panelHint:"6-panel portrait grid",price:269,priceLabel:"£229–£299",short:"The MyCn18 hourglass nebula — one of the most geometrically perfect structures in the universe.",description:"The striking hourglass nebula rendered across six panels in two rows of three.",image:"https://images.unsplash.com/photo-1543722530-d2c3201371e7?auto=format&fit=crop&w=1200&q=80",category:"nebula",accent:"Pink / teal / black",size:"6-panel portrait grid",material:"Matte-black magnetic frame",note:"The Cosmic Hourglass panels form one complete symmetrical composition.",isCollection:false},
+  {slug:"mars-surface",name:"Mars Surface",pieces:"4",panelHint:"4-panel terrain panoramic",price:209,priceLabel:"£169–£235",short:"The russet plains of Mars stretching to the horizon — desolate, vast and hauntingly beautiful.",description:"A wide Martian surface panoramic across four framed panels.",image:"https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?auto=format&fit=crop&w=1200&q=80",category:"planets",accent:"Red / copper / dusty pink",size:"Wide panoramic",material:"Matte-black magnetic frame",note:"This Mars surface panoramic is exclusive to this series.",isCollection:false},
+  {slug:"stellar-nursery",name:"Stellar Nursery",pieces:"9",panelHint:"9-panel immersive grid",price:369,priceLabel:"£319–£409",short:"Inside the Pillars of Creation — towering columns of gas and dust where stars are born.",description:"The iconic Pillars of Creation reimagined as a nine-panel immersive grid.",image:"https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1200&q=80",category:"nebula",accent:"Emerald / gold / deep blue",size:"Large immersive grid",material:"Matte-black magnetic frame",note:"Stellar Nursery panels form one continuous pillar composition.",isCollection:false},
+  {slug:"planetary-series",name:"Planetary Collection",pieces:"9",panelHint:"9 panels — one planet each",price:349,priceLabel:"£299–£389",short:"All nine planets rendered as individual studio portraits — hang any combination.",description:"Nine individually framed portraits — one per planet, Mercury through Pluto.",image:"https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?auto=format&fit=crop&w=1200&q=80",category:"planets",accent:"Black / gold / multicolour",size:"9-panel gallery grid",material:"Matte-black magnetic frame",note:"Each panel features one planet. Any combination works.",isCollection:true,panelImages:["https://images.unsplash.com/photo-1614314107768-6018061b5b72?w=400","https://images.unsplash.com/photo-1614313913007-2b4ae8ce32d6?w=400","https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400","https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?w=400","https://images.unsplash.com/photo-1614732414444-096e5f1122d5?w=400","https://static.scientificamerican.com/dam/m/3360d68d1ff517ac/original/saturn_from_its_rings.jpg","https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?w=400","https://images.unsplash.com/photo-1614732414444-096e5f1122d5?w=400","https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?w=400"],panelNames:["Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto"]}
 ];
 
 var bundles = [
@@ -345,432 +353,465 @@ var bundles = [
   {slug:"solar-panorama-duo",name:"Solar Panorama Duo",price:"£479",items:["stellar-nursery","deep-field"],text:"A clean extra-wide pairing for modern interiors that want graphic structure and celestial depth."}
 ];
 
+var artifacts = [
+  {name:"Galaxy Desk Mat",category:"Desk",price:34.99,desc:"Extra-large 900×400mm mouse pad with sublimation-printed nebula artwork. Non-slip rubber base, stitched edges.",image:"https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=600&q=80"},
+  {name:"Deep Space Mug",category:"Drinkware",price:18.99,desc:"330ml ceramic mug with colour-changing heat-reactive nebula print. Dishwasher safe.",image:"https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=600&q=80"},
+  {name:"Aurora Tote Bag",category:"Accessories",price:22.99,desc:"Heavyweight canvas tote with photographic aurora print. 38cm × 42cm, internal zip pocket.",image:"https://images.unsplash.com/photo-1591561954555-607968c989ab?w=600&q=80"},
+  {name:"Cosmos Notebook",category:"Stationery",price:16.99,desc:"A5 hardcover notebook, 192 dot-grid pages. Lay-flat binding with galaxy-print cover.",image:"https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=600&q=80"},
+  {name:"Nebula Phone Case",category:"Tech",price:19.99,desc:"MagSafe-compatible case for iPhone 14/15 Pro. Dual-layer with printed nebula panel.",image:"https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=600&q=80"},
+  {name:"Space Enamel Pin Set",category:"Collectibles",price:12.99,desc:"Set of 6 hard enamel pins — Saturn, Moon, astronaut, rocket, black hole, and comet.",image:"https://images.unsplash.com/photo-1569451875784-52a97e5c3f41?w=600&q=80"}
+];
+
+var wholesaleSources = [
+  {name:"Printful",url:"https://www.printful.com",desc:"Industry-leading print-on-demand. Offers mouse pads, apparel, mugs, phone cases. Integrates with Shopify / WooCommerce. Ships worldwide with white-label packaging.",best:"Apparel, mouse pads, mugs"},
+  {name:"Printify",url:"https://printify.com",desc:"Marketplace of 90+ print providers. Competitive pricing via provider selection. Broad product catalogue including canvas prints, drinkware, and accessories.",best:"Wide product range, best pricing"},
+  {name:"Contrado",url:"https://www.contrado.co.uk",desc:"UK-based premium print-on-demand with exceptional fabric and home goods quality. Ideal for high-end accessories and home textiles. White-label available.",best:"Premium quality, UK-based"},
+  {name:"Bags of Love",url:"https://www.bagsoflove.co.uk",desc:"UK manufacturer offering custom-printed home accessories, photo gifts, and apparel. B2B wholesale pricing available. Based in London.",best:"UK gifts, home accessories"},
+  {name:"Prodigi",url:"https://www.prodigi.com",desc:"Professional print-on-demand for wall art, canvas, framing, and accessories. Strong focus on fine-art quality. Global fulfilment network.",best:"Fine art, framing, wall art"},
+  {name:"Redbubble (Wholesale API)",url:"https://www.redbubble.com",desc:"Marketplace with white-label API access. Good for reaching existing audiences. Lower margin but zero fulfilment overhead.",best:"Marketplace exposure"}
+];
+
 var featuredSlugs = ["saturn-rings-arc","black-hole-nebula","andromeda-galaxy","aurora-over-earth","stellar-nursery","cosmic-hourglass"];
 
-// ─── STATE ────────────────────────────────────────────────────────
-var basket = [], wishlist = [], activeFilter = null, activeSeriesFilter = null;
+// ═══════════════════════════════════════════════ STATE
+var basket = [], wishlist = [], activeFilter = null, activeSeriesFilter = null, waTab = 'series';
 var checkoutStep = 0, productQty = 1, orderRef = '';
 var stripe = null, stripeElements = null, stripePaymentElement = null, stripeClientSecret = null;
+var paymentConfirmed = false; // CRITICAL: must be true before order placed
 
-try { var sb = localStorage.getItem('cfBasket3'); if (sb) basket = JSON.parse(sb); } catch(e){}
-try { var sw = localStorage.getItem('cfWishlist3'); if (sw) wishlist = JSON.parse(sw); } catch(e){}
+try{var sb=localStorage.getItem('cfBasket4');if(sb)basket=JSON.parse(sb);}catch(e){}
+try{var sw=localStorage.getItem('cfWishlist4');if(sw)wishlist=JSON.parse(sw);}catch(e){}
 
-// Init Stripe with env-injected key or placeholder
-var STRIPE_PK = (typeof STRIPE_PUBLISHABLE_KEY !== 'undefined') ? STRIPE_PUBLISHABLE_KEY : (window.ENV_STRIPE_PK || 'pk_test_placeholder');
-try { if (STRIPE_PK !== 'pk_test_placeholder') stripe = Stripe(STRIPE_PK); } catch(e){ console.warn('Stripe init:', e); }
+var STRIPE_PK=(typeof STRIPE_PUBLISHABLE_KEY!=='undefined')?STRIPE_PUBLISHABLE_KEY:(window.ENV_STRIPE_PK||'pk_test_placeholder');
+try{if(STRIPE_PK!=='pk_test_placeholder')stripe=Stripe(STRIPE_PK);}catch(e){console.warn('Stripe init:',e);}
 
-// ─── HELPERS ──────────────────────────────────────────────────────
-function gbp(n) { return '£' + n.toFixed(2); }
-function saveState() {
-  try { localStorage.setItem('cfBasket3', JSON.stringify(basket)); localStorage.setItem('cfWishlist3', JSON.stringify(wishlist)); } catch(e){}
+// ═══════════════════════════════════════════════ HELPERS
+function gbp(n){return '£'+parseFloat(n).toFixed(2);}
+function saveState(){try{localStorage.setItem('cfBasket4',JSON.stringify(basket));localStorage.setItem('cfWishlist4',JSON.stringify(wishlist));}catch(e){}}
+function showToast(msg,type){
+  var tc=document.getElementById('toast-container');if(!tc)return;
+  var el=document.createElement('div');el.className='toast';
+  if(type==='danger')el.style.borderLeftColor='var(--danger)';
+  else if(type==='info')el.style.borderLeftColor='var(--accent)';
+  el.textContent=msg;tc.appendChild(el);
+  setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);},2700);
 }
-function showToast(msg, type) {
-  var tc = document.getElementById('toast-container'); if (!tc) return;
-  var el = document.createElement('div'); el.className = 'toast';
-  if (type === 'danger') el.style.borderLeftColor = 'var(--danger)';
-  else if (type === 'info') el.style.borderLeftColor = 'var(--accent)';
-  el.textContent = msg; tc.appendChild(el);
-  setTimeout(function(){ if (el.parentNode) el.parentNode.removeChild(el); }, 2700);
-}
-function updateBadge() {
-  var count = 0; for (var i = 0; i < basket.length; i++) count += basket[i].qty;
-  var badge = document.getElementById('basket-badge');
-  if (badge) { badge.textContent = count; badge.classList.toggle('visible', count > 0); }
+function updateBadge(){
+  var count=0;for(var i=0;i<basket.length;i++)count+=basket[i].qty;
+  var badge=document.getElementById('basket-badge');
+  if(badge){badge.textContent=count;badge.classList.toggle('visible',count>0);}
 }
 
-// ─── TEAM LOGIN ───────────────────────────────────────────────────
-function teamLogin() {
-  var pw = document.getElementById('team-password').value;
-  var err = document.getElementById('team-error');
-  err.style.display = 'none';
-  fetch('/.netlify/functions/auth', { method:'POST', body: JSON.stringify({password: pw}) })
-    .then(function(r){ return r.json(); })
+// ═══════════════════════════════════════════════ WALL ART TABS
+function setWaTab(tab){
+  waTab=tab;
+  document.getElementById('wa-tab-series').classList.toggle('active',tab==='series');
+  document.getElementById('wa-tab-collections').classList.toggle('active',tab==='collections');
+  document.getElementById('wa-series-view').style.display=tab==='series'?'block':'none';
+  document.getElementById('wa-collections-view').style.display=tab==='collections'?'block':'none';
+  if(tab==='collections')renderCollections();
+}
+
+// ═══════════════════════════════════════════════ TEAM LOGIN
+function teamLogin(){
+  var pw=document.getElementById('team-password').value;
+  var err=document.getElementById('team-error');
+  err.style.display='none';
+  fetch('/.netlify/functions/auth',{method:'POST',body:JSON.stringify({password:pw})})
+    .then(function(r){return r.json();})
     .then(function(d){
-      if (d.ok) {
-        sessionStorage.setItem('admin','1');
-        window.location.href = '/admin/creator.html';
-      } else {
-        err.style.display = 'block';
-        document.getElementById('team-password').value = '';
-      }
+      if(d.ok){sessionStorage.setItem('admin','1');sessionStorage.setItem('admin_pw',pw);window.location.href='/admin/creator.html';}
+      else{err.style.display='block';document.getElementById('team-password').value='';}
     })
-    .catch(function(){
-      // Dev mode: accept any input if server not available
-      err.style.display = 'block';
-    });
+    .catch(function(){err.style.display='block';});
 }
 
-// ─── BASKET ───────────────────────────────────────────────────────
-function addToBasket(slug, qty) {
-  if (!qty) qty = 1;
-  var p = null; for (var i = 0; i < products.length; i++) { if (products[i].slug === slug) { p = products[i]; break; } }
-  if (!p) return;
-  var found = false;
-  for (var j = 0; j < basket.length; j++) { if (basket[j].slug === slug) { basket[j].qty += qty; found = true; break; } }
-  if (!found) basket.push({slug: p.slug, name: p.name, price: p.price, image: p.image, qty: qty});
-  saveState(); updateBadge(); renderDrawer();
-  showToast(p.name + ' added to basket');
+// ═══════════════════════════════════════════════ BASKET
+function addToBasket(slug,qty){
+  if(!qty)qty=1;
+  var p=products.find(function(x){return x.slug===slug;});if(!p)return;
+  var found=false;
+  for(var j=0;j<basket.length;j++){if(basket[j].slug===slug){basket[j].qty+=qty;found=true;break;}}
+  if(!found)basket.push({slug:p.slug,name:p.name,price:p.price,image:p.image,qty:qty});
+  saveState();updateBadge();renderDrawer();showToast(p.name+' added to basket');
 }
-function addToBasketSilent(slug) {
-  var p = null; for (var i = 0; i < products.length; i++) { if (products[i].slug === slug) { p = products[i]; break; } }
-  if (!p) return;
-  var found = false;
-  for (var j = 0; j < basket.length; j++) { if (basket[j].slug === slug) { basket[j].qty += 1; found = true; break; } }
-  if (!found) basket.push({slug: p.slug, name: p.name, price: p.price, image: p.image, qty: 1});
-  saveState(); updateBadge();
+function addToBasketSilent(slug){
+  var p=products.find(function(x){return x.slug===slug;});if(!p)return;
+  var found=false;
+  for(var j=0;j<basket.length;j++){if(basket[j].slug===slug){basket[j].qty+=1;found=true;break;}}
+  if(!found)basket.push({slug:p.slug,name:p.name,price:p.price,image:p.image,qty:1});
+  saveState();updateBadge();
 }
-function addBundleToBasket(bundleSlug) {
-  var bundle = null; for (var i = 0; i < bundles.length; i++) { if (bundles[i].slug === bundleSlug) { bundle = bundles[i]; break; } }
-  if (!bundle) return;
-  for (var j = 0; j < bundle.items.length; j++) addToBasketSilent(bundle.items[j]);
-  renderDrawer(); showToast(bundle.name + ' — all series added to basket');
+function addBundleToBasket(bundleSlug){
+  var bundle=bundles.find(function(b){return b.slug===bundleSlug;});if(!bundle)return;
+  bundle.items.forEach(function(s){addToBasketSilent(s);});
+  renderDrawer();showToast(bundle.name+' — all series added to basket');
 }
-function updateQty(slug, delta) {
-  for (var i = 0; i < basket.length; i++) { if (basket[i].slug === slug) { basket[i].qty = Math.max(1, basket[i].qty + delta); break; } }
-  saveState(); updateBadge(); renderDrawer();
+function updateQty(slug,delta){
+  for(var i=0;i<basket.length;i++){if(basket[i].slug===slug){basket[i].qty=Math.max(1,basket[i].qty+delta);break;}}
+  saveState();updateBadge();renderDrawer();
 }
-function removeFromBasket(slug) {
-  basket = basket.filter(function(b){ return b.slug !== slug; });
-  saveState(); updateBadge(); renderDrawer(); showToast('Item removed', 'info');
+function removeFromBasket(slug){
+  basket=basket.filter(function(b){return b.slug!==slug;});
+  saveState();updateBadge();renderDrawer();showToast('Item removed','info');
 }
-function getSubtotal() { var s=0; for (var i=0;i<basket.length;i++) s+=basket[i].price*basket[i].qty; return s; }
-function getShipping() { return getSubtotal() >= 300 ? 0 : 12; }
-function getTotal() { return getSubtotal() + getShipping(); }
+function getSubtotal(){var s=0;for(var i=0;i<basket.length;i++)s+=basket[i].price*basket[i].qty;return s;}
+function getShipping(){return getSubtotal()>=300?0:12;}
+function getTotal(){return getSubtotal()+getShipping();}
 
-// ─── WISHLIST ─────────────────────────────────────────────────────
-function toggleWishlist(slug, event) {
-  if (event) { event.preventDefault(); event.stopPropagation(); }
-  var idx = wishlist.indexOf(slug);
-  if (idx >= 0) { wishlist.splice(idx,1); showToast('Removed from wishlist','info'); }
-  else { wishlist.push(slug); showToast('Added to wishlist'); }
+// ═══════════════════════════════════════════════ WISHLIST
+function toggleWishlist(slug,event){
+  if(event){event.preventDefault();event.stopPropagation();}
+  var idx=wishlist.indexOf(slug);
+  if(idx>=0){wishlist.splice(idx,1);showToast('Removed from wishlist','info');}
+  else{wishlist.push(slug);showToast('Added to wishlist');}
   saveState();
   document.querySelectorAll('.wl-btn[data-slug="'+slug+'"]').forEach(function(b){
-    var inWl = wishlist.indexOf(slug) >= 0;
-    b.textContent = inWl ? '♥' : '♡';
-    b.classList.toggle('active', inWl);
+    var inWl=wishlist.indexOf(slug)>=0;
+    b.textContent=inWl?'♥':'♡';b.classList.toggle('active',inWl);
   });
 }
 
-// ─── DRAWER ───────────────────────────────────────────────────────
-function openBasket() {
-  checkoutStep = 0; stripeClientSecret = null; stripeElements = null; stripePaymentElement = null;
+// ═══════════════════════════════════════════════ DRAWER
+function openBasket(){
+  checkoutStep=0;stripeClientSecret=null;stripeElements=null;stripePaymentElement=null;paymentConfirmed=false;
   document.getElementById('basket-drawer').classList.add('open');
   document.getElementById('basket-overlay').classList.add('open');
   renderDrawer();
 }
-function closeBasket() {
+function closeBasket(){
   document.getElementById('basket-drawer').classList.remove('open');
   document.getElementById('basket-overlay').classList.remove('open');
 }
-function renderDrawer() {
-  var body = document.getElementById('drawer-body'), footer = document.getElementById('drawer-footer');
-  if (!body || !footer) return;
+function renderDrawer(){
+  var body=document.getElementById('drawer-body'),footer=document.getElementById('drawer-footer');
+  if(!body||!footer)return;
   updateBadge();
-  if (checkoutStep === 4) {
-    body.innerHTML = renderOrderSuccess();
-    footer.innerHTML = '<button class="btn btn-ghost" style="width:100%" onclick="closeBasket()">Continue shopping</button>';
+  if(checkoutStep===4){
+    body.innerHTML=renderOrderSuccess();
+    footer.innerHTML='<button class="btn btn-ghost" style="width:100%" onclick="closeBasket()">Continue shopping</button>';
     return;
   }
-  if (checkoutStep > 0) {
-    body.innerHTML = renderCheckoutForm();
-    footer.innerHTML = renderCheckoutFooter();
-    if (checkoutStep === 2) requestAnimationFrame(mountStripeElement);
+  if(checkoutStep>0){
+    body.innerHTML=renderCheckoutForm();
+    footer.innerHTML=renderCheckoutFooter();
+    if(checkoutStep===2)requestAnimationFrame(mountStripeElement);
     return;
   }
-  if (basket.length === 0) {
-    body.innerHTML = '<div class="empty-basket"><div class="empty-basket-icon">🛒</div><p>Your basket is empty.</p><p style="margin-top:8px"><a href="#series" onclick="closeBasket()" style="color:var(--accent)">Browse the collection →</a></p></div>';
-    footer.innerHTML = ''; return;
+  if(basket.length===0){
+    body.innerHTML='<div class="empty-basket"><div class="empty-basket-icon">🛒</div><p>Your basket is empty.</p><p style="margin-top:8px"><a href="#wall-art" onclick="closeBasket()" style="color:var(--accent)">Browse the collection →</a></p></div>';
+    footer.innerHTML='';return;
   }
-  var html = '';
-  for (var i = 0; i < basket.length; i++) {
-    var item = basket[i];
-    html += '<div class="basket-item"><img class="basket-item-img" src="'+item.image+'" alt="'+item.name+'"/><div class="basket-item-info"><div class="basket-item-name">'+item.name+'</div><div class="basket-item-price">'+gbp(item.price)+' each · '+gbp(item.price*item.qty)+' total</div><div class="basket-item-qty"><button class="biq-btn" onclick="updateQty(\''+item.slug+'\',-1)">−</button><span class="biq-num">'+item.qty+'</span><button class="biq-btn" onclick="updateQty(\''+item.slug+'\',1)">+</button></div></div><button class="basket-item-remove" onclick="removeFromBasket(\''+item.slug+'\')">✕</button></div>';
+  var html='';
+  for(var i=0;i<basket.length;i++){
+    var item=basket[i];
+    html+='<div class="basket-item"><img class="basket-item-img" src="'+item.image+'" alt="'+item.name+'"/><div class="basket-item-info"><div class="basket-item-name">'+item.name+'</div><div class="basket-item-price">'+gbp(item.price)+' each · '+gbp(item.price*item.qty)+' total</div><div class="basket-item-qty"><button class="biq-btn" onclick="updateQty(\''+item.slug+'\',-1)">−</button><span class="biq-num">'+item.qty+'</span><button class="biq-btn" onclick="updateQty(\''+item.slug+'\',1)">+</button></div></div><button class="basket-item-remove" onclick="removeFromBasket(\''+item.slug+'\')">✕</button></div>';
   }
-  body.innerHTML = html;
-  var sub = getSubtotal(), ship = getShipping(), tot = getTotal();
-  footer.innerHTML = '<div class="basket-summary"><div class="basket-summary-row"><span>Subtotal</span><strong>'+gbp(sub)+'</strong></div><div class="basket-summary-row"><span>Shipping</span>'+(ship===0?'<strong style="color:var(--success)">Free</strong>':'<strong>'+gbp(ship)+'</strong>')+'</div><div class="basket-summary-row total"><span>Total</span><strong>'+gbp(tot)+'</strong></div></div>'+(ship>0?'<p class="shipping-note">Add '+gbp(300-sub)+' more for free shipping</p>':'<p class="shipping-note">✓ Free shipping unlocked</p>')+'<button class="btn btn-gold" style="width:100%" onclick="goCheckout()">Checkout →</button>';
+  body.innerHTML=html;
+  var sub=getSubtotal(),ship=getShipping(),tot=getTotal();
+  footer.innerHTML='<div class="basket-summary"><div class="basket-summary-row"><span>Subtotal</span><strong>'+gbp(sub)+'</strong></div><div class="basket-summary-row"><span>Shipping</span>'+(ship===0?'<strong style="color:var(--success)">Free</strong>':'<strong>'+gbp(ship)+'</strong>')+'</div><div class="basket-summary-row total"><span>Total</span><strong>'+gbp(tot)+'</strong></div></div>'+(ship>0?'<p class="shipping-note">Add '+gbp(300-sub)+' more for free shipping</p>':'<p class="shipping-note">✓ Free shipping unlocked</p>')+'<button class="btn btn-gold" style="width:100%" onclick="goCheckout()">Checkout →</button>';
 }
 
-// ─── CHECKOUT ─────────────────────────────────────────────────────
-function goCheckout() { checkoutStep = 1; renderDrawer(); }
-function renderCheckoutForm() {
-  var labels = ['Delivery','Payment','Review'];
-  var stepsHtml = labels.map(function(l,i){
-    var n=i+1, cls=checkoutStep>n?'done':checkoutStep===n?'active':'';
-    return '<div class="checkout-step '+cls+'">'+(checkoutStep>n?'✓ ':'')+l+'</div>';
-  }).join('');
-  var steps = '<div class="checkout-steps">'+stepsHtml+'</div>';
-  if (checkoutStep===1) return steps+'<h3 style="font-family:var(--fd);font-weight:300;font-size:1.4rem;margin-bottom:18px">Delivery details</h3><div class="form-row"><div class="form-group"><label class="form-label">First name</label><input class="form-input" id="f-fname" placeholder="James"/></div><div class="form-group"><label class="form-label">Last name</label><input class="form-input" id="f-lname" placeholder="Holloway"/></div></div><div class="form-group"><label class="form-label">Email</label><input class="form-input" id="f-email" type="email" placeholder="james@example.com"/></div><div class="form-group"><label class="form-label">Address line 1</label><input class="form-input" id="f-addr1" placeholder="12 Starfield Road"/></div><div class="form-row"><div class="form-group"><label class="form-label">City</label><input class="form-input" id="f-city" placeholder="London"/></div><div class="form-group"><label class="form-label">Postcode</label><input class="form-input" id="f-post" placeholder="EC1A 1BB"/></div></div><div class="form-group"><label class="form-label">Country</label><select class="form-input form-select" id="f-country"><option>United Kingdom</option><option>Ireland</option><option>France</option><option>Germany</option><option>Netherlands</option><option>Other</option></select></div>';
-  if (checkoutStep===2) return steps+'<h3 style="font-family:var(--fd);font-weight:300;font-size:1.4rem;margin-bottom:14px">Payment</h3><p class="stripe-secure-note"><svg width="12" height="14" viewBox="0 0 12 14" fill="none"><path d="M6 1L1 3.5V7c0 2.76 2.14 5.34 5 6 2.86-.66 5-3.24 5-6V3.5L6 1z" stroke="#2ecc8a" stroke-width="1.2"/></svg>Secured by Stripe — your card details never touch our servers</p><div id="stripe-payment-element"></div><div id="stripe-error"></div>';
-  if (checkoutStep===3) {
+// ═══════════════════════════════════════════════ CHECKOUT
+function goCheckout(){checkoutStep=1;renderDrawer();}
+function renderCheckoutForm(){
+  var labels=['Delivery','Payment','Review'];
+  var stepsHtml=labels.map(function(l,i){var n=i+1,cls=checkoutStep>n?'done':checkoutStep===n?'active':'';return '<div class="checkout-step '+cls+'">'+(checkoutStep>n?'✓ ':'')+l+'</div>';}).join('');
+  var steps='<div class="checkout-steps">'+stepsHtml+'</div>';
+  if(checkoutStep===1)return steps+'<h3 style="font-family:var(--fd);font-weight:300;font-size:1.4rem;margin-bottom:18px">Delivery details</h3><div class="form-row"><div class="form-group"><label class="form-label">First name</label><input class="form-input" id="f-fname" placeholder="James"/></div><div class="form-group"><label class="form-label">Last name</label><input class="form-input" id="f-lname" placeholder="Holloway"/></div></div><div class="form-group"><label class="form-label">Email</label><input class="form-input" id="f-email" type="email" placeholder="james@example.com"/></div><div class="form-group"><label class="form-label">Address line 1</label><input class="form-input" id="f-addr1" placeholder="12 Starfield Road"/></div><div class="form-group"><label class="form-label">Address line 2 <span style="color:var(--muted);font-weight:400">(optional)</span></label><input class="form-input" id="f-addr2" placeholder=""/></div><div class="form-row"><div class="form-group"><label class="form-label">City</label><input class="form-input" id="f-city" placeholder="London"/></div><div class="form-group"><label class="form-label">Postcode</label><input class="form-input" id="f-post" placeholder="EC1A 1BB"/></div></div><div class="form-group"><label class="form-label">Country</label><select class="form-input form-select" id="f-country"><option>United Kingdom</option><option>Ireland</option><option>France</option><option>Germany</option><option>Netherlands</option><option>Other</option></select></div>';
+  if(checkoutStep===2)return steps+'<h3 style="font-family:var(--fd);font-weight:300;font-size:1.4rem;margin-bottom:14px">Payment</h3><p class="stripe-secure-note"><svg width="12" height="14" viewBox="0 0 12 14" fill="none"><path d="M6 1L1 3.5V7c0 2.76 2.14 5.34 5 6 2.86-.66 5-3.24 5-6V3.5L6 1z" stroke="#2ecc8a" stroke-width="1.2"/></svg>Secured by Stripe — your card details never touch our servers</p>'+(stripe?'':'<div class="payment-gate-notice">Payment processing is not yet configured. Orders cannot be placed until Stripe is set up.</div>')+'<div id="stripe-payment-element"></div><div id="stripe-error"></div>';
+  if(checkoutStep===3){
     var sub=getSubtotal(),ship=getShipping(),tot=getTotal();
     var rows=basket.map(function(b){return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:.88rem"><span>'+b.name+' × '+b.qty+'</span><strong>'+gbp(b.price*b.qty)+'</strong></div>';}).join('');
-    return steps+'<h3 style="font-family:var(--fd);font-weight:300;font-size:1.4rem;margin-bottom:18px">Review order</h3><div style="margin-bottom:18px">'+rows+'</div><div class="basket-summary"><div class="basket-summary-row"><span>Subtotal</span><strong>'+gbp(sub)+'</strong></div><div class="basket-summary-row"><span>Shipping</span><strong>'+(ship===0?'Free':gbp(ship))+'</strong></div><div class="basket-summary-row total"><span>Total due</span><strong>'+gbp(tot)+'</strong></div></div>';
+    var pgMsg=!paymentConfirmed?'<div class="payment-gate-notice">Payment was not completed. Please go back and complete payment before placing your order.</div>':'<div style="background:rgba(46,204,138,.08);border:1px solid rgba(46,204,138,.25);border-radius:var(--rs);padding:12px 16px;font-size:.84rem;color:var(--success);margin-bottom:14px;display:flex;align-items:center;gap:8px">✓ Payment authorised — ready to confirm</div>';
+    return steps+'<h3 style="font-family:var(--fd);font-weight:300;font-size:1.4rem;margin-bottom:18px">Review order</h3>'+pgMsg+'<div style="margin-bottom:18px">'+rows+'</div><div class="basket-summary"><div class="basket-summary-row"><span>Subtotal</span><strong>'+gbp(sub)+'</strong></div><div class="basket-summary-row"><span>Shipping</span><strong>'+(ship===0?'Free':gbp(ship))+'</strong></div><div class="basket-summary-row total"><span>Total due</span><strong>'+gbp(tot)+'</strong></div></div>';
   }
   return '';
 }
-function renderCheckoutFooter() {
-  if (checkoutStep===1) return '<div style="display:flex;gap:10px"><button class="btn btn-ghost" onclick="checkoutStep=0;renderDrawer()">← Back</button><button class="btn btn-primary" style="flex:1" onclick="nextCheckout()">Continue to payment →</button></div>';
-  if (checkoutStep===2) return '<div style="display:flex;gap:10px"><button class="btn btn-ghost" onclick="checkoutStep=1;renderDrawer()">← Back</button><button class="btn btn-primary" style="flex:1" id="stripe-submit-btn" onclick="submitStripePayment()">Review order →</button></div>';
-  if (checkoutStep===3) return '<div style="display:flex;gap:10px"><button class="btn btn-ghost" onclick="checkoutStep=2;renderDrawer()">← Back</button><button class="btn btn-gold" style="flex:1" onclick="placeOrder()">Place order →</button></div>';
+function renderCheckoutFooter(){
+  if(checkoutStep===1)return '<div style="display:flex;gap:10px"><button class="btn btn-ghost" onclick="checkoutStep=0;renderDrawer()">← Back</button><button class="btn btn-primary" style="flex:1" onclick="nextCheckout()">Continue to payment →</button></div>';
+  if(checkoutStep===2)return '<div style="display:flex;gap:10px"><button class="btn btn-ghost" onclick="checkoutStep=1;renderDrawer()">← Back</button><button class="btn btn-primary" style="flex:1" id="stripe-submit-btn" onclick="submitStripePayment()">'+(stripe?'Pay & review →':'Payment not configured')+'</button></div>';
+  if(checkoutStep===3)return '<div style="display:flex;gap:10px"><button class="btn btn-ghost" onclick="checkoutStep=2;renderDrawer()">← Back</button><button class="btn btn-gold" style="flex:1" '+(paymentConfirmed?'':'disabled title="Complete payment first"')+' onclick="placeOrder()">Place order →</button></div>';
   return '';
 }
-function nextCheckout() {
-  if (checkoutStep===1) {
-    var fname = (document.getElementById('f-fname')||{}).value||'';
-    var email = (document.getElementById('f-email')||{}).value||'';
-    var addr1 = (document.getElementById('f-addr1')||{}).value||'';
-    var city  = (document.getElementById('f-city') ||{}).value||'';
-    if (!fname.trim()||!email.trim()||!addr1.trim()||!city.trim()) { showToast('Please fill required fields','danger'); return; }
-    createPaymentIntent(function(err){ if(err){ showToast('Payment setup failed','danger'); return; } checkoutStep=2; renderDrawer(); });
+function nextCheckout(){
+  if(checkoutStep===1){
+    var fname=(document.getElementById('f-fname')||{}).value||'';
+    var email=(document.getElementById('f-email')||{}).value||'';
+    var addr1=(document.getElementById('f-addr1')||{}).value||'';
+    var city=(document.getElementById('f-city')||{}).value||'';
+    if(!fname.trim()||!email.trim()||!addr1.trim()||!city.trim()){showToast('Please fill required fields','danger');return;}
+    createPaymentIntent(function(err){if(err){showToast('Payment setup failed — try again','danger');return;}checkoutStep=2;renderDrawer();});
     return;
   }
-  checkoutStep++; renderDrawer();
+  checkoutStep++;renderDrawer();
 }
-
-// ─── STRIPE ───────────────────────────────────────────────────────
-function createPaymentIntent(callback) {
-  var totalPence = Math.round(getTotal() * 100);
-  fetch('/.netlify/functions/create-payment-intent', {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ amount: totalPence, currency:'gbp', items: basket.map(function(b){ return {name:b.name,price:b.price,qty:b.qty}; }) })
-  }).then(function(r){ return r.json(); }).then(function(d){ stripeClientSecret = d.clientSecret || null; callback(null); }).catch(function(){ stripeClientSecret = null; callback(null); });
+// Store delivery details for order record
+function getDelivery(){
+  return{
+    firstName:(document.getElementById('f-fname')||{}).value||'',
+    lastName:(document.getElementById('f-lname')||{}).value||'',
+    email:(document.getElementById('f-email')||{}).value||'',
+    address1:(document.getElementById('f-addr1')||{}).value||'',
+    address2:(document.getElementById('f-addr2')||{}).value||'',
+    city:(document.getElementById('f-city')||{}).value||'',
+    postcode:(document.getElementById('f-post')||{}).value||'',
+    country:(document.getElementById('f-country')||{value:'UK'}).value||'UK'
+  };
 }
+var savedDelivery={};
 
-function mountStripeElement() {
-  var container = document.getElementById('stripe-payment-element');
-  if (!container) return;
-  if (!stripe || !stripeClientSecret) {
-    container.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:18px 16px;"><div style="font-family:var(--fm);font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Card information</div><input class="form-input" id="demo-card" placeholder="4242 4242 4242 4242" style="margin-bottom:10px;" maxlength="19" oninput="formatCard(this)"/><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><input class="form-input" id="demo-exp" placeholder="MM / YY" maxlength="7" oninput="formatExpiry(this)"/><input class="form-input" id="demo-cvc" placeholder="CVC" maxlength="4"/></div><div style="margin-top:10px;"><input class="form-input" id="demo-name" placeholder="Cardholder name"/></div></div>'+(stripe?'':'<p style="font-family:var(--fm);font-size:.6rem;color:var(--muted);margin-top:8px;opacity:.7;">Configure STRIPE_PUBLISHABLE_KEY env var to enable live payments.</p>');
+// ═══════════════════════════════════════════════ STRIPE
+function createPaymentIntent(callback){
+  // Save delivery before moving to payment step
+  savedDelivery=getDelivery();
+  var totalPence=Math.round(getTotal()*100);
+  fetch('/.netlify/functions/create-payment-intent',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({amount:totalPence,currency:'gbp',items:basket.map(function(b){return{name:b.name,price:b.price,qty:b.qty};})})
+  }).then(function(r){return r.json();}).then(function(d){stripeClientSecret=d.clientSecret||null;callback(null);}).catch(function(){stripeClientSecret=null;callback(null);});
+}
+function mountStripeElement(){
+  var container=document.getElementById('stripe-payment-element');if(!container)return;
+  if(!stripe||!stripeClientSecret){
+    container.innerHTML='<div style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:18px 16px;"><div style="font-family:var(--fm);font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Card information (demo)</div><input class="form-input" id="demo-card" placeholder="4242 4242 4242 4242" style="margin-bottom:10px;" maxlength="19" oninput="formatCard(this)"/><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><input class="form-input" id="demo-exp" placeholder="MM / YY" maxlength="7" oninput="formatExpiry(this)"/><input class="form-input" id="demo-cvc" placeholder="CVC" maxlength="4"/></div><div style="margin-top:10px"><input class="form-input" id="demo-name" placeholder="Cardholder name"/></div></div><p style="font-family:var(--fm);font-size:.62rem;color:var(--muted);margin-top:8px;opacity:.8">Configure STRIPE_PUBLISHABLE_KEY to enable live payments. In demo mode, payment cannot be confirmed.</p>';
     return;
   }
-  stripeElements = stripe.elements({ clientSecret: stripeClientSecret, appearance: { theme:'night', variables:{ colorPrimary:'#e8820a', colorBackground:'#0c1220', colorText:'#e8ecf4', colorDanger:'#e05050', fontFamily:'"Syne",sans-serif', borderRadius:'10px' } } });
-  stripePaymentElement = stripeElements.create('payment');
+  stripeElements=stripe.elements({clientSecret:stripeClientSecret,appearance:{theme:'night',variables:{colorPrimary:'#e8820a',colorBackground:'#0c1220',colorText:'#e8ecf4',colorDanger:'#e05050',fontFamily:'"Syne",sans-serif',borderRadius:'10px'}}});
+  stripePaymentElement=stripeElements.create('payment');
   stripePaymentElement.mount('#stripe-payment-element');
 }
-
-function submitStripePayment() {
-  if (!stripe || !stripeClientSecret || !stripeElements) {
-    // No Stripe – just show error instead of skipping to review
-    var errEl = document.getElementById('stripe-error');
-    if (errEl) errEl.textContent = 'Payments are not configured yet.';
-    return;
-  }
-
-  var btn = document.getElementById('stripe-submit-btn');
-  if (btn) { btn.disabled = true; btn.textContent = 'Processing…'; }
-  var errEl = document.getElementById('stripe-error'); 
-  if (errEl) errEl.textContent = '';
-
-  stripeElements.submit().then(function(r) {
-    if (r.error) {
-      if (errEl) errEl.textContent = r.error.message;
-      if (btn) { btn.disabled = false; btn.textContent = 'Review order →'; }
+function submitStripePayment(){
+  if(!stripe){showToast('Stripe not configured — payments unavailable','danger');return;}
+  if(!stripeClientSecret||!stripeElements){showToast('Payment not initialised — go back and retry','danger');return;}
+  var btn=document.getElementById('stripe-submit-btn');
+  if(btn){btn.disabled=true;btn.textContent='Processing…';}
+  var errEl=document.getElementById('stripe-error');if(errEl)errEl.textContent='';
+  stripeElements.submit().then(function(r){
+    if(r.error){
+      if(errEl)errEl.textContent=r.error.message;
+      if(btn){btn.disabled=false;btn.textContent='Pay & review →';}
       return;
     }
-
     stripe.confirmPayment({
-      elements: stripeElements,
-      clientSecret: stripeClientSecret,
-      confirmParams: {
-        return_url: window.location.origin + '/success.html',
-        payment_method_data: {
-          billing_details: {
-            name: (document.getElementById('f-fname')||{}).value || '',
-            email: (document.getElementById('f-email')||{}).value || ''
-          }
-        }
+      elements:stripeElements,clientSecret:stripeClientSecret,
+      confirmParams:{
+        return_url:window.location.origin+'/success.html',
+        payment_method_data:{billing_details:{name:savedDelivery.firstName+' '+savedDelivery.lastName,email:savedDelivery.email}}
       },
-      redirect: 'if_required'
-    }).then(function(res) {
-      if (res.error) {
-        if (errEl) errEl.textContent = res.error.message;
-        if (btn) { btn.disabled = false; btn.textContent = 'Review order →'; }
+      redirect:'if_required'
+    }).then(function(res){
+      if(res.error){
+        if(errEl)errEl.textContent=res.error.message;
+        if(btn){btn.disabled=false;btn.textContent='Pay & review →';}
       } else {
-        // Only proceed if Stripe says the intent is succeeded or requires no further action
-        var pi = res.paymentIntent;
-        if (pi && pi.status === 'succeeded') {
-          checkoutStep = 3;
-          renderDrawer();
+        var pi=res.paymentIntent;
+        if(pi&&pi.status==='succeeded'){
+          paymentConfirmed=true; // Payment authorised — now allow order placement
+          checkoutStep=3;renderDrawer();
         } else {
-          if (errEl) errEl.textContent = 'Payment not completed yet.';
-          if (btn) { btn.disabled = false; btn.textContent = 'Review order →'; }
+          if(errEl)errEl.textContent='Payment not completed. Status: '+(pi?pi.status:'unknown');
+          if(btn){btn.disabled=false;btn.textContent='Pay & review →';}
         }
       }
     });
   });
 }
+function placeOrder(){
+  if(!paymentConfirmed){showToast('Please complete payment first','danger');return;}
+  // Record order via Netlify function
+  var chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ref='SN-';
+  for(var i=0;i<6;i++)ref+=chars[Math.floor(Math.random()*chars.length)];
+  orderRef=ref;
+  var orderPayload={ref:orderRef,items:basket.slice(),delivery:savedDelivery,total:getTotal(),createdAt:new Date().toISOString()};
+  fetch('/.netlify/functions/save-order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(orderPayload)}).catch(function(){});
+  basket=[];saveState();updateBadge();checkoutStep=4;renderDrawer();
+}
+function renderOrderSuccess(){
+  return '<div class="order-success"><div class="order-success-icon">✓</div><h3>Order placed!</h3><p>Thank you, '+savedDelivery.firstName+'. A confirmation has been sent to '+savedDelivery.email+'. Your panels will be dispatched within 3–5 working days.</p><div class="order-ref">Order ref: '+orderRef+'</div></div>';
+}
+function formatCard(el){var v=el.value.replace(/\D/g,'').substring(0,16),p=[];for(var i=0;i<v.length;i+=4)p.push(v.substring(i,i+4));el.value=p.join(' ');}
+function formatExpiry(el){var v=el.value.replace(/\D/g,'');if(v.length>2)v=v.substring(0,2)+'/'+v.substring(2,4);el.value=v;}
 
-function placeOrder() {
-  var chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789', ref='CF-';
-  for(var i=0;i<6;i++) ref+=chars[Math.floor(Math.random()*chars.length)];
-  orderRef=ref; basket=[]; saveState(); updateBadge(); checkoutStep=4; renderDrawer();
-}
-function renderOrderSuccess() {
-  return '<div class="order-success"><div class="order-success-icon">✓</div><h3>Order placed!</h3><p>Thank you. A confirmation has been sent to your email. Your panels will be dispatched within 3–5 working days.</p><div class="order-ref">Order ref: '+orderRef+'</div></div>';
-}
-function formatCard(el) { var v=el.value.replace(/\D/g,'').substring(0,16); var p=[]; for(var i=0;i<v.length;i+=4) p.push(v.substring(i,i+4)); el.value=p.join(' '); }
-function formatExpiry(el) { var v=el.value.replace(/\D/g,''); if(v.length>2) v=v.substring(0,2)+'/'+v.substring(2,4); el.value=v; }
-
-// ─── PRODUCT CARD ─────────────────────────────────────────────────
-function typeTag(isCollection) {
-  var cls = isCollection ? 'collection' : 'series';
-  var lbl = isCollection ? 'Collection' : 'Series';
-  return '<span class="type-tag '+cls+'">'+lbl+'</span>';
-}
-function productCard(product) {
-  var inWl = wishlist.indexOf(product.slug) >= 0;
-  return '<article class="card"><a href="#product/'+product.slug+'" style="text-decoration:none;display:block"><div class="card-media"><img src="'+product.image+'" alt="'+product.name+'" loading="lazy"/><div class="badge-row"><span class="badge">'+product.pieces+'</span><span class="badge badge-accent">'+product.priceLabel+'</span></div><button class="card-wishlist wl-btn '+(inWl?'active':'')+'" data-slug="'+product.slug+'" onclick="toggleWishlist(\''+product.slug+'\',event)">'+(inWl?'♥':'♡')+'</button></div></a><div class="card-body"><div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">'+typeTag(product.isCollection)+'</div><h3>'+product.name+'</h3><p class="muted">'+product.short+'</p><div class="meta"><span>'+product.panelHint+'</span><span>Magnetic edges</span><span>'+product.accent+'</span></div><div class="card-actions"><a class="btn btn-primary btn-sm" href="#product/'+product.slug+'">View →</a><button class="btn btn-ghost btn-sm" onclick="addToBasket(\''+product.slug+'\',1)">Add to basket</button></div></div></article>';
+// ═══════════════════════════════════════════════ PRODUCT CARD
+function typeTag(isCollection){var cls=isCollection?'collection':'series',lbl=isCollection?'Collection':'Series';return '<span class="type-tag '+cls+'">'+lbl+'</span>';}
+function productCard(product){
+  var inWl=wishlist.indexOf(product.slug)>=0;
+  return '<article class="card"><a href="#product/'+product.slug+'" style="text-decoration:none;display:block"><div class="card-media"><img src="'+product.image+'" alt="'+product.name+'" loading="lazy"/><div class="badge-row"><span class="badge">'+product.pieces+' panels</span><span class="badge badge-accent">'+product.priceLabel+'</span></div><button class="card-wishlist wl-btn '+(inWl?'active':'')+'" data-slug="'+product.slug+'" onclick="toggleWishlist(\''+product.slug+'\',event)">'+(inWl?'♥':'♡')+'</button></div></a><div class="card-body"><div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">'+typeTag(product.isCollection)+'</div><h3>'+product.name+'</h3><p class="muted">'+product.short+'</p><div class="meta"><span>'+product.panelHint+'</span><span>Magnetic edges</span><span>'+product.accent+'</span></div><div class="card-actions"><a class="btn btn-primary btn-sm" href="#product/'+product.slug+'">View →</a><button class="btn btn-ghost btn-sm" onclick="addToBasket(\''+product.slug+'\',1)">Add to basket</button></div></div></article>';
 }
 
-// ─── SERIES / FILTER ──────────────────────────────────────────────
-var categories = ['All','nebula','earth','lunar','planets','galaxy'];
-function buildFilterBar() {
-  var bar = document.getElementById('filter-bar'); if (!bar) return;
-  bar.innerHTML = categories.map(function(cat){
-    var isActive = (cat==='All'&&!activeFilter)||activeFilter===cat;
-    return '<button class="filter-pill '+(isActive?'active':'')+'" onclick="setFilter(\''+cat+'\')">'+cat.charAt(0).toUpperCase()+cat.slice(1)+'</button>';
-  }).join('');
+// ═══════════════════════════════════════════════ SERIES / FILTER
+var categories=['All','nebula','earth','lunar','planets','galaxy'];
+function buildFilterBar(){
+  var bar=document.getElementById('filter-bar');if(!bar)return;
+  bar.innerHTML=categories.map(function(cat){var isActive=(cat==='All'&&!activeFilter)||activeFilter===cat;return '<button class="filter-pill '+(isActive?'active':'')+'" onclick="setFilter(\''+cat+'\')">'+cat.charAt(0).toUpperCase()+cat.slice(1)+'</button>';}).join('');
 }
-function setFilter(cat) { activeFilter = cat==='All'?null:cat; buildFilterBar(); renderSeries(); }
-function renderSeries() {
-  var search = (document.getElementById('series-search')||{}).value||'';
-  search = search.toLowerCase();
-  // Only show series (not collections) in series page
-  var shown = products.filter(function(p){
-    if (p.isCollection) return false; // collections excluded from series page
-    if (activeSeriesFilter && activeSeriesFilter.indexOf(p.slug)<0) return false;
-    if (activeFilter && p.category!==activeFilter) return false;
-    if (search && p.name.toLowerCase().indexOf(search)<0 && p.short.toLowerCase().indexOf(search)<0) return false;
+function setFilter(cat){activeFilter=cat==='All'?null:cat;buildFilterBar();renderWallArt();}
+function renderWallArt(){
+  var search=(document.getElementById('wallart-search')||{}).value||'';search=search.toLowerCase();
+  var shown=products.filter(function(p){
+    if(p.isCollection)return false;
+    if(activeSeriesFilter&&activeSeriesFilter.indexOf(p.slug)<0)return false;
+    if(activeFilter&&p.category!==activeFilter)return false;
+    if(search&&p.name.toLowerCase().indexOf(search)<0&&p.short.toLowerCase().indexOf(search)<0)return false;
     return true;
   });
-  var grid = document.getElementById('series-grid');
-  if (grid) grid.innerHTML = shown.length ? shown.map(productCard).join('') : '<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--muted)">No series match your search.</div>';
-  var banner = document.getElementById('series-filter-banner');
-  if (banner) banner.innerHTML = activeSeriesFilter ? '<div class="card" style="margin-bottom:20px"><div class="card-body" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px"><div><strong>Bundle view</strong><p class="muted" style="margin:0">Showing only series included in this bundle.</p></div><button class="btn btn-ghost btn-sm" onclick="clearSeriesFilter()">Show all</button></div></div>' : '';
+  var grid=document.getElementById('series-grid');
+  if(grid)grid.innerHTML=shown.length?shown.map(productCard).join(''):'<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--muted)">No series match your search.</div>';
+  var banner=document.getElementById('series-filter-banner');
+  if(banner)banner.innerHTML=activeSeriesFilter?'<div class="card" style="margin-bottom:20px"><div class="card-body" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px"><div><strong>Bundle view</strong><p class="muted" style="margin:0">Showing only series included in this bundle.</p></div><button class="btn btn-ghost btn-sm" onclick="clearSeriesFilter()">Show all</button></div></div>':'';
 }
-function showBundleProducts(bundleSlug) {
-  var bundle = null; for (var i=0;i<bundles.length;i++){if(bundles[i].slug===bundleSlug){bundle=bundles[i];break;}}
-  if (!bundle) return;
-  activeSeriesFilter = bundle.items.slice(); activeFilter = null;
-  buildFilterBar(); renderSeries(); location.hash='#series';
+function showBundleProducts(bundleSlug){
+  var bundle=bundles.find(function(b){return b.slug===bundleSlug;});if(!bundle)return;
+  activeSeriesFilter=bundle.items.slice();activeFilter=null;
+  buildFilterBar();renderWallArt();location.hash='#wall-art';
 }
-function clearSeriesFilter() { activeSeriesFilter = null; buildFilterBar(); renderSeries(); }
+function clearSeriesFilter(){activeSeriesFilter=null;buildFilterBar();renderWallArt();}
 
-// ─── BUNDLES ──────────────────────────────────────────────────────
-function renderBundles() {
-  var grid = document.getElementById('bundle-grid'); if (!grid) return;
-  grid.innerHTML = bundles.map(function(b){
-    var includes = b.items.map(function(slug){ var p=products.find(function(x){return x.slug===slug;}); return '<span>'+(p?p.name:slug)+'</span>'; }).join('');
+// ═══════════════════════════════════════════════ BUNDLES
+function renderBundles(){
+  var grid=document.getElementById('bundle-grid');if(!grid)return;
+  grid.innerHTML=bundles.map(function(b){
+    var includes=b.items.map(function(slug){var p=products.find(function(x){return x.slug===slug;});return '<span>'+(p?p.name:slug)+'</span>';}).join('');
     return '<article class="card bundle-card"><div class="bundle-card-inner"><h3 style="font-family:var(--fd);font-size:1.4rem;font-weight:400;margin-bottom:6px">'+b.name+'</h3><p class="price" style="font-size:1.6rem">'+b.price+'</p><p class="muted" style="margin-top:8px">'+b.text+'</p></div><div class="bundle-includes">'+includes+'</div><div class="card-actions"><button class="btn btn-primary btn-sm" onclick="showBundleProducts(\''+b.slug+'\')">Browse series</button><button class="btn btn-ghost btn-sm" onclick="addBundleToBasket(\''+b.slug+'\')">Add all to basket</button></div></article>';
   }).join('');
 }
 
-// ─── FEATURED ─────────────────────────────────────────────────────
-function renderFeatured() {
-  var el = document.getElementById('featured-series'); if (!el) return;
-  el.innerHTML = featuredSlugs.map(function(slug){ var p=products.find(function(x){return x.slug===slug;}); return p?productCard(p):''; }).join('');
+// ═══════════════════════════════════════════════ ARTIFACTS
+function renderArtifacts(){
+  var grid=document.getElementById('artifact-grid');if(!grid)return;
+  grid.innerHTML=artifacts.map(function(a){
+    return '<div class="artifact-card"><img class="artifact-card-img" src="'+a.image+'" alt="'+a.name+'" loading="lazy" onerror="this.style.background=\'linear-gradient(135deg,#111a2a,#070b12)\'"/><div class="artifact-card-body"><span class="artifact-tag">'+a.category+'</span><h3>'+a.name+'</h3><p>'+a.desc+'</p><div class="artifact-price">'+gbp(a.price)+'</div><button class="btn btn-primary btn-sm" style="width:100%" onclick="showToast(\'Coming soon — Artifacts launching this season\',\'info\')">Coming soon</button></div></div>';
+  }).join('');
+
+  var wg=document.getElementById('wholesale-grid');if(!wg)return;
+  wg.innerHTML=wholesaleSources.map(function(s){
+    return '<div class="card"><div class="card-body"><h3 style="font-family:var(--fd);font-size:1.2rem;font-weight:400;margin-bottom:6px">'+s.name+'</h3><div class="meta" style="margin-bottom:10px"><span>Best for: '+s.best+'</span></div><p class="muted" style="font-size:.87rem;line-height:1.65;margin-bottom:14px">'+s.desc+'</p><a href="'+s.url+'" target="_blank" rel="noopener" class="btn btn-ghost btn-sm">Visit site →</a></div></div>';
+  }).join('');
 }
 
-// ─── MARQUEE ──────────────────────────────────────────────────────
-function buildMarquee() {
-  var el = document.getElementById('marquee-track'); if (!el) return;
-  var items = ['Multi-panel magnetic sets','3 to 9 panels','Matte-black frames','Museum-grade inks','Free shipping over £300','12 series available','Gallery-quality printing','Magnetic edge alignment'];
-  var all = items.concat(items);
-  el.innerHTML = all.map(function(t){ return '<span class="marquee-item">'+t+'</span>'; }).join('');
+// ═══════════════════════════════════════════════ FEATURED
+function renderFeatured(){
+  var el=document.getElementById('featured-series');if(!el)return;
+  el.innerHTML=featuredSlugs.map(function(slug){var p=products.find(function(x){return x.slug===slug;});return p?productCard(p):'';}).join('');
 }
 
-// ─── PRODUCT PAGE ─────────────────────────────────────────────────
-function changeProductQty(delta) {
-  productQty = Math.max(1, productQty + delta);
-  ['prod-qty','prod-qty-top'].forEach(function(id){ var e=document.getElementById(id); if(e) e.textContent=productQty; });
+// ═══════════════════════════════════════════════ MARQUEE
+function buildMarquee(){
+  var el=document.getElementById('marquee-track');if(!el)return;
+  var items=['Multi-panel magnetic sets','3 to 9 panels','Matte-black frames','Museum-grade inks','Free shipping over £300','12 series available','Gallery-quality printing','Magnetic edge alignment'];
+  var all=items.concat(items);
+  el.innerHTML=all.map(function(t){return '<span class="marquee-item">'+t+'</span>';}).join('');
 }
-function renderProduct(slug) {
-  var product = products.find(function(p){return p.slug===slug;});
-  var wrap = document.getElementById('page-product'); productQty = 1;
-  if (!product) { wrap.innerHTML='<div style="text-align:center;padding:80px 24px"><h2 style="font-family:var(--fd);font-weight:300;font-size:2rem">Product not found</h2><a class="btn btn-primary" style="margin-top:20px" href="#series">Back to series</a></div>'; return; }
-  var related = products.filter(function(p){ return p.slug!==slug && p.category===product.category && !p.isCollection; }).slice(0,3);
-  if (related.length < 2) related = products.filter(function(p){ return p.slug!==slug && !p.isCollection; }).slice(0,3);
-  var inWl = wishlist.indexOf(slug) >= 0;
-  var panelCount = parseInt(product.pieces) || 4;
-  var frames = ''; for(var i=0;i<Math.min(panelCount,6);i++) frames+='<div class="mini-frame"></div>';
-  var relatedHtml = related.map(productCard).join('');
-  var trust = '<div style="display:flex;gap:10px;margin-bottom:20px">'+['🚚','↩','🔒'].map(function(ic,i){var lb=['3–5 DAYS','30-DAY RETURNS','SECURE'][i];return '<div style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:12px;text-align:center"><div style="font-size:1rem;margin-bottom:3px">'+ic+'</div><div style="font-family:var(--fm);font-size:.6rem;letter-spacing:.1em;color:var(--muted)">'+lb+'</div></div>';}).join('')+'</div>';
-  var cta = function(qid){
-    return '<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px"><label style="font-family:var(--fm);font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)">Qty</label><div class="qty-control"><button class="qty-btn" onclick="changeProductQty(-1)">−</button><span class="qty-num" id="'+qid+'">1</span><button class="qty-btn" onclick="changeProductQty(1)">+</button></div></div><div class="product-actions" style="margin-bottom:16px"><button class="btn btn-gold" onclick="addToBasket(\''+slug+'\',productQty)">Add full set to basket</button><button class="btn btn-ghost wl-btn '+(inWl?'active':'')+'" data-slug="'+slug+'" onclick="toggleWishlist(\''+slug+'\',event)">'+(inWl?'♥ Wishlisted':'♡ Wishlist')+'</button></div>';
-  };
+
+// ═══════════════════════════════════════════════ PRODUCT PAGE
+function changeProductQty(delta){
+  productQty=Math.max(1,productQty+delta);
+  ['prod-qty','prod-qty-top'].forEach(function(id){var e=document.getElementById(id);if(e)e.textContent=productQty;});
+}
+function renderProduct(slug){
+  var product=products.find(function(p){return p.slug===slug;});
+  var wrap=document.getElementById('page-product');productQty=1;
+  if(!product){wrap.innerHTML='<div style="text-align:center;padding:80px 24px"><h2 style="font-family:var(--fd);font-weight:300;font-size:2rem">Product not found</h2><a class="btn btn-primary" style="margin-top:20px" href="#wall-art">Back to wall art</a></div>';return;}
+  var related=products.filter(function(p){return p.slug!==slug&&p.category===product.category&&!p.isCollection;}).slice(0,3);
+  if(related.length<2)related=products.filter(function(p){return p.slug!==slug&&!p.isCollection;}).slice(0,3);
+  var inWl=wishlist.indexOf(slug)>=0;
+  var panelCount=parseInt(product.pieces)||4;
+  var frames='';for(var i=0;i<Math.min(panelCount,6);i++)frames+='<div class="mini-frame"></div>';
+  var trust='<div style="display:flex;gap:10px;margin-bottom:20px">'+['🚚','↩','🔒'].map(function(ic,i){var lb=['3–5 DAYS','30-DAY RETURNS','SECURE'][i];return '<div style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:12px;text-align:center"><div style="font-size:1rem;margin-bottom:3px">'+ic+'</div><div style="font-family:var(--fm);font-size:.6rem;letter-spacing:.1em;color:var(--muted)">'+lb+'</div></div>';}).join('')+'</div>';
+  var cta=function(qid){return '<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px"><label style="font-family:var(--fm);font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)">Qty</label><div class="qty-control"><button class="qty-btn" onclick="changeProductQty(-1)">−</button><span class="qty-num" id="'+qid+'">1</span><button class="qty-btn" onclick="changeProductQty(1)">+</button></div></div><div class="product-actions" style="margin-bottom:16px"><button class="btn btn-gold" onclick="addToBasket(\''+slug+'\',productQty)">Add full set to basket</button><button class="btn btn-ghost wl-btn '+(inWl?'active':'')+'" data-slug="'+slug+'" onclick="toggleWishlist(\''+slug+'\',event)">'+(inWl?'♥ Wishlisted':'♡ Wishlist')+'</button></div>';};
   ensureSelection(slug);
-  var hexOverlay = !product.isCollection ? buildHexImageOverlay(slug, panelCount, tileSelections[slug]) : '';
-  wrap.innerHTML = '<div class="breadcrumbs"><a href="#home">Home</a><span>/</span><a href="#series">Series</a><span>/</span><span>'+product.name+'</span></div><div class="product-hero"><div class="product-media"><div style="position:relative;border-radius:var(--r);overflow:hidden;"><img id="prod-main-img" src="'+product.image+'" alt="'+product.name+'" style="width:100%;display:block;"/>'+hexOverlay+'</div></div><div class="product-info"><div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">'+typeTag(product.isCollection)+'<span class="badge">'+product.category+'</span><span class="badge">'+product.size+'</span></div><h2>'+product.name+'</h2><p class="product-tagline">'+product.short+'</p><div class="product-price-row" style="margin-bottom:20px"><span class="product-price-main">'+gbp(product.price)+'</span><span class="product-price-range">'+product.priceLabel+'</span></div><div class="prod-tile-selector"><div class="prod-tile-selector-head">Individual panels <span>£34.99 each</span></div>'+buildTileSelectorWidget(product,'prod')+'</div>'+cta('prod-qty-top')+trust+'<p style="color:var(--muted);font-size:.9rem;line-height:1.7;margin-bottom:24px">'+product.description+'</p><div class="specs"><div class="spec"><span>Format</span><strong>'+product.pieces+'</strong></div><div class="spec"><span>Style</span><strong>'+product.panelHint+'</strong></div><div class="spec"><span>Finish</span><strong>'+product.material+'</strong></div><div class="spec"><span>Colour</span><strong>'+product.accent+'</strong></div><div class="spec"><span>Size</span><strong>'+product.size+'</strong></div><div class="spec"><span>Shipping</span><strong>'+(product.price>=300?'Free':'£12 standard')+'</strong></div></div><div class="notice" style="margin:16px 0">'+product.note+'</div>'+cta('prod-qty')+trust+'</div></div><section class="section" style="padding-top:0"><div class="section-head"><div><p class="section-eyebrow">How it works</p><h2>Magnetic layout</h2></div></div><div class="card"><div class="card-body"><div class="mini-magnet">'+frames+'</div><p class="muted" style="text-align:center;margin-top:8px">'+product.note+'</p></div></div></section><section class="section" style="padding-top:0"><div class="section-head"><div><p class="section-eyebrow">You may also like</p><h2>Related works</h2></div><a class="btn btn-ghost" href="#series">View all →</a></div><div class="grid">'+relatedHtml+'</div></section>';
-  setTimeout(function(){ renderPreviewCanvas(slug, product, tileSelections[slug]||[]); }, 80);
+  var hexOverlay=!product.isCollection?buildHexImageOverlay(slug,panelCount,tileSelections[slug]):'';
+  wrap.innerHTML='<div class="breadcrumbs"><a href="#home">Home</a><span>/</span><a href="#wall-art">Wall Art</a><span>/</span><span>'+product.name+'</span></div><div class="product-hero"><div class="product-media"><div style="position:relative;border-radius:var(--r);overflow:hidden;"><img id="prod-main-img" src="'+product.image+'" alt="'+product.name+'" style="width:100%;display:block;"/>'+hexOverlay+'</div></div><div class="product-info"><div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">'+typeTag(product.isCollection)+'<span class="badge">'+product.category+'</span><span class="badge">'+product.size+'</span></div><h2>'+product.name+'</h2><p class="product-tagline">'+product.short+'</p><div class="product-price-row" style="margin-bottom:20px"><span class="product-price-main">'+gbp(product.price)+'</span><span class="product-price-range">'+product.priceLabel+'</span></div><div class="prod-tile-selector"><div class="prod-tile-selector-head">Individual panels <span>£34.99 each</span></div>'+buildTileSelectorWidget(product,'prod')+'</div>'+cta('prod-qty-top')+trust+'<p style="color:var(--muted);font-size:.9rem;line-height:1.7;margin-bottom:24px">'+product.description+'</p><div class="specs"><div class="spec"><span>Format</span><strong>'+product.pieces+' panels</strong></div><div class="spec"><span>Style</span><strong>'+product.panelHint+'</strong></div><div class="spec"><span>Finish</span><strong>'+product.material+'</strong></div><div class="spec"><span>Colour</span><strong>'+product.accent+'</strong></div><div class="spec"><span>Size</span><strong>'+product.size+'</strong></div><div class="spec"><span>Shipping</span><strong>'+(product.price>=300?'Free':'£12 standard')+'</strong></div></div><div class="notice" style="margin:16px 0">'+product.note+'</div>'+cta('prod-qty')+trust+'</div></div><section class="section" style="padding-top:0"><div class="section-head"><div><p class="section-eyebrow">How it works</p><h2>Magnetic layout</h2></div></div><div class="card"><div class="card-body"><div class="mini-magnet">'+frames+'</div><p class="muted" style="text-align:center;margin-top:8px">'+product.note+'</p></div></div></section><section class="section" style="padding-top:0"><div class="section-head"><div><p class="section-eyebrow">You may also like</p><h2>Related works</h2></div><a class="btn btn-ghost" href="#wall-art">View all →</a></div><div class="grid">'+related.map(productCard).join('')+'</div></section>';
+  setTimeout(function(){renderPreviewCanvas(slug,product,tileSelections[slug]||[]);},80);
 }
 
-// ─── ROUTING ──────────────────────────────────────────────────────
-function setActiveNav(route) {
-  document.querySelectorAll('.nav-link').forEach(function(l){ l.classList.toggle('active', l.dataset.route===route); });
-  document.querySelectorAll('.mobile-nav-item').forEach(function(l){ l.classList.toggle('active', l.dataset.route===route); });
+// ═══════════════════════════════════════════════ ROUTING
+function setActiveNav(route){
+  document.querySelectorAll('.nav-link').forEach(function(l){l.classList.toggle('active',l.dataset.route===route);});
+  document.querySelectorAll('.mobile-nav-item').forEach(function(l){l.classList.toggle('active',l.dataset.route===route);});
 }
-function showPage(name) {
-  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
-  var pg = document.querySelector('[data-page="'+name+'"]');
-  if (pg) pg.classList.add('active');
-  setActiveNav(name==='product'?'':name);
-  window.scrollTo({top:0,behavior:'smooth'});
+function showPage(name){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  var pg=document.querySelector('[data-page="'+name+'"]');if(pg)pg.classList.add('active');
+  setActiveNav(name==='product'?'':name);window.scrollTo({top:0,behavior:'smooth'});
 }
-function router() {
-  var hash = location.hash || '#home';
-  if (hash.indexOf('#product/') === 0) {
-    var slug = hash.replace('#product/','').trim();
-    renderProduct(slug); showPage('product'); setActiveNav(''); return;
-  }
-  var route = hash.replace('#','') || 'home';
-  if (['home','series','collections','bundles','about'].indexOf(route) >= 0) {
-    showPage(route); setActiveNav(route);
-    if (route==='collections') renderCollections();
-  } else { location.hash='#home'; }
+function router(){
+  var hash=location.hash||'#home';
+  if(hash.indexOf('#product/')===0){var slug=hash.replace('#product/','').trim();renderProduct(slug);showPage('product');setActiveNav('');return;}
+  var route=hash.replace('#','')||'home';
+  if(['home','wall-art','artifacts','bundles','about'].indexOf(route)>=0){
+    showPage(route);setActiveNav(route);
+    if(route==='artifacts')renderArtifacts();
+    if(route==='wall-art'){buildFilterBar();renderWallArt();}
+  } else {location.hash='#home';}
 }
 
-// ─── INIT ─────────────────────────────────────────────────────────
-buildMarquee(); renderFeatured(); buildFilterBar(); renderSeries(); renderBundles(); updateBadge(); renderDrawer();
-window.addEventListener('hashchange', router); router();
-(function(){ var nav=document.getElementById('mobile-bottom-nav'); function c(){ if(nav) nav.style.display=window.innerWidth<=430?'flex':'none'; } c(); window.addEventListener('resize',c); })();
-
-// ─── TILE SYSTEM ──────────────────────────────────────────────────
-var tileSelections = {};
-function getPanelGrid(count) {
+// ═══════════════════════════════════════════════ TILE SYSTEM
+var tileSelections={};
+function getPanelGrid(count){
   var n=parseInt(count)||4;
-  if(n===1) return{cols:1,rows:1,panels:[[1]]};
-  if(n===2) return{cols:2,rows:1,panels:[[1,2]]};
-  if(n===3) return{cols:3,rows:1,panels:[[1,2,3]]};
-  if(n===4) return{cols:2,rows:2,panels:[[1,2],[3,4]]};
-  if(n===5) return{cols:3,rows:2,panels:[[1,2,3],[4,5,0]]};
-  if(n===6) return{cols:3,rows:2,panels:[[1,2,3],[4,5,6]]};
-  if(n===7) return{cols:4,rows:2,panels:[[1,2,3,4],[5,6,7,0]]};
-  if(n===8) return{cols:4,rows:2,panels:[[1,2,3,4],[5,6,7,8]]};
-  return{cols:3,rows:3,panels:[[1,2,3],[4,5,6],[7,8,9]]};
+  if(n===1)return{cols:1,rows:1,panels:[[1]]};if(n===2)return{cols:2,rows:1,panels:[[1,2]]};if(n===3)return{cols:3,rows:1,panels:[[1,2,3]]};if(n===4)return{cols:2,rows:2,panels:[[1,2],[3,4]]};if(n===5)return{cols:3,rows:2,panels:[[1,2,3],[4,5,0]]};if(n===6)return{cols:3,rows:2,panels:[[1,2,3],[4,5,6]]};if(n===7)return{cols:4,rows:2,panels:[[1,2,3,4],[5,6,7,0]]};if(n===8)return{cols:4,rows:2,panels:[[1,2,3,4],[5,6,7,8]]};return{cols:3,rows:3,panels:[[1,2,3],[4,5,6],[7,8,9]]};
 }
-function hexPointsStr(cx,cy,r) {
-  var pts=[]; for(var i=0;i<6;i++){var a=(Math.PI/3)*i-Math.PI/6;pts.push((cx+r*Math.cos(a)).toFixed(3)+','+(cy+r*Math.sin(a)).toFixed(3));} return pts.join(' ');
+
+// Fixed: regular hexagons using equal x/y radius (no stretching)
+function hexPointsStr(cx,cy,r){
+  var pts=[];
+  for(var i=0;i<6;i++){var a=(Math.PI/3)*i-Math.PI/6;pts.push((cx+r*Math.cos(a)).toFixed(3)+','+(cy+r*Math.sin(a)).toFixed(3));}
+  return pts.join(' ');
 }
-function buildHexPickerSVG(slug,count,sel,idPrefix) {
-  var grid=getPanelGrid(count),cols=grid.cols,rows=grid.rows,r=18,w=Math.sqrt(3)*r;
-  var vbW=cols*w+w*.5+2,vbH=rows*1.5*r+r*.5+2,pid=idPrefix+'-hpick-'+slug;
+
+function buildHexPickerSVG(slug,count,sel,idPrefix){
+  var grid=getPanelGrid(count),cols=grid.cols,rows=grid.rows;
+  // Regular hexagon: width = sqrt(3)*r, height = 2*r, row spacing = 1.5*r
+  var r=20, hw=Math.sqrt(3)*r;
+  var vbW=cols*hw+hw*0.5+4, vbH=rows*1.5*r+r*0.5+4;
   var parts=[];
-  for(var row=0;row<rows;row++){for(var col=0;col<cols;col++){var n=grid.panels[row][col];if(!n)continue;var ro=(row%2===1)?w/2:0,cx=col*w+w/2+ro+1,cy=row*1.5*r+r+1,s=sel.indexOf(n)>=0;parts.push('<g data-panel="'+n+'" onclick="toggleTilePanel(\''+slug+'\','+n+')" style="cursor:pointer;"><polygon points="'+hexPointsStr(cx,cy,r-.8)+'" fill="'+(s?'rgba(232,130,10,0.22)':'rgba(255,255,255,0.06)')+'" stroke="'+(s?'#e8820a':'rgba(255,255,255,0.2)')+'" stroke-width="1.2"/><text x="'+cx.toFixed(1)+'" y="'+(cy+4).toFixed(1)+'" text-anchor="middle" font-family="\'DM Mono\',monospace" font-size="'+(Math.round(r*.55))+'" font-weight="700" fill="'+(s?'#e8820a':'#6b7a96')+'">'+n+'</text></g>');}}
-  return '<svg id="'+pid+'" viewBox="0 0 '+vbW.toFixed(1)+' '+vbH.toFixed(1)+'" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:'+Math.round(vbW*2.2)+'px;height:auto;display:block;overflow:visible;">'+parts.join('')+'</svg>';
+  for(var row=0;row<rows;row++){
+    for(var col=0;col<cols;col++){
+      var n=grid.panels[row][col];if(!n)continue;
+      var offset=(row%2===1)?hw/2:0;
+      var cx=col*hw+hw/2+offset+2;
+      var cy=row*1.5*r+r+2;
+      var s=sel.indexOf(n)>=0;
+      parts.push('<g data-panel="'+n+'" onclick="toggleTilePanel(\''+slug+'\','+n+')" style="cursor:pointer"><polygon points="'+hexPointsStr(cx,cy,r-.8)+'" fill="'+(s?'rgba(232,130,10,0.22)':'rgba(255,255,255,0.06)')+'" stroke="'+(s?'#e8820a':'rgba(255,255,255,0.2)')+'" stroke-width="1.2"/><text x="'+cx.toFixed(1)+'" y="'+(cy+4).toFixed(1)+'" text-anchor="middle" font-family="\'DM Mono\',monospace" font-size="'+(Math.round(r*.55))+'" font-weight="700" fill="'+(s?'#e8820a':'#6b7a96')+'">'+n+'</text></g>');
+    }
+  }
+  return '<svg id="'+idPrefix+'-hpick-'+slug+'" viewBox="0 0 '+vbW.toFixed(1)+' '+vbH.toFixed(1)+'" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:'+Math.round(vbW*2)+'px;height:auto;display:block;overflow:visible;">'+parts.join('')+'</svg>';
 }
-function buildHexImageOverlay(slug,count,sel) {
-  var grid=getPanelGrid(count),cols=grid.cols,rows=grid.rows,VW=100,VH=75;
-  var r=Math.min(VW/((cols+.5)*Math.sqrt(3)),VH/(rows*1.5+.5)),hw=Math.sqrt(3)*r;
-  var ox=(VW-(cols*hw+hw*.5))/2+hw/2,oy=(VH-(rows*1.5*r+r*.5))/2+r;
-  var sid='hg'+slug.replace(/-/g,''),parts=['<defs><filter id="'+sid+'"><feGaussianBlur stdDeviation="0.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>'];
-  for(var row=0;row<rows;row++){for(var col=0;col<cols;col++){var n=grid.panels[row][col];if(!n)continue;var ro=(row%2===1)?hw/2:0,cx=col*hw+ox+ro,cy=row*1.5*r+oy,s=sel.indexOf(n)>=0;parts.push('<polygon data-panel="'+n+'" points="'+hexPointsStr(cx,cy,r)+'" fill="'+(s?'rgba(232,130,10,0.18)':'rgba(0,0,0,0.38)')+'" stroke="'+(s?'#e8820a':'rgba(255,255,255,0.12)')+'" stroke-width="'+(s?.7:.3)+'" filter="url(#'+sid+')" style="cursor:pointer;" onclick="toggleTilePanel(\''+slug+'\','+n+')"/>');}}
-  return '<svg id="hex-overlay-'+slug+'" viewBox="0 0 '+VW+' '+VH+'" preserveAspectRatio="none" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:all;" xmlns="http://www.w3.org/2000/svg">'+parts.join('')+'</svg>';
+
+function buildHexImageOverlay(slug,count,sel){
+  var grid=getPanelGrid(count),cols=grid.cols,rows=grid.rows;
+  // SVG uses preserveAspectRatio="none" so we must account for aspect ratio
+  // Use a fixed viewBox of 100x75 and compute r to produce regular hexagons
+  var VW=100,VH=75;
+  // Compute r that fits cols/rows into the viewport maintaining regular hex shape
+  var rByW=VW/((cols*Math.sqrt(3)+0.5*Math.sqrt(3))*1.05);
+  var rByH=VH/((rows*1.5+0.5)*1.05);
+  var r=Math.min(rByW,rByH)*0.92;
+  var hw=Math.sqrt(3)*r;
+  var ox=(VW-(cols*hw+(rows>1?hw*0.5:0)))/2+hw/2;
+  var oy=(VH-(rows*1.5*r+r*0.5))/2+r;
+  var sid='hg'+slug.replace(/-/g,'');
+  var parts=['<defs><filter id="'+sid+'"><feGaussianBlur stdDeviation="0.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>'];
+  for(var row=0;row<rows;row++){
+    for(var col=0;col<cols;col++){
+      var n=grid.panels[row][col];if(!n)continue;
+      var offset=(row%2===1)?hw/2:0;
+      var cx=col*hw+ox+offset;
+      var cy=row*1.5*r+oy;
+      var s=sel&&sel.indexOf(n)>=0;
+      parts.push('<polygon data-panel="'+n+'" points="'+hexPointsStr(cx,cy,r)+'" fill="'+(s?'rgba(232,130,10,0.18)':'rgba(0,0,0,0.38)')+'" stroke="'+(s?'#e8820a':'rgba(255,255,255,0.12)')+'" stroke-width="'+(s?.7:.3)+'" filter="url(#'+sid+')" style="cursor:pointer" onclick="toggleTilePanel(\''+slug+'\','+n+')"/>');
+    }
+  }
+  // NOTE: preserveAspectRatio="xMidYMid meet" — do NOT use "none" to avoid hex distortion
+  return '<svg id="hex-overlay-'+slug+'" viewBox="0 0 '+VW+' '+VH+'" preserveAspectRatio="xMidYMid meet" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:all;" xmlns="http://www.w3.org/2000/svg">'+parts.join('')+'</svg>';
 }
-function renderPreviewCanvas(slug,product,sel) {
-  var canvas=document.getElementById('prev-'+slug); if(!canvas) return;
+
+function renderPreviewCanvas(slug,product,sel){
+  var canvas=document.getElementById('prev-'+slug);if(!canvas)return;
   var ctx=canvas.getContext('2d'),W=canvas.parentElement?canvas.parentElement.offsetWidth||320:320,H=72;
-  canvas.width=W; canvas.height=H; ctx.fillStyle='#0d1422'; ctx.fillRect(0,0,W,H);
+  canvas.width=W;canvas.height=H;ctx.fillStyle='#0d1422';ctx.fillRect(0,0,W,H);
   if(!sel||sel.length===0){ctx.fillStyle='#6b7a96';ctx.font='700 9px "Syne",sans-serif';ctx.textAlign='center';ctx.fillText('NO PANELS SELECTED',W/2,H/2+3);return;}
   var sortedSel=sel.slice().sort(function(a,b){return a-b;}),count=parseInt(product.pieces)||4,grid=getPanelGrid(count),panelW=Math.floor(W/sortedSel.length);
   if(product.isCollection&&product.panelImages&&product.panelImages.length){
@@ -780,16 +821,16 @@ function renderPreviewCanvas(slug,product,sel) {
     var img=new Image();img.crossOrigin='anonymous';img.onload=function(){for(var si=0;si<sortedSel.length;si++){var n=sortedSel[si],pr=-1,pc=-1;outer:for(var r2=0;r2<grid.rows;r2++){for(var c2=0;c2<grid.cols;c2++){if(grid.panels[r2][c2]===n){pr=r2;pc=c2;break outer;}}}if(pr<0)continue;ctx.drawImage(img,(pc/grid.cols)*img.width,(pr/grid.rows)*img.height,img.width/grid.cols,img.height/grid.rows,si*panelW,0,(si===sortedSel.length-1)?W-si*panelW:panelW,H);if(si>0){ctx.strokeStyle='#e8820a';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(si*panelW,0);ctx.lineTo(si*panelW,H);ctx.stroke();}}ctx.strokeStyle='rgba(232,130,10,0.5)';ctx.lineWidth=1.5;ctx.strokeRect(.75,.75,W-1.5,H-1.5);};img.onerror=function(){};img.src=product.image;
   }
 }
-function ensureSelection(slug) {
+function ensureSelection(slug){
   if(!tileSelections[slug]){var p=products.find(function(x){return x.slug===slug;});var c=p?parseInt(p.pieces)||4:4;tileSelections[slug]=[];for(var n=1;n<=c;n++)tileSelections[slug].push(n);}
 }
-function toggleTilePanel(slug,panelNum) {
+function toggleTilePanel(slug,panelNum){
   ensureSelection(slug);var arr=tileSelections[slug],idx=arr.indexOf(panelNum);
   if(idx>=0)arr.splice(idx,1);else arr.push(panelNum);refreshTileUI(slug);
 }
 function selectAllTiles(slug){var p=products.find(function(x){return x.slug===slug;});var c=p?parseInt(p.pieces)||4:4;tileSelections[slug]=[];for(var n=1;n<=c;n++)tileSelections[slug].push(n);refreshTileUI(slug);}
 function selectNoTiles(slug){tileSelections[slug]=[];refreshTileUI(slug);}
-function refreshTileUI(slug) {
+function refreshTileUI(slug){
   var product=products.find(function(p){return p.slug===slug;});if(!product)return;
   var sel=tileSelections[slug]||[],safe=slug.replace(/-/g,'_'),total=(sel.length*34.99).toFixed(2);
   var ovSvg=document.getElementById('hex-overlay-'+slug);
@@ -800,26 +841,31 @@ function refreshTileUI(slug) {
   document.querySelectorAll('.tlab-'+safe).forEach(function(e){e.disabled=sel.length===0;e.textContent=sel.length===0?'Select panels above':'Add '+sel.length+' Panel'+(sel.length!==1?'s':'')+' to Basket — £'+total;});
   renderPreviewCanvas(slug,product,sel);
 }
-function addSelectedTilesToBasket(slug) {
+function addSelectedTilesToBasket(slug){
   ensureSelection(slug);var sel=tileSelections[slug];if(!sel||sel.length===0){showToast('Select at least one panel');return;}
   var product=products.find(function(p){return p.slug===slug;});if(!product)return;
   sel.forEach(function(pn){var tslug=slug+'--tile-'+pn,found=false;for(var j=0;j<basket.length;j++){if(basket[j].slug===tslug){basket[j].qty++;found=true;break;}}if(!found)basket.push({slug:tslug,name:product.name+' — Panel '+pn+(product.panelNames?' ('+product.panelNames[pn-1]+')':''),price:34.99,qty:1,image:(product.panelImages?product.panelImages[pn-1]:product.image)||product.image,isTile:true,panelNum:pn});});
   updateBadge();renderDrawer();showToast(sel.length+' panel'+(sel.length!==1?'s':'')+' added to basket');
 }
-function buildTileSelectorWidget(product,idPrefix) {
+function buildTileSelectorWidget(product,idPrefix){
   var count=parseInt(product.pieces)||4;ensureSelection(product.slug);
   var sel=tileSelections[product.slug],safe=product.slug.replace(/-/g,'_'),total=(sel.length*34.99).toFixed(2);
   return '<div class="tile-prev-label">Panel preview</div><div class="tile-preview-wrap"><canvas id="prev-'+product.slug+'" class="tile-preview-canvas"></canvas></div><div style="display:flex;align-items:center;justify-content:space-between;margin:12px 0 8px;"><div style="font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);">Select panels — £34.99 each</div><div style="display:flex;gap:5px;"><button class="tile-quick-btn" onclick="selectAllTiles(\''+product.slug+'\')">All</button><button class="tile-quick-btn" onclick="selectNoTiles(\''+product.slug+'\')">None</button></div></div>'+buildHexPickerSVG(product.slug,count,sel,idPrefix)+'<div class="tile-count-row"><span class="tlc-'+safe+' tile-count-label">'+sel.length+' panel'+(sel.length!==1?'s':'')+' selected</span><span class="tlp-'+safe+' tile-count-price">£'+total+'</span></div><button class="tile-add-basket-btn tlab-'+safe+'"'+(sel.length===0?' disabled':'')+' onclick="addSelectedTilesToBasket(\''+product.slug+'\')">'+(sel.length===0?'Select panels above':'Add '+sel.length+' Panel'+(sel.length!==1?'s':'')+' to Basket — £'+total)+'</button>';
 }
-function buildCollectionCardHTML(p) {
+function buildCollectionCardHTML(p){
   ensureSelection(p.slug);
   return '<div class="tile-series-card"><div class="tile-series-img-wrap"><img class="tile-series-img" src="'+p.image+'" alt="'+p.name+'" loading="lazy"></div><div class="tile-series-body"><div style="margin-bottom:6px">'+typeTag(true)+'</div><div class="tile-series-name">'+p.name+'</div><div class="tile-series-hint">'+p.panelHint+'</div>'+buildTileSelectorWidget(p,'col')+'</div></div>';
 }
-function renderCollections() {
+function renderCollections(){
   var grid=document.getElementById('collections-grid');if(!grid)return;
   grid.innerHTML=products.filter(function(p){return p.isCollection;}).map(buildCollectionCardHTML).join('');
   setTimeout(function(){products.filter(function(p){return p.isCollection;}).forEach(function(p){ensureSelection(p.slug);renderPreviewCanvas(p.slug,p,tileSelections[p.slug]);});},80);
 }
+
+// ═══════════════════════════════════════════════ INIT
+buildMarquee();renderFeatured();buildFilterBar();renderWallArt();renderBundles();updateBadge();renderDrawer();
+window.addEventListener('hashchange',router);router();
+(function(){var nav=document.getElementById('mobile-bottom-nav');function c(){if(nav)nav.style.display=window.innerWidth<=430?'flex':'none';}c();window.addEventListener('resize',c);})();
 </script>
 </body>
 </html>
