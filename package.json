@@ -1,1 +1,1 @@
-{"name":"celestial-frames","version":"1.0.0","private":true,"dependencies":{"stripe":"^14.0.0"}}
+{"name":"spacenova","version":"1.0.0","private":true,"dependencies":{"stripe":"^14.0.0"}}
