@@ -10,8 +10,20 @@
 <script src="https://js.stripe.com/v3/"></script>
 <style>
 /* ── LOGO IMAGE ────────────────────────────────────────────────── */
-.nav-logo-img { height: 28px; width: auto; display: block; filter: brightness(0) invert(1); }
-.nav-logo { gap: 8px; }
+.nav-logo-img { height: 48px; width: auto; display: block; vertical-align: middle; }
+.nav-logo { gap: 8px; align-items: center; }
+
+/* ── SERIES/COLLECTION TAGS ────────────────────────────────────── */
+.type-tag {
+  font-family: var(--fm); font-size: .58rem; letter-spacing: .14em; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 999px; font-weight: 700;
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.type-tag.series { background: rgba(232,130,10,.12); color: var(--accent); border: 1px solid rgba(232,130,10,.35); }
+.type-tag.collection { background: rgba(201,169,110,.12); color: var(--gold); border: 1px solid rgba(201,169,110,.35); }
+.type-tag::before { content:''; display:inline-block; width:5px; height:5px; border-radius:50%; }
+.type-tag.series::before { background: var(--accent); }
+.type-tag.collection::before { background: var(--gold); }
 
 /* ── SERIES/COLLECTION TAGS ────────────────────────────────────── */
 .type-tag {
