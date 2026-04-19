@@ -818,7 +818,7 @@ function renderCheckoutForm() {
 
   if (checkoutStep === 2) return steps +
     '<h3 style="font-family:var(--fd);font-weight:300;font-size:1.4rem;margin-bottom:18px">Payment details</h3>' +
-    '<p style="color:var(--muted);font-size:.82rem;margin-bottom:16px;font-family:var(--fm);letter-spacing:.05em"> \u2014 no real payment processed</p>' +
+    '' +
     '<div class="card-icons"><span class="card-icon">VISA</span><span class="card-icon">MC</span><span class="card-icon">AMEX</span></div>' +
     '<div class="form-group"><label class="form-label">Card number</label><input class="form-input" id="f-card" placeholder="4242 4242 4242 4242" maxlength="19" oninput="formatCard(this)"/></div>' +
     '<div class="form-row">' +
@@ -848,7 +848,7 @@ function renderCheckoutForm() {
 function renderCheckoutFooter() {
   if (checkoutStep === 1) return '<div style="display:flex;gap:10px"><button class="btn btn-ghost" onclick="checkoutStep=0;renderDrawer()">← Back</button><button class="btn btn-primary" style="flex:1" onclick="nextCheckout()">Continue to payment →</button></div>';
   if (checkoutStep === 2) return '<div style="display:flex;gap:10px"><button class="btn btn-ghost" onclick="checkoutStep=1;renderDrawer()">← Back</button><button class="btn btn-primary" style="flex:1" onclick="nextCheckout()">Review order →</button></div>';
-  if (checkoutStep === 3) return '<div style="display:flex;gap:10px"><button class="btn btn-ghost" onclick="checkoutStep=2;renderDrawer()">← Back</button><button class="btn btn-gold" style="flex:1" onclick="placeOrder()">Place order →</button></div><p style="font-family:var(--fm);font-size:.62rem;color:var(--muted);text-align:center;margin-top:10px;letter-spacing:.06em"> ONLY — NO REAL PAYMENT</p>';
+  if (checkoutStep === 3) return '<div style="display:flex;gap:10px"><button class="btn btn-ghost" onclick="checkoutStep=2;renderDrawer()">← Back</button><button class="btn btn-gold" style="flex:1" onclick="placeOrder()">Place order →</button></div>';
   return "";
 }
 
