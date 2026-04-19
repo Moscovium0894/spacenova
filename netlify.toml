@@ -1,8 +1,22 @@
 [build]
   functions = "netlify/functions"
 
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "STRIPE_PUBLISHABLE_KEY"
+
 [functions]
   node_bundler = "esbuild"
+
+[[headers]]
+  for = "/.well-known/apple-developer-merchantid-domain-association"
+  [headers.values]
+    Content-Type = "application/octet-stream"
+
+[[redirects]]
+  from = "/.well-known/apple-developer-merchantid-domain-association"
+  to = "/.well-known/apple-developer-merchantid-domain-association"
+  status = 200
+  force = true
 
 [[redirects]]
   from = "/admin"
