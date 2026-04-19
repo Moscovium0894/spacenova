@@ -599,48 +599,128 @@ function createPaymentIntent(callback){
     body:JSON.stringify({amount:totalPence,currency:'gbp',items:basket.map(function(b){return{name:b.name,price:b.price,qty:b.qty};})})
   }).then(function(r){return r.json();}).then(function(d){stripeClientSecret=d.clientSecret||null;callback(null);}).catch(function(){stripeClientSecret=null;callback(null);});
 }
-function mountStripeElement(){
-  var container=document.getElementById('stripe-payment-element');if(!container)return;
-  if(!stripe||!stripeClientSecret){
-    container.innerHTML='<div style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:18px 16px;"><div style="font-family:var(--fm);font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Card information (demo)</div><input class="form-input" id="demo-card" placeholder="4242 4242 4242 4242" style="margin-bottom:10px;" maxlength="19" oninput="formatCard(this)"/><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><input class="form-input" id="demo-exp" placeholder="MM / YY" maxlength="7" oninput="formatExpiry(this)"/><input class="form-input" id="demo-cvc" placeholder="CVC" maxlength="4"/></div><div style="margin-top:10px"><input class="form-input" id="demo-name" placeholder="Cardholder name"/></div></div><p style="font-family:var(--fm);font-size:.62rem;color:var(--muted);margin-top:8px;opacity:.8">Configure STRIPE_PUBLISHABLE_KEY to enable live payments. In demo mode, payment cannot be confirmed.</p>';
-    return;
-  }
-  stripeElements=stripe.elements({clientSecret:stripeClientSecret,appearance:{theme:'night',variables:{colorPrimary:'#e8820a',colorBackground:'#0c1220',colorText:'#e8ecf4',colorDanger:'#e05050',fontFamily:'"Syne",sans-serif',borderRadius:'10px'}}});
-  stripePaymentElement=stripeElements.create('payment');
-  stripePaymentElement.mount('#stripe-payment-element');
-}
-function submitStripePayment(){
-  if(!stripe){showToast('Stripe not configured — payments unavailable','danger');return;}
-  if(!stripeClientSecret||!stripeElements){showToast('Payment not initialised — go back and retry','danger');return;}
-  var btn=document.getElementById('stripe-submit-btn');
-  if(btn){btn.disabled=true;btn.textContent='Processing…';}
-  var errEl=document.getElementById('stripe-error');if(errEl)errEl.textContent='';
-  stripeElements.submit().then(function(r){
-    if(r.error){
-      if(errEl)errEl.textContent=r.error.message;
-      if(btn){btn.disabled=false;btn.textContent='Pay & review →';}
+function mountStripeElement() {
+  var container = document.getElementById('stripe-payment-element');
+  if (!container) return;
+
+  if (!stripe || !stripeClientSecret) return;
+
+  container.innerHTML = '';
+
+  stripeElements = stripe.elements({
+    clientSecret: stripeClientSecret,
+    appearance: {
+      theme: 'night',
+      variables: {
+        colorPrimary: '#e8820a',
+        colorBackground: '#0c1220',
+        colorText: '#e8ecf4',
+        colorDanger: '#e05050',
+        fontFamily: '"Syne", sans-serif',
+        borderRadius: '10px'
+      }
+    }
+  });
+
+  // ── Express Checkout (Apple Pay / Google Pay) ──
+  var expressContainer = document.createElement('div');
+  expressContainer.id = 'stripe-express-element';
+  expressContainer.style.marginBottom = '12px';
+  container.appendChild(expressContainer);
+
+  var expressElement = stripeElements.create('expressCheckout');
+
+  expressElement.on('confirm', function() {
+    stripe.confirmPayment({
+      elements: stripeElements,
+      clientSecret: stripeClientSecret,
+      confirmParams: { return_url: window.location.origin + '/success.html' },
+      redirect: 'if_required'
+    }).then(function(res) {
+      var errEl = document.getElementById('stripe-error');
+      if (res.error) {
+        if (errEl) errEl.textContent = res.error.message;
+        return;
+      }
+      var pi = res.paymentIntent;
+      if (pi && pi.status === 'succeeded') {
+        paymentConfirmed = true;
+        checkoutStep = 3;
+        renderDrawer();
+      } else {
+        if (errEl) errEl.textContent = 'Payment not completed. Status: ' + (pi ? pi.status : 'unknown');
+      }
+    });
+  });
+
+  expressElement.on('ready', function(event) {
+    // Hide express section entirely if no wallet methods available (e.g. desktop Chrome)
+    if (!event.availablePaymentMethods) {
+      expressContainer.style.display = 'none';
       return;
     }
+    // Show "Or pay with card" divider only when Apple/Google Pay is available
+    var divider = document.createElement('p');
+    divider.style.cssText = 'text-align:center;color:var(--muted);font-size:.75rem;letter-spacing:.08em;margin:4px 0 12px;';
+    divider.textContent = 'Or pay with card';
+    container.insertBefore(divider, innerContainer);
+  });
+
+  expressElement.mount('#stripe-express-element');
+
+  // ── Regular Payment Element (card, Klarna, Revolut etc.) ──
+  var innerContainer = document.createElement('div');
+  innerContainer.id = 'stripe-payment-element-inner';
+  container.appendChild(innerContainer);
+
+  stripePaymentElement = stripeElements.create('payment');
+  stripePaymentElement.mount('#stripe-payment-element-inner');
+}
+
+function submitStripePayment() {
+  if (!stripe) { showToast('Stripe not configured — payments unavailable', 'danger'); return; }
+  if (!stripeClientSecret || !stripeElements) { showToast('Payment not initialised — go back and retry', 'danger'); return; }
+
+  var btn = document.getElementById('stripe-submit-btn');
+  var errEl = document.getElementById('stripe-error');
+
+  if (btn) { btn.disabled = true; btn.textContent = 'Processing…'; }
+  if (errEl) errEl.textContent = '';
+
+  function onPaymentSuccess() {
+    paymentConfirmed = true;
+    checkoutStep = 3;
+    renderDrawer();
+  }
+
+  function onPaymentError(msg) {
+    if (errEl) errEl.textContent = msg || 'Payment failed. Please try again.';
+    if (btn) { btn.disabled = false; btn.textContent = 'Pay & review →'; }
+  }
+
+  stripeElements.submit().then(function(r) {
+    if (r.error) { onPaymentError(r.error.message); return; }
+
     stripe.confirmPayment({
-      elements:stripeElements,clientSecret:stripeClientSecret,
-      confirmParams:{
-        return_url:window.location.origin+'/success.html',
-        payment_method_data:{billing_details:{name:savedDelivery.firstName+' '+savedDelivery.lastName,email:savedDelivery.email}}
-      },
-      redirect:'if_required'
-    }).then(function(res){
-      if(res.error){
-        if(errEl)errEl.textContent=res.error.message;
-        if(btn){btn.disabled=false;btn.textContent='Pay & review →';}
-      } else {
-        var pi=res.paymentIntent;
-        if(pi&&pi.status==='succeeded'){
-          paymentConfirmed=true; // Payment authorised — now allow order placement
-          checkoutStep=3;renderDrawer();
-        } else {
-          if(errEl)errEl.textContent='Payment not completed. Status: '+(pi?pi.status:'unknown');
-          if(btn){btn.disabled=false;btn.textContent='Pay & review →';}
+      elements: stripeElements,
+      clientSecret: stripeClientSecret,
+      confirmParams: {
+        return_url: window.location.origin + '/success.html',
+        payment_method_data: {
+          billing_details: {
+            name: (savedDelivery.firstName || '') + ' ' + (savedDelivery.lastName || ''),
+            email: savedDelivery.email || ''
+          }
         }
+      },
+      redirect: 'if_required'
+    }).then(function(res) {
+      if (res.error) { onPaymentError(res.error.message); return; }
+      var pi = res.paymentIntent;
+      if (pi && pi.status === 'succeeded') {
+        onPaymentSuccess();
+      } else {
+        onPaymentError('Payment not completed. Status: ' + (pi ? pi.status : 'unknown'));
       }
     });
   });
