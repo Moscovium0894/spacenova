@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Aether Frames — Space Wall Art</title>
+<title>spacenova — Space Wall Art</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet"/>
 <style>
@@ -373,7 +373,7 @@ footer{border-top:1px solid var(--border);background:var(--surface);padding:48px
 <nav>
   <a class="nav-logo" href="#home">
     <div class="nav-logo-mark"></div>
-    Aether Frames
+    spacenova
   </a>
   <div class="nav-links">
     <a class="nav-link" href="#home" data-route="home">Home</a>
@@ -500,7 +500,7 @@ footer{border-top:1px solid var(--border);background:var(--surface);padding:48px
       <div>
         <p class="section-eyebrow">Our craft</p>
         <h2 style="font-family:var(--fd);font-size:clamp(2rem,4vw,3.4rem);font-weight:300;margin-bottom:16px;">Bringing deep space<br/><em style="font-style:italic;color:var(--gold)">to your walls.</em></h2>
-        <p style="color:var(--muted);line-height:1.8;margin-bottom:16px;">Each Aether Frames series begins as a single large-format artwork, meticulously divided across 3&#8211;9 individually framed panels. Tiny magnets hidden inside each frame edge ensure precise, clean alignment — no measuring tape required.</p>
+        <p style="color:var(--muted);line-height:1.8;margin-bottom:16px;">Each spacenova series begins as a single large-format artwork, meticulously divided across 3&#8211;9 individually framed panels. Tiny magnets hidden inside each frame edge ensure precise, clean alignment — no measuring tape required.</p>
         <p style="color:var(--muted);line-height:1.8;">Our materials are gallery-grade: heavyweight matte papers, museum-quality UV inks, and matte-black powder-coated aluminium frames. Built to last decades.</p>
         <div class="feature-list">
           <div class="feature-item"><div class="feature-icon">🔲</div><div><h4>Magnetic edge alignment</h4><p>Panels snap into precise position. No measuring, no guesswork, no crooked frames.</p></div></div>
@@ -525,7 +525,7 @@ footer{border-top:1px solid var(--border);background:var(--surface);padding:48px
   <div class="footer-inner">
     <div class="footer-brand">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;font-family:var(--fd);font-size:1.3rem;font-weight:600;">
-        <div class="nav-logo-mark"></div>Aether Frames
+        <div class="nav-logo-mark"></div>spacenova
       </div>
       <p>Multi-panel magnetic wall art for discerning interiors. Gallery quality, deep-space atmosphere.</p>
     </div>
@@ -534,7 +534,7 @@ footer{border-top:1px solid var(--border);background:var(--surface);padding:48px
     <div class="footer-col"><h4>Support</h4><a href="#about">FAQ</a><a href="#about">Shipping &amp; returns</a><a href="#about">Contact us</a></div>
   </div>
   <div class="footer-bottom">
-    <span>© 2025 Aether Frames. Demo store — no real transactions.</span>
+    <span>© 2025 spacenova.  store — .</span>
     <span>Free UK shipping on orders over £300</span>
   </div>
 </footer>
@@ -818,7 +818,7 @@ function renderCheckoutForm() {
 
   if (checkoutStep === 2) return steps +
     '<h3 style="font-family:var(--fd);font-weight:300;font-size:1.4rem;margin-bottom:18px">Payment details</h3>' +
-    '<p style="color:var(--muted);font-size:.82rem;margin-bottom:16px;font-family:var(--fm);letter-spacing:.05em">DEMO \u2014 no real payment processed</p>' +
+    '<p style="color:var(--muted);font-size:.82rem;margin-bottom:16px;font-family:var(--fm);letter-spacing:.05em"> \u2014 no real payment processed</p>' +
     '<div class="card-icons"><span class="card-icon">VISA</span><span class="card-icon">MC</span><span class="card-icon">AMEX</span></div>' +
     '<div class="form-group"><label class="form-label">Card number</label><input class="form-input" id="f-card" placeholder="4242 4242 4242 4242" maxlength="19" oninput="formatCard(this)"/></div>' +
     '<div class="form-row">' +
@@ -848,7 +848,7 @@ function renderCheckoutForm() {
 function renderCheckoutFooter() {
   if (checkoutStep === 1) return '<div style="display:flex;gap:10px"><button class="btn btn-ghost" onclick="checkoutStep=0;renderDrawer()">← Back</button><button class="btn btn-primary" style="flex:1" onclick="nextCheckout()">Continue to payment →</button></div>';
   if (checkoutStep === 2) return '<div style="display:flex;gap:10px"><button class="btn btn-ghost" onclick="checkoutStep=1;renderDrawer()">← Back</button><button class="btn btn-primary" style="flex:1" onclick="nextCheckout()">Review order →</button></div>';
-  if (checkoutStep === 3) return '<div style="display:flex;gap:10px"><button class="btn btn-ghost" onclick="checkoutStep=2;renderDrawer()">← Back</button><button class="btn btn-gold" style="flex:1" onclick="placeOrder()">Place order →</button></div><p style="font-family:var(--fm);font-size:.62rem;color:var(--muted);text-align:center;margin-top:10px;letter-spacing:.06em">DEMO ONLY — NO REAL PAYMENT</p>';
+  if (checkoutStep === 3) return '<div style="display:flex;gap:10px"><button class="btn btn-ghost" onclick="checkoutStep=2;renderDrawer()">← Back</button><button class="btn btn-gold" style="flex:1" onclick="placeOrder()">Place order →</button></div><p style="font-family:var(--fm);font-size:.62rem;color:var(--muted);text-align:center;margin-top:10px;letter-spacing:.06em"> ONLY — NO REAL PAYMENT</p>';
   return "";
 }
 
