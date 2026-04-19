@@ -1,9 +1,9 @@
-// netlify/functions/save-order.js
-// Saves order details including delivery address and items.
-// In production, write to a database (FaunaDB, Supabase, etc.)
-// For now, we log the order and optionally write to /tmp (ephemeral on Netlify)
+const fs = require('fs'); // Keep for logging fallback if needed
+const { createClient } = require('@supabase/supabase-js');
 
-const fs = require('fs');
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
@@ -13,22 +13,26 @@ exports.handler = async (event) => {
   try {
     const order = JSON.parse(event.body || '{}');
 
-    // Validate essentials
     if (!order.ref || !order.items || !order.delivery) {
       return { statusCode: 400, body: JSON.stringify({ error: 'Invalid order payload' }) };
     }
 
-    const ordersPath = '/tmp/orders.json';
-    let orders = [];
-    try { orders = JSON.parse(fs.readFileSync(ordersPath, 'utf8') || '[]'); } catch (e) {}
+    const { data, error } = await supabase
+      .from('orders')
+      .insert([{
+        ref: order.ref,
+        items: order.items,
+        delivery: order.delivery,
+        total: order.total,
+        createdAt: order.createdAt
+      }]);
 
-    orders.push(order);
-
-    try { fs.writeFileSync(ordersPath, JSON.stringify(orders, null, 2)); } catch (e) {
-      console.error('Could not write orders to /tmp:', e.message);
+    if (error) {
+      console.error('Supabase insert error:', error);
+      return { statusCode: 500, body: JSON.stringify({ error: 'Failed to save order' }) };
     }
 
-    // Log for Netlify function log visibility
+    // Log for Netlify visibility
     console.log('NEW ORDER:', JSON.stringify({
       ref: order.ref,
       name: `${order.delivery.firstName} ${order.delivery.lastName}`,
