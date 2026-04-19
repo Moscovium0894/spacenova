@@ -8,6 +8,99 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="css/style.css"/>
 <script src="https://js.stripe.com/v3/"></script>
+<style>
+/* ── LOGO IMAGE ────────────────────────────────────────────────── */
+.nav-logo-img { height: 28px; width: auto; display: block; filter: brightness(0) invert(1); }
+.nav-logo { gap: 8px; }
+
+/* ── SERIES/COLLECTION TAGS ────────────────────────────────────── */
+.type-tag {
+  font-family: var(--fm); font-size: .58rem; letter-spacing: .14em; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 999px; font-weight: 700;
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.type-tag.series { background: rgba(232,130,10,.12); color: var(--accent); border: 1px solid rgba(232,130,10,.35); }
+.type-tag.collection { background: rgba(201,169,110,.12); color: var(--gold); border: 1px solid rgba(201,169,110,.35); }
+.type-tag::before { content:''; display:inline-block; width:5px; height:5px; border-radius:50%; }
+.type-tag.series::before { background: var(--accent); }
+.type-tag.collection::before { background: var(--gold); }
+
+/* ── ENHANCED ANIMATIONS ────────────────────────────────────────── */
+@keyframes starFloat {
+  0%,100% { transform: translateY(0) scale(1); opacity:.7; }
+  50% { transform: translateY(-8px) scale(1.1); opacity:1; }
+}
+@keyframes orbitPulse {
+  0%,100% { box-shadow: 0 0 24px rgba(232,130,10,.7), 0 0 48px rgba(232,130,10,.3); }
+  50% { box-shadow: 0 0 40px rgba(232,130,10,.9), 0 0 80px rgba(232,130,10,.5), 0 0 120px rgba(232,130,10,.2); }
+}
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+@keyframes cardReveal {
+  from { opacity:0; transform: translateY(32px) scale(.97); }
+  to { opacity:1; transform: translateY(0) scale(1); }
+}
+@keyframes glowPulse {
+  0%,100% { text-shadow: 0 0 20px rgba(201,169,110,.4); }
+  50% { text-shadow: 0 0 40px rgba(201,169,110,.8), 0 0 80px rgba(201,169,110,.3); }
+}
+@keyframes borderGlow {
+  0%,100% { border-color: rgba(232,130,10,.25); }
+  50% { border-color: rgba(232,130,10,.6); }
+}
+@keyframes nebulaDrift {
+  0%,100%{ transform:scale(1) translate(0,0); }
+  33%{ transform:scale(1.03) translate(-1%,.5%); }
+  66%{ transform:scale(1.02) translate(.5%,-1%); }
+}
+.nav-logo-mark { animation: orbitPulse 3s ease-in-out infinite; }
+.hero h1 em { animation: glowPulse 4s ease-in-out infinite; }
+.hero-bg img { animation: nebulaDrift 18s ease-in-out infinite; }
+nav { animation: borderGlow 6s ease-in-out infinite; }
+.card { transition: transform .3s cubic-bezier(.22,1,.36,1), border-color .3s, box-shadow .3s; }
+.card:hover { transform: translateY(-6px) scale(1.008); box-shadow: 0 28px 72px rgba(0,0,0,.5), 0 0 0 1px rgba(232,130,10,.2); }
+.card-media img { transition: transform .7s cubic-bezier(.22,1,.36,1); }
+.card:hover .card-media img { transform: scale(1.08); }
+.btn { transition: all .22s cubic-bezier(.22,1,.36,1); }
+.btn-gold { background: linear-gradient(135deg, var(--gold), var(--gold2), #f0d899, var(--gold)); background-size: 300% auto; }
+.btn-gold:hover { background-position: right center; transform: translateY(-2px); box-shadow: 0 8px 32px rgba(201,169,110,.5); }
+.grid { --col-delay: 0; }
+.grid .card:nth-child(1) { animation: cardReveal .6s .05s both; }
+.grid .card:nth-child(2) { animation: cardReveal .6s .12s both; }
+.grid .card:nth-child(3) { animation: cardReveal .6s .19s both; }
+.grid .card:nth-child(4) { animation: cardReveal .6s .26s both; }
+.grid .card:nth-child(5) { animation: cardReveal .6s .33s both; }
+.grid .card:nth-child(6) { animation: cardReveal .6s .40s both; }
+.hero-stat { transition: transform .2s; }
+.hero-stat:hover { transform: scale(1.08); }
+.hero-stat-num { animation: glowPulse 5s ease-in-out infinite; animation-delay: var(--d, 0s); }
+.hero-stat:nth-child(1) .hero-stat-num { --d: 0s; }
+.hero-stat:nth-child(2) .hero-stat-num { --d: .8s; }
+.hero-stat:nth-child(3) .hero-stat-num { --d: 1.6s; }
+.hero-stat:nth-child(4) .hero-stat-num { --d: 2.4s; }
+.testimonial { transition: transform .3s, box-shadow .3s; }
+.testimonial:hover { transform: translateY(-3px); box-shadow: 0 16px 48px rgba(0,0,0,.4); }
+.filter-pill { transition: all .2s cubic-bezier(.22,1,.36,1); }
+
+/* ── STRIPE PAYMENT ELEMENT ─────────────────────────────────────── */
+#stripe-payment-element { padding: 16px; background: var(--surface); border: 1px solid var(--border2); border-radius: var(--rs); margin-bottom: 12px; min-height: 80px; }
+#stripe-error { color: var(--danger); font-size: .82rem; margin-bottom: 10px; min-height: 1.2em; }
+.stripe-secure-note { display: flex; align-items: center; gap: 7px; font-family: var(--fm); font-size: .63rem; letter-spacing: .08em; color: var(--muted); margin-bottom: 14px; }
+
+/* ── TEAM SECTION ───────────────────────────────────────────────── */
+.team-login-wrap { display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 48px 24px; text-align: center; }
+.team-login-icon { width: 72px; height: 72px; background: var(--surface2); border: 1px solid var(--border2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin: 0 auto; }
+.team-login-form { background: var(--surface); border: 1px solid var(--border2); border-radius: var(--r); padding: 28px; width: 100%; max-width: 380px; }
+.team-login-form h3 { font-family: var(--fd); font-size: 1.6rem; font-weight: 300; margin-bottom: 6px; }
+.team-login-form p { color: var(--muted); font-size: .88rem; margin-bottom: 20px; }
+
+/* ── SCROLLBAR STYLING ──────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: rgba(232,130,10,.3); border-radius: 4px; }
+</style>
 </head>
 <body>
 
@@ -27,15 +120,15 @@
   <a class="mobile-nav-item" href="#about" data-route="about">
     <svg class="mobile-nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>About
   </a>
-  <button class="mobile-nav-item" data-route="basket" onclick="openBasket()">
+  <button class="mobile-nav-item" onclick="openBasket()">
     <svg class="mobile-nav-icon" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>Basket
   </button>
 </nav>
 
 <nav>
   <a class="nav-logo" href="#home">
-    <div class="nav-logo-mark"></div>
-    spacenova
+    <img src="Spacenova_font.png" alt="spacenova" class="nav-logo-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+    <div class="nav-logo-mark" style="display:none"></div>
   </a>
   <div class="nav-links">
     <a class="nav-link" href="#home" data-route="home">Home</a>
@@ -67,7 +160,7 @@
 <div class="page active" data-page="home">
   <div class="hero">
     <div class="hero-bg">
-      <img src="https://images.unsplash.com/photo-1446776877081-d282a0f896e2?auto=format&fit=crop&w=1800&q=85" alt="Space background"/>
+      <img src="https://images.unsplash.com/photo-1446776877081-d282a0f896e2?auto=format&fit=crop&w=1800&q=85" alt="Space"/>
     </div>
     <div class="hero-content">
       <p class="hero-eyebrow afu">Limited-edition wall art</p>
@@ -80,7 +173,7 @@
       <div class="hero-stats afu d4">
         <div class="hero-stat"><div class="hero-stat-num">12</div><div class="hero-stat-label">Series</div></div>
         <div class="hero-stat"><div class="hero-stat-num">6</div><div class="hero-stat-label">Bundles</div></div>
-        <div class="hero-stat"><div class="hero-stat-num">3&#8211;9</div><div class="hero-stat-label">Panels</div></div>
+        <div class="hero-stat"><div class="hero-stat-num">3–9</div><div class="hero-stat-label">Panels</div></div>
         <div class="hero-stat"><div class="hero-stat-num">Mag</div><div class="hero-stat-label">Aligned</div></div>
       </div>
     </div>
@@ -92,10 +185,7 @@
 
   <section class="section">
     <div class="section-head">
-      <div>
-        <p class="section-eyebrow">Curated picks</p>
-        <h2>Featured series</h2>
-      </div>
+      <div><p class="section-eyebrow">Curated picks</p><h2>Featured series</h2></div>
       <a class="btn btn-ghost" href="#series">View all →</a>
     </div>
     <div class="grid" id="featured-series"></div>
@@ -104,12 +194,7 @@
   <div class="section-divider"></div>
 
   <section class="section">
-    <div class="section-head">
-      <div>
-        <p class="section-eyebrow">Happy collectors</p>
-        <h2>What people say</h2>
-      </div>
-    </div>
+    <div class="section-head"><div><p class="section-eyebrow">Happy collectors</p><h2>What people say</h2></div></div>
     <div class="testimonials">
       <div class="testimonial"><div class="testimonial-stars">★★★★★</div><p class="testimonial-text">"The Andromeda Galaxy set completely transformed my living room. The magnetic alignment was dead-on and the print quality is extraordinary."</p><div class="testimonial-author">James H. — London</div></div>
       <div class="testimonial"><div class="testimonial-stars">★★★★★</div><p class="testimonial-text">"I ordered the Aurora over Earth for my studio. Colleagues ask about it every single day. Worth every penny."</p><div class="testimonial-author">Priya S. — Edinburgh</div></div>
@@ -122,10 +207,7 @@
 <div class="page" data-page="series">
   <section class="section">
     <div class="section-head">
-      <div>
-        <p class="section-eyebrow">All series</p>
-        <h2>The collection</h2>
-      </div>
+      <div><p class="section-eyebrow">All series</p><h2>The collection</h2></div>
       <div class="search-wrap">
         <span class="search-icon">⌕</span>
         <input class="search-input" type="text" id="series-search" placeholder="Search series…" oninput="renderSeries()"/>
@@ -141,10 +223,7 @@
 <div class="page" data-page="bundles">
   <section class="section">
     <div class="section-head">
-      <div>
-        <p class="section-eyebrow">Curated sets</p>
-        <h2>Bundles</h2>
-      </div>
+      <div><p class="section-eyebrow">Curated sets</p><h2>Bundles</h2></div>
       <p>Pairs and trios selected for colour harmony and wall proportion.</p>
     </div>
     <div class="grid" id="bundle-grid"></div>
@@ -158,7 +237,7 @@
       <div>
         <p class="section-eyebrow">Our craft</p>
         <h2 style="font-family:var(--fd);font-size:clamp(2rem,4vw,3.4rem);font-weight:300;margin-bottom:16px;">Bringing deep space<br/><em style="font-style:italic;color:var(--gold)">to your walls.</em></h2>
-        <p style="color:var(--muted);line-height:1.8;margin-bottom:16px;">Each spacenova series begins as a single large-format artwork, meticulously divided across 3&#8211;9 individually framed panels. Tiny magnets hidden inside each frame edge ensure precise, clean alignment — no measuring tape required.</p>
+        <p style="color:var(--muted);line-height:1.8;margin-bottom:16px;">Each spacenova series begins as a single large-format artwork, meticulously divided across 3–9 individually framed panels. Tiny magnets hidden inside each frame edge ensure precise, clean alignment — no measuring tape required.</p>
         <p style="color:var(--muted);line-height:1.8;">Our materials are gallery-grade: heavyweight matte papers, museum-quality UV inks, and matte-black powder-coated aluminium frames. Built to last decades.</p>
         <div class="feature-list">
           <div class="feature-item"><div class="feature-icon">🔲</div><div><h4>Magnetic edge alignment</h4><p>Panels snap into precise position. No measuring, no guesswork, no crooked frames.</p></div></div>
@@ -169,6 +248,26 @@
       <div class="about-img">
         <img src="https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=800&q=80" alt="Space artwork"/>
       </div>
+    </div>
+  </section>
+
+  <!-- TEAM / ADMIN SECTION -->
+  <section class="section" style="padding-top:0">
+    <div class="section-divider" style="margin-bottom:60px"></div>
+    <div class="section-head" style="margin-bottom:32px">
+      <div><p class="section-eyebrow">Internal</p><h2>Part of the team?</h2></div>
+    </div>
+    <div class="team-login-form" style="margin:0 auto">
+      <div class="team-login-icon">🛸</div>
+      <br/>
+      <h3>Creator access</h3>
+      <p>Log in to manage and create series, collections, and product imagery using the Spacenova Creator tool.</p>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" type="password" id="team-password" placeholder="Enter team password" onkeydown="if(event.key==='Enter')teamLogin()"/>
+      </div>
+      <p id="team-error" style="color:var(--danger);font-size:.82rem;margin-bottom:10px;display:none">Incorrect password.</p>
+      <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="teamLogin()">Enter Creator →</button>
     </div>
   </section>
 </div>
@@ -190,12 +289,12 @@
 <footer>
   <div class="footer-inner">
     <div class="footer-brand">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;font-family:var(--fd);font-size:1.3rem;font-weight:600;">
-        <div class="nav-logo-mark"></div>spacenova
+      <div style="margin-bottom:12px">
+        <img src="Spacenova_font.png" alt="spacenova" style="height:22px;width:auto;filter:brightness(0) invert(1);opacity:.8" onerror="this.outerHTML='<span style=\'font-family:var(--fd);font-size:1.3rem;font-weight:600\'>spacenova</span>'"/>
       </div>
       <p>Multi-panel magnetic wall art for discerning interiors. Gallery quality, deep-space atmosphere.</p>
     </div>
-    <div class="footer-col"><h4>Shop</h4><a href="#series">All series</a><a href="#bundles">Bundles</a><a href="#home">Featured</a></div>
+    <div class="footer-col"><h4>Shop</h4><a href="#series">All series</a><a href="#collections">Collections</a><a href="#bundles">Bundles</a></div>
     <div class="footer-col"><h4>Company</h4><a href="#about">About</a><a href="#about">Sustainability</a><a href="#about">Press</a></div>
     <div class="footer-col"><h4>Support</h4><a href="#about">FAQ</a><a href="#about">Shipping &amp; returns</a><a href="#about">Contact us</a></div>
   </div>
@@ -208,18 +307,20 @@
 <script>
 // ─── DATA ─────────────────────────────────────────────────────────
 var products = [
-  {slug:"planetary-series",name:"Planetary Series",pieces:"9-panel wall set",panelHint:"9 panels — one planet each",price:349,priceLabel:"£299--£389",short:"All nine planets rendered as individual studio portraits in a unified style — hang any combination.",description:"Nine individually framed portraits — one per planet, Mercury through Pluto — each lit against pure black in identical photographic style. Hang all nine as a 3×3 gallery grid, or display any favourites alone. Every panel is a complete artwork in its own right.",image:"https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?auto=format&fit=crop&w=1200&q=80",category:"planets",accent:"Black / gold / multicolour",size:"9-panel gallery grid",material:"Matte-black magnetic frame",note:"Each panel features one planet. Any combination works together beautifully.",isCollection:true,panelImages:["https://images.unsplash.com/photo-1614314107768-6018061b5b72?auto=format&fit=crop&w=400&q=80","https://images.unsplash.com/photo-1614313913007-2b4ae8ce32d6?auto=format&fit=crop&w=400&q=80","https://images.unsplash.com/photo-1614313913007-2b4ae8ce32d6?auto=format&fit=crop&w=400&q=80","https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?auto=format&fit=crop&w=400&q=80","https://images.unsplash.com/photo-1614732414444-096e5f1122d5?auto=format&fit=crop&w=400&q=80","https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?auto=format&fit=crop&w=400&q=80","https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?auto=format&fit=crop&w=400&q=80","https://images.unsplash.com/photo-1614732414444-096e5f1122d5?auto=format&fit=crop&w=400&q=80","https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?auto=format&fit=crop&w=400&q=80"],panelNames:["Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto"]},
-  {slug:"saturn-rings-arc",name:"Saturn Rings Arc",pieces:"3-panel wall set",panelHint:"3-panel elegant arc",price:179,priceLabel:"£149--£199",short:"Saturn's iconic rings fill the frame — amber bands glowing against the dark void in breathtaking close-up.",description:"An extraordinary close-up of Saturn's ring system across three landscape panels. The amber, gold and shadow-bands create a natural triptych composition — stunning alone or as a centrepiece.",image:"https://static.scientificamerican.com/dam/m/3360d68d1ff517ac/original/saturn_from_its_rings.jpg?m=1752790178.212&crop=1%3A1%2Csmart&w=1000",category:"planets",accent:"Amber / gold / black",size:"Triptych",material:"Matte-black magnetic frame",note:"This set forms a single Saturn rings image only."},
-  {slug:"black-hole-nebula",name:"Black Hole Nebula",pieces:"5-panel wall set",panelHint:"5-panel magnetic mural",price:229,priceLabel:"£189--£249",short:"A dark-core nebula with deep blues, glowing dust lanes and a dramatic event-horizon feel.",description:"One complete black-hole-inspired nebula artwork divided across five matching framed panels. Arrange side-by-side for a single continuous mural with magnetic edge alignment.",image:"https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1200&q=80",category:"nebula",accent:"Deep space / blue",size:"Large panoramic",material:"Matte-black magnetic frame",note:"This full image connects only within the Black Hole Nebula series."},
-  {slug:"nebula-crown",name:"Nebula Crown",pieces:"9-panel wall set",panelHint:"9-panel statement grid",price:349,priceLabel:"£299--£389",short:"A richly layered nebula in blue-green fire — a statement piece built for gallery walls.",description:"A statement piece designed as one complete nebula artwork broken into a nine-panel gallery grid for major visual impact. The deep teal and electric blue tones shift across each panel.",image:"https://images.unsplash.com/photo-1464802686167-b939a6910659?auto=format&fit=crop&w=1200&q=80",category:"nebula",accent:"Blue / green / teal",size:"Large mural grid",material:"Matte-black magnetic frame",note:"Nebula Crown panels connect only within the same nine-panel artwork."},
-  {slug:"andromeda-galaxy",name:"Andromeda Galaxy",pieces:"6-panel panoramic set",panelHint:"6-panel panoramic mural",price:279,priceLabel:"£239--£309",short:"The Andromeda galaxy in full — a sweeping panoramic spanning 2.5 million light years.",description:"One complete Andromeda-inspired galaxy image divided into six panels for a wide panoramic wall installation. The core blazes with warm light while the spiral arms fade into the cosmic dark at either edge.",image:"https://images.unsplash.com/photo-1502134249126-9f3755a50d78?auto=format&fit=crop&w=1200&q=80",category:"galaxy",accent:"Blue / silver / warm core",size:"Wide panoramic",material:"Matte-black magnetic frame",note:"All six panels belong to one artwork and are not interchangeable with other series."},
-  {slug:"deep-field",name:"Deep Field",pieces:"4-panel wall set",panelHint:"4-panel deep field",price:219,priceLabel:"£179--£249",short:"Thousands of galaxies in a single Hubble-inspired deep-field — infinite depth on your wall.",description:"This Hubble-inspired deep-field composition spreads across four matching panels. Every square inch contains hundreds of galaxies at different distances, creating infinite depth that rewards close inspection.",image:"https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=1200&q=80",category:"galaxy",accent:"Blue / violet / black",size:"Wide set",material:"Matte-black magnetic frame",note:"Deep Field is its own complete mural and does not cross-connect with other series."},
-  {slug:"aurora-over-earth",name:"Aurora over Earth",pieces:"5-panel wall set",panelHint:"5-panel aurora mural",price:229,priceLabel:"£189--£259",short:"Glowing auroral curtains sweep across Earth's limb in electric green against infinite black.",description:"A single aurora artwork split across five matching panels. Place side-by-side to reveal one complete atmospheric image where green curtains of light arc over the darkened Earth horizon.",image:"https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?auto=format&fit=crop&w=1200&q=80",category:"earth",accent:"Green / blue / black",size:"Mid panoramic",material:"Matte-black magnetic frame",note:"Aurora over Earth connects only within its own five-panel series."},
-  {slug:"earth-from-space",name:"Earth from Space",pieces:"4-panel wall set",panelHint:"4-panel orbital set",price:209,priceLabel:"£169--£229",short:"A luminous Earth horizon — cloud bands, ocean glow and the razor-thin line of the atmosphere.",description:"One complete Earth artwork split into four elegant framed pieces. Panels align into a single orbital scene via hidden side magnets, recreating the iconic view from the ISS.",image:"https://images.unsplash.com/photo-1446776877081-d282a0f896e2?auto=format&fit=crop&w=1200&q=80",category:"earth",accent:"Blue / black / white",size:"Wide wall set",material:"Matte-black magnetic frame",note:"This series forms one large Earth image and does not connect to other collections."},
-  {slug:"moon-landing",name:"Moon Landing",pieces:"3-panel wall set",panelHint:"3-panel triptych",price:179,priceLabel:"£149--£199",short:"A stark lunar scene with crater textures, hard shadow and the pure silence of the Moon's surface.",description:"One continuous Moon landing artwork across three coordinated framed panels. The monochrome tones and long shadows give it an almost architectural quality.",image:"https://pplx-res.cloudinary.com/image/upload/pplx_search_images/5ca312f208cd99bd14e8696bb515e5b86f216455.jpg",category:"lunar",accent:"Grey / black / soft blue",size:"Triptych",material:"Matte-black magnetic frame",note:"The Moon Landing panels magnetically align with each other only."},
-  {slug:"cosmic-hourglass",name:"Cosmic Hourglass",pieces:"6-panel panoramic set",panelHint:"6-panel portrait grid",price:269,priceLabel:"£229--£299",short:"The MyCn18 hourglass nebula — one of the most geometrically perfect structures in the universe.",description:"The striking hourglass nebula rendered across six panels in two rows of three. The pinched waist and glowing lobes create an architectural symmetry that commands any wall.",image:"https://images.unsplash.com/photo-1543722530-d2c3201371e7?auto=format&fit=crop&w=1200&q=80",category:"nebula",accent:"Pink / teal / black",size:"6-panel portrait grid",material:"Matte-black magnetic frame",note:"The Cosmic Hourglass panels form one complete symmetrical composition."},
-  {slug:"mars-surface",name:"Mars Surface",pieces:"4-panel wall set",panelHint:"4-panel terrain panoramic",price:209,priceLabel:"£169--£235",short:"The russet plains of Mars stretching to the horizon — desolate, vast and hauntingly beautiful.",description:"A wide Martian surface panoramic across four framed panels. The rust-red terrain, distant mesas and pale pink sky combine into a cinematic landscape that feels both alien and familiar.",image:"https://pplx-res.cloudinary.com/image/upload/pplx_search_images/310e8deb3fdcbab7c35ee89ac5f8ab0d04dd1551.jpg",category:"planets",accent:"Red / copper / dusty pink",size:"Wide panoramic",material:"Matte-black magnetic frame",note:"This Mars surface panoramic is exclusive to this series."},
-  {slug:"stellar-nursery",name:"Stellar Nursery",pieces:"9-panel wall set",panelHint:"9-panel immersive grid",price:369,priceLabel:"£319--£409",short:"Inside the Pillars of Creation — towering columns of gas and dust where stars are born.",description:"The iconic Pillars of Creation reimagined as a nine-panel immersive grid. The towering emerald and gold columns of star-forming gas dominate the composition, surrounded by the electric glow of the surrounding nebula.",image:"https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1200&q=80",category:"nebula",accent:"Emerald / gold / deep blue",size:"Large immersive grid",material:"Matte-black magnetic frame",note:"Stellar Nursery panels form one continuous pillar composition across the full grid."}
+  // SERIES (isCollection: false or omitted = series)
+  {slug:"saturn-rings-arc",name:"Saturn Rings Arc",pieces:"3-panel wall set",panelHint:"3-panel elegant arc",price:179,priceLabel:"£149–£199",short:"Saturn's iconic rings fill the frame — amber bands glowing against the dark void in breathtaking close-up.",description:"An extraordinary close-up of Saturn's ring system across three landscape panels. The amber, gold and shadow-bands create a natural triptych composition.",image:"https://static.scientificamerican.com/dam/m/3360d68d1ff517ac/original/saturn_from_its_rings.jpg?m=1752790178.212&crop=1%3A1%2Csmart&w=1000",category:"planets",accent:"Amber / gold / black",size:"Triptych",material:"Matte-black magnetic frame",note:"This set forms a single Saturn rings image only.",isCollection:false},
+  {slug:"black-hole-nebula",name:"Black Hole Nebula",pieces:"5-panel wall set",panelHint:"5-panel magnetic mural",price:229,priceLabel:"£189–£249",short:"A dark-core nebula with deep blues, glowing dust lanes and a dramatic event-horizon feel.",description:"One complete black-hole-inspired nebula artwork divided across five matching framed panels.",image:"https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1200&q=80",category:"nebula",accent:"Deep space / blue",size:"Large panoramic",material:"Matte-black magnetic frame",note:"This full image connects only within the Black Hole Nebula series.",isCollection:false},
+  {slug:"nebula-crown",name:"Nebula Crown",pieces:"9-panel wall set",panelHint:"9-panel statement grid",price:349,priceLabel:"£299–£389",short:"A richly layered nebula in blue-green fire — a statement piece built for gallery walls.",description:"A statement piece designed as one complete nebula artwork broken into a nine-panel gallery grid.",image:"https://images.unsplash.com/photo-1464802686167-b939a6910659?auto=format&fit=crop&w=1200&q=80",category:"nebula",accent:"Blue / green / teal",size:"Large mural grid",material:"Matte-black magnetic frame",note:"Nebula Crown panels connect only within the same nine-panel artwork.",isCollection:false},
+  {slug:"andromeda-galaxy",name:"Andromeda Galaxy",pieces:"6-panel panoramic set",panelHint:"6-panel panoramic mural",price:279,priceLabel:"£239–£309",short:"The Andromeda galaxy in full — a sweeping panoramic spanning 2.5 million light years.",description:"One complete Andromeda-inspired galaxy image divided into six panels for a wide panoramic wall installation.",image:"https://images.unsplash.com/photo-1502134249126-9f3755a50d78?auto=format&fit=crop&w=1200&q=80",category:"galaxy",accent:"Blue / silver / warm core",size:"Wide panoramic",material:"Matte-black magnetic frame",note:"All six panels belong to one artwork.",isCollection:false},
+  {slug:"deep-field",name:"Deep Field",pieces:"4-panel wall set",panelHint:"4-panel deep field",price:219,priceLabel:"£179–£249",short:"Thousands of galaxies in a single Hubble-inspired deep-field — infinite depth on your wall.",description:"This Hubble-inspired deep-field composition spreads across four matching panels.",image:"https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=1200&q=80",category:"galaxy",accent:"Blue / violet / black",size:"Wide set",material:"Matte-black magnetic frame",note:"Deep Field is its own complete mural.",isCollection:false},
+  {slug:"aurora-over-earth",name:"Aurora over Earth",pieces:"5-panel wall set",panelHint:"5-panel aurora mural",price:229,priceLabel:"£189–£259",short:"Glowing auroral curtains sweep across Earth's limb in electric green against infinite black.",description:"A single aurora artwork split across five matching panels.",image:"https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?auto=format&fit=crop&w=1200&q=80",category:"earth",accent:"Green / blue / black",size:"Mid panoramic",material:"Matte-black magnetic frame",note:"Aurora over Earth connects only within its five-panel series.",isCollection:false},
+  {slug:"earth-from-space",name:"Earth from Space",pieces:"4-panel wall set",panelHint:"4-panel orbital set",price:209,priceLabel:"£169–£229",short:"A luminous Earth horizon — cloud bands, ocean glow and the razor-thin line of the atmosphere.",description:"One complete Earth artwork split into four elegant framed pieces.",image:"https://images.unsplash.com/photo-1446776877081-d282a0f896e2?auto=format&fit=crop&w=1200&q=80",category:"earth",accent:"Blue / black / white",size:"Wide wall set",material:"Matte-black magnetic frame",note:"This series forms one large Earth image.",isCollection:false},
+  {slug:"moon-landing",name:"Moon Landing",pieces:"3-panel wall set",panelHint:"3-panel triptych",price:179,priceLabel:"£149–£199",short:"A stark lunar scene with crater textures, hard shadow and the pure silence of the Moon's surface.",description:"One continuous Moon landing artwork across three coordinated framed panels.",image:"https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80",category:"lunar",accent:"Grey / black / soft blue",size:"Triptych",material:"Matte-black magnetic frame",note:"The Moon Landing panels magnetically align with each other only.",isCollection:false},
+  {slug:"cosmic-hourglass",name:"Cosmic Hourglass",pieces:"6-panel panoramic set",panelHint:"6-panel portrait grid",price:269,priceLabel:"£229–£299",short:"The MyCn18 hourglass nebula — one of the most geometrically perfect structures in the universe.",description:"The striking hourglass nebula rendered across six panels in two rows of three.",image:"https://images.unsplash.com/photo-1543722530-d2c3201371e7?auto=format&fit=crop&w=1200&q=80",category:"nebula",accent:"Pink / teal / black",size:"6-panel portrait grid",material:"Matte-black magnetic frame",note:"The Cosmic Hourglass panels form one complete symmetrical composition.",isCollection:false},
+  {slug:"mars-surface",name:"Mars Surface",pieces:"4-panel wall set",panelHint:"4-panel terrain panoramic",price:209,priceLabel:"£169–£235",short:"The russet plains of Mars stretching to the horizon — desolate, vast and hauntingly beautiful.",description:"A wide Martian surface panoramic across four framed panels.",image:"https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?auto=format&fit=crop&w=1200&q=80",category:"planets",accent:"Red / copper / dusty pink",size:"Wide panoramic",material:"Matte-black magnetic frame",note:"This Mars surface panoramic is exclusive to this series.",isCollection:false},
+  {slug:"stellar-nursery",name:"Stellar Nursery",pieces:"9-panel wall set",panelHint:"9-panel immersive grid",price:369,priceLabel:"£319–£409",short:"Inside the Pillars of Creation — towering columns of gas and dust where stars are born.",description:"The iconic Pillars of Creation reimagined as a nine-panel immersive grid.",image:"https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1200&q=80",category:"nebula",accent:"Emerald / gold / deep blue",size:"Large immersive grid",material:"Matte-black magnetic frame",note:"Stellar Nursery panels form one continuous pillar composition.",isCollection:false},
+  // COLLECTIONS (isCollection: true) — shown in Collections only, NOT in series
+  {slug:"planetary-series",name:"Planetary Collection",pieces:"9-panel wall set",panelHint:"9 panels — one planet each",price:349,priceLabel:"£299–£389",short:"All nine planets rendered as individual studio portraits — hang any combination.",description:"Nine individually framed portraits — one per planet, Mercury through Pluto.",image:"https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?auto=format&fit=crop&w=1200&q=80",category:"planets",accent:"Black / gold / multicolour",size:"9-panel gallery grid",material:"Matte-black magnetic frame",note:"Each panel features one planet. Any combination works.",isCollection:true,panelImages:["https://images.unsplash.com/photo-1614314107768-6018061b5b72?w=400","https://images.unsplash.com/photo-1614313913007-2b4ae8ce32d6?w=400","https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400","https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?w=400","https://images.unsplash.com/photo-1614732414444-096e5f1122d5?w=400","https://static.scientificamerican.com/dam/m/3360d68d1ff517ac/original/saturn_from_its_rings.jpg","https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?w=400","https://images.unsplash.com/photo-1614732414444-096e5f1122d5?w=400","https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?w=400"],panelNames:["Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto"]}
 ];
 
 var bundles = [
@@ -228,131 +329,98 @@ var bundles = [
   {slug:"planetary-contrast-set",name:"Planetary Contrast Set",price:"£389",items:["mars-surface","saturn-rings-arc"],text:"Warm Martian tones and cool planetary geometry in one coordinated room bundle."},
   {slug:"aurora-study-collection",name:"Aurora Study Collection",price:"£329",items:["aurora-over-earth","deep-field"],text:"A cooler green-blue palette suited to calm desks, offices, and focused workspaces."},
   {slug:"gallery-wall-max",name:"Gallery Wall Max",price:"£729",items:["nebula-crown","aurora-over-earth","moon-landing"],text:"Three statement sets for a large cinematic wall with strong contrast and premium visual rhythm."},
-  {slug:"solar-panorama-duo",name:"Solar Panorama Duo",price:"£479",items:["planetary-series","deep-field"],text:"A clean extra-wide pairing for modern interiors that want graphic structure and celestial depth."}
+  {slug:"solar-panorama-duo",name:"Solar Panorama Duo",price:"£479",items:["stellar-nursery","deep-field"],text:"A clean extra-wide pairing for modern interiors that want graphic structure and celestial depth."}
 ];
 
-var featuredSlugs = ["planetary-series","saturn-rings-arc","black-hole-nebula","andromeda-galaxy","aurora-over-earth","stellar-nursery"];
+var featuredSlugs = ["saturn-rings-arc","black-hole-nebula","andromeda-galaxy","aurora-over-earth","stellar-nursery","cosmic-hourglass"];
 
 // ─── STATE ────────────────────────────────────────────────────────
-var basket = [];
-var wishlist = [];
-var activeFilter = null;
-var activeSeriesFilter = null;
-var checkoutStep = 0;
-var productQty = 1;
-var orderRef = "";
+var basket = [], wishlist = [], activeFilter = null, activeSeriesFilter = null;
+var checkoutStep = 0, productQty = 1, orderRef = '';
+var stripe = null, stripeElements = null, stripePaymentElement = null, stripeClientSecret = null;
 
-// Stripe state
-var stripe = null;
-var stripeElements = null;
-var stripePaymentElement = null;
-var stripeClientSecret = null;
+try { var sb = localStorage.getItem('cfBasket3'); if (sb) basket = JSON.parse(sb); } catch(e){}
+try { var sw = localStorage.getItem('cfWishlist3'); if (sw) wishlist = JSON.parse(sw); } catch(e){}
 
-// Gracefully restore from localStorage
-try {
-  var savedBasket = localStorage.getItem("cfBasket3");
-  if (savedBasket) basket = JSON.parse(savedBasket);
-  var savedWl = localStorage.getItem("cfWishlist3");
-  if (savedWl) wishlist = JSON.parse(savedWl);
-} catch(e) {}
-
-// Initialise Stripe with publishable key
-// Replace with your real Stripe publishable key (pk_live_... or pk_test_...)
-var STRIPE_PK = (typeof SPACENOVA_STRIPE_PK !== 'undefined') ? SPACENOVA_STRIPE_PK : 'pk_test_YOUR_KEY_HERE';
-try { stripe = Stripe(STRIPE_PK); } catch(e) { console.warn('Stripe init failed:', e); }
+// Init Stripe with env-injected key or placeholder
+var STRIPE_PK = (typeof SPACENOVA_STRIPE_PK !== 'undefined') ? SPACENOVA_STRIPE_PK : (window.ENV_STRIPE_PK || 'pk_test_placeholder');
+try { if (STRIPE_PK !== 'pk_test_placeholder') stripe = Stripe(STRIPE_PK); } catch(e){ console.warn('Stripe init:', e); }
 
 // ─── HELPERS ──────────────────────────────────────────────────────
-function gbp(n) { return '\u00A3' + n.toFixed(2); }
-
+function gbp(n) { return '£' + n.toFixed(2); }
 function saveState() {
-  try {
-    localStorage.setItem("cfBasket3", JSON.stringify(basket));
-    localStorage.setItem("cfWishlist3", JSON.stringify(wishlist));
-  } catch(e) {}
+  try { localStorage.setItem('cfBasket3', JSON.stringify(basket)); localStorage.setItem('cfWishlist3', JSON.stringify(wishlist)); } catch(e){}
 }
-
 function showToast(msg, type) {
-  var tc = document.getElementById("toast-container");
-  if (!tc) return;
-  var el = document.createElement("div");
-  el.className = "toast";
-  if (type === "danger") el.style.borderLeftColor = "var(--danger)";
-  else if (type === "info") el.style.borderLeftColor = "var(--accent)";
-  el.textContent = msg;
-  tc.appendChild(el);
-  setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, 2700);
+  var tc = document.getElementById('toast-container'); if (!tc) return;
+  var el = document.createElement('div'); el.className = 'toast';
+  if (type === 'danger') el.style.borderLeftColor = 'var(--danger)';
+  else if (type === 'info') el.style.borderLeftColor = 'var(--accent)';
+  el.textContent = msg; tc.appendChild(el);
+  setTimeout(function(){ if (el.parentNode) el.parentNode.removeChild(el); }, 2700);
+}
+function updateBadge() {
+  var count = 0; for (var i = 0; i < basket.length; i++) count += basket[i].qty;
+  var badge = document.getElementById('basket-badge');
+  if (badge) { badge.textContent = count; badge.classList.toggle('visible', count > 0); }
 }
 
-function updateBadge() {
-  var count = 0;
-  for (var i = 0; i < basket.length; i++) count += basket[i].qty;
-  var badge = document.getElementById("basket-badge");
-  if (badge) {
-    badge.textContent = count;
-    if (count > 0) badge.classList.add("visible");
-    else badge.classList.remove("visible");
-  }
+// ─── TEAM LOGIN ───────────────────────────────────────────────────
+function teamLogin() {
+  var pw = document.getElementById('team-password').value;
+  var err = document.getElementById('team-error');
+  err.style.display = 'none';
+  fetch('/.netlify/functions/auth', { method:'POST', body: JSON.stringify({password: pw}) })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (d.ok) {
+        sessionStorage.setItem('admin','1');
+        window.location.href = '/admin/creator.html';
+      } else {
+        err.style.display = 'block';
+        document.getElementById('team-password').value = '';
+      }
+    })
+    .catch(function(){
+      // Dev mode: accept any input if server not available
+      err.style.display = 'block';
+    });
 }
 
 // ─── BASKET ───────────────────────────────────────────────────────
 function addToBasket(slug, qty) {
   if (!qty) qty = 1;
-  var p = null;
-  for (var i = 0; i < products.length; i++) { if (products[i].slug === slug) { p = products[i]; break; } }
+  var p = null; for (var i = 0; i < products.length; i++) { if (products[i].slug === slug) { p = products[i]; break; } }
   if (!p) return;
   var found = false;
-  for (var j = 0; j < basket.length; j++) {
-    if (basket[j].slug === slug) { basket[j].qty += qty; found = true; break; }
-  }
+  for (var j = 0; j < basket.length; j++) { if (basket[j].slug === slug) { basket[j].qty += qty; found = true; break; } }
   if (!found) basket.push({slug: p.slug, name: p.name, price: p.price, image: p.image, qty: qty});
   saveState(); updateBadge(); renderDrawer();
-  showToast(p.name + " added to basket");
+  showToast(p.name + ' added to basket');
 }
-
 function addToBasketSilent(slug) {
-  var p = null;
-  for (var i = 0; i < products.length; i++) { if (products[i].slug === slug) { p = products[i]; break; } }
+  var p = null; for (var i = 0; i < products.length; i++) { if (products[i].slug === slug) { p = products[i]; break; } }
   if (!p) return;
   var found = false;
-  for (var j = 0; j < basket.length; j++) {
-    if (basket[j].slug === slug) { basket[j].qty += 1; found = true; break; }
-  }
+  for (var j = 0; j < basket.length; j++) { if (basket[j].slug === slug) { basket[j].qty += 1; found = true; break; } }
   if (!found) basket.push({slug: p.slug, name: p.name, price: p.price, image: p.image, qty: 1});
   saveState(); updateBadge();
 }
-
 function addBundleToBasket(bundleSlug) {
-  var bundle = null;
-  for (var i = 0; i < bundles.length; i++) { if (bundles[i].slug === bundleSlug) { bundle = bundles[i]; break; } }
+  var bundle = null; for (var i = 0; i < bundles.length; i++) { if (bundles[i].slug === bundleSlug) { bundle = bundles[i]; break; } }
   if (!bundle) return;
   for (var j = 0; j < bundle.items.length; j++) addToBasketSilent(bundle.items[j]);
-  renderDrawer();
-  showToast(bundle.name + " — all series added to basket");
+  renderDrawer(); showToast(bundle.name + ' — all series added to basket');
 }
-
 function updateQty(slug, delta) {
-  for (var i = 0; i < basket.length; i++) {
-    if (basket[i].slug === slug) {
-      basket[i].qty = Math.max(1, basket[i].qty + delta);
-      break;
-    }
-  }
+  for (var i = 0; i < basket.length; i++) { if (basket[i].slug === slug) { basket[i].qty = Math.max(1, basket[i].qty + delta); break; } }
   saveState(); updateBadge(); renderDrawer();
 }
-
 function removeFromBasket(slug) {
-  var nb = [];
-  for (var i = 0; i < basket.length; i++) { if (basket[i].slug !== slug) nb.push(basket[i]); }
-  basket = nb;
-  saveState(); updateBadge(); renderDrawer();
-  showToast("Item removed", "info");
+  basket = basket.filter(function(b){ return b.slug !== slug; });
+  saveState(); updateBadge(); renderDrawer(); showToast('Item removed', 'info');
 }
-
-function getSubtotal() {
-  var s = 0;
-  for (var i = 0; i < basket.length; i++) s += basket[i].price * basket[i].qty;
-  return s;
-}
+function getSubtotal() { var s=0; for (var i=0;i<basket.length;i++) s+=basket[i].price*basket[i].qty; return s; }
 function getShipping() { return getSubtotal() >= 300 ? 0 : 12; }
 function getTotal() { return getSubtotal() + getShipping(); }
 
@@ -360,989 +428,346 @@ function getTotal() { return getSubtotal() + getShipping(); }
 function toggleWishlist(slug, event) {
   if (event) { event.preventDefault(); event.stopPropagation(); }
   var idx = wishlist.indexOf(slug);
-  if (idx >= 0) {
-    wishlist.splice(idx, 1);
-    showToast("Removed from wishlist", "info");
-  } else {
-    wishlist.push(slug);
-    showToast("Added to wishlist");
-  }
+  if (idx >= 0) { wishlist.splice(idx,1); showToast('Removed from wishlist','info'); }
+  else { wishlist.push(slug); showToast('Added to wishlist'); }
   saveState();
-  var btns = document.querySelectorAll(".wl-btn[data-slug='" + slug + "']");
-  for (var i = 0; i < btns.length; i++) {
+  document.querySelectorAll('.wl-btn[data-slug="'+slug+'"]').forEach(function(b){
     var inWl = wishlist.indexOf(slug) >= 0;
-    btns[i].textContent = inWl ? "\u2665" : "\u2661";
-    if (inWl) btns[i].classList.add("active"); else btns[i].classList.remove("active");
-  }
+    b.textContent = inWl ? '♥' : '♡';
+    b.classList.toggle('active', inWl);
+  });
 }
 
-// ─── DRAWER OPEN/CLOSE ─────────────────────────────────────────────
+// ─── DRAWER ───────────────────────────────────────────────────────
 function openBasket() {
-  checkoutStep = 0;
-  stripeClientSecret = null;
-  stripeElements = null;
-  stripePaymentElement = null;
-  document.getElementById("basket-drawer").classList.add("open");
-  document.getElementById("basket-overlay").classList.add("open");
+  checkoutStep = 0; stripeClientSecret = null; stripeElements = null; stripePaymentElement = null;
+  document.getElementById('basket-drawer').classList.add('open');
+  document.getElementById('basket-overlay').classList.add('open');
   renderDrawer();
 }
 function closeBasket() {
-  document.getElementById("basket-drawer").classList.remove("open");
-  document.getElementById("basket-overlay").classList.remove("open");
+  document.getElementById('basket-drawer').classList.remove('open');
+  document.getElementById('basket-overlay').classList.remove('open');
 }
-
-// ─── DRAWER RENDER ─────────────────────────────────────────────────
 function renderDrawer() {
-  var body = document.getElementById("drawer-body");
-  var footer = document.getElementById("drawer-footer");
+  var body = document.getElementById('drawer-body'), footer = document.getElementById('drawer-footer');
   if (!body || !footer) return;
   updateBadge();
-
   if (checkoutStep === 4) {
     body.innerHTML = renderOrderSuccess();
     footer.innerHTML = '<button class="btn btn-ghost" style="width:100%" onclick="closeBasket()">Continue shopping</button>';
     return;
   }
-
   if (checkoutStep > 0) {
     body.innerHTML = renderCheckoutForm();
     footer.innerHTML = renderCheckoutFooter();
-    // Mount Stripe Payment Element after DOM update
-    if (checkoutStep === 2) {
-      requestAnimationFrame(mountStripeElement);
-    }
+    if (checkoutStep === 2) requestAnimationFrame(mountStripeElement);
     return;
   }
-
-  // Basket view
   if (basket.length === 0) {
-    body.innerHTML = '<div class="empty-basket"><div class="empty-basket-icon">\uD83D\uDED2</div><p>Your basket is empty.</p><p style="margin-top:8px"><a href="#series" onclick="closeBasket()" style="color:var(--accent)">Browse the collection \u2192</a></p></div>';
-    footer.innerHTML = "";
-    return;
+    body.innerHTML = '<div class="empty-basket"><div class="empty-basket-icon">🛒</div><p>Your basket is empty.</p><p style="margin-top:8px"><a href="#series" onclick="closeBasket()" style="color:var(--accent)">Browse the collection →</a></p></div>';
+    footer.innerHTML = ''; return;
   }
-
-  var html = "";
+  var html = '';
   for (var i = 0; i < basket.length; i++) {
     var item = basket[i];
-    html += '<div class="basket-item">' +
-      '<img class="basket-item-img" src="' + item.image + '" alt="' + item.name + '"/>' +
-      '<div class="basket-item-info">' +
-        '<div class="basket-item-name">' + item.name + '</div>' +
-        '<div class="basket-item-price">' + gbp(item.price) + ' each \u00B7 ' + gbp(item.price * item.qty) + ' total</div>' +
-        '<div class="basket-item-qty">' +
-          '<button class="biq-btn" onclick="updateQty(\'' + item.slug + '\',-1)">\u2212</button>' +
-          '<span class="biq-num">' + item.qty + '</span>' +
-          '<button class="biq-btn" onclick="updateQty(\'' + item.slug + '\',1)">+</button>' +
-        '</div>' +
-      '</div>' +
-      '<button class="basket-item-remove" onclick="removeFromBasket(\'' + item.slug + '\')">\u2715</button>' +
-    '</div>';
+    html += '<div class="basket-item"><img class="basket-item-img" src="'+item.image+'" alt="'+item.name+'"/><div class="basket-item-info"><div class="basket-item-name">'+item.name+'</div><div class="basket-item-price">'+gbp(item.price)+' each · '+gbp(item.price*item.qty)+' total</div><div class="basket-item-qty"><button class="biq-btn" onclick="updateQty(\''+item.slug+'\',-1)">−</button><span class="biq-num">'+item.qty+'</span><button class="biq-btn" onclick="updateQty(\''+item.slug+'\',1)">+</button></div></div><button class="basket-item-remove" onclick="removeFromBasket(\''+item.slug+'\')">✕</button></div>';
   }
   body.innerHTML = html;
-
   var sub = getSubtotal(), ship = getShipping(), tot = getTotal();
-  var shipStr = ship === 0 ? '<strong style="color:var(--success)">Free</strong>' : '<strong>' + gbp(ship) + '</strong>';
-  var freeNote = ship > 0
-    ? '<p class="shipping-note">Add ' + gbp(300 - sub) + ' more for free shipping</p>'
-    : '<p class="shipping-note">\u2713 Free shipping unlocked</p>';
-
-  footer.innerHTML =
-    '<div class="basket-summary">' +
-      '<div class="basket-summary-row"><span>Subtotal</span><strong>' + gbp(sub) + '</strong></div>' +
-      '<div class="basket-summary-row"><span>Shipping</span>' + shipStr + '</div>' +
-      '<div class="basket-summary-row total"><span>Total</span><strong>' + gbp(tot) + '</strong></div>' +
-    '</div>' +
-    freeNote +
-    '<button class="btn btn-gold" style="width:100%" onclick="goCheckout()">Checkout \u2192</button>';
+  footer.innerHTML = '<div class="basket-summary"><div class="basket-summary-row"><span>Subtotal</span><strong>'+gbp(sub)+'</strong></div><div class="basket-summary-row"><span>Shipping</span>'+(ship===0?'<strong style="color:var(--success)">Free</strong>':'<strong>'+gbp(ship)+'</strong>')+'</div><div class="basket-summary-row total"><span>Total</span><strong>'+gbp(tot)+'</strong></div></div>'+(ship>0?'<p class="shipping-note">Add '+gbp(300-sub)+' more for free shipping</p>':'<p class="shipping-note">✓ Free shipping unlocked</p>')+'<button class="btn btn-gold" style="width:100%" onclick="goCheckout()">Checkout →</button>';
 }
 
 // ─── CHECKOUT ─────────────────────────────────────────────────────
 function goCheckout() { checkoutStep = 1; renderDrawer(); }
-
 function renderCheckoutForm() {
-  var stepLabels = ["Delivery","Payment","Review"];
-  var stepsHtml = "";
-  for (var i = 0; i < stepLabels.length; i++) {
-    var idx = i + 1;
-    var cls = checkoutStep > idx ? "done" : checkoutStep === idx ? "active" : "";
-    stepsHtml += '<div class="checkout-step ' + cls + '">' + (checkoutStep > idx ? "\u2713 " : "") + stepLabels[i] + '</div>';
+  var labels = ['Delivery','Payment','Review'];
+  var stepsHtml = labels.map(function(l,i){
+    var n=i+1, cls=checkoutStep>n?'done':checkoutStep===n?'active':'';
+    return '<div class="checkout-step '+cls+'">'+(checkoutStep>n?'✓ ':'')+l+'</div>';
+  }).join('');
+  var steps = '<div class="checkout-steps">'+stepsHtml+'</div>';
+  if (checkoutStep===1) return steps+'<h3 style="font-family:var(--fd);font-weight:300;font-size:1.4rem;margin-bottom:18px">Delivery details</h3><div class="form-row"><div class="form-group"><label class="form-label">First name</label><input class="form-input" id="f-fname" placeholder="James"/></div><div class="form-group"><label class="form-label">Last name</label><input class="form-input" id="f-lname" placeholder="Holloway"/></div></div><div class="form-group"><label class="form-label">Email</label><input class="form-input" id="f-email" type="email" placeholder="james@example.com"/></div><div class="form-group"><label class="form-label">Address line 1</label><input class="form-input" id="f-addr1" placeholder="12 Starfield Road"/></div><div class="form-row"><div class="form-group"><label class="form-label">City</label><input class="form-input" id="f-city" placeholder="London"/></div><div class="form-group"><label class="form-label">Postcode</label><input class="form-input" id="f-post" placeholder="EC1A 1BB"/></div></div><div class="form-group"><label class="form-label">Country</label><select class="form-input form-select" id="f-country"><option>United Kingdom</option><option>Ireland</option><option>France</option><option>Germany</option><option>Netherlands</option><option>Other</option></select></div>';
+  if (checkoutStep===2) return steps+'<h3 style="font-family:var(--fd);font-weight:300;font-size:1.4rem;margin-bottom:14px">Payment</h3><p class="stripe-secure-note"><svg width="12" height="14" viewBox="0 0 12 14" fill="none"><path d="M6 1L1 3.5V7c0 2.76 2.14 5.34 5 6 2.86-.66 5-3.24 5-6V3.5L6 1z" stroke="#2ecc8a" stroke-width="1.2"/></svg>Secured by Stripe — your card details never touch our servers</p><div id="stripe-payment-element"></div><div id="stripe-error"></div>';
+  if (checkoutStep===3) {
+    var sub=getSubtotal(),ship=getShipping(),tot=getTotal();
+    var rows=basket.map(function(b){return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:.88rem"><span>'+b.name+' × '+b.qty+'</span><strong>'+gbp(b.price*b.qty)+'</strong></div>';}).join('');
+    return steps+'<h3 style="font-family:var(--fd);font-weight:300;font-size:1.4rem;margin-bottom:18px">Review order</h3><div style="margin-bottom:18px">'+rows+'</div><div class="basket-summary"><div class="basket-summary-row"><span>Subtotal</span><strong>'+gbp(sub)+'</strong></div><div class="basket-summary-row"><span>Shipping</span><strong>'+(ship===0?'Free':gbp(ship))+'</strong></div><div class="basket-summary-row total"><span>Total due</span><strong>'+gbp(tot)+'</strong></div></div>';
   }
-  var steps = '<div class="checkout-steps">' + stepsHtml + '</div>';
-
-  if (checkoutStep === 1) return steps +
-    '<h3 style="font-family:var(--fd);font-weight:300;font-size:1.4rem;margin-bottom:18px">Delivery details</h3>' +
-    '<div class="form-row">' +
-      '<div class="form-group"><label class="form-label">First name</label><input class="form-input" id="f-fname" placeholder="James"/></div>' +
-      '<div class="form-group"><label class="form-label">Last name</label><input class="form-input" id="f-lname" placeholder="Holloway"/></div>' +
-    '</div>' +
-    '<div class="form-group"><label class="form-label">Email</label><input class="form-input" id="f-email" type="email" placeholder="james@example.com"/></div>' +
-    '<div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="f-phone" placeholder="+44 7911 123456"/></div>' +
-    '<div class="form-group"><label class="form-label">Address line 1</label><input class="form-input" id="f-addr1" placeholder="12 Starfield Road"/></div>' +
-    '<div class="form-group"><label class="form-label">Address line 2 (optional)</label><input class="form-input" id="f-addr2" placeholder="Flat 3"/></div>' +
-    '<div class="form-row">' +
-      '<div class="form-group"><label class="form-label">City</label><input class="form-input" id="f-city" placeholder="London"/></div>' +
-      '<div class="form-group"><label class="form-label">Postcode</label><input class="form-input" id="f-post" placeholder="EC1A 1BB"/></div>' +
-    '</div>' +
-    '<div class="form-group"><label class="form-label">Country</label>' +
-      '<select class="form-input form-select" id="f-country"><option>United Kingdom</option><option>Ireland</option><option>France</option><option>Germany</option><option>Netherlands</option><option>Other</option></select>' +
-    '</div>';
-
-  if (checkoutStep === 2) return steps +
-    '<h3 style="font-family:var(--fd);font-weight:300;font-size:1.4rem;margin-bottom:18px">Payment</h3>' +
-    '<p class="stripe-secure-note">' +
-      '<svg width="12" height="14" viewBox="0 0 12 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 1L1 3.5V7c0 2.76 2.14 5.34 5 6 2.86-.66 5-3.24 5-6V3.5L6 1z" stroke="#2ecc8a" stroke-width="1.2" fill="none"/></svg>' +
-      'Secured by Stripe — your card details never touch our servers' +
-    '</p>' +
-    '<div id="stripe-payment-element"><!-- Stripe mounts here --></div>' +
-    '<div id="stripe-error"></div>';
-
-  if (checkoutStep === 3) {
-    var sub = getSubtotal(), ship = getShipping(), tot = getTotal();
-    var rows = "";
-    for (var i = 0; i < basket.length; i++) {
-      rows += '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:.88rem"><span>' + basket[i].name + ' \u00D7 ' + basket[i].qty + '</span><strong>' + gbp(basket[i].price * basket[i].qty) + '</strong></div>';
-    }
-    return steps +
-      '<h3 style="font-family:var(--fd);font-weight:300;font-size:1.4rem;margin-bottom:18px">Review order</h3>' +
-      '<div style="margin-bottom:18px">' + rows + '</div>' +
-      '<div class="basket-summary">' +
-        '<div class="basket-summary-row"><span>Subtotal</span><strong>' + gbp(sub) + '</strong></div>' +
-        '<div class="basket-summary-row"><span>Shipping</span><strong>' + (ship === 0 ? "Free" : gbp(ship)) + '</strong></div>' +
-        '<div class="basket-summary-row total"><span>Total due</span><strong>' + gbp(tot) + '</strong></div>' +
-      '</div>';
-  }
-  return "";
+  return '';
 }
-
 function renderCheckoutFooter() {
-  if (checkoutStep === 1) return '<div style="display:flex;gap:10px"><button class="btn btn-ghost" onclick="checkoutStep=0;renderDrawer()">← Back</button><button class="btn btn-primary" style="flex:1" onclick="nextCheckout()">Continue to payment →</button></div>';
-  if (checkoutStep === 2) return '<div style="display:flex;gap:10px"><button class="btn btn-ghost" onclick="checkoutStep=1;renderDrawer()">← Back</button><button class="btn btn-primary" style="flex:1" id="stripe-submit-btn" onclick="submitStripePayment()">Review order →</button></div>';
-  if (checkoutStep === 3) return '<div style="display:flex;gap:10px"><button class="btn btn-ghost" onclick="checkoutStep=2;renderDrawer()">← Back</button><button class="btn btn-gold" style="flex:1" onclick="placeOrder()">Place order →</button></div>';
-  return "";
+  if (checkoutStep===1) return '<div style="display:flex;gap:10px"><button class="btn btn-ghost" onclick="checkoutStep=0;renderDrawer()">← Back</button><button class="btn btn-primary" style="flex:1" onclick="nextCheckout()">Continue to payment →</button></div>';
+  if (checkoutStep===2) return '<div style="display:flex;gap:10px"><button class="btn btn-ghost" onclick="checkoutStep=1;renderDrawer()">← Back</button><button class="btn btn-primary" style="flex:1" id="stripe-submit-btn" onclick="submitStripePayment()">Review order →</button></div>';
+  if (checkoutStep===3) return '<div style="display:flex;gap:10px"><button class="btn btn-ghost" onclick="checkoutStep=2;renderDrawer()">← Back</button><button class="btn btn-gold" style="flex:1" onclick="placeOrder()">Place order →</button></div>';
+  return '';
 }
-
 function nextCheckout() {
-  if (checkoutStep === 1) {
-    var fname = document.getElementById("f-fname") ? document.getElementById("f-fname").value.trim() : "";
-    var email = document.getElementById("f-email") ? document.getElementById("f-email").value.trim() : "";
-    var addr1 = document.getElementById("f-addr1") ? document.getElementById("f-addr1").value.trim() : "";
-    var city  = document.getElementById("f-city")  ? document.getElementById("f-city").value.trim()  : "";
-    if (!fname || !email || !addr1 || !city) { showToast("Please fill required fields", "danger"); return; }
-    // Create PaymentIntent before showing Stripe Element
-    createPaymentIntent(function(err) {
-      if (err) { showToast("Payment setup failed — please try again", "danger"); return; }
-      checkoutStep = 2;
-      renderDrawer();
-    });
+  if (checkoutStep===1) {
+    var fname = (document.getElementById('f-fname')||{}).value||'';
+    var email = (document.getElementById('f-email')||{}).value||'';
+    var addr1 = (document.getElementById('f-addr1')||{}).value||'';
+    var city  = (document.getElementById('f-city') ||{}).value||'';
+    if (!fname.trim()||!email.trim()||!addr1.trim()||!city.trim()) { showToast('Please fill required fields','danger'); return; }
+    createPaymentIntent(function(err){ if(err){ showToast('Payment setup failed','danger'); return; } checkoutStep=2; renderDrawer(); });
     return;
   }
-  checkoutStep++;
-  renderDrawer();
+  checkoutStep++; renderDrawer();
 }
 
-// ─── STRIPE INTEGRATION ───────────────────────────────────────────
-
+// ─── STRIPE ───────────────────────────────────────────────────────
 function createPaymentIntent(callback) {
   var totalPence = Math.round(getTotal() * 100);
-  var lineItems = basket.map(function(item) {
-    return { name: item.name, price: item.price, qty: item.qty };
-  });
-
-  // Call our Netlify function to get a PaymentIntent client_secret
   fetch('/.netlify/functions/create-payment-intent', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ amount: totalPence, currency: 'gbp', items: lineItems })
-  })
-  .then(function(res) { return res.json(); })
-  .then(function(data) {
-    if (data.clientSecret) {
-      stripeClientSecret = data.clientSecret;
-      callback(null);
-    } else {
-      // Fallback: skip real payment intent in dev (no server configured)
-      stripeClientSecret = null;
-      callback(null);
-    }
-  })
-  .catch(function() {
-    // No server — allow UI to continue in demo mode
-    stripeClientSecret = null;
-    callback(null);
-  });
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ amount: totalPence, currency:'gbp', items: basket.map(function(b){ return {name:b.name,price:b.price,qty:b.qty}; }) })
+  }).then(function(r){ return r.json(); }).then(function(d){ stripeClientSecret = d.clientSecret || null; callback(null); }).catch(function(){ stripeClientSecret = null; callback(null); });
 }
 
 function mountStripeElement() {
   var container = document.getElementById('stripe-payment-element');
   if (!container) return;
-
-  if (!stripe) {
-    container.innerHTML = '<p style="color:var(--muted);font-size:.85rem;padding:12px 0;">⚠ Stripe is not configured. Set <code>SPACENOVA_STRIPE_PK</code> or replace the placeholder key in the script.</p>';
+  if (!stripe || !stripeClientSecret) {
+    container.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:18px 16px;"><div style="font-family:var(--fm);font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Card information</div><input class="form-input" id="demo-card" placeholder="4242 4242 4242 4242" style="margin-bottom:10px;" maxlength="19" oninput="formatCard(this)"/><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><input class="form-input" id="demo-exp" placeholder="MM / YY" maxlength="7" oninput="formatExpiry(this)"/><input class="form-input" id="demo-cvc" placeholder="CVC" maxlength="4"/></div><div style="margin-top:10px;"><input class="form-input" id="demo-name" placeholder="Cardholder name"/></div></div>'+(stripe?'':'<p style="font-family:var(--fm);font-size:.6rem;color:var(--muted);margin-top:8px;opacity:.7;">Configure STRIPE_PUBLISHABLE_KEY env var to enable live payments.</p>');
     return;
   }
-
-  if (!stripeClientSecret) {
-    // Demo mode: show a dummy Stripe-styled placeholder
-    container.innerHTML =
-      '<div style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:18px 16px;margin-bottom:4px;">' +
-        '<div style="font-family:var(--fm);font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Card information</div>' +
-        '<input class="form-input" id="demo-card" placeholder="1234 1234 1234 1234" style="margin-bottom:10px;" maxlength="19" oninput="formatCard(this)"/>' +
-        '<div class="form-row">' +
-          '<input class="form-input" id="demo-exp" placeholder="MM / YY" maxlength="7" oninput="formatExpiry(this)"/>' +
-          '<input class="form-input" id="demo-cvc" placeholder="CVC" maxlength="4"/>' +
-        '</div>' +
-        '<div style="margin-top:10px;font-family:var(--fm);font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Cardholder name</div>' +
-        '<input class="form-input" id="demo-name" placeholder="James Holloway"/>' +
-      '</div>' +
-      '<p style="font-family:var(--fm);font-size:.6rem;color:var(--muted);margin-top:8px;opacity:.7;">Demo mode — no real Stripe PaymentIntent. Configure <code>create-payment-intent</code> function &amp; publishable key to go live.</p>';
-    return;
-  }
-
-  // Real Stripe Elements
-  stripeElements = stripe.elements({
-    clientSecret: stripeClientSecret,
-    appearance: {
-      theme: 'night',
-      variables: {
-        colorPrimary: '#e8820a',
-        colorBackground: '#0c1220',
-        colorText: '#e8ecf4',
-        colorDanger: '#e05050',
-        fontFamily: '"Syne", sans-serif',
-        spacingUnit: '4px',
-        borderRadius: '10px'
-      }
-    }
-  });
-
+  stripeElements = stripe.elements({ clientSecret: stripeClientSecret, appearance: { theme:'night', variables:{ colorPrimary:'#e8820a', colorBackground:'#0c1220', colorText:'#e8ecf4', colorDanger:'#e05050', fontFamily:'"Syne",sans-serif', borderRadius:'10px' } } });
   stripePaymentElement = stripeElements.create('payment');
   stripePaymentElement.mount('#stripe-payment-element');
 }
 
 function submitStripePayment() {
-  if (!stripe || !stripeClientSecret || !stripeElements) {
-    // Demo mode — skip real confirmation
-    checkoutStep = 3;
-    renderDrawer();
-    return;
-  }
-
-  var submitBtn = document.getElementById('stripe-submit-btn');
-  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Processing…'; }
-  var errEl = document.getElementById('stripe-error');
-  if (errEl) errEl.textContent = '';
-
-  var fname = document.getElementById("f-fname") ? document.getElementById("f-fname").value.trim() : '';
-  var email = document.getElementById("f-email") ? document.getElementById("f-email").value.trim() : '';
-
-  stripeElements.submit().then(function(result) {
-    if (result.error) {
-      if (errEl) errEl.textContent = result.error.message;
-      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Review order →'; }
-      return;
-    }
-    // Confirm payment
-    stripe.confirmPayment({
-      elements: stripeElements,
-      clientSecret: stripeClientSecret,
-      confirmParams: {
-        return_url: window.location.origin + '/success.html',
-        payment_method_data: { billing_details: { name: fname, email: email } }
-      },
-      redirect: 'if_required'
-    }).then(function(res) {
-      if (res.error) {
-        if (errEl) errEl.textContent = res.error.message;
-        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Review order →'; }
-      } else {
-        // Payment succeeded without redirect
-        checkoutStep = 3;
-        renderDrawer();
-      }
+  if (!stripe || !stripeClientSecret || !stripeElements) { checkoutStep=3; renderDrawer(); return; }
+  var btn = document.getElementById('stripe-submit-btn');
+  if (btn) { btn.disabled=true; btn.textContent='Processing…'; }
+  var errEl = document.getElementById('stripe-error'); if (errEl) errEl.textContent='';
+  stripeElements.submit().then(function(r){
+    if (r.error) { if(errEl) errEl.textContent=r.error.message; if(btn){btn.disabled=false;btn.textContent='Review order →';} return; }
+    stripe.confirmPayment({ elements:stripeElements, clientSecret:stripeClientSecret, confirmParams:{ return_url: window.location.origin+'/success.html', payment_method_data:{ billing_details:{ name:(document.getElementById('f-fname')||{}).value||'', email:(document.getElementById('f-email')||{}).value||'' } } }, redirect:'if_required' }).then(function(res){
+      if (res.error) { if(errEl) errEl.textContent=res.error.message; if(btn){btn.disabled=false;btn.textContent='Review order →';} }
+      else { checkoutStep=3; renderDrawer(); }
     });
   });
 }
 
 function placeOrder() {
-  var chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  var ref = "CF-";
-  for (var i = 0; i < 6; i++) ref += chars[Math.floor(Math.random() * chars.length)];
-  orderRef = ref;
-  basket = [];
-  saveState(); updateBadge();
-  checkoutStep = 4;
-  renderDrawer();
+  var chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789', ref='CF-';
+  for(var i=0;i<6;i++) ref+=chars[Math.floor(Math.random()*chars.length)];
+  orderRef=ref; basket=[]; saveState(); updateBadge(); checkoutStep=4; renderDrawer();
 }
-
 function renderOrderSuccess() {
-  return '<div class="order-success">' +
-    '<div class="order-success-icon">\u2713</div>' +
-    '<h3>Order placed!</h3>' +
-    '<p>Thank you for your order. A confirmation has been sent to your email. Your panels will be carefully packed and dispatched within 3\u20135 working days.</p>' +
-    '<div class="order-ref">Order ref: ' + orderRef + '</div>' +
-  '</div>';
+  return '<div class="order-success"><div class="order-success-icon">✓</div><h3>Order placed!</h3><p>Thank you. A confirmation has been sent to your email. Your panels will be dispatched within 3–5 working days.</p><div class="order-ref">Order ref: '+orderRef+'</div></div>';
 }
-
-function formatCard(el) {
-  var v = el.value.replace(/\D/g,"").substring(0,16);
-  var parts = [];
-  for (var i = 0; i < v.length; i += 4) parts.push(v.substring(i, i+4));
-  el.value = parts.join(" ");
-}
-function formatExpiry(el) {
-  var v = el.value.replace(/\D/g,"");
-  if (v.length > 2) v = v.substring(0,2) + "/" + v.substring(2,4);
-  el.value = v;
-}
+function formatCard(el) { var v=el.value.replace(/\D/g,'').substring(0,16); var p=[]; for(var i=0;i<v.length;i+=4) p.push(v.substring(i,i+4)); el.value=p.join(' '); }
+function formatExpiry(el) { var v=el.value.replace(/\D/g,''); if(v.length>2) v=v.substring(0,2)+'/'+v.substring(2,4); el.value=v; }
 
 // ─── PRODUCT CARD ─────────────────────────────────────────────────
+function typeTag(isCollection) {
+  var cls = isCollection ? 'collection' : 'series';
+  var lbl = isCollection ? 'Collection' : 'Series';
+  return '<span class="type-tag '+cls+'">'+lbl+'</span>';
+}
 function productCard(product) {
   var inWl = wishlist.indexOf(product.slug) >= 0;
-  return '<article class="card">' +
-    '<a href="#product/' + product.slug + '" style="text-decoration:none;display:block">' +
-      '<div class="card-media">' +
-        '<img src="' + product.image + '" alt="' + product.name + '" loading="lazy"/>' +
-        '<div class="badge-row">' +
-          '<span class="badge">' + product.pieces + '</span>' +
-          '<span class="badge badge-accent">' + product.priceLabel + '</span>' +
-        '</div>' +
-        '<button class="card-wishlist wl-btn ' + (inWl ? "active" : "") + '" data-slug="' + product.slug + '" onclick="toggleWishlist(\'' + product.slug + '\',event)">' + (inWl ? "\u2665" : "\u2661") + '</button>' +
-      '</div>' +
-    '</a>' +
-    '<div class="card-body">' +
-      '<h3>' + product.name + '</h3>' +
-      '<p class="muted">' + product.short + '</p>' +
-      '<div class="meta">' +
-        '<span>' + product.panelHint + '</span>' +
-        '<span>Magnetic edges</span>' +
-        '<span>' + product.accent + '</span>' +
-      '</div>' +
-      '<div class="card-actions">' +
-        '<a class="btn btn-primary btn-sm" href="#product/' + product.slug + '">View \u2192</a>' +
-        '<button class="btn btn-ghost btn-sm" onclick="addToBasket(\'' + product.slug + '\',1)">Add to basket</button>' +
-      '</div>' +
-    '</div>' +
-  '</article>';
+  return '<article class="card"><a href="#product/'+product.slug+'" style="text-decoration:none;display:block"><div class="card-media"><img src="'+product.image+'" alt="'+product.name+'" loading="lazy"/><div class="badge-row"><span class="badge">'+product.pieces+'</span><span class="badge badge-accent">'+product.priceLabel+'</span></div><button class="card-wishlist wl-btn '+(inWl?'active':'')+'" data-slug="'+product.slug+'" onclick="toggleWishlist(\''+product.slug+'\',event)">'+(inWl?'♥':'♡')+'</button></div></a><div class="card-body"><div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">'+typeTag(product.isCollection)+'</div><h3>'+product.name+'</h3><p class="muted">'+product.short+'</p><div class="meta"><span>'+product.panelHint+'</span><span>Magnetic edges</span><span>'+product.accent+'</span></div><div class="card-actions"><a class="btn btn-primary btn-sm" href="#product/'+product.slug+'">View →</a><button class="btn btn-ghost btn-sm" onclick="addToBasket(\''+product.slug+'\',1)">Add to basket</button></div></div></article>';
 }
 
 // ─── SERIES / FILTER ──────────────────────────────────────────────
-var categories = ["All","nebula","earth","lunar","planets","galaxy"];
-
+var categories = ['All','nebula','earth','lunar','planets','galaxy'];
 function buildFilterBar() {
-  var bar = document.getElementById("filter-bar");
-  if (!bar) return;
-  var html = "";
-  for (var i = 0; i < categories.length; i++) {
-    var cat = categories[i];
-    var isActive = (cat === "All" && !activeFilter) || activeFilter === cat;
-    html += '<button class="filter-pill ' + (isActive ? "active" : "") + '" onclick="setFilter(\'' + cat + '\')">' + cat.charAt(0).toUpperCase() + cat.slice(1) + '</button>';
-  }
-  bar.innerHTML = html;
+  var bar = document.getElementById('filter-bar'); if (!bar) return;
+  bar.innerHTML = categories.map(function(cat){
+    var isActive = (cat==='All'&&!activeFilter)||activeFilter===cat;
+    return '<button class="filter-pill '+(isActive?'active':'')+'" onclick="setFilter(\''+cat+'\')">'+cat.charAt(0).toUpperCase()+cat.slice(1)+'</button>';
+  }).join('');
 }
-
-function setFilter(cat) {
-  activeFilter = cat === "All" ? null : cat;
-  buildFilterBar();
-  renderSeries();
-}
-
+function setFilter(cat) { activeFilter = cat==='All'?null:cat; buildFilterBar(); renderSeries(); }
 function renderSeries() {
-  var searchEl = document.getElementById("series-search");
-  var search = searchEl ? searchEl.value.toLowerCase() : "";
-  var shown = [];
-  for (var i = 0; i < products.length; i++) {
-    var p = products[i];
-    if (activeSeriesFilter) {
-      var inBundle = false;
-      for (var j = 0; j < activeSeriesFilter.length; j++) { if (activeSeriesFilter[j] === p.slug) { inBundle = true; break; } }
-      if (!inBundle) continue;
-    }
-    if (activeFilter && p.category !== activeFilter) continue;
-    if (search && p.name.toLowerCase().indexOf(search) < 0 && p.short.toLowerCase().indexOf(search) < 0) continue;
-    shown.push(p);
-  }
-
-  var grid = document.getElementById("series-grid");
-  if (grid) grid.innerHTML = shown.length ? shown.map(productCard).join("") : '<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--muted)">No series match your search.</div>';
-
-  var banner = document.getElementById("series-filter-banner");
-  if (banner) {
-    if (activeSeriesFilter) {
-      banner.innerHTML = '<div class="card" style="margin-bottom:20px"><div class="card-body" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px"><div><strong>Bundle view</strong><p class="muted" style="margin:0">Showing only series included in this bundle.</p></div><button class="btn btn-ghost btn-sm" onclick="clearSeriesFilter()">Show all</button></div></div>';
-    } else {
-      banner.innerHTML = "";
-    }
-  }
+  var search = (document.getElementById('series-search')||{}).value||'';
+  search = search.toLowerCase();
+  // Only show series (not collections) in series page
+  var shown = products.filter(function(p){
+    if (p.isCollection) return false; // collections excluded from series page
+    if (activeSeriesFilter && activeSeriesFilter.indexOf(p.slug)<0) return false;
+    if (activeFilter && p.category!==activeFilter) return false;
+    if (search && p.name.toLowerCase().indexOf(search)<0 && p.short.toLowerCase().indexOf(search)<0) return false;
+    return true;
+  });
+  var grid = document.getElementById('series-grid');
+  if (grid) grid.innerHTML = shown.length ? shown.map(productCard).join('') : '<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--muted)">No series match your search.</div>';
+  var banner = document.getElementById('series-filter-banner');
+  if (banner) banner.innerHTML = activeSeriesFilter ? '<div class="card" style="margin-bottom:20px"><div class="card-body" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px"><div><strong>Bundle view</strong><p class="muted" style="margin:0">Showing only series included in this bundle.</p></div><button class="btn btn-ghost btn-sm" onclick="clearSeriesFilter()">Show all</button></div></div>' : '';
 }
-
 function showBundleProducts(bundleSlug) {
-  var bundle = null;
-  for (var i = 0; i < bundles.length; i++) { if (bundles[i].slug === bundleSlug) { bundle = bundles[i]; break; } }
+  var bundle = null; for (var i=0;i<bundles.length;i++){if(bundles[i].slug===bundleSlug){bundle=bundles[i];break;}}
   if (!bundle) return;
-  activeSeriesFilter = bundle.items.slice();
-  activeFilter = null;
-  buildFilterBar();
-  renderSeries();
-  location.hash = "#series";
+  activeSeriesFilter = bundle.items.slice(); activeFilter = null;
+  buildFilterBar(); renderSeries(); location.hash='#series';
 }
-
-function clearSeriesFilter() {
-  activeSeriesFilter = null;
-  buildFilterBar();
-  renderSeries();
-}
+function clearSeriesFilter() { activeSeriesFilter = null; buildFilterBar(); renderSeries(); }
 
 // ─── BUNDLES ──────────────────────────────────────────────────────
 function renderBundles() {
-  var grid = document.getElementById("bundle-grid");
-  if (!grid) return;
-  var html = "";
-  for (var i = 0; i < bundles.length; i++) {
-    var b = bundles[i];
-    var includes = "";
-    for (var j = 0; j < b.items.length; j++) {
-      var item = null;
-      for (var k = 0; k < products.length; k++) { if (products[k].slug === b.items[j]) { item = products[k]; break; } }
-      includes += '<span>' + (item ? item.name : b.items[j]) + '</span>';
-    }
-    html += '<article class="card bundle-card">' +
-      '<div class="bundle-card-inner">' +
-        '<h3 style="font-family:var(--fd);font-size:1.4rem;font-weight:400;margin-bottom:6px">' + b.name + '</h3>' +
-        '<p class="price" style="font-size:1.6rem">' + b.price + '</p>' +
-        '<p class="muted" style="margin-top:8px">' + b.text + '</p>' +
-      '</div>' +
-      '<div class="bundle-includes">' + includes + '</div>' +
-      '<div class="card-actions">' +
-        '<button class="btn btn-primary btn-sm" onclick="showBundleProducts(\'' + b.slug + '\')">Browse series</button>' +
-        '<button class="btn btn-ghost btn-sm" onclick="addBundleToBasket(\'' + b.slug + '\')">Add all to basket</button>' +
-      '</div>' +
-    '</article>';
-  }
-  grid.innerHTML = html;
+  var grid = document.getElementById('bundle-grid'); if (!grid) return;
+  grid.innerHTML = bundles.map(function(b){
+    var includes = b.items.map(function(slug){ var p=products.find(function(x){return x.slug===slug;}); return '<span>'+(p?p.name:slug)+'</span>'; }).join('');
+    return '<article class="card bundle-card"><div class="bundle-card-inner"><h3 style="font-family:var(--fd);font-size:1.4rem;font-weight:400;margin-bottom:6px">'+b.name+'</h3><p class="price" style="font-size:1.6rem">'+b.price+'</p><p class="muted" style="margin-top:8px">'+b.text+'</p></div><div class="bundle-includes">'+includes+'</div><div class="card-actions"><button class="btn btn-primary btn-sm" onclick="showBundleProducts(\''+b.slug+'\')">Browse series</button><button class="btn btn-ghost btn-sm" onclick="addBundleToBasket(\''+b.slug+'\')">Add all to basket</button></div></article>';
+  }).join('');
 }
 
 // ─── FEATURED ─────────────────────────────────────────────────────
 function renderFeatured() {
-  var el = document.getElementById("featured-series");
-  if (!el) return;
-  var html = "";
-  for (var i = 0; i < featuredSlugs.length; i++) {
-    for (var j = 0; j < products.length; j++) {
-      if (products[j].slug === featuredSlugs[i]) { html += productCard(products[j]); break; }
-    }
-  }
-  el.innerHTML = html;
+  var el = document.getElementById('featured-series'); if (!el) return;
+  el.innerHTML = featuredSlugs.map(function(slug){ var p=products.find(function(x){return x.slug===slug;}); return p?productCard(p):''; }).join('');
 }
 
 // ─── MARQUEE ──────────────────────────────────────────────────────
 function buildMarquee() {
-  var el = document.getElementById("marquee-track");
-  if (!el) return;
-  var items = ["Multi-panel magnetic sets","3 to 9 panels","Matte-black frames","Museum-grade inks","Free shipping over £300","12 series available","Gallery-quality printing","Magnetic edge alignment"];
+  var el = document.getElementById('marquee-track'); if (!el) return;
+  var items = ['Multi-panel magnetic sets','3 to 9 panels','Matte-black frames','Museum-grade inks','Free shipping over £300','12 series available','Gallery-quality printing','Magnetic edge alignment'];
   var all = items.concat(items);
-  var html = "";
-  for (var i = 0; i < all.length; i++) html += '<span class="marquee-item">' + all[i] + '</span>';
-  el.innerHTML = html;
+  el.innerHTML = all.map(function(t){ return '<span class="marquee-item">'+t+'</span>'; }).join('');
 }
 
 // ─── PRODUCT PAGE ─────────────────────────────────────────────────
 function changeProductQty(delta) {
   productQty = Math.max(1, productQty + delta);
-  var el = document.getElementById("prod-qty");
-  if (el) el.textContent = productQty;
-  var el2 = document.getElementById("prod-qty-top");
-  if (el2) el2.textContent = productQty;
+  ['prod-qty','prod-qty-top'].forEach(function(id){ var e=document.getElementById(id); if(e) e.textContent=productQty; });
 }
-
 function renderProduct(slug) {
-  var product = null;
-  for (var i = 0; i < products.length; i++) { if (products[i].slug === slug) { product = products[i]; break; } }
-  var wrap = document.getElementById("page-product");
-  productQty = 1;
-  if (!product) { wrap.innerHTML = '<div style="text-align:center;padding:80px 24px"><h2 style="font-family:var(--fd);font-weight:300;font-size:2rem">Product not found</h2><a class="btn btn-primary" style="margin-top:20px" href="#series">Back to series</a></div>'; return; }
-
-  var related = [];
-  for (var i = 0; i < products.length; i++) { if (products[i].slug !== slug && products[i].category === product.category) related.push(products[i]); }
-  if (related.length < 2) { related = []; for (var i = 0; i < products.length; i++) { if (products[i].slug !== slug) related.push(products[i]); } }
-  related = related.slice(0, 3);
-
+  var product = products.find(function(p){return p.slug===slug;});
+  var wrap = document.getElementById('page-product'); productQty = 1;
+  if (!product) { wrap.innerHTML='<div style="text-align:center;padding:80px 24px"><h2 style="font-family:var(--fd);font-weight:300;font-size:2rem">Product not found</h2><a class="btn btn-primary" style="margin-top:20px" href="#series">Back to series</a></div>'; return; }
+  var related = products.filter(function(p){ return p.slug!==slug && p.category===product.category && !p.isCollection; }).slice(0,3);
+  if (related.length < 2) related = products.filter(function(p){ return p.slug!==slug && !p.isCollection; }).slice(0,3);
   var inWl = wishlist.indexOf(slug) >= 0;
   var panelCount = parseInt(product.pieces) || 4;
-  var frames = ""; for (var i = 0; i < Math.min(panelCount,6); i++) frames += '<div class="mini-frame"></div>';
-  var relatedHtml = ""; for (var i = 0; i < related.length; i++) relatedHtml += productCard(related[i]);
-
-  var trust = '<div style="display:flex;gap:10px;margin-bottom:20px">' +
-    ['🚚','↩','🔒'].map(function(ic,i){ var lb = ['3–5 DAYS','30-DAY RETURNS','SECURE'][i];
-      return '<div style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:12px;text-align:center"><div style="font-size:1rem;margin-bottom:3px">' + ic + '</div><div style="font-family:var(--fm);font-size:.6rem;letter-spacing:.1em;color:var(--muted)">' + lb + '</div></div>';
-    }).join('') + '</div>';
-
-  var cta = function(qid) {
-    return '<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">' +
-      '<label style="font-family:var(--fm);font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)">Qty</label>' +
-      '<div class="qty-control"><button class="qty-btn" onclick="changeProductQty(-1)">−</button><span class="qty-num" id="' + qid + '">1</span><button class="qty-btn" onclick="changeProductQty(1)">+</button></div>' +
-    '</div>' +
-    '<div class="product-actions" style="margin-bottom:16px">' +
-      '<button class="btn btn-gold" onclick="addToBasket(\'' + slug + '\',productQty)">Add full set to basket</button>' +
-      '<button class="btn btn-ghost wl-btn ' + (inWl?"active":"") + '" data-slug="' + slug + '" onclick="toggleWishlist(\'' + slug + '\',event)">' + (inWl?"♥ Wishlisted":"♡ Wishlist") + '</button>' +
-    '</div>';
+  var frames = ''; for(var i=0;i<Math.min(panelCount,6);i++) frames+='<div class="mini-frame"></div>';
+  var relatedHtml = related.map(productCard).join('');
+  var trust = '<div style="display:flex;gap:10px;margin-bottom:20px">'+['🚚','↩','🔒'].map(function(ic,i){var lb=['3–5 DAYS','30-DAY RETURNS','SECURE'][i];return '<div style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:12px;text-align:center"><div style="font-size:1rem;margin-bottom:3px">'+ic+'</div><div style="font-family:var(--fm);font-size:.6rem;letter-spacing:.1em;color:var(--muted)">'+lb+'</div></div>';}).join('')+'</div>';
+  var cta = function(qid){
+    return '<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px"><label style="font-family:var(--fm);font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)">Qty</label><div class="qty-control"><button class="qty-btn" onclick="changeProductQty(-1)">−</button><span class="qty-num" id="'+qid+'">1</span><button class="qty-btn" onclick="changeProductQty(1)">+</button></div></div><div class="product-actions" style="margin-bottom:16px"><button class="btn btn-gold" onclick="addToBasket(\''+slug+'\',productQty)">Add full set to basket</button><button class="btn btn-ghost wl-btn '+(inWl?'active':'')+'" data-slug="'+slug+'" onclick="toggleWishlist(\''+slug+'\',event)">'+(inWl?'♥ Wishlisted':'♡ Wishlist')+'</button></div>';
   };
-
   ensureSelection(slug);
-  var hexOverlay = (!product.isCollection) ? buildHexImageOverlay(slug, panelCount, tileSelections[slug]) : '';
-
-  wrap.innerHTML =
-    '<div class="breadcrumbs"><a href="#home">Home</a><span>/</span><a href="#series">Series</a><span>/</span><span>' + product.name + '</span></div>' +
-    '<div class="product-hero">' +
-      '<div class="product-media">' +
-        '<div style="position:relative;border-radius:var(--r);overflow:hidden;">' +
-          '<img id="prod-main-img" src="' + product.image + '" alt="' + product.name + '" style="width:100%;display:block;"/>' +
-          hexOverlay +
-        '</div>' +
-      '</div>' +
-      '<div class="product-info">' +
-        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><span class="badge badge-accent">' + product.category + '</span><span class="badge">' + product.size + '</span></div>' +
-        '<h2>' + product.name + '</h2>' +
-        '<p class="product-tagline">' + product.short + '</p>' +
-        '<div class="product-price-row" style="margin-bottom:20px"><span class="product-price-main">' + gbp(product.price) + '</span><span class="product-price-range">' + product.priceLabel + '</span></div>' +
-        '<div class="prod-tile-selector">' +
-          '<div class="prod-tile-selector-head">Individual panels <span>£34.99 each</span></div>' +
-          buildTileSelectorWidget(product, 'prod') +
-        '</div>' +
-        cta('prod-qty-top') +
-        trust +
-        '<p style="color:var(--muted);font-size:.9rem;line-height:1.7;margin-bottom:24px">' + product.description + '</p>' +
-        '<div class="specs">' +
-          '<div class="spec"><span>Format</span><strong>' + product.pieces + '</strong></div>' +
-          '<div class="spec"><span>Panel style</span><strong>' + product.panelHint + '</strong></div>' +
-          '<div class="spec"><span>Finish</span><strong>' + product.material + '</strong></div>' +
-          '<div class="spec"><span>Colour mood</span><strong>' + product.accent + '</strong></div>' +
-          '<div class="spec"><span>Display size</span><strong>' + product.size + '</strong></div>' +
-          '<div class="spec"><span>Shipping</span><strong>' + (product.price>=300?"Free":"£12 standard") + '</strong></div>' +
-        '</div>' +
-        '<div class="notice" style="margin:16px 0">' + product.note + '</div>' +
-        cta('prod-qty') + trust +
-      '</div>' +
-    '</div>' +
-    '<section class="section" style="padding-top:0"><div class="section-head"><div><p class="section-eyebrow">How it works</p><h2>Magnetic layout</h2></div></div><div class="card"><div class="card-body"><div class="mini-magnet">' + frames + '</div><p class="muted" style="text-align:center;margin-top:8px">' + product.note + '</p></div></div></section>' +
-    '<section class="section" style="padding-top:0"><div class="section-head"><div><p class="section-eyebrow">You may also like</p><h2>Related works</h2></div><a class="btn btn-ghost" href="#series">View all →</a></div><div class="grid">' + relatedHtml + '</div></section>';
-
-  setTimeout(function() {
-    renderPreviewCanvas(slug, product, tileSelections[slug] || []);
-  }, 80);
+  var hexOverlay = !product.isCollection ? buildHexImageOverlay(slug, panelCount, tileSelections[slug]) : '';
+  wrap.innerHTML = '<div class="breadcrumbs"><a href="#home">Home</a><span>/</span><a href="#series">Series</a><span>/</span><span>'+product.name+'</span></div><div class="product-hero"><div class="product-media"><div style="position:relative;border-radius:var(--r);overflow:hidden;"><img id="prod-main-img" src="'+product.image+'" alt="'+product.name+'" style="width:100%;display:block;"/>'+hexOverlay+'</div></div><div class="product-info"><div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">'+typeTag(product.isCollection)+'<span class="badge">'+product.category+'</span><span class="badge">'+product.size+'</span></div><h2>'+product.name+'</h2><p class="product-tagline">'+product.short+'</p><div class="product-price-row" style="margin-bottom:20px"><span class="product-price-main">'+gbp(product.price)+'</span><span class="product-price-range">'+product.priceLabel+'</span></div><div class="prod-tile-selector"><div class="prod-tile-selector-head">Individual panels <span>£34.99 each</span></div>'+buildTileSelectorWidget(product,'prod')+'</div>'+cta('prod-qty-top')+trust+'<p style="color:var(--muted);font-size:.9rem;line-height:1.7;margin-bottom:24px">'+product.description+'</p><div class="specs"><div class="spec"><span>Format</span><strong>'+product.pieces+'</strong></div><div class="spec"><span>Style</span><strong>'+product.panelHint+'</strong></div><div class="spec"><span>Finish</span><strong>'+product.material+'</strong></div><div class="spec"><span>Colour</span><strong>'+product.accent+'</strong></div><div class="spec"><span>Size</span><strong>'+product.size+'</strong></div><div class="spec"><span>Shipping</span><strong>'+(product.price>=300?'Free':'£12 standard')+'</strong></div></div><div class="notice" style="margin:16px 0">'+product.note+'</div>'+cta('prod-qty')+trust+'</div></div><section class="section" style="padding-top:0"><div class="section-head"><div><p class="section-eyebrow">How it works</p><h2>Magnetic layout</h2></div></div><div class="card"><div class="card-body"><div class="mini-magnet">'+frames+'</div><p class="muted" style="text-align:center;margin-top:8px">'+product.note+'</p></div></div></section><section class="section" style="padding-top:0"><div class="section-head"><div><p class="section-eyebrow">You may also like</p><h2>Related works</h2></div><a class="btn btn-ghost" href="#series">View all →</a></div><div class="grid">'+relatedHtml+'</div></section>';
+  setTimeout(function(){ renderPreviewCanvas(slug, product, tileSelections[slug]||[]); }, 80);
 }
 
 // ─── ROUTING ──────────────────────────────────────────────────────
 function setActiveNav(route) {
-  var links = document.querySelectorAll(".nav-link");
-  for (var i = 0; i < links.length; i++) {
-    if (links[i].dataset.route === route) links[i].classList.add("active");
-    else links[i].classList.remove("active");
-  }
-  var mLinks = document.querySelectorAll(".mobile-nav-item");
-  for (var i = 0; i < mLinks.length; i++) {
-    if (mLinks[i].dataset.route === route) mLinks[i].classList.add("active");
-    else mLinks[i].classList.remove("active");
-  }
+  document.querySelectorAll('.nav-link').forEach(function(l){ l.classList.toggle('active', l.dataset.route===route); });
+  document.querySelectorAll('.mobile-nav-item').forEach(function(l){ l.classList.toggle('active', l.dataset.route===route); });
 }
-
 function showPage(name) {
-  var pages = document.querySelectorAll(".page");
-  for (var i = 0; i < pages.length; i++) pages[i].classList.remove("active");
-  var page = document.querySelector('[data-page="' + name + '"]');
-  if (page) page.classList.add("active");
-  setActiveNav(name === "product" ? "" : name);
-  window.scrollTo({top:0,behavior:"smooth"});
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  var pg = document.querySelector('[data-page="'+name+'"]');
+  if (pg) pg.classList.add('active');
+  setActiveNav(name==='product'?'':name);
+  window.scrollTo({top:0,behavior:'smooth'});
 }
-
 function router() {
-  var hash = location.hash || "#home";
-  if (hash.indexOf("#product/") === 0) {
-    var slug = hash.replace("#product/","").trim();
-    renderProduct(slug);
-    showPage("product");
-    setActiveNav("");
-    return;
+  var hash = location.hash || '#home';
+  if (hash.indexOf('#product/') === 0) {
+    var slug = hash.replace('#product/','').trim();
+    renderProduct(slug); showPage('product'); setActiveNav(''); return;
   }
-  var route = hash.replace("#","") || "home";
-  if (route === "home" || route === "series" || route === "collections" || route === "bundles" || route === "about") {
-    showPage(route);
-    setActiveNav(route);
-    if (route === "collections") renderCollections();
-  } else {
-    location.hash = "#home";
-  }
+  var route = hash.replace('#','') || 'home';
+  if (['home','series','collections','bundles','about'].indexOf(route) >= 0) {
+    showPage(route); setActiveNav(route);
+    if (route==='collections') renderCollections();
+  } else { location.hash='#home'; }
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────
-buildMarquee();
-renderFeatured();
-buildFilterBar();
-renderSeries();
-renderBundles();
-updateBadge();
-renderDrawer();
-window.addEventListener("hashchange", router);
-router();
-
-(function() {
-  var nav = document.getElementById('mobile-bottom-nav');
-  function checkWidth() {
-    if (nav) nav.style.display = window.innerWidth <= 430 ? 'flex' : 'none';
-  }
-  checkWidth();
-  window.addEventListener('resize', checkWidth);
-})();
+buildMarquee(); renderFeatured(); buildFilterBar(); renderSeries(); renderBundles(); updateBadge(); renderDrawer();
+window.addEventListener('hashchange', router); router();
+(function(){ var nav=document.getElementById('mobile-bottom-nav'); function c(){ if(nav) nav.style.display=window.innerWidth<=430?'flex':'none'; } c(); window.addEventListener('resize',c); })();
 
 // ─── TILE SYSTEM ──────────────────────────────────────────────────
 var tileSelections = {};
-
 function getPanelGrid(count) {
-  if (count === 1)  return {cols:1, rows:1, panels:[[1]]};
-  if (count === 2)  return {cols:2, rows:1, panels:[[1,2]]};
-  if (count === 3)  return {cols:3, rows:1, panels:[[1,2,3]]};
-  if (count === 4)  return {cols:2, rows:2, panels:[[1,2],[3,4]]};
-  if (count === 5)  return {cols:3, rows:2, panels:[[1,2,3],[4,5,0]]};
-  if (count === 6)  return {cols:3, rows:2, panels:[[1,2,3],[4,5,6]]};
-  if (count === 7)  return {cols:4, rows:2, panels:[[1,2,3,4],[5,6,7,0]]};
-  if (count === 8)  return {cols:4, rows:2, panels:[[1,2,3,4],[5,6,7,8]]};
-  if (count === 9)  return {cols:3, rows:3, panels:[[1,2,3],[4,5,6],[7,8,9]]};
-  return {cols:3, rows:3, panels:[[1,2,3],[4,5,6],[7,8,9]]};
+  var n=parseInt(count)||4;
+  if(n===1) return{cols:1,rows:1,panels:[[1]]};
+  if(n===2) return{cols:2,rows:1,panels:[[1,2]]};
+  if(n===3) return{cols:3,rows:1,panels:[[1,2,3]]};
+  if(n===4) return{cols:2,rows:2,panels:[[1,2],[3,4]]};
+  if(n===5) return{cols:3,rows:2,panels:[[1,2,3],[4,5,0]]};
+  if(n===6) return{cols:3,rows:2,panels:[[1,2,3],[4,5,6]]};
+  if(n===7) return{cols:4,rows:2,panels:[[1,2,3,4],[5,6,7,0]]};
+  if(n===8) return{cols:4,rows:2,panels:[[1,2,3,4],[5,6,7,8]]};
+  return{cols:3,rows:3,panels:[[1,2,3],[4,5,6],[7,8,9]]};
 }
-
-function hexPointsStr(cx, cy, r) {
-  var pts = [];
-  for (var i = 0; i < 6; i++) {
-    var a = (Math.PI / 3) * i - Math.PI / 6;
-    pts.push((cx + r * Math.cos(a)).toFixed(3) + ',' + (cy + r * Math.sin(a)).toFixed(3));
-  }
-  return pts.join(' ');
+function hexPointsStr(cx,cy,r) {
+  var pts=[]; for(var i=0;i<6;i++){var a=(Math.PI/3)*i-Math.PI/6;pts.push((cx+r*Math.cos(a)).toFixed(3)+','+(cy+r*Math.sin(a)).toFixed(3));} return pts.join(' ');
 }
-
-function buildHexPickerSVG(slug, count, sel, idPrefix) {
-  var grid = getPanelGrid(count);
-  var cols = grid.cols, rows = grid.rows;
-  var r = 18;
-  var w = Math.sqrt(3) * r;
-  var horizSpacing = w;
-  var vertSpacing = 1.5 * r;
-  var totalW = cols * horizSpacing + w * 0.5;
-  var totalH = rows * vertSpacing + r * 0.5;
-  var vbW = totalW + 2;
-  var vbH = totalH + 2;
-  var pickerId = idPrefix + '-hpick-' + slug;
-
-  var svgParts = [];
-  for (var row = 0; row < rows; row++) {
-    for (var col = 0; col < cols; col++) {
-      var n = grid.panels[row][col];
-      if (!n) continue;
-      var rowOff = (row % 2 === 1) ? w / 2 : 0;
-      var cx = col * horizSpacing + w / 2 + rowOff + 1;
-      var cy = row * vertSpacing + r + 1;
-      var isSel = sel.indexOf(n) >= 0;
-      var fillC = isSel ? 'rgba(232,130,10,0.22)' : 'rgba(255,255,255,0.06)';
-      var strokeC = isSel ? '#e8820a' : 'rgba(255,255,255,0.2)';
-      var textFill = isSel ? '#e8820a' : '#6b7a96';
-      svgParts.push(
-        '<g data-panel="' + n + '" onclick="toggleTilePanel(\'' + slug + '\',' + n + ')" style="cursor:pointer;">' +
-          '<polygon points="' + hexPointsStr(cx, cy, r - 0.8) + '" fill="' + fillC + '" stroke="' + strokeC + '" stroke-width="1.2"/>' +
-          '<text x="' + cx.toFixed(1) + '" y="' + (cy + 4).toFixed(1) + '" text-anchor="middle" font-family="\'DM Mono\',monospace" font-size="' + Math.round(r * 0.55) + '" font-weight="700" fill="' + textFill + '">' + n + '</text>' +
-        '</g>'
-      );
-    }
-  }
-
-  return '<svg id="' + pickerId + '" viewBox="0 0 ' + vbW.toFixed(1) + ' ' + vbH.toFixed(1) + '" xmlns="http://www.w3.org/2000/svg"' +
-    ' style="width:100%;max-width:' + Math.round(vbW * 2.2) + 'px;height:auto;display:block;overflow:visible;">' +
-    svgParts.join('') + '</svg>';
+function buildHexPickerSVG(slug,count,sel,idPrefix) {
+  var grid=getPanelGrid(count),cols=grid.cols,rows=grid.rows,r=18,w=Math.sqrt(3)*r;
+  var vbW=cols*w+w*.5+2,vbH=rows*1.5*r+r*.5+2,pid=idPrefix+'-hpick-'+slug;
+  var parts=[];
+  for(var row=0;row<rows;row++){for(var col=0;col<cols;col++){var n=grid.panels[row][col];if(!n)continue;var ro=(row%2===1)?w/2:0,cx=col*w+w/2+ro+1,cy=row*1.5*r+r+1,s=sel.indexOf(n)>=0;parts.push('<g data-panel="'+n+'" onclick="toggleTilePanel(\''+slug+'\','+n+')" style="cursor:pointer;"><polygon points="'+hexPointsStr(cx,cy,r-.8)+'" fill="'+(s?'rgba(232,130,10,0.22)':'rgba(255,255,255,0.06)')+'" stroke="'+(s?'#e8820a':'rgba(255,255,255,0.2)')+'" stroke-width="1.2"/><text x="'+cx.toFixed(1)+'" y="'+(cy+4).toFixed(1)+'" text-anchor="middle" font-family="\'DM Mono\',monospace" font-size="'+(Math.round(r*.55))+'" font-weight="700" fill="'+(s?'#e8820a':'#6b7a96')+'">'+n+'</text></g>');}}
+  return '<svg id="'+pid+'" viewBox="0 0 '+vbW.toFixed(1)+' '+vbH.toFixed(1)+'" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:'+Math.round(vbW*2.2)+'px;height:auto;display:block;overflow:visible;">'+parts.join('')+'</svg>';
 }
-
-function buildHexImageOverlay(slug, count, sel) {
-  var grid = getPanelGrid(count);
-  var cols = grid.cols, rows = grid.rows;
-  var VW = 100, VH = 75;
-  var rFromW = VW / ((cols + 0.5) * Math.sqrt(3));
-  var rFromH = VH / (rows * 1.5 + 0.5);
-  var r = Math.min(rFromW, rFromH);
-  var hw = Math.sqrt(3) * r;
-  var totalGridW = cols * hw + hw * 0.5;
-  var totalGridH = rows * 1.5 * r + r * 0.5;
-  var ox = (VW - totalGridW) / 2 + hw / 2;
-  var oy = (VH - totalGridH) / 2 + r;
-  var sid = 'hg' + slug.replace(/-/g,'');
-  var parts = ['<defs><filter id="' + sid + '" x="-10%" y="-10%" width="120%" height="120%">',
-    '<feGaussianBlur stdDeviation="0.5" result="b"/>',
-    '<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>'];
-  for (var row = 0; row < rows; row++) {
-    for (var col = 0; col < cols; col++) {
-      var n = grid.panels[row][col];
-      if (!n) continue;
-      var rowOff = (row % 2 === 1) ? hw / 2 : 0;
-      var cx = col * hw + ox + rowOff;
-      var cy = row * 1.5 * r + oy;
-      var isSel = sel.indexOf(n) >= 0;
-      parts.push('<polygon data-panel="' + n + '" points="' + hexPointsStr(cx, cy, r) + '"' +
-        ' fill="' + (isSel ? 'rgba(232,130,10,0.18)' : 'rgba(0,0,0,0.38)') + '"' +
-        ' stroke="' + (isSel ? '#e8820a' : 'rgba(255,255,255,0.12)') + '"' +
-        ' stroke-width="' + (isSel ? '0.7' : '0.3') + '"' +
-        ' filter="url(#' + sid + ')"' +
-        ' style="cursor:pointer;"' +
-        ' onclick="toggleTilePanel(\'' + slug + '\',' + n + ')"/>');
-    }
-  }
-  return '<svg id="hex-overlay-' + slug + '" viewBox="0 0 ' + VW + ' ' + VH + '"' +
-    ' preserveAspectRatio="none"' +
-    ' style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:all;"' +
-    ' xmlns="http://www.w3.org/2000/svg">' + parts.join('') + '</svg>';
+function buildHexImageOverlay(slug,count,sel) {
+  var grid=getPanelGrid(count),cols=grid.cols,rows=grid.rows,VW=100,VH=75;
+  var r=Math.min(VW/((cols+.5)*Math.sqrt(3)),VH/(rows*1.5+.5)),hw=Math.sqrt(3)*r;
+  var ox=(VW-(cols*hw+hw*.5))/2+hw/2,oy=(VH-(rows*1.5*r+r*.5))/2+r;
+  var sid='hg'+slug.replace(/-/g,''),parts=['<defs><filter id="'+sid+'"><feGaussianBlur stdDeviation="0.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>'];
+  for(var row=0;row<rows;row++){for(var col=0;col<cols;col++){var n=grid.panels[row][col];if(!n)continue;var ro=(row%2===1)?hw/2:0,cx=col*hw+ox+ro,cy=row*1.5*r+oy,s=sel.indexOf(n)>=0;parts.push('<polygon data-panel="'+n+'" points="'+hexPointsStr(cx,cy,r)+'" fill="'+(s?'rgba(232,130,10,0.18)':'rgba(0,0,0,0.38)')+'" stroke="'+(s?'#e8820a':'rgba(255,255,255,0.12)')+'" stroke-width="'+(s?.7:.3)+'" filter="url(#'+sid+')" style="cursor:pointer;" onclick="toggleTilePanel(\''+slug+'\','+n+')"/>');}}
+  return '<svg id="hex-overlay-'+slug+'" viewBox="0 0 '+VW+' '+VH+'" preserveAspectRatio="none" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:all;" xmlns="http://www.w3.org/2000/svg">'+parts.join('')+'</svg>';
 }
-
-function renderPreviewCanvas(slug, product, sel) {
-  var canvas = document.getElementById('prev-' + slug);
-  if (!canvas) return;
-  var ctx = canvas.getContext('2d');
-  var W = (canvas.parentElement && canvas.parentElement.offsetWidth) ? canvas.parentElement.offsetWidth : 320;
-  var H = 72;
-  canvas.width = W; canvas.height = H;
-  ctx.fillStyle = '#0d1422';
-  ctx.fillRect(0, 0, W, H);
-
-  if (!sel || sel.length === 0) {
-    ctx.fillStyle = '#6b7a96';
-    ctx.font = '700 9px "Syne",sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('NO PANELS SELECTED', W / 2, H / 2 + 3);
-    return;
-  }
-
-  var sortedSel = sel.slice().sort(function(a, b) { return a - b; });
-  var count = parseInt(product.pieces) || 4;
-  var grid = getPanelGrid(count);
-  var panelW = Math.floor(W / sortedSel.length);
-
-  if (product.isCollection && product.panelImages && product.panelImages.length) {
-    var loaded = 0;
-    var total = sortedSel.length;
-    for (var si = 0; si < total; si++) {
-      (function(si, n) {
-        var img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = function() {
-          var dstX = si * panelW;
-          var dstW = (si === total - 1) ? W - dstX : panelW;
-          var srcSize = Math.min(img.width, img.height);
-          var srcX = (img.width - srcSize) / 2;
-          var srcY = (img.height - srcSize) / 2;
-          ctx.drawImage(img, srcX, srcY, srcSize, srcSize, dstX, 0, dstW, H);
-          if (si > 0) {
-            ctx.strokeStyle = '#e8820a'; ctx.lineWidth = 1.5;
-            ctx.beginPath(); ctx.moveTo(dstX, 0); ctx.lineTo(dstX, H); ctx.stroke();
-          }
-          loaded++;
-          if (loaded === total) {
-            ctx.strokeStyle = 'rgba(232,130,10,0.5)'; ctx.lineWidth = 1.5;
-            ctx.strokeRect(0.75, 0.75, W - 1.5, H - 1.5);
-          }
-        };
-        img.onerror = function() {
-          ctx.fillStyle = '#1a2540'; ctx.fillRect(si * panelW, 0, panelW, H);
-          ctx.fillStyle = '#6b7a96'; ctx.font = '600 9px sans-serif'; ctx.textAlign = 'center';
-          ctx.fillText(product.panelNames ? product.panelNames[n-1] : 'P'+n, si * panelW + panelW/2, H/2+3);
-        };
-        img.src = product.panelImages[n - 1] || product.image;
-      })(si, sortedSel[si]);
-    }
+function renderPreviewCanvas(slug,product,sel) {
+  var canvas=document.getElementById('prev-'+slug); if(!canvas) return;
+  var ctx=canvas.getContext('2d'),W=canvas.parentElement?canvas.parentElement.offsetWidth||320:320,H=72;
+  canvas.width=W; canvas.height=H; ctx.fillStyle='#0d1422'; ctx.fillRect(0,0,W,H);
+  if(!sel||sel.length===0){ctx.fillStyle='#6b7a96';ctx.font='700 9px "Syne",sans-serif';ctx.textAlign='center';ctx.fillText('NO PANELS SELECTED',W/2,H/2+3);return;}
+  var sortedSel=sel.slice().sort(function(a,b){return a-b;}),count=parseInt(product.pieces)||4,grid=getPanelGrid(count),panelW=Math.floor(W/sortedSel.length);
+  if(product.isCollection&&product.panelImages&&product.panelImages.length){
+    var loaded=0,total=sortedSel.length;
+    for(var si=0;si<total;si++){(function(si,n){var img=new Image();img.crossOrigin='anonymous';img.onload=function(){var dstX=si*panelW,dstW=(si===total-1)?W-dstX:panelW,ss=Math.min(img.width,img.height),sx=(img.width-ss)/2,sy=(img.height-ss)/2;ctx.drawImage(img,sx,sy,ss,ss,dstX,0,dstW,H);if(si>0){ctx.strokeStyle='#e8820a';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(dstX,0);ctx.lineTo(dstX,H);ctx.stroke();}loaded++;if(loaded===total){ctx.strokeStyle='rgba(232,130,10,0.5)';ctx.lineWidth=1.5;ctx.strokeRect(.75,.75,W-1.5,H-1.5);}};img.onerror=function(){ctx.fillStyle='#1a2540';ctx.fillRect(si*panelW,0,panelW,H);};img.src=product.panelImages[n-1]||product.image;})(si,sortedSel[si]);}
   } else {
-    var img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = function() {
-      for (var si = 0; si < sortedSel.length; si++) {
-        var n = sortedSel[si];
-        var pr = -1, pc = -1;
-        outer: for (var r2 = 0; r2 < grid.rows; r2++) {
-          for (var c2 = 0; c2 < grid.cols; c2++) {
-            if (grid.panels[r2][c2] === n) { pr = r2; pc = c2; break outer; }
-          }
-        }
-        if (pr < 0) continue;
-        var srcX = (pc / grid.cols) * img.width;
-        var srcY = (pr / grid.rows) * img.height;
-        var srcW = img.width / grid.cols;
-        var srcH = img.height / grid.rows;
-        var dstX = si * panelW;
-        var dstW = (si === sortedSel.length - 1) ? W - dstX : panelW;
-        ctx.drawImage(img, srcX, srcY, srcW, srcH, dstX, 0, dstW, H);
-        if (si > 0) {
-          ctx.strokeStyle = '#e8820a'; ctx.lineWidth = 1.5;
-          ctx.beginPath(); ctx.moveTo(dstX, 0); ctx.lineTo(dstX, H); ctx.stroke();
-        }
-      }
-      ctx.strokeStyle = 'rgba(232,130,10,0.5)'; ctx.lineWidth = 1.5;
-      ctx.strokeRect(0.75, 0.75, W - 1.5, H - 1.5);
-    };
-    img.onerror = function() {};
-    img.src = product.image;
+    var img=new Image();img.crossOrigin='anonymous';img.onload=function(){for(var si=0;si<sortedSel.length;si++){var n=sortedSel[si],pr=-1,pc=-1;outer:for(var r2=0;r2<grid.rows;r2++){for(var c2=0;c2<grid.cols;c2++){if(grid.panels[r2][c2]===n){pr=r2;pc=c2;break outer;}}}if(pr<0)continue;ctx.drawImage(img,(pc/grid.cols)*img.width,(pr/grid.rows)*img.height,img.width/grid.cols,img.height/grid.rows,si*panelW,0,(si===sortedSel.length-1)?W-si*panelW:panelW,H);if(si>0){ctx.strokeStyle='#e8820a';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(si*panelW,0);ctx.lineTo(si*panelW,H);ctx.stroke();}}ctx.strokeStyle='rgba(232,130,10,0.5)';ctx.lineWidth=1.5;ctx.strokeRect(.75,.75,W-1.5,H-1.5);};img.onerror=function(){};img.src=product.image;
   }
 }
-
 function ensureSelection(slug) {
-  if (!tileSelections[slug]) {
-    var count = 0;
-    for (var i = 0; i < products.length; i++) { if (products[i].slug === slug) { count = parseInt(products[i].pieces)||4; break; } }
-    tileSelections[slug] = [];
-    for (var n = 1; n <= count; n++) tileSelections[slug].push(n);
-  }
+  if(!tileSelections[slug]){var p=products.find(function(x){return x.slug===slug;});var c=p?parseInt(p.pieces)||4:4;tileSelections[slug]=[];for(var n=1;n<=c;n++)tileSelections[slug].push(n);}
 }
-
-function toggleTilePanel(slug, panelNum) {
-  ensureSelection(slug);
-  var arr = tileSelections[slug];
-  var idx = arr.indexOf(panelNum);
-  if (idx >= 0) arr.splice(idx, 1); else arr.push(panelNum);
-  refreshTileUI(slug);
+function toggleTilePanel(slug,panelNum) {
+  ensureSelection(slug);var arr=tileSelections[slug],idx=arr.indexOf(panelNum);
+  if(idx>=0)arr.splice(idx,1);else arr.push(panelNum);refreshTileUI(slug);
 }
-
-function selectAllTiles(slug) {
-  var product = null;
-  for (var i = 0; i < products.length; i++) { if (products[i].slug === slug) { product = products[i]; break; } }
-  var count = product ? (parseInt(product.pieces)||4) : 4;
-  tileSelections[slug] = [];
-  for (var n = 1; n <= count; n++) tileSelections[slug].push(n);
-  refreshTileUI(slug);
-}
-
-function selectNoTiles(slug) {
-  tileSelections[slug] = [];
-  refreshTileUI(slug);
-}
-
+function selectAllTiles(slug){var p=products.find(function(x){return x.slug===slug;});var c=p?parseInt(p.pieces)||4:4;tileSelections[slug]=[];for(var n=1;n<=c;n++)tileSelections[slug].push(n);refreshTileUI(slug);}
+function selectNoTiles(slug){tileSelections[slug]=[];refreshTileUI(slug);}
 function refreshTileUI(slug) {
-  var product = null;
-  for (var i = 0; i < products.length; i++) { if (products[i].slug === slug) { product = products[i]; break; } }
-  if (!product) return;
-  var sel = tileSelections[slug] || [];
-  var safeslug = slug.replace(/-/g, '_');
-  var total = (sel.length * 34.99).toFixed(2);
-
-  var ovSvg = document.getElementById('hex-overlay-' + slug);
-  if (ovSvg) {
-    var polys = ovSvg.querySelectorAll('polygon[data-panel]');
-    for (var p = 0; p < polys.length; p++) {
-      var pn = parseInt(polys[p].getAttribute('data-panel'));
-      var s = sel.indexOf(pn) >= 0;
-      polys[p].setAttribute('fill', s ? 'rgba(232,130,10,0.18)' : 'rgba(0,0,0,0.38)');
-      polys[p].setAttribute('stroke', s ? '#e8820a' : 'rgba(255,255,255,0.12)');
-      polys[p].setAttribute('stroke-width', s ? '0.7' : '0.3');
-    }
-  }
-
-  var pickers = document.querySelectorAll('[id$="-hpick-' + slug + '"]');
-  for (var pi = 0; pi < pickers.length; pi++) {
-    var groups = pickers[pi].querySelectorAll('g[data-panel]');
-    for (var gi = 0; gi < groups.length; gi++) {
-      var gn = parseInt(groups[gi].getAttribute('data-panel'));
-      var gs = sel.indexOf(gn) >= 0;
-      var poly = groups[gi].querySelector('polygon');
-      var txt = groups[gi].querySelector('text');
-      if (poly) {
-        poly.setAttribute('fill', gs ? 'rgba(232,130,10,0.22)' : 'rgba(255,255,255,0.06)');
-        poly.setAttribute('stroke', gs ? '#e8820a' : 'rgba(255,255,255,0.2)');
-      }
-      if (txt) txt.setAttribute('fill', gs ? '#e8820a' : '#6b7a96');
-    }
-  }
-
-  var countLbls = document.querySelectorAll('.tlc-' + safeslug);
-  for (var li = 0; li < countLbls.length; li++)
-    countLbls[li].textContent = sel.length + ' panel' + (sel.length !== 1 ? 's' : '') + ' selected';
-  var priceLbls = document.querySelectorAll('.tlp-' + safeslug);
-  for (var pi2 = 0; pi2 < priceLbls.length; pi2++)
-    priceLbls[pi2].textContent = sel.length > 0 ? '\u00a3' + total : '\u00a334.99 each';
-
-  var addBtns = document.querySelectorAll('.tlab-' + safeslug);
-  for (var bi = 0; bi < addBtns.length; bi++) {
-    addBtns[bi].disabled = sel.length === 0;
-    addBtns[bi].textContent = sel.length === 0
-      ? 'Select panels above'
-      : 'Add ' + sel.length + ' Panel' + (sel.length !== 1 ? 's' : '') + ' to Basket \u2014 \u00a3' + total;
-  }
-
-  renderPreviewCanvas(slug, product, sel);
+  var product=products.find(function(p){return p.slug===slug;});if(!product)return;
+  var sel=tileSelections[slug]||[],safe=slug.replace(/-/g,'_'),total=(sel.length*34.99).toFixed(2);
+  var ovSvg=document.getElementById('hex-overlay-'+slug);
+  if(ovSvg){ovSvg.querySelectorAll('polygon[data-panel]').forEach(function(p){var pn=parseInt(p.getAttribute('data-panel')),s=sel.indexOf(pn)>=0;p.setAttribute('fill',s?'rgba(232,130,10,0.18)':'rgba(0,0,0,0.38)');p.setAttribute('stroke',s?'#e8820a':'rgba(255,255,255,0.12)');p.setAttribute('stroke-width',s?.7:.3);});}
+  document.querySelectorAll('[id$="-hpick-'+slug+'"]').forEach(function(sv){sv.querySelectorAll('g[data-panel]').forEach(function(g){var gn=parseInt(g.getAttribute('data-panel')),gs=sel.indexOf(gn)>=0;var py=g.querySelector('polygon'),tx=g.querySelector('text');if(py){py.setAttribute('fill',gs?'rgba(232,130,10,0.22)':'rgba(255,255,255,0.06)');py.setAttribute('stroke',gs?'#e8820a':'rgba(255,255,255,0.2)');}if(tx)tx.setAttribute('fill',gs?'#e8820a':'#6b7a96');});});
+  document.querySelectorAll('.tlc-'+safe).forEach(function(e){e.textContent=sel.length+' panel'+(sel.length!==1?'s':'')+' selected';});
+  document.querySelectorAll('.tlp-'+safe).forEach(function(e){e.textContent=sel.length>0?'£'+total:'£34.99 each';});
+  document.querySelectorAll('.tlab-'+safe).forEach(function(e){e.disabled=sel.length===0;e.textContent=sel.length===0?'Select panels above':'Add '+sel.length+' Panel'+(sel.length!==1?'s':'')+' to Basket — £'+total;});
+  renderPreviewCanvas(slug,product,sel);
 }
-
 function addSelectedTilesToBasket(slug) {
-  ensureSelection(slug);
-  var sel = tileSelections[slug];
-  if (!sel || sel.length === 0) { showToast('Select at least one panel'); return; }
-  var product = null;
-  for (var i = 0; i < products.length; i++) { if (products[i].slug === slug) { product = products[i]; break; } }
-  if (!product) return;
-  for (var i = 0; i < sel.length; i++) {
-    var pn = sel[i]; var tslug = slug + '--tile-' + pn;
-    var found = false;
-    for (var j = 0; j < basket.length; j++) { if (basket[j].slug === tslug) { basket[j].qty++; found = true; break; } }
-    if (!found) basket.push({slug:tslug, name:product.name + ' \u2014 Panel ' + pn + (product.panelNames ? ' (' + product.panelNames[pn-1] + ')' : ''), price:34.99, qty:1, image:(product.panelImages ? product.panelImages[pn-1] : product.image), isTile:true, panelNum:pn});
-  }
-  updateBadge(); renderDrawer();
-  showToast(sel.length + ' panel' + (sel.length !== 1 ? 's' : '') + ' added to basket');
+  ensureSelection(slug);var sel=tileSelections[slug];if(!sel||sel.length===0){showToast('Select at least one panel');return;}
+  var product=products.find(function(p){return p.slug===slug;});if(!product)return;
+  sel.forEach(function(pn){var tslug=slug+'--tile-'+pn,found=false;for(var j=0;j<basket.length;j++){if(basket[j].slug===tslug){basket[j].qty++;found=true;break;}}if(!found)basket.push({slug:tslug,name:product.name+' — Panel '+pn+(product.panelNames?' ('+product.panelNames[pn-1]+')':''),price:34.99,qty:1,image:(product.panelImages?product.panelImages[pn-1]:product.image)||product.image,isTile:true,panelNum:pn});});
+  updateBadge();renderDrawer();showToast(sel.length+' panel'+(sel.length!==1?'s':'')+' added to basket');
 }
-
-function buildTileSelectorWidget(product, idPrefix) {
-  var count = parseInt(product.pieces) || 4;
-  ensureSelection(product.slug);
-  var sel = tileSelections[product.slug];
-  var safe = product.slug.replace(/-/g, '_');
-  var total = (sel.length * 34.99).toFixed(2);
-  return (
-    '<div class="tile-prev-label">Panel preview</div>' +
-    '<div class="tile-preview-wrap"><canvas id="prev-' + product.slug + '" class="tile-preview-canvas"></canvas></div>' +
-    '<div style="display:flex;align-items:center;justify-content:space-between;margin:12px 0 8px;">' +
-      '<div style="font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);">Select panels — £34.99 each</div>' +
-      '<div style="display:flex;gap:5px;">' +
-        '<button class="tile-quick-btn" onclick="selectAllTiles(\'' + product.slug + '\')">All</button>' +
-        '<button class="tile-quick-btn" onclick="selectNoTiles(\'' + product.slug + '\')">None</button>' +
-      '</div>' +
-    '</div>' +
-    buildHexPickerSVG(product.slug, count, sel, idPrefix) +
-    '<div class="tile-count-row">' +
-      '<span class="tlc-' + safe + ' tile-count-label">' + sel.length + ' panel' + (sel.length!==1?'s':'') + ' selected</span>' +
-      '<span class="tlp-' + safe + ' tile-count-price">\u00a3' + total + '</span>' +
-    '</div>' +
-    '<button class="tile-add-basket-btn tlab-' + safe + '"' + (sel.length===0?' disabled':'') + ' onclick="addSelectedTilesToBasket(\'' + product.slug + '\')">' +
-      (sel.length === 0 ? 'Select panels above' : 'Add ' + sel.length + ' Panel' + (sel.length!==1?'s':'') + ' to Basket \u2014 \u00a3' + total) +
-    '</button>'
-  );
+function buildTileSelectorWidget(product,idPrefix) {
+  var count=parseInt(product.pieces)||4;ensureSelection(product.slug);
+  var sel=tileSelections[product.slug],safe=product.slug.replace(/-/g,'_'),total=(sel.length*34.99).toFixed(2);
+  return '<div class="tile-prev-label">Panel preview</div><div class="tile-preview-wrap"><canvas id="prev-'+product.slug+'" class="tile-preview-canvas"></canvas></div><div style="display:flex;align-items:center;justify-content:space-between;margin:12px 0 8px;"><div style="font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);">Select panels — £34.99 each</div><div style="display:flex;gap:5px;"><button class="tile-quick-btn" onclick="selectAllTiles(\''+product.slug+'\')">All</button><button class="tile-quick-btn" onclick="selectNoTiles(\''+product.slug+'\')">None</button></div></div>'+buildHexPickerSVG(product.slug,count,sel,idPrefix)+'<div class="tile-count-row"><span class="tlc-'+safe+' tile-count-label">'+sel.length+' panel'+(sel.length!==1?'s':'')+' selected</span><span class="tlp-'+safe+' tile-count-price">£'+total+'</span></div><button class="tile-add-basket-btn tlab-'+safe+'"'+(sel.length===0?' disabled':'')+' onclick="addSelectedTilesToBasket(\''+product.slug+'\')">'+(sel.length===0?'Select panels above':'Add '+sel.length+' Panel'+(sel.length!==1?'s':'')+' to Basket — £'+total)+'</button>';
 }
-
 function buildCollectionCardHTML(p) {
   ensureSelection(p.slug);
-  return '<div class="tile-series-card">' +
-    '<div class="tile-series-img-wrap" style="position:relative;">' +
-      '<img class="tile-series-img" src="' + p.image + '" alt="' + p.name + '" loading="lazy">' +
-    '</div>' +
-    '<div class="tile-series-body">' +
-      '<div class="tile-series-name">' + p.name + '</div>' +
-      '<div class="tile-series-hint">' + p.panelHint + '</div>' +
-      buildTileSelectorWidget(p, 'col') +
-    '</div>' +
-  '</div>';
+  return '<div class="tile-series-card"><div class="tile-series-img-wrap"><img class="tile-series-img" src="'+p.image+'" alt="'+p.name+'" loading="lazy"></div><div class="tile-series-body"><div style="margin-bottom:6px">'+typeTag(true)+'</div><div class="tile-series-name">'+p.name+'</div><div class="tile-series-hint">'+p.panelHint+'</div>'+buildTileSelectorWidget(p,'col')+'</div></div>';
 }
-
 function renderCollections() {
-  var grid = document.getElementById('collections-grid');
-  if (!grid) return;
-  var h = '';
-  for (var i = 0; i < products.length; i++) {
-    if (products[i].isCollection) h += buildCollectionCardHTML(products[i]);
-  }
-  grid.innerHTML = h;
-  setTimeout(function() {
-    for (var i = 0; i < products.length; i++) {
-      if (products[i].isCollection) {
-        ensureSelection(products[i].slug);
-        renderPreviewCanvas(products[i].slug, products[i], tileSelections[products[i].slug]);
-      }
-    }
-  }, 80);
+  var grid=document.getElementById('collections-grid');if(!grid)return;
+  grid.innerHTML=products.filter(function(p){return p.isCollection;}).map(buildCollectionCardHTML).join('');
+  setTimeout(function(){products.filter(function(p){return p.isCollection;}).forEach(function(p){ensureSelection(p.slug);renderPreviewCanvas(p.slug,p,tileSelections[p.slug]);});},80);
 }
 </script>
 </body>
