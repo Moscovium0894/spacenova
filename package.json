@@ -1,7 +1,9 @@
 {
-  "name": "spacenova-functions",
+  "name": "spacenova",
   "version": "1.0.0",
-  "description": "Netlify serverless functions for spacenova",
+  "scripts": {
+    "build": "echo \"no build\""
+  },
   "dependencies": {
     "stripe": "^16.0.0"
   }
