@@ -1,9 +1,9 @@
-const fs = require('fs'); // Keep for logging fallback if needed
 const { createClient } = require('@supabase/supabase-js');
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
+);
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
@@ -17,13 +17,26 @@ exports.handler = async (event) => {
       return { statusCode: 400, body: JSON.stringify({ error: 'Invalid order payload' }) };
     }
 
-    const { data, error } = await supabase
+    const d = order.delivery;
+
+    const { error } = await supabase
       .from('orders')
       .insert([{
         ref: order.ref,
         items: order.items,
-        delivery: order.delivery,
+        delivery: d,
+        customer_name: `${d.firstName || ''} ${d.lastName || ''}`.trim(),
+        email: d.email || null,
+        address: {
+          line1: d.address1 || null,
+          line2: d.address2 || null,
+          city: d.city || null,
+          postcode: d.postcode || null,
+          country: d.country || null
+        },
         total: order.total,
+        promo_code: order.promo_code || null,
+        discount: order.discount || 0,
         createdAt: order.createdAt
       }]);
 
@@ -32,11 +45,10 @@ exports.handler = async (event) => {
       return { statusCode: 500, body: JSON.stringify({ error: 'Failed to save order' }) };
     }
 
-    // Log for Netlify visibility
     console.log('NEW ORDER:', JSON.stringify({
       ref: order.ref,
-      name: `${order.delivery.firstName} ${order.delivery.lastName}`,
-      email: order.delivery.email,
+      name: `${d.firstName} ${d.lastName}`,
+      email: d.email,
       total: order.total,
       itemCount: order.items.length,
       createdAt: order.createdAt
@@ -47,6 +59,7 @@ exports.handler = async (event) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ok: true, ref: order.ref })
     };
+
   } catch (err) {
     console.error('save-order error:', err);
     return { statusCode: 500, body: JSON.stringify({ error: 'Failed to save order' }) };
