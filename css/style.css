@@ -284,7 +284,7 @@ footer { border-top:1px solid var(--border); background:var(--surface); padding:
 .prod-tile-selector-head span { color:var(--accent); }
 
 /* ── RESPONSIVE ─────────────────────────────────────────────────── */
-@media (max-width:860px) {
+@media (max-width:932px) {
   .product-hero { grid-template-columns:1fr; }
   .nav-links { display:none; }
 }
@@ -292,7 +292,7 @@ footer { border-top:1px solid var(--border); background:var(--surface); padding:
   .footer-inner { grid-template-columns:1fr 1fr; }
   .about-grid { grid-template-columns:1fr; }
 }
-@media (max-width:430px) {
+@media (max-width:932px) {
   body { font-size:17px; }
   nav { height:60px; padding:0 16px; }
   .nav-links { display:none; }
