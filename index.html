@@ -353,49 +353,48 @@ nav{animation:borderGlow 6s ease-in-out infinite}
 
 <script>
 // ═══════════════════════════════════════════════ DATA
-var products = [
-  {slug:"saturn-rings-arc",name:"Saturn Rings Arc",pieces:"3",panelHint:"3-panel elegant arc",price:179,priceLabel:"£149–£199",short:"Saturn's iconic rings fill the frame — amber bands glowing against the dark void.",description:"An extraordinary close-up of Saturn's ring system across three landscape panels. The amber, gold and shadow-bands create a natural triptych composition.",image:"https://static.scientificamerican.com/dam/m/3360d68d1ff517ac/original/saturn_from_its_rings.jpg?m=1752790178.212&crop=1%3A1%2Csmart&w=1000",category:"planets",accent:"Amber / gold / black",size:"Triptych",material:"Matte-black magnetic frame",note:"This set forms a single Saturn rings image only.",isCollection:false},
-  {slug:"black-hole-nebula",name:"Black Hole Nebula",pieces:"5",panelHint:"5-panel magnetic mural",price:229,priceLabel:"£189–£249",short:"A dark-core nebula with deep blues, glowing dust lanes and a dramatic event-horizon feel.",description:"One complete black-hole-inspired nebula artwork divided across five matching framed panels.",image:"https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1200&q=80",category:"nebula",accent:"Deep space / blue",size:"Large panoramic",material:"Matte-black magnetic frame",note:"This full image connects only within the Black Hole Nebula series.",isCollection:false},
-  {slug:"nebula-crown",name:"Nebula Crown",pieces:"9",panelHint:"9-panel statement grid",price:349,priceLabel:"£299–£389",short:"A richly layered nebula in blue-green fire — a statement piece built for gallery walls.",description:"A statement piece designed as one complete nebula artwork broken into a nine-panel gallery grid.",image:"https://images.unsplash.com/photo-1464802686167-b939a6910659?auto=format&fit=crop&w=1200&q=80",category:"nebula",accent:"Blue / green / teal",size:"Large mural grid",material:"Matte-black magnetic frame",note:"Nebula Crown panels connect only within the same nine-panel artwork.",isCollection:false},
-  {slug:"andromeda-galaxy",name:"Andromeda Galaxy",pieces:"6",panelHint:"6-panel panoramic mural",price:279,priceLabel:"£239–£309",short:"The Andromeda galaxy in full — a sweeping panoramic spanning 2.5 million light years.",description:"One complete Andromeda-inspired galaxy image divided into six panels for a wide panoramic wall installation.",image:"https://images.unsplash.com/photo-1502134249126-9f3755a50d78?auto=format&fit=crop&w=1200&q=80",category:"galaxy",accent:"Blue / silver / warm core",size:"Wide panoramic",material:"Matte-black magnetic frame",note:"All six panels belong to one artwork.",isCollection:false},
-  {slug:"deep-field",name:"Deep Field",pieces:"4",panelHint:"4-panel deep field",price:219,priceLabel:"£179–£249",short:"Thousands of galaxies in a single Hubble-inspired deep-field — infinite depth on your wall.",description:"This Hubble-inspired deep-field composition spreads across four matching panels.",image:"https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=1200&q=80",category:"galaxy",accent:"Blue / violet / black",size:"Wide set",material:"Matte-black magnetic frame",note:"Deep Field is its own complete mural.",isCollection:false},
-  {slug:"aurora-over-earth",name:"Aurora over Earth",pieces:"5",panelHint:"5-panel aurora mural",price:229,priceLabel:"£189–£259",short:"Glowing auroral curtains sweep across Earth's limb in electric green against infinite black.",description:"A single aurora artwork split across five matching panels.",image:"https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?auto=format&fit=crop&w=1200&q=80",category:"earth",accent:"Green / blue / black",size:"Mid panoramic",material:"Matte-black magnetic frame",note:"Aurora over Earth connects only within its five-panel series.",isCollection:false},
-  {slug:"earth-from-space",name:"Earth from Space",pieces:"4",panelHint:"4-panel orbital set",price:209,priceLabel:"£169–£229",short:"A luminous Earth horizon — cloud bands, ocean glow and the razor-thin line of the atmosphere.",description:"One complete Earth artwork split into four elegant framed pieces.",image:"https://images.unsplash.com/photo-1446776877081-d282a0f896e2?auto=format&fit=crop&w=1200&q=80",category:"earth",accent:"Blue / black / white",size:"Wide wall set",material:"Matte-black magnetic frame",note:"This series forms one large Earth image.",isCollection:false},
-  {slug:"moon-landing",name:"Moon Landing",pieces:"3",panelHint:"3-panel triptych",price:179,priceLabel:"£149–£199",short:"A stark lunar scene with crater textures, hard shadow and the pure silence of the Moon's surface.",description:"One continuous Moon landing artwork across three coordinated framed panels.",image:"https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80",category:"lunar",accent:"Grey / black / soft blue",size:"Triptych",material:"Matte-black magnetic frame",note:"The Moon Landing panels magnetically align with each other only.",isCollection:false},
-  {slug:"cosmic-hourglass",name:"Cosmic Hourglass",pieces:"6",panelHint:"6-panel portrait grid",price:269,priceLabel:"£229–£299",short:"The MyCn18 hourglass nebula — one of the most geometrically perfect structures in the universe.",description:"The striking hourglass nebula rendered across six panels in two rows of three.",image:"https://images.unsplash.com/photo-1543722530-d2c3201371e7?auto=format&fit=crop&w=1200&q=80",category:"nebula",accent:"Pink / teal / black",size:"6-panel portrait grid",material:"Matte-black magnetic frame",note:"The Cosmic Hourglass panels form one complete symmetrical composition.",isCollection:false},
-  {slug:"mars-surface",name:"Mars Surface",pieces:"4",panelHint:"4-panel terrain panoramic",price:209,priceLabel:"£169–£235",short:"The russet plains of Mars stretching to the horizon — desolate, vast and hauntingly beautiful.",description:"A wide Martian surface panoramic across four framed panels.",image:"https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?auto=format&fit=crop&w=1200&q=80",category:"planets",accent:"Red / copper / dusty pink",size:"Wide panoramic",material:"Matte-black magnetic frame",note:"This Mars surface panoramic is exclusive to this series.",isCollection:false},
-  {slug:"stellar-nursery",name:"Stellar Nursery",pieces:"9",panelHint:"9-panel immersive grid",price:369,priceLabel:"£319–£409",short:"Inside the Pillars of Creation — towering columns of gas and dust where stars are born.",description:"The iconic Pillars of Creation reimagined as a nine-panel immersive grid.",image:"https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1200&q=80",category:"nebula",accent:"Emerald / gold / deep blue",size:"Large immersive grid",material:"Matte-black magnetic frame",note:"Stellar Nursery panels form one continuous pillar composition.",isCollection:false},
-  {slug:"planetary-series",name:"Planetary Collection",pieces:"9",panelHint:"9 panels — one planet each",price:349,priceLabel:"£299–£389",short:"All nine planets rendered as individual studio portraits — hang any combination.",description:"Nine individually framed portraits — one per planet, Mercury through Pluto.",image:"https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?auto=format&fit=crop&w=1200&q=80",category:"planets",accent:"Black / gold / multicolour",size:"9-panel gallery grid",material:"Matte-black magnetic frame",note:"Each panel features one planet. Any combination works.",isCollection:true,panelImages:["https://images.unsplash.com/photo-1614314107768-6018061b5b72?w=400","https://images.unsplash.com/photo-1614313913007-2b4ae8ce32d6?w=400","https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400","https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?w=400","https://images.unsplash.com/photo-1614732414444-096e5f1122d5?w=400","https://static.scientificamerican.com/dam/m/3360d68d1ff517ac/original/saturn_from_its_rings.jpg","https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?w=400","https://images.unsplash.com/photo-1614732414444-096e5f1122d5?w=400","https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?w=400"],panelNames:["Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto"]}
-];
+var products = [];
+var bundles = [];
+var artifacts = [];
+var wholesaleSources = [];
+var featuredSlugs = [];
+var CATALOGUE_LOADING = true;
+var CATALOGUE_LOAD_FAILED = false;
 
-var bundles = [
-  {slug:"orbit-starter-set",name:"Orbit Starter Set",price:"£299",items:["earth-from-space","moon-landing"],text:"A balanced pairing for bedrooms or study spaces, combining one Earth panorama with one lunar triptych."},
-  {slug:"deep-space-pairing",name:"Deep Space Pairing",price:"£449",items:["black-hole-nebula","andromeda-galaxy"],text:"For a darker, more dramatic feature wall built around rich blues, star fields, and deep-space atmosphere."},
-  {slug:"planetary-contrast-set",name:"Planetary Contrast Set",price:"£389",items:["mars-surface","saturn-rings-arc"],text:"Warm Martian tones and cool planetary geometry in one coordinated room bundle."},
-  {slug:"aurora-study-collection",name:"Aurora Study Collection",price:"£329",items:["aurora-over-earth","deep-field"],text:"A cooler green-blue palette suited to calm desks, offices, and focused workspaces."},
-  {slug:"gallery-wall-max",name:"Gallery Wall Max",price:"£729",items:["nebula-crown","aurora-over-earth","moon-landing"],text:"Three statement sets for a large cinematic wall with strong contrast and premium visual rhythm."},
-  {slug:"solar-panorama-duo",name:"Solar Panorama Duo",price:"£479",items:["stellar-nursery","deep-field"],text:"A clean extra-wide pairing for modern interiors that want graphic structure and celestial depth."}
-];
-
-var artifacts = [
-  {name:"Galaxy Desk Mat",category:"Desk",price:34.99,desc:"Extra-large 900×400mm mouse pad with sublimation-printed nebula artwork. Non-slip rubber base, stitched edges.",image:"https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=600&q=80"},
-  {name:"Deep Space Mug",category:"Drinkware",price:18.99,desc:"330ml ceramic mug with colour-changing heat-reactive nebula print. Dishwasher safe.",image:"https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=600&q=80"},
-  {name:"Aurora Tote Bag",category:"Accessories",price:22.99,desc:"Heavyweight canvas tote with photographic aurora print. 38cm × 42cm, internal zip pocket.",image:"https://images.unsplash.com/photo-1591561954555-607968c989ab?w=600&q=80"},
-  {name:"Cosmos Notebook",category:"Stationery",price:16.99,desc:"A5 hardcover notebook, 192 dot-grid pages. Lay-flat binding with galaxy-print cover.",image:"https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=600&q=80"},
-  {name:"Nebula Phone Case",category:"Tech",price:19.99,desc:"MagSafe-compatible case for iPhone 14/15 Pro. Dual-layer with printed nebula panel.",image:"https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=600&q=80"},
-  {name:"Space Enamel Pin Set",category:"Collectibles",price:12.99,desc:"Set of 6 hard enamel pins — Saturn, Moon, astronaut, rocket, black hole, and comet.",image:"https://images.unsplash.com/photo-1569451875784-52a97e5c3f41?w=600&q=80"}
-];
-
-var wholesaleSources = [
-  {name:"Printful",url:"https://www.printful.com",desc:"Industry-leading print-on-demand. Offers mouse pads, apparel, mugs, phone cases. Integrates with Shopify/WooCommerce. Ships worldwide with white-label packaging.",best:"Apparel, mouse pads, mugs"},
-  {name:"Printify",url:"https://printify.com",desc:"Marketplace of 90+ print providers. Competitive pricing via provider selection. Broad product catalogue.",best:"Wide product range, best pricing"},
-  {name:"Contrado",url:"https://www.contrado.co.uk",desc:"UK-based premium print-on-demand with exceptional fabric and home goods quality.",best:"Premium quality, UK-based"},
-  {name:"Bags of Love",url:"https://www.bagsoflove.co.uk",desc:"UK manufacturer offering custom-printed home accessories and photo gifts. B2B wholesale pricing available.",best:"UK gifts, home accessories"},
-  {name:"Prodigi",url:"https://www.prodigi.com",desc:"Professional print-on-demand for wall art, canvas, framing, and accessories. Global fulfilment network.",best:"Fine art, framing, wall art"},
-  {name:"Redbubble",url:"https://www.redbubble.com",desc:"Marketplace with white-label API access. Good for reaching existing audiences.",best:"Marketplace exposure"}
-];
-
-var featuredSlugs = ["saturn-rings-arc","black-hole-nebula","andromeda-galaxy","aurora-over-earth","stellar-nursery","cosmic-hourglass"];
+function loadCatalogue(){
+  return fetch('/.netlify/functions/load-catalogue', { cache: 'no-store' })
+    .then(function(r){
+      if(!r.ok) throw new Error('Catalogue request failed');
+      return r.json();
+    })
+    .then(function(data){
+      products = Array.isArray(data.products) ? data.products : [];
+      bundles = Array.isArray(data.bundles) ? data.bundles : [];
+      artifacts = Array.isArray(data.artifacts) ? data.artifacts : [];
+      wholesaleSources = Array.isArray(data.wholesaleSources) ? data.wholesaleSources : [];
+      featuredSlugs = Array.isArray(data.featuredSlugs) ? data.featuredSlugs : [];
+      CATALOGUE_LOADING = false;
+      CATALOGUE_LOAD_FAILED = false;
+      buildMarquee();
+      renderFeatured();
+      buildFilterBar();
+      renderWallArt();
+      renderBundles();
+      renderArtifacts();
+    })
+    .catch(function(e){
+      console.error('Catalogue load failed:', e);
+      CATALOGUE_LOADING = false;
+      CATALOGUE_LOAD_FAILED = true;
+      buildMarquee();
+      renderFeatured();
+      buildFilterBar();
+      renderWallArt();
+      renderBundles();
+      renderArtifacts();
+      showToast('Live catalogue unavailable - showing fallback content','info');
+    });
+}
 
 // ═══════════════════════════════════════════════ STATE
 var basket = [], wishlist = [], activeFilter = null, activeSeriesFilter = null, waTab = 'series';
@@ -1010,9 +1009,19 @@ window.addEventListener('scroll',function(){
 },{passive:true});
 
 // ═══════════════════════════════════════════════ INIT
-buildMarquee(); renderFeatured(); buildFilterBar(); renderWallArt(); renderBundles(); updateBadge(); renderDrawer();
-window.addEventListener('hashchange',router); router();
-(function(){var nav=document.getElementById('mobile-bottom-nav');function c(){if(nav)nav.style.display=window.innerWidth<=430?'flex':'none';}c();window.addEventListener('resize',c);})();
+updateBadge();
+renderDrawer();
+window.addEventListener('hashchange',router);
+(function(){
+  var nav=document.getElementById('mobile-bottom-nav');
+  function c(){ if(nav) nav.style.display=window.innerWidth<=430?'flex':'none'; }
+  c();
+  window.addEventListener('resize',c);
+})();
+loadCatalogue().then(function(){ router(); });
+
+
+  
 </script>
 </body>
 </html>
