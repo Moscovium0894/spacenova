@@ -299,7 +299,7 @@ footer { border-top:1px solid var(--border); background:var(--surface); padding:
   .nav-logo { font-size:1.25rem; }
   .nav-basket-btn { padding:10px 16px 10px 12px; font-size:.82rem; min-height:44px; }
   .mobile-bottom-nav { display:flex !important; position:fixed; bottom:0; left:0; right:0; z-index:110; background:rgba(7,11,18,.96); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border-top:2px solid var(--accent); padding:8px 0 env(safe-area-inset-bottom, 8px); justify-content:space-around; align-items:center; }
-  .mobile-nav-item { display:flex; flex-direction:column; align-items:center; gap:3px; min-width:60px; min-height:44px; justify-content:center; background:none; border:none; cursor:pointer; color:var(--muted); font-family:var(--fu); font-size:.62rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; text-decoration:none; transition:color .2s; padding:4px 8px; }
+  .mobile-nav-item { display:flex; flex-direction:column; align-items:center; gap:3px; min-width:0px; min-height:44px; justify-content:center; background:none; border:none; cursor:pointer; color:var(--muted); font-family:var(--fu); font-size:.52rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; text-decoration:none; transition:color .2s; padding:4px 8px; }
   .mobile-nav-item.active, .mobile-nav-item:active { color:var(--accent) !important; text-shadow:0 0 10px rgba(232,130,10,.5); }
   .mobile-nav-icon { width:22px; height:22px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
   body { padding-bottom:calc(64px + env(safe-area-inset-bottom, 0px)); }
