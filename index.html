@@ -601,68 +601,52 @@ function renderDrawer(){
 }
 
 // ═══════════════════════════════════════════════ CHECKOUT
-function goCheckout(){ checkoutStep=1; renderDrawer(); }
+function goCheckout(){
+  checkoutStep=2; // skip straight to payment
+  renderDrawer();
+}
 
 function renderCheckoutForm(){
-  var labels=['Delivery','Payment','Review'];
-  var stepsHtml=labels.map(function(l,i){var n=i+1,cls=checkoutStep>n?'done':checkoutStep===n?'active':'';return '<div class="checkout-step '+cls+'">'+(checkoutStep>n?'✓ ':'')+l+'</div>';}).join('');
+  var labels=['Payment','Review'];
+  var stepsHtml=labels.map(function(l,i){
+    var n=i+1;
+    // step 1 = payment (was 2), step 2 = review (was 3)
+    var mapped=checkoutStep===2?1:2;
+    var cls=mapped>n?'done':mapped===n?'active':'';
+    return '<div class="checkout-step '+cls+'">'+(mapped>n?'✓ ':'')+l+'</div>';
+  }).join('');
   var steps='<div class="checkout-steps">'+stepsHtml+'</div>';
 
-  if(checkoutStep===1) return steps+
-    '<h3 style="font-family:var(--fd);font-weight:300;font-size:1.4rem;margin-bottom:18px">Delivery details</h3>' +
-    '<div class="form-row"><div class="form-group"><label class="form-label">First name</label><input class="form-input" id="f-fname" placeholder="James" value="'+(savedDelivery.firstName||'')+'"/></div><div class="form-group"><label class="form-label">Last name</label><input class="form-input" id="f-lname" placeholder="Holloway" value="'+(savedDelivery.lastName||'')+'"/></div></div>' +
-    '<div class="form-group"><label class="form-label">Email</label><input class="form-input" id="f-email" type="email" placeholder="james@example.com" value="'+(savedDelivery.email||'')+'"/></div>' +
-    '<div class="form-group"><label class="form-label">Address line 1</label><input class="form-input" id="f-addr1" placeholder="12 Starfield Road" value="'+(savedDelivery.address1||'')+'"/></div>' +
-    '<div class="form-group"><label class="form-label">Address line 2 <span style="color:var(--muted);font-weight:400">(optional)</span></label><input class="form-input" id="f-addr2" placeholder="" value="'+(savedDelivery.address2||'')+'"/></div>' +
-    '<div class="form-row"><div class="form-group"><label class="form-label">City</label><input class="form-input" id="f-city" placeholder="London" value="'+(savedDelivery.city||'')+'"/></div><div class="form-group"><label class="form-label">Postcode</label><input class="form-input" id="f-post" placeholder="EC1A 1BB" value="'+(savedDelivery.postcode||'')+'"/></div></div>' +
-    '<div class="form-group"><label class="form-label">Country</label><select class="form-input form-select" id="f-country"><option>United Kingdom</option><option>Ireland</option><option>France</option><option>Germany</option><option>Netherlands</option><option>Other</option></select></div>';
-
   if(checkoutStep===2) return steps+
-    '<h3 style="font-family:var(--fd);font-weight:300;font-size:1.4rem;margin-bottom:14px">Payment</h3>' +
-    '<p class="stripe-secure-note"><svg width="12" height="14" viewBox="0 0 12 14" fill="none"><path d="M6 1L1 3.5V7c0 2.76 2.14 5.34 5 6 2.86-.66 5-3.24 5-6V3.5L6 1z" stroke="#2ecc8a" stroke-width="1.2"/></svg>Secured by Stripe</p>' +
-    '<div id="stripe-payment-element"></div><div id="stripe-error"></div>';
+    '<h3 style="font-family:var(--fd);font-weight:300;font-size:1.4rem;margin-bottom:14px">Delivery & Payment</h3>'+
+    '<p class="stripe-secure-note"><svg width="12" height="14" viewBox="0 0 12 14" fill="none"><path d="M6 1L1 3.5V7c0 2.76 2.14 5.34 5 6 2.86-.66 5-3.24 5-6V3.5L6 1z" stroke="#2ecc8a" stroke-width="1.2"/></svg>Secured by Stripe</p>'+
+    '<div id="stripe-address-element" style="margin-bottom:16px"></div>'+
+    '<div id="stripe-payment-element"></div>'+
+    '<div id="stripe-error"></div>';
 
   if(checkoutStep===3){
     var sub=getSubtotal(), disc=getDiscount(sub), ship=getShipping(), tot=getTotal();
     var rows=basket.map(function(b){return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:.88rem"><span>'+b.name+' × '+b.qty+'</span><strong>'+gbp(b.price*b.qty)+'</strong></div>';}).join('');
     var discRow2 = disc>0 ? '<div class="basket-summary-row" style="color:var(--success)"><span>Promo ('+appliedPromo.code+')</span><strong>−'+gbp(disc)+'</strong></div>' : '';
+    var deliveryBlock='';
+    if(savedDelivery&&savedDelivery.name){
+      deliveryBlock='<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px;margin-bottom:16px;font-size:.85rem;color:var(--muted);line-height:1.7">'+
+        '<strong style="color:var(--text);display:block;margin-bottom:4px">Delivering to</strong>'+
+        savedDelivery.name+'<br/>'+
+        (savedDelivery.address||'')+'</div>';
+    }
     var pgMsg = !paymentConfirmed
       ? '<div class="payment-gate-notice">Payment was not completed. Please go back and complete payment.</div>'
       : '<div style="background:rgba(46,204,138,.08);border:1px solid rgba(46,204,138,.25);border-radius:var(--rs);padding:12px 16px;font-size:.84rem;color:var(--success);margin-bottom:14px">✓ Payment authorised — ready to confirm</div>';
-    return steps+'<h3 style="font-family:var(--fd);font-weight:300;font-size:1.4rem;margin-bottom:18px">Review order</h3>'+pgMsg+'<div style="margin-bottom:18px">'+rows+'</div><div class="basket-summary"><div class="basket-summary-row"><span>Subtotal</span><strong>'+gbp(sub)+'</strong></div>'+discRow2+'<div class="basket-summary-row"><span>Shipping</span><strong>'+(ship===0?'Free':gbp(ship))+'</strong></div><div class="basket-summary-row total"><span>Total due</span><strong>'+gbp(tot)+'</strong></div></div>';
+    return steps+'<h3 style="font-family:var(--fd);font-weight:300;font-size:1.4rem;margin-bottom:18px">Review order</h3>'+pgMsg+deliveryBlock+'<div style="margin-bottom:18px">'+rows+'</div><div class="basket-summary"><div class="basket-summary-row"><span>Subtotal</span><strong>'+gbp(sub)+'</strong></div>'+discRow2+'<div class="basket-summary-row"><span>Shipping</span><strong>'+(ship===0?'Free':gbp(ship))+'</strong></div><div class="basket-summary-row total"><span>Total due</span><strong>'+gbp(tot)+'</strong></div></div>';
   }
   return '';
 }
 
 function renderCheckoutFooter(){
-  if(checkoutStep===1) return '<div style="display:flex;gap:10px"><button class="btn btn-ghost" onclick="checkoutStep=0;renderDrawer()">← Back</button><button class="btn btn-primary" style="flex:1" onclick="nextCheckout()">Continue to payment →</button></div>';
-  if(checkoutStep===2) return '<div style="display:flex;gap:10px"><button class="btn btn-ghost" onclick="checkoutStep=1;renderDrawer()">← Back</button><button class="btn btn-primary" style="flex:1" id="stripe-submit-btn" onclick="submitStripePayment()">'+(stripe?'Pay & review →':'Payment unavailable')+'</button></div>';
+  if(checkoutStep===2) return '<div style="display:flex;gap:10px"><button class="btn btn-ghost" onclick="checkoutStep=0;renderDrawer()">← Back</button><button class="btn btn-primary" style="flex:1" id="stripe-submit-btn" onclick="submitStripePayment()">'+(stripe?'Pay & review →':'Payment unavailable')+'</button></div>';
   if(checkoutStep===3) return '<div style="display:flex;gap:10px"><button class="btn btn-ghost" onclick="checkoutStep=2;renderDrawer()">← Back</button><button class="btn btn-gold" style="flex:1" '+(paymentConfirmed?'':'disabled')+' onclick="placeOrder()">Place order →</button></div>';
   return '';
-}
-
-function nextCheckout(){
-  if(checkoutStep===1){
-    var fname=(document.getElementById('f-fname')||{}).value||'';
-    var email=(document.getElementById('f-email')||{}).value||'';
-    var addr1=(document.getElementById('f-addr1')||{}).value||'';
-    var city=(document.getElementById('f-city')||{}).value||'';
-    if(!fname.trim()||!email.trim()||!addr1.trim()||!city.trim()){showToast('Please fill required fields','danger');return;}
-    // Save delivery immediately
-    savedDelivery = {
-      firstName: fname,
-      lastName: (document.getElementById('f-lname')||{}).value||'',
-      email: email,
-      address1: addr1,
-      address2: (document.getElementById('f-addr2')||{}).value||'',
-      city: city,
-      postcode: (document.getElementById('f-post')||{}).value||'',
-      country: (document.getElementById('f-country')||{value:'UK'}).value||'UK'
-    };
-    createPaymentIntent(function(err){ if(err){showToast('Payment setup failed — try again','danger');return;} checkoutStep=2; renderDrawer(); });
-    return;
-  }
-  checkoutStep++; renderDrawer();
 }
 
 // ═══════════════════════════════════════════════ STRIPE
@@ -679,11 +663,50 @@ function mountStripeElement(){
   var container=document.getElementById('stripe-payment-element');
   if(!container||!stripe||!stripeClientSecret) return;
   container.innerHTML='';
+
   stripeElements=stripe.elements({
     clientSecret:stripeClientSecret,
     appearance:{theme:'night',variables:{colorPrimary:'#e8820a',colorBackground:'#0c1220',colorText:'#e8ecf4',colorDanger:'#e05050',fontFamily:'"Syne",sans-serif',borderRadius:'10px'}}
   });
-  var expressContainer=document.createElement('div');expressContainer.id='stripe-express-element';expressContainer.style.marginBottom='12px';container.appendChild(expressContainer);
+
+  // Address element
+  var addrContainer=document.getElementById('stripe-address-element');
+  if(addrContainer){
+    addrContainer.innerHTML='';
+    var addressElement=stripeElements.create('address',{
+      mode:'shipping',
+      defaultValues:{ address:{ country:'GB' } },
+      fields:{ phone:'always' },
+      validation:{ phone:{ required:'always' } }
+    });
+    addressElement.mount('#stripe-address-element');
+    addressElement.on('change',function(e){
+      if(e.complete&&e.value&&e.value.address){
+        var v=e.value;
+        savedDelivery={
+          name: v.name||'',
+          email: '',
+          address: [v.address.line1, v.address.line2, v.address.city, v.address.postal_code, v.address.country].filter(Boolean).join(', '),
+          address1: v.address.line1||'',
+          address2: v.address.line2||'',
+          city: v.address.city||'',
+          postcode: v.address.postal_code||'',
+          country: v.address.country||'',
+          phone: v.phone||''
+        };
+        // Split name into first/last for save-order compatibility
+        var parts=(v.name||'').split(' ');
+        savedDelivery.firstName=parts[0]||'';
+        savedDelivery.lastName=parts.slice(1).join(' ')||'';
+      }
+    });
+  }
+
+  // Express checkout (Apple/Google Pay)
+  var expressContainer=document.createElement('div');
+  expressContainer.id='stripe-express-element';
+  expressContainer.style.marginBottom='12px';
+  container.appendChild(expressContainer);
   var expressEl=stripeElements.create('expressCheckout');
   expressEl.on('confirm',function(){
     stripe.confirmPayment({elements:stripeElements,clientSecret:stripeClientSecret,confirmParams:{return_url:window.location.origin+'/success.html'},redirect:'if_required'}).then(function(res){
@@ -693,10 +716,15 @@ function mountStripeElement(){
   });
   expressEl.on('ready',function(event){if(!event.availablePaymentMethods){expressContainer.style.display='none';}});
   expressEl.mount('#stripe-express-element');
-  var innerContainer=document.createElement('div');innerContainer.id='stripe-payment-element-inner';container.appendChild(innerContainer);
+
+  // Payment element
+  var innerContainer=document.createElement('div');
+  innerContainer.id='stripe-payment-element-inner';
+  container.appendChild(innerContainer);
   stripePaymentElement=stripeElements.create('payment');
   stripePaymentElement.mount('#stripe-payment-element-inner');
 }
+
 
 function submitStripePayment(){
   if(!stripe){showToast('Stripe not configured','danger');return;}
@@ -708,8 +736,9 @@ function submitStripePayment(){
   stripeElements.submit().then(function(r){
     if(r.error){if(errEl)errEl.textContent=r.error.message;if(btn){btn.disabled=false;btn.textContent='Pay & review →';}return;}
     stripe.confirmPayment({
-      elements:stripeElements, clientSecret:stripeClientSecret,
-      confirmParams:{return_url:window.location.origin+'/success.html',payment_method_data:{billing_details:{name:(savedDelivery.firstName||'')+' '+(savedDelivery.lastName||''),email:savedDelivery.email||''}}},
+      elements:stripeElements,
+      clientSecret:stripeClientSecret,
+      confirmParams:{return_url:window.location.origin+'/success.html'},
       redirect:'if_required'
     }).then(function(res){
       if(res.error){if(errEl)errEl.textContent=res.error.message;if(btn){btn.disabled=false;btn.textContent='Pay & review →';}return;}
@@ -717,6 +746,9 @@ function submitStripePayment(){
       if(pi&&pi.status==='succeeded'){paymentConfirmed=true;checkoutStep=3;renderDrawer();}
       else{if(errEl)errEl.textContent='Payment not completed. Status: '+(pi?pi.status:'unknown');if(btn){btn.disabled=false;btn.textContent='Pay & review →';}}
     });
+  });
+}
+
   });
 }
 
@@ -731,7 +763,8 @@ function placeOrder(){
 }
 
 function renderOrderSuccess(){
-  return '<div class="order-success"><div class="order-success-icon">✓</div><h3>Order placed!</h3><p>Thank you, '+savedDelivery.firstName+'. A confirmation has been sent to '+savedDelivery.email+'. Your panels will be dispatched within 3–5 working days.</p><div class="order-ref">Order ref: '+orderRef+'</div></div>';
+  var displayName=savedDelivery.name||savedDelivery.firstName||'there';
+  return '<div class="order-success"><div class="order-success-icon">✓</div><h3>Order placed!</h3><p>Thank you, '+displayName+'. Your panels will be dispatched within 3–5 working days.</p><div class="order-ref">Order ref: '+orderRef+'</div></div>';
 }
 
 // ═══════════════════════════════════════════════ PRODUCT CARD
