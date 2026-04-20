@@ -6,40 +6,71 @@ const supabase = createClient(
 );
 
 exports.handler = async (event) => {
-  const { password, product } = JSON.parse(event.body || '{}');
-  if (!process.env.ADMIN_PASSWORD || password !== process.env.ADMIN_PASSWORD) {
-    return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
+  if (event.httpMethod !== 'POST') {
+    return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
-  const payload = {
-    slug: product.slug,
-    name: product.name,
-    category: product.category,
-    price: product.price,
-    price_label: product.priceLabel,
-    short: product.short,
-    description: product.description,
-    note: product.note,
-    accent: product.accent,
-    size: product.size,
-    material: product.material,
-    pieces: product.pieces,
-    panel_hint: product.panelHint,
-    image: product.image,
-    is_collection: product.isCollection,
-    panel_names: product.panelNames,
-    panel_images: product.panelImages,
-    panel_map: product.panelMap,
-    updated_at: new Date().toISOString()
-  };
+  try {
+    const { password, product } = JSON.parse(event.body || '{}');
 
-  const { error } = await supabase
-    .from('products')
-    .upsert(payload, { onConflict: 'slug' });
+    if (!process.env.ADMIN_PASSWORD || password !== process.env.ADMIN_PASSWORD) {
+      return {
+        statusCode: 401,
+        body: JSON.stringify({ error: 'Unauthorized' })
+      };
+    }
 
-  if (error) {
-    return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
+    if (!product || !product.slug || !product.name) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Missing required product fields' })
+      };
+    }
+
+    const payload = {
+      slug: product.slug,
+      name: product.name,
+      category: product.category || null,
+      price: product.price ?? null,
+      price_label: product.priceLabel || null,
+      short: product.short || null,
+      description: product.description || null,
+      note: product.note || null,
+      accent: product.accent || null,
+      size: product.size || null,
+      material: product.material || null,
+      pieces: product.pieces || null,
+      panel_hint: product.panelHint || null,
+      image: product.image || null,
+      is_collection: !!product.isCollection,
+      panel_names: product.panelNames || [],
+      panel_images: product.panelImages || [],
+      panel_map: product.panelMap || {},
+      updated_at: new Date().toISOString()
+    };
+
+    const { error } = await supabase
+      .from('products')
+      .upsert(payload, { onConflict: 'slug' });
+
+    if (error) {
+      console.error('save-product error:', error);
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: error.message })
+      };
+    }
+
+    return {
+      statusCode: 200,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ok: true, slug: product.slug })
+    };
+  } catch (err) {
+    console.error('save-product fatal error:', err);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: 'Failed to save product' })
+    };
   }
-
-  return { statusCode: 200, body: JSON.stringify({ ok: true }) };
 };
