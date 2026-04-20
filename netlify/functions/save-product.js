@@ -1,20 +1,45 @@
-const fs = require('fs');
+const { createClient } = require('@supabase/supabase-js');
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 exports.handler = async (event) => {
   const { password, product } = JSON.parse(event.body || '{}');
-  const adminPw = process.env.ADMIN_PASSWORD;
-
-  if (!adminPw || password !== adminPw) {
+  if (!process.env.ADMIN_PASSWORD || password !== process.env.ADMIN_PASSWORD) {
     return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
   }
 
-  let products = [];
-  const dbPath = '/tmp/products.json';
-  try { products = JSON.parse(fs.readFileSync(dbPath, 'utf8') || '[]'); } catch(e) {}
+  const payload = {
+    slug: product.slug,
+    name: product.name,
+    category: product.category,
+    price: product.price,
+    price_label: product.priceLabel,
+    short: product.short,
+    description: product.description,
+    note: product.note,
+    accent: product.accent,
+    size: product.size,
+    material: product.material,
+    pieces: product.pieces,
+    panel_hint: product.panelHint,
+    image: product.image,
+    is_collection: product.isCollection,
+    panel_names: product.panelNames,
+    panel_images: product.panelImages,
+    panel_map: product.panelMap,
+    updated_at: new Date().toISOString()
+  };
 
-  const idx = products.findIndex(p => p.slug === product.slug);
-  if (idx >= 0) products[idx] = product; else products.push(product);
+  const { error } = await supabase
+    .from('products')
+    .upsert(payload, { onConflict: 'slug' });
 
-  fs.writeFileSync(dbPath, JSON.stringify(products, null, 2));
+  if (error) {
+    return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
+  }
+
   return { statusCode: 200, body: JSON.stringify({ ok: true }) };
 };
