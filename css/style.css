@@ -284,7 +284,7 @@ footer { border-top:1px solid var(--border); background:var(--surface); padding:
 .prod-tile-selector-head span { color:var(--accent); }
 
 /* ── RESPONSIVE ─────────────────────────────────────────────────── */
-@media (max-width:932px) {
+@media (max-width:860px) {
   .product-hero { grid-template-columns:1fr; }
   .nav-links { display:none; }
 }
