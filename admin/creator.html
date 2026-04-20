@@ -728,44 +728,63 @@ function saveToStore(){
 
 // ── SYNC ENTIRE CATALOGUE ─────────────────────────────────────────
 function syncCatalogueAll(){
-  // Ensure current product changes are in the products array
   syncBack();
-
-  if(!products || !products.length){
-    toast('No products to sync','danger');
-    return;
-  }
-
-  var pw=sessionStorage.getItem('admin_pw')||'';
+  var pw = sessionStorage.getItem('admin_pw') || '';
   if(!pw){
-    pw=prompt('Enter admin password to sync entire catalogue:')||'';
-    if(!pw){
-      toast('Sync cancelled','danger');
-      return;
-    }
-    sessionStorage.setItem('admin_pw',pw);
+    pw = prompt('Enter admin password to sync entire catalogue:') || '';
+    if(!pw){ toast('Sync cancelled','danger'); return; }
+    sessionStorage.setItem('admin_pw', pw);
   }
-
   crStatus('Syncing catalogue…','saving');
+
+  var payload = {
+    password: pw,
+    products: products,
+    bundles: [
+      {slug:"orbit-starter-set",name:"Orbit Starter Set",price:"£299",items:["earth-from-space","moon-landing"],text:"A balanced pairing for bedrooms or study spaces."},
+      {slug:"deep-space-pairing",name:"Deep Space Pairing",price:"£449",items:["black-hole-nebula","andromeda-galaxy"],text:"For a darker, more dramatic feature wall."},
+      {slug:"planetary-contrast-set",name:"Planetary Contrast Set",price:"£389",items:["mars-surface","saturn-rings-arc"],text:"Warm Martian tones and cool planetary geometry."},
+      {slug:"aurora-study-collection",name:"Aurora Study Collection",price:"£329",items:["aurora-over-earth","deep-field"],text:"A cooler green-blue palette for calm workspaces."},
+      {slug:"gallery-wall-max",name:"Gallery Wall Max",price:"£729",items:["nebula-crown","aurora-over-earth","moon-landing"],text:"Three statement sets for a large cinematic wall."},
+      {slug:"solar-panorama-duo",name:"Solar Panorama Duo",price:"£479",items:["stellar-nursery","deep-field"],text:"A clean extra-wide pairing for modern interiors."}
+    ],
+    artifacts: [
+      {name:"Galaxy Desk Mat",category:"Desk",price:34.99,description:"Extra-large 900×400mm mouse pad with sublimation-printed nebula artwork.",image:"https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=600&q=80"},
+      {name:"Deep Space Mug",category:"Drinkware",price:18.99,description:"330ml ceramic mug with colour-changing heat-reactive nebula print.",image:"https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=600&q=80"},
+      {name:"Aurora Tote Bag",category:"Accessories",price:22.99,description:"Heavyweight canvas tote with photographic aurora print.",image:"https://images.unsplash.com/photo-1591561954555-607968c989ab?w=600&q=80"},
+      {name:"Cosmos Notebook",category:"Stationery",price:16.99,description:"A5 hardcover notebook, 192 dot-grid pages.",image:"https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=600&q=80"},
+      {name:"Nebula Phone Case",category:"Tech",price:19.99,description:"MagSafe-compatible case for iPhone 14/15 Pro.",image:"https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=600&q=80"},
+      {name:"Space Enamel Pin Set",category:"Collectibles",price:12.99,description:"Set of 6 hard enamel pins.",image:"https://images.unsplash.com/photo-1569451875784-52a97e5c3f41?w=600&q=80"}
+    ],
+    wholesaleSources: [
+      {name:"Printful",url:"https://www.printful.com",description:"Industry-leading print-on-demand for mugs, mouse pads, apparel and accessories.",best:"Apparel, mouse pads, mugs"},
+      {name:"Printify",url:"https://printify.com",description:"Large marketplace of print providers with broad catalogue coverage.",best:"Wide product range, best pricing"},
+      {name:"Contrado",url:"https://www.contrado.co.uk",description:"UK-based premium print-on-demand with strong quality.",best:"Premium quality, UK-based"},
+      {name:"Bags of Love",url:"https://www.bagsoflove.co.uk",description:"UK custom printed home accessories and gifts.",best:"UK gifts, home accessories"},
+      {name:"Prodigi",url:"https://www.prodigi.com",description:"Professional print-on-demand focused on wall art and framed output.",best:"Fine art, framing, wall art"},
+      {name:"Redbubble",url:"https://www.redbubble.com",description:"Marketplace-based merchandising and print fulfilment.",best:"Marketplace exposure"}
+    ],
+    featuredSlugs: ["saturn-rings-arc","black-hole-nebula","andromeda-galaxy","aurora-over-earth","stellar-nursery","cosmic-hourglass"]
+  };
 
   fetch('/.netlify/functions/sync-catalogue',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({password:pw,products:products})
+    body:JSON.stringify(payload)
   })
-    .then(function(r){return r.json();})
+    .then(function(r){ return r.json(); })
     .then(function(d){
       if(d.ok){
         toast('Store catalogue updated ✓','info');
         crStatus('Catalogue synced','saving');
       }else{
         sessionStorage.removeItem('admin_pw');
-        toast('Sync failed: '+(d.error||'unknown'),'danger');
+        toast('Sync failed: ' + (d.error || 'unknown'),'danger');
         crStatus('Sync failed');
       }
     })
     .catch(function(){
-      toast('Sync failed — check console','danger');
+      toast('Sync failed - check console','danger');
       crStatus('Error');
     });
 }
