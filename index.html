@@ -602,8 +602,15 @@ function renderDrawer(){
 
 // ═══════════════════════════════════════════════ CHECKOUT
 function goCheckout(){
-  checkoutStep=2; // skip straight to payment
+  checkoutStep=2;
   renderDrawer();
+  // Create the payment intent now so the secret is ready when Stripe mounts
+  createPaymentIntent(function(err){
+    if(err){ showToast('Could not initialise payment — please try again','danger'); checkoutStep=0; renderDrawer(); return; }
+    // mountStripeElement is called via requestAnimationFrame inside renderDrawer already,
+    // but now stripeClientSecret will be set. Re-trigger mount.
+    mountStripeElement();
+  });
 }
 
 function renderCheckoutForm(){
@@ -746,9 +753,6 @@ function submitStripePayment(){
       if(pi&&pi.status==='succeeded'){paymentConfirmed=true;checkoutStep=3;renderDrawer();}
       else{if(errEl)errEl.textContent='Payment not completed. Status: '+(pi?pi.status:'unknown');if(btn){btn.disabled=false;btn.textContent='Pay & review →';}}
     });
-  });
-}
-
   });
 }
 
