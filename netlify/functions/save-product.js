@@ -43,8 +43,9 @@ exports.handler = async (event) => {
       panel_hint: product.panelHint || null,
       image: product.image || null,
       is_collection: !!product.isCollection,
-      panel_names: product.panelNames || [],
-      panel_images: product.panelImages || [],
+      is_published: product.isPublished !== false,
+      panel_names: Array.isArray(product.panelNames) ? product.panelNames : [],
+      panel_images: Array.isArray(product.panelImages) ? product.panelImages : [],
       panel_map: product.panelMap || {},
       updated_at: new Date().toISOString()
     };
