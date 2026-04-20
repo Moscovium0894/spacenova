@@ -2,7 +2,7 @@ const { createClient } = require('@supabase/supabase-js');
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
+  process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
 exports.handler = async (event) => {
@@ -14,7 +14,10 @@ exports.handler = async (event) => {
     const order = JSON.parse(event.body || '{}');
 
     if (!order.ref || !order.items || !order.delivery) {
-      return { statusCode: 400, body: JSON.stringify({ error: 'Invalid order payload' }) };
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Invalid order payload' })
+      };
     }
 
     const d = order.delivery;
@@ -34,34 +37,30 @@ exports.handler = async (event) => {
           postcode: d.postcode || null,
           country: d.country || null
         },
-        total: order.total,
+        total: order.total ?? null,
         promo_code: order.promo_code || null,
         discount: order.discount || 0,
-        createdAt: order.createdAt
+        created_at: order.createdAt || new Date().toISOString()
       }]);
 
     if (error) {
       console.error('Supabase insert error:', error);
-      return { statusCode: 500, body: JSON.stringify({ error: 'Failed to save order' }) };
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: error.message || 'Failed to save order' })
+      };
     }
-
-    console.log('NEW ORDER:', JSON.stringify({
-      ref: order.ref,
-      name: `${d.firstName} ${d.lastName}`,
-      email: d.email,
-      total: order.total,
-      itemCount: order.items.length,
-      createdAt: order.createdAt
-    }));
 
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ok: true, ref: order.ref })
     };
-
   } catch (err) {
     console.error('save-order error:', err);
-    return { statusCode: 500, body: JSON.stringify({ error: 'Failed to save order' }) };
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: 'Failed to save order' })
+    };
   }
 };
