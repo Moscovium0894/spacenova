@@ -210,15 +210,16 @@ body{background:var(--bg);color:var(--text);font-family:var(--fu);min-height:100
       <div id="cr-panel-list" class="panel-list"></div>
     </div>
 
-    <div class="card">
-      <div class="sec-title"><span class="sec-icon">💾</span> Save &amp; Export</div>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <button class="btn btn-gold" id="cr-save-store">Save to store catalogue</button>
-        <button class="btn btn-accent" id="cr-export">Export .aef file</button>
-        <button class="btn" id="cr-export-parts">Export panel images (PNG)</button>
-        <label class="fbtn">Load .aef file<input id="cr-load-aef" type="file" accept=".aef,.json" hidden></label>
-      </div>
-    </div>
+<div class="card">
+  <div class="sec-title"><span class="sec-icon">💾</span> Save &amp; Export</div>
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <button class="btn btn-gold" id="cr-save-store">Save current product</button>
+    <button class="btn" id="cr-sync-all">Update entire store catalogue</button>
+    <button class="btn btn-accent" id="cr-export">Export .aef file</button>
+    <button class="btn" id="cr-export-parts">Export panel images (PNG)</button>
+    <label class="fbtn">Load .aef file<input id="cr-load-aef" type="file" accept=".aef,.json" hidden></label>
+  </div>
+</div>
 
   </aside>
 
@@ -725,6 +726,50 @@ function saveToStore(){
     }).catch(function(){toast('Save failed — check console','danger');crStatus('Error');});
 }
 
+// ── SYNC ENTIRE CATALOGUE ─────────────────────────────────────────
+function syncCatalogueAll(){
+  // Ensure current product changes are in the products array
+  syncBack();
+
+  if(!products || !products.length){
+    toast('No products to sync','danger');
+    return;
+  }
+
+  var pw=sessionStorage.getItem('admin_pw')||'';
+  if(!pw){
+    pw=prompt('Enter admin password to sync entire catalogue:')||'';
+    if(!pw){
+      toast('Sync cancelled','danger');
+      return;
+    }
+    sessionStorage.setItem('admin_pw',pw);
+  }
+
+  crStatus('Syncing catalogue…','saving');
+
+  fetch('/.netlify/functions/sync-catalogue',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({password:pw,products:products})
+  })
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.ok){
+        toast('Store catalogue updated ✓','info');
+        crStatus('Catalogue synced','saving');
+      }else{
+        sessionStorage.removeItem('admin_pw');
+        toast('Sync failed: '+(d.error||'unknown'),'danger');
+        crStatus('Sync failed');
+      }
+    })
+    .catch(function(){
+      toast('Sync failed — check console','danger');
+      crStatus('Error');
+    });
+}
+
 // ── BIND ──────────────────────────────────────────────────────────
 function bind(){
   document.getElementById('cr-product-sel').onchange=function(e){loadProduct(e.target.value);};
@@ -746,6 +791,7 @@ function bind(){
   document.getElementById('cr-export').onclick=exportAEF;
   document.getElementById('cr-export-parts').onclick=exportImageParts;
   document.getElementById('cr-save-store').onclick=saveToStore;
+  document.getElementById('cr-sync-all').onclick=syncCatalogueAll;
   document.getElementById('cr-load-aef').onchange=function(e){var f=e.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){try{loadAEF(rd.result);}catch(err){crStatus('Load failed: '+err.message);}};rd.readAsText(f);};
   document.getElementById('cr-reset').onclick=function(){CR.positions=defaultPositions(CR.panelCount);CR.multiSelected=[];renderAll();crStatus('Layout reset');};
   document.getElementById('cr-snap-btn').onclick=function(){CR.snap=!CR.snap;this.textContent='Snap: '+(CR.snap?'On':'Off');this.classList.toggle('active',CR.snap);};
