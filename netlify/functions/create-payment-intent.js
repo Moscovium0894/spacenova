@@ -1,4 +1,3 @@
-// netlify/functions/create-payment-intent.js
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 exports.handler = async (event) => {
@@ -8,20 +7,25 @@ exports.handler = async (event) => {
 
   try {
     const data = JSON.parse(event.body || "{}");
-    const amount = data.amount; // in pence from your front-end
+    const amount = data.amount;
     const currency = data.currency || "gbp";
 
     if (!amount || amount < 50) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: "Invalid amount" }),
-      };
+      return { statusCode: 400, body: JSON.stringify({ error: "Invalid amount" }) };
     }
 
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
       currency,
       automatic_payment_methods: { enabled: true },
+      shipping: {
+        name: "Pending",
+        address: {
+          line1: "Pending",
+          country: "GB",
+          postal_code: "Pending"
+        }
+      }
     });
 
     return {
@@ -30,9 +34,6 @@ exports.handler = async (event) => {
     };
   } catch (err) {
     console.error(err);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: "Failed to create PaymentIntent" }),
-    };
+    return { statusCode: 500, body: JSON.stringify({ error: "Failed to create PaymentIntent" }) };
   }
 };
