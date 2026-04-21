@@ -3,6 +3,9 @@
    ════════════════════════════════════════════════════════════════ */
 
 :root {
+  --bg:#06080f; --surface:#0f1624; --surface2:#151f31;
+  --border:rgba(255,255,255,.07); --border2:rgba(255,255,255,.13);
+  --text:#f3f6fb; --muted:#8f9bb3;
   --bg:#070b12; --surface:#0c1220; --surface2:#111a2a;
   --border:rgba(255,255,255,.07); --border2:rgba(255,255,255,.13);
   --text:#e8ecf4; --muted:#6b7a96;
