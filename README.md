@@ -1,4 +1,5 @@
-This is the code for my space wall art website.
+# Spacenova
 
-**https://spacenova.co.uk/**
+Project docs moved to **[READ.md](./READ.md)**.
 
+Live site: [https://spacenova.co.uk/](https://spacenova.co.uk/)
