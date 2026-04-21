@@ -132,7 +132,110 @@ nav.scrolled { box-shadow: 0 2px 20px rgba(0,0,0,0.06); }
   .mobile-bottom-nav { display: flex !important; }
 }
 
+/* ── HOME SPOTLIGHT ─────────────────────────── */
+.home-spotlight-section {
+  padding: 0 0 32px;
+  background: #fff;
+}
+.home-spotlight-footer {
+  display: flex;
+  justify-content: center;
+  padding: 20px 16px 0;
+}
 
+/* Single featured card */
+.spl-card {
+  position: relative;
+  display: block;
+  width: 100%;
+  text-decoration: none;
+  overflow: hidden;
+  background: #111;
+  cursor: pointer;
+  border-radius: 0;
+  min-height: 70vw;
+  max-height: 92vh;
+}
+@media(min-width:600px){
+  .home-spotlight-section { padding: 28px 24px 36px; }
+  .spl-card {
+    border-radius: 24px;
+    min-height: 480px;
+    max-height: 680px;
+  }
+}
+
+.spl-card-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  transition: transform .6s ease;
+}
+.spl-card:hover .spl-card-img { transform: scale(1.025); }
+
+.spl-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,.30) 0%, rgba(0,0,0,.10) 35%, rgba(0,0,0,0) 60%);
+  pointer-events: none;
+}
+
+.spl-card-overlay {
+  position: absolute;
+  left: 14px; right: 14px; bottom: 14px;
+  z-index: 2;
+  background: rgba(235,235,235,.68);
+  backdrop-filter: blur(14px) saturate(1.4);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  border: 1px solid rgba(255,255,255,.5);
+  border-radius: 18px;
+  padding: 14px 16px;
+  pointer-events: none;
+}
+@media(min-width:600px){
+  .spl-card-overlay {
+    left: 20px; right: 20px; bottom: 20px;
+    border-radius: 20px;
+    padding: 16px 20px;
+  }
+}
+
+.spl-card-eyebrow {
+  font-family: var(--fm);
+  font-size: .58rem;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: rgba(0,0,0,.5);
+  margin-bottom: 5px;
+}
+.spl-card-name {
+  font-family: var(--fd);
+  font-size: clamp(1.05rem, 4vw, 1.5rem);
+  font-weight: 400;
+  color: #111;
+  letter-spacing: -.02em;
+  line-height: 1.15;
+}
+.spl-card-sub {
+  font-size: .72rem;
+  color: rgba(0,0,0,.45);
+  margin-top: 4px;
+  font-family: var(--fm);
+}
+
+/* hide old feature-strips on home */
+.feature-strips { display: none !important; }
+
+/* nav override — make sure old dark nav styles don't bleed through */
+@media(max-width:700px){
+  .nav-links { display: none; }
+}
   
 </style>
 </head>
@@ -557,7 +660,36 @@ function renderArtifacts(){
 }
 
 /* ═══ FEATURED ═══ */
-function renderFeatured(){var el=document.getElementById('featured-series');if(!el)return;el.innerHTML=featuredSlugs.map(function(slug){var p=products.find(function(x){return x.slug===slug;});return p?productCard(p):'';}).join('');}
+function renderFeatured(){
+  var wrap = document.getElementById('featured-spotlight-wrap');
+  if(!wrap) return;
+
+  var featured = featuredSlugs.map(function(slug){
+    return products.find(function(x){ return x.slug === slug; });
+  }).filter(Boolean);
+
+  if(!featured.length && products.length){
+    featured = products.filter(function(p){ return p.isPublished !== false; }).slice(0,1);
+  }
+
+  if(!featured.length){
+    wrap.innerHTML = '';
+    return;
+  }
+
+  // Show first featured product as the hero card
+  var p = featured[0];
+
+  wrap.innerHTML =
+    '<a class="spl-card" href="#product/'+p.slug+'" onclick="event.preventDefault();location.hash=\'#product/'+p.slug+'\';router();">' +
+      '<img class="spl-card-img" src="'+p.image+'" alt="'+p.name+'" loading="eager"/>' +
+      '<div class="spl-card-overlay">' +
+        '<div class="spl-card-eyebrow">Featured series</div>' +
+        '<div class="spl-card-name">'+p.name+'</div>' +
+        '<div class="spl-card-sub">'+p.category+' · '+(p.pieces||'?')+' panels · '+gbp(p.price)+'</div>' +
+      '</div>' +
+    '</a>';
+}
 
 /* ═══ MARQUEE ═══ */
 function buildMarquee(){var el=document.getElementById('marquee-track');if(!el)return;var items=['Multi-panel magnetic sets','3 to 9 panels','Matte-black frames','Museum-grade inks','Free shipping over £300','Gallery-quality printing','Magnetic edge alignment','Deep-space imagery'];var all=items.concat(items);el.innerHTML=all.map(function(t){return'<span class="marquee-item">'+t+'</span>';}).join('');}
