@@ -220,36 +220,14 @@ nav.scrolled { box-shadow: 0 2px 20px rgba(0,0,0,0.06); }
     <div class="marquee-track" id="marquee-track"></div>
   </div>
 
-  <section class="section">
-    <div class="section-head">
-      <div><p class="section-eyebrow">Curated picks</p><h2>Featured series</h2></div>
-      <a class="btn btn-ghost btn-sm" href="#wall-art">View all →</a>
-    </div>
-    <div class="grid" id="featured-series"></div>
-  </section>
-
-  <div class="section-rule"></div>
-
-  <!-- Feature strips — Apple-style -->
-  <section class="section" style="padding-top:80px;padding-bottom:80px">
-    <div class="feature-strips">
-      <div class="feature-strip">
-        <div class="feature-strip-icon">🔲</div>
-        <h3>Magnetic edge alignment</h3>
-        <p>Hidden magnets inside each frame edge snap panels into perfect position. No measuring, no guesswork, no gaps.</p>
-      </div>
-      <div class="feature-strip">
-        <div class="feature-strip-icon">🎨</div>
-        <h3>Museum-grade quality</h3>
-        <p>UV-resistant inks on 280gsm cotton rag paper. Matte-black powder-coated aluminium frames. Built for decades.</p>
-      </div>
-      <div class="feature-strip">
-        <div class="feature-strip-icon">📦</div>
-        <h3>Premium packaging</h3>
-        <p>Each panel ships in a rigid protective box with custom foam corners. Free shipping on orders over £300.</p>
-      </div>
-    </div>
-  </section>
+<section class="home-spotlight-section">
+  <div id="featured-spotlight-wrap">
+    <!-- filled by JS -->
+  </div>
+  <div class="home-spotlight-footer">
+    <a class="btn btn-ghost btn-sm" href="#wall-art" data-route="wall-art" onclick="showPage('wall-art');setActiveNav('wall-art')">View all wall art →</a>
+  </div>
+</section>
 
   <div class="section-rule"></div>
 
