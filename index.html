@@ -6,7 +6,13 @@
 <link rel="icon" href="/Spacenovafavicon.png" type="image/png"/>
 <link rel="shortcut icon" href="/favicon.ico"/>
 <link rel="apple-touch-icon" href="/Spacenovafavicon.png"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="theme-color" content="#060b12"/>
+<link rel="manifest" href="/site.webmanifest"/>
+<link rel="icon" type="image/png" sizes="32x32" href="/Spacenovafavicon.png?v=3"/>
+<link rel="icon" type="image/png" sizes="192x192" href="/Spacenovafavicon.png?v=3"/>
+<meta property="og:image" content="https://www.spacenova.co.uk/Spacenovafavicon.png"/>
+<meta name="twitter:image" content="https://www.spacenova.co.uk/Spacenovafavicon.png"/>
 <title>Modular Hexagon Panels - Space Wall Art | Spacenova</title>
 <meta name="description" content="Luxury magnetic space wall art. Build modular hexagon panels with inspiring images. Designed for modern rooms and creative spaces."/>
 <script type="application/ld+json">
@@ -37,7 +43,7 @@
   };
 </script>
 <style>
-.nav-logo-img{height:112px;width:auto;display:block}
+.nav-logo-img{height:112px;width:auto;display:block;filter:drop-shadow(0 8px 18px rgba(0,0,0,.35))}
 .nav-logo{gap:8px;align-items:center;display:flex;position:relative;z-index:2;flex:0 0 auto}
 nav{position:relative}
 .nav-links{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;gap:24px;z-index:1;white-space:nowrap}
@@ -52,5 +58,20 @@ nav{position:relative}
 </head>
 <body>
 ...REMAINDER_UNCHANGED...
+
+<script>
+(function(){
+  function syncMarquee(){
+    var track=document.querySelector('.marquee-track');
+    if(!track)return;
+    var max=Math.max(1,document.documentElement.scrollHeight-window.innerHeight);
+    var progress=Math.max(0,Math.min(1,window.scrollY/max));
+    track.style.setProperty('--marquee-offset',(-50*progress).toFixed(3)+'%');
+  }
+  window.addEventListener('scroll',syncMarquee,{passive:true});
+  window.addEventListener('resize',syncMarquee);
+  document.addEventListener('DOMContentLoaded',syncMarquee);
+})();
+</script>
 </body>
 </html>
