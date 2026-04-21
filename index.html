@@ -2,55 +2,120 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="theme-color" content="#060b12"/>
+<link rel="manifest" href="/site.webmanifest"/>
 <link rel="icon" href="/favicon.ico" sizes="any"/>
-<link rel="icon" href="/Spacenovafavicon.png" type="image/png"/>
-<link rel="shortcut icon" href="/favicon.ico"/>
-<link rel="apple-touch-icon" href="/Spacenovafavicon.png"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link rel="icon" type="image/png" sizes="32x32" href="/Spacenovafavicon.png?v=3"/>
+<link rel="apple-touch-icon" href="/Spacenovafavicon.png?v=3"/>
 <title>Modular Hexagon Panels - Space Wall Art | Spacenova</title>
 <meta name="description" content="Luxury magnetic space wall art. Build modular hexagon panels with inspiring images. Designed for modern rooms and creative spaces."/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Spacenova — Magnetic Space Wall Art"/>
+<meta property="og:description" content="Multi-panel magnetic sets with gallery-quality printing."/>
+<meta property="og:image" content="https://www.spacenova.co.uk/Spacenovafavicon.png"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:image" content="https://www.spacenova.co.uk/Spacenovafavicon.png"/>
 <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  "url": "https://www.spacenova.co.uk/",
-  "name": "spacenova",
-  "alternateName": "Spacenova"
-}
-</script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "OnlineStore",
-  "name": "spacenova",
-  "url": "https://www.spacenova.co.uk/",
-  "logo": "https://www.spacenova.co.uk/Spacenova-search-logo.png"
-}
+{"@context":"https://schema.org","@type":"WebSite","url":"https://www.spacenova.co.uk/","name":"Spacenova"}
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="css/style.css"/>
-<script src="https://js.stripe.com/v3/"></script>
-<script>
-  window.ENV = {
-    STRIPE_PUBLISHABLE_KEY: "pk_live_51TNtFFGnvROGMUU3OTHqQLdFA6BL1hee48MJqm9wFqBylclW6hgy7cSIJDsbO7rs2sKpHr1XWI0Z8AGYv8d7hTBu00tRsWW7mr"
-  };
-</script>
-<style>
-.nav-logo-img{height:112px;width:auto;display:block}
-.nav-logo{gap:8px;align-items:center;display:flex;position:relative;z-index:2;flex:0 0 auto}
-nav{position:relative}
-.nav-links{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;gap:24px;z-index:1;white-space:nowrap}
-.nav-spacer{flex:1 1 auto;min-width:0}
-.nav-basket-btn{position:relative;z-index:2;margin-left:auto}
-@media(max-width:932px){
-  .nav-logo-img{height:104px}
-  .nav-links{position:static;left:auto;top:auto;transform:none;gap:16px}
-}
-/* rest unchanged */
-</style>
 </head>
 <body>
-...REMAINDER_UNCHANGED...
+<nav>
+  <a class="nav-logo" href="#top"><img class="nav-logo-img" src="/Spacenova_font.png" alt="Spacenova"/></a>
+  <div class="nav-links">
+    <a class="nav-link" href="#shop">Shop</a>
+    <a class="nav-link" href="#about">About</a>
+    <a class="nav-link" href="#contact">Contact</a>
+  </div>
+  <div class="nav-spacer"></div>
+  <a class="nav-basket-btn" href="/admin/">Admin</a>
+</nav>
+
+<header class="hero" id="top">
+  <div class="hero-content">
+    <p class="hero-eyebrow">Luxury magnetic wall art</p>
+    <h1>Bring the <em>cosmos</em> home.</h1>
+    <p class="hero-sub">Precision-crafted modular hexagon sets with matte-black frames and gallery-grade inks.</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="#shop">Shop collections</a>
+      <a class="btn btn-ghost" href="/admin/creator.html">Open creator</a>
+    </div>
+  </div>
+</header>
+
+<section class="marquee-wrap" aria-label="Product highlights">
+  <div class="marquee-track" id="main-marquee">
+    <span class="marquee-item">3 to 9 panels</span>
+    <span class="marquee-item">Matte-black frames</span>
+    <span class="marquee-item">Museum-grade inks</span>
+    <span class="marquee-item">Free shipping over £300</span>
+    <span class="marquee-item">12 series available</span>
+    <span class="marquee-item">Gallery-quality printing</span>
+    <span class="marquee-item">Magnetic edge alignment</span>
+    <span class="marquee-item">Multi-panel magnetic sets</span>
+    <span class="marquee-item">3 to 9 panels</span>
+    <span class="marquee-item">Matte-black frames</span>
+    <span class="marquee-item">Museum-grade inks</span>
+  </div>
+</section>
+
+<section class="section" id="shop">
+  <div class="section-head">
+    <div>
+      <p class="section-eyebrow">Curated collections</p>
+      <h2>Designed like a gallery. Built for real homes.</h2>
+    </div>
+  </div>
+  <div class="grid">
+    <article class="card">
+      <div class="card-media"><img src="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=1200&q=80" alt="Nebula collection"/></div>
+      <div class="card-body"><h3>Nebula Signature</h3><p class="muted">Cinematic depth with rich color transitions across linked panels.</p><p class="price">£229</p></div>
+    </article>
+    <article class="card">
+      <div class="card-media"><img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200&q=80" alt="Lunar collection"/></div>
+      <div class="card-body"><h3>Lunar Minimal</h3><p class="muted">High-contrast monochrome look for modern, elegant interiors.</p><p class="price">£199</p></div>
+    </article>
+    <article class="card">
+      <div class="card-media"><img src="https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=1200&q=80" alt="Planetary collection"/></div>
+      <div class="card-body"><h3>Planetary Arc</h3><p class="muted">Warm planetary tones balanced with deep-space blacks.</p><p class="price">£249</p></div>
+    </article>
+  </div>
+</section>
+
+<section class="section" id="about">
+  <div class="about-grid">
+    <div class="about-img"><img src="https://images.unsplash.com/photo-1477203568708-1419d117f5d7?w=1400&q=80" alt="Spacenova wall art room mockup"/></div>
+    <div>
+      <p class="section-eyebrow">Why Spacenova</p>
+      <h2>Apple-like simplicity. Gallery-level finish.</h2>
+      <p class="hero-sub">Every set is engineered for clean alignment, premium tactility, and a minimalist presentation that feels calm and luxurious.</p>
+    </div>
+  </div>
+</section>
+
+<footer id="contact">
+  <div class="footer-inner">
+    <div class="footer-brand"><p>Spacenova crafts modular magnetic space wall art for modern interiors.</p></div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var track=document.getElementById('main-marquee');
+  if(!track) return;
+  function syncMarquee(){
+    var max=Math.max(1,document.documentElement.scrollHeight-window.innerHeight);
+    var progress=Math.max(0,Math.min(1,window.scrollY/max));
+    track.style.setProperty('--marquee-offset',(-50*progress).toFixed(3)+'%');
+  }
+  window.addEventListener('scroll',syncMarquee,{passive:true});
+  window.addEventListener('resize',syncMarquee);
+  syncMarquee();
+})();
+</script>
 </body>
 </html>
