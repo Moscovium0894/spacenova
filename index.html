@@ -17,11 +17,11 @@
       <div class="nav-logo-mark" style="display:none"></div>
     </a>
     <div class="nav-links">
-      <a class="nav-link" href="#home"      data-route="home">Home</a>
-      <a class="nav-link" href="#wall-art"  data-route="wall-art">Wall Art</a>
+      <a class="nav-link" href="#home" data-route="home">Home</a>
+      <a class="nav-link" href="#wall-art" data-route="wall-art">Wall Art</a>
       <a class="nav-link" href="#artifacts" data-route="artifacts">Artifacts</a>
-      <a class="nav-link" href="#bundles"   data-route="bundles">Bundles</a>
-      <a class="nav-link" href="#about"     data-route="about">About</a>
+      <a class="nav-link" href="#bundles" data-route="bundles">Bundles</a>
+      <a class="nav-link" href="#about" data-route="about">About</a>
     </div>
     <div class="nav-spacer"></div>
     <button class="nav-basket-btn" id="nav-basket-btn" onclick="openBasket()" type="button">
@@ -71,39 +71,19 @@
     <div class="drawer-footer" id="basket-footer"></div>
   </div>
 
-  <!-- HOME PAGE -->
   <div class="page active" data-page="home">
-
-    <!-- HERO: background set via inline style so the image always loads -->
-    <div class="hero" style="
-      background-image: url('https://images.unsplash.com/photo-1446776877081-d282a0f896e2?auto=format&fit=crop&w=2000&q=90');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-    ">
-      <!-- Gradient overlay sits on top of the bg image -->
-      <div style="
-        position:absolute;inset:0;z-index:0;
-        background: linear-gradient(
-          to bottom,
-          rgba(0,0,0,0.38) 0%,
-          rgba(0,0,0,0.52) 40%,
-          rgba(0,0,0,0.80) 80%,
-          #000 100%
-        );
-        pointer-events:none;
-      "></div>
-
-      <div class="hero-content">
-        <div class="hero-chip afu">
+    <div class="hero" style="position:relative;background-image:url('https://images.unsplash.com/photo-1446776877081-d282a0f896e2?auto=format&fit=crop&w=2000&q=90');background-size:cover;background-position:center;background-repeat:no-repeat;">
+      <div style="position:absolute;inset:0;z-index:1;background:linear-gradient(to bottom,rgba(0,0,0,0.22) 0%,rgba(0,0,0,0.42) 42%,rgba(0,0,0,0.78) 82%,rgba(0,0,0,0.94) 100%);"></div>
+      <div class="hero-content" style="position:relative;z-index:2;max-width:860px;">
+        <div class="hero-chip afu" style="color:rgba(255,255,255,0.92);background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);">
           <span class="hero-chip-dot"></span>
           New collection available
         </div>
-        <h1 class="afu d1">The universe,<br/><em>on your wall.</em></h1>
-        <p class="hero-sub afu d2">Magnetic hexagon panels that transform your space into a continuous deep-space mural. Gallery quality. Precision aligned.</p>
+        <h1 class="afu d1" style="color:#fff;">The universe,<br/><em>on your wall.</em></h1>
+        <p class="hero-sub afu d2" style="color:rgba(255,255,255,0.84);">Magnetic hexagon panels that transform your space into a continuous deep-space mural. Gallery quality. Precision aligned.</p>
         <div class="hero-actions afu d3">
           <a class="btn btn-gold" href="#wall-art" onclick="showPage('wall-art');setActiveNav('wall-art')">Shop Wall Art</a>
-          <a class="btn btn-ghost" href="#about" onclick="showPage('about');setActiveNav('about')" style="color:#fff;border-color:rgba(255,255,255,0.35);">Our craft</a>
+          <a class="btn btn-ghost" href="#about" onclick="showPage('about');setActiveNav('about')" style="color:#fff;border-color:rgba(255,255,255,0.35);background:rgba(255,255,255,0.06);">Our craft</a>
         </div>
         <div class="hero-stats afu d4">
           <div class="hero-stat"><div class="hero-stat-num">12</div><div class="hero-stat-label">Series</div></div>
@@ -114,12 +94,10 @@
       </div>
     </div>
 
-    <!-- MARQUEE -->
     <div class="marquee-wrap">
       <div class="marquee-track" id="marquee-track"></div>
     </div>
 
-    <!-- FEATURED SETS — rendered from Supabase via load-catalogue -->
     <section class="home-spotlight-section">
       <div style="padding:48px 24px 0;max-width:1200px;margin:0 auto;">
         <p class="section-eyebrow">Featured sets</p>
@@ -129,14 +107,12 @@
         <p style="color:var(--muted);font-size:.88rem;">Loading collections…</p>
       </div>
       <div class="home-spotlight-footer">
-        <a class="btn btn-ghost btn-sm" href="#wall-art" data-route="wall-art"
-           onclick="showPage('wall-art');setActiveNav('wall-art')">View all wall art →</a>
+        <a class="btn btn-ghost btn-sm" href="#wall-art" data-route="wall-art" onclick="showPage('wall-art');setActiveNav('wall-art')">View all wall art →</a>
       </div>
     </section>
 
     <div class="section-rule"></div>
 
-    <!-- TESTIMONIALS -->
     <section class="section">
       <div class="section-head">
         <div>
@@ -147,25 +123,23 @@
       <div class="testimonials">
         <div class="testimonial">
           <div class="testimonial-stars">★★★★★</div>
-          <p class="testimonial-text">"The Andromeda Galaxy set completely transformed my living room. Magnetic alignment was dead-on and print quality is extraordinary."</p>
+          <p class="testimonial-text">The Andromeda Galaxy set completely transformed my living room. Magnetic alignment was dead-on and print quality is extraordinary.</p>
           <div class="testimonial-author">James H. — London</div>
         </div>
         <div class="testimonial">
           <div class="testimonial-stars">★★★★★</div>
-          <p class="testimonial-text">"I ordered the Aurora over Earth for my studio. Colleagues ask about it every single day. Worth every penny."</p>
+          <p class="testimonial-text">I ordered the Aurora over Earth for my studio. Colleagues ask about it every single day. Worth every penny.</p>
           <div class="testimonial-author">Priya S. — Edinburgh</div>
         </div>
         <div class="testimonial">
           <div class="testimonial-stars">★★★★★</div>
-          <p class="testimonial-text">"Shipping was quick, packaging was premium, the Moon Landing triptych looks incredible above my desk."</p>
+          <p class="testimonial-text">Shipping was quick, packaging was premium, the Moon Landing triptych looks incredible above my desk.</p>
           <div class="testimonial-author">Marcus L. — Manchester</div>
         </div>
       </div>
     </section>
+  </div>
 
-  </div><!-- /home -->
-
-  <!-- WALL ART PAGE -->
   <div class="page" data-page="wall-art">
     <section class="section">
       <div class="section-head">
@@ -179,19 +153,15 @@
     </section>
   </div>
 
-  <!-- ARTIFACTS PAGE -->
   <div class="page" data-page="artifacts">
     <div class="artifacts-hero">
       <p class="section-eyebrow">Collector's edition</p>
       <h2 style="font-family:var(--fd);font-size:clamp(2rem,4vw,3.4rem);font-weight:300;">Space Artifacts</h2>
-      <p style="color:var(--muted);margin-top:12px;max-width:460px;margin-left:auto;margin-right:auto;">
-        Curated physical objects from the space age — meteorite fragments, mission patches, archival prints.
-      </p>
+      <p style="color:var(--muted);margin-top:12px;max-width:460px;margin-left:auto;margin-right:auto;">Curated physical objects from the space age — meteorite fragments, mission patches, archival prints.</p>
     </div>
     <div class="artifact-grid" id="artifacts-grid"></div>
   </div>
 
-  <!-- BUNDLES PAGE -->
   <div class="page" data-page="bundles">
     <section class="section">
       <div class="section-head">
@@ -204,7 +174,6 @@
     </section>
   </div>
 
-  <!-- ABOUT PAGE -->
   <div class="page" data-page="about">
     <section class="section">
       <div class="section-head">
@@ -218,26 +187,18 @@
           <img src="https://images.unsplash.com/photo-1545987796-200677ee1011?auto=format&fit=crop&w=900&q=80" alt="Workshop"/>
         </div>
         <div>
-          <p style="color:var(--muted);font-size:.97rem;line-height:1.8;margin-bottom:24px;">
-            SPACENOVA was born from a simple obsession: making the cosmos feel tangible. Every panel is gallery-printed on aluminium, precision-cut, and fitted with rare-earth magnets so your mural snaps together perfectly — and rearranges effortlessly.
-          </p>
+          <p style="color:var(--muted);font-size:.97rem;line-height:1.8;margin-bottom:24px;">SPACENOVA was born from a simple obsession: making the cosmos feel tangible. Every panel is gallery-printed on aluminium, precision-cut, and fitted with rare-earth magnets so your mural snaps together perfectly and rearranges effortlessly.</p>
           <div class="feature-list">
             <div class="feature-item">
-              <div class="feature-icon" style="font-size:1rem;display:flex;align-items:center;justify-content:center;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-              </div>
+              <div class="feature-icon" style="font-size:1rem;display:flex;align-items:center;justify-content:center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
               <div><h4>Gallery aluminium print</h4><p>Ultra-vivid, anti-glare surface. Colours that endure for decades without fading.</p></div>
             </div>
             <div class="feature-item">
-              <div class="feature-icon" style="font-size:1rem;display:flex;align-items:center;justify-content:center;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-              </div>
+              <div class="feature-icon" style="font-size:1rem;display:flex;align-items:center;justify-content:center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div>
               <div><h4>Magnetic alignment system</h4><p>Rare-earth magnets embedded in every edge. Panels click into place within a millimetre.</p></div>
             </div>
             <div class="feature-item">
-              <div class="feature-icon" style="font-size:1rem;display:flex;align-items:center;justify-content:center;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/></svg>
-              </div>
+              <div class="feature-icon" style="font-size:1rem;display:flex;align-items:center;justify-content:center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/></svg></div>
               <div><h4>Precision hexagon cut</h4><p>CNC-routed to ±0.2 mm tolerance. Every tiling is seamless.</p></div>
             </div>
           </div>
@@ -246,19 +207,16 @@
     </section>
   </div>
 
-  <!-- PRODUCT DETAIL -->
   <div class="page" data-page="product">
     <div class="product-wrap" id="product-detail-wrap"></div>
   </div>
 
-  <!-- CHECKOUT -->
   <div class="page" data-page="checkout">
     <div style="max-width:600px;margin:0 auto;padding:56px 24px 100px;">
       <div id="checkout-inner"></div>
     </div>
   </div>
 
-  <!-- FOOTER -->
   <footer>
     <div class="footer-inner">
       <div class="footer-brand">
@@ -267,9 +225,9 @@
       </div>
       <div class="footer-col">
         <h4>Shop</h4>
-        <a href="#wall-art"  onclick="showPage('wall-art');setActiveNav('wall-art')">Wall Art</a>
+        <a href="#wall-art" onclick="showPage('wall-art');setActiveNav('wall-art')">Wall Art</a>
         <a href="#artifacts" onclick="showPage('artifacts');setActiveNav('artifacts')">Artifacts</a>
-        <a href="#bundles"   onclick="showPage('bundles');setActiveNav('bundles')">Bundles</a>
+        <a href="#bundles" onclick="showPage('bundles');setActiveNav('bundles')">Bundles</a>
       </div>
       <div class="footer-col">
         <h4>Company</h4>
@@ -292,375 +250,190 @@
   </footer>
 
   <script>
-    /* ── CATALOGUE STATE ── */
-    var products      = [];
-    var bundles       = [];
-    var artifacts     = [];
+    var products = [];
+    var bundles = [];
+    var artifacts = [];
     var featuredSlugs = [];
+    var basket = [];
 
-    /* ── LOAD FROM SUPABASE via existing load-catalogue function ── */
     fetch('/.netlify/functions/load-catalogue')
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        products      = data.products      || [];
-        bundles       = data.bundles       || [];
-        artifacts     = data.artifacts     || [];
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        products = data.products || [];
+        bundles = data.bundles || [];
+        artifacts = data.artifacts || [];
         featuredSlugs = data.featuredSlugs || [];
         renderFeatured();
         renderWallArt();
         renderBundles();
         renderArtifacts();
       })
-      .catch(function(err) {
+      .catch(function(err){
         console.error('Failed to load catalogue:', err);
         var wrap = document.getElementById('featured-spotlight-wrap');
         if (wrap) wrap.innerHTML = '<p style="color:var(--muted);font-size:.88rem;">Unable to load products. Please refresh.</p>';
       });
 
-    /* ── UTILITY ── */
-    function gbp(n) {
-      return '£' + Number(n).toFixed(2).replace(/\.00$/, '');
-    }
+    function gbp(n){ return '£' + Number(n).toFixed(2).replace(/\.00$/, ''); }
 
-    function showToast(msg, type) {
+    function showToast(msg, type){
       var c = document.getElementById('toast-container');
       var t = document.createElement('div');
       t.className = 'toast';
       t.style.borderLeftColor = type === 'error' ? 'var(--danger)' : 'var(--success)';
       t.textContent = msg;
       c.appendChild(t);
-      setTimeout(function() { t.remove(); }, 2600);
+      setTimeout(function(){ t.remove(); }, 2600);
     }
 
-    /* ── BASKET ── */
-    var basket = [];
-
-    function addToBasket(slug, qty) {
+    function addToBasket(slug, qty){
       qty = qty || 1;
-      var p = products.find(function(x) { return x.slug === slug; })
-           || bundles.find(function(x)  { return x.slug === slug; })
-           || artifacts.find(function(x){ return x.slug === slug; });
+      var p = products.find(function(x){ return x.slug === slug; }) || bundles.find(function(x){ return x.slug === slug; }) || artifacts.find(function(x){ return x.slug === slug; });
       if (!p) return;
-      var existing = basket.find(function(i) { return i.slug === slug; });
-      if (existing) { existing.qty += qty; }
-      else { basket.push({ slug: slug, name: p.name, price: Number(p.price), image: p.image || '', qty: qty }); }
+      var existing = basket.find(function(i){ return i.slug === slug; });
+      if (existing) existing.qty += qty;
+      else basket.push({ slug: slug, name: p.name, price: Number(p.price), image: p.image || '', qty: qty });
       updateBasketBadge();
       showToast('Added to basket — ' + p.name);
     }
 
-    function removeFromBasket(slug) {
-      basket = basket.filter(function(i) { return i.slug !== slug; });
+    function removeFromBasket(slug){
+      basket = basket.filter(function(i){ return i.slug !== slug; });
       updateBasketBadge();
       renderBasket();
     }
 
-    function updateBasketQty(slug, delta) {
-      var item = basket.find(function(i) { return i.slug === slug; });
+    function updateBasketQty(slug, delta){
+      var item = basket.find(function(i){ return i.slug === slug; });
       if (!item) return;
       item.qty = Math.max(1, item.qty + delta);
       renderBasket();
     }
 
-    function updateBasketBadge() {
+    function updateBasketBadge(){
       var badge = document.getElementById('basket-badge');
-      var total = basket.reduce(function(s, i) { return s + i.qty; }, 0);
+      var total = basket.reduce(function(s, i){ return s + i.qty; }, 0);
       badge.textContent = total;
       badge.classList.toggle('visible', total > 0);
     }
 
-    function openBasket() {
-      renderBasket();
-      document.getElementById('basket-overlay').classList.add('open');
-      document.getElementById('basket-drawer').classList.add('open');
-    }
+    function openBasket(){ renderBasket(); document.getElementById('basket-overlay').classList.add('open'); document.getElementById('basket-drawer').classList.add('open'); }
+    function closeBasket(){ document.getElementById('basket-overlay').classList.remove('open'); document.getElementById('basket-drawer').classList.remove('open'); }
 
-    function closeBasket() {
-      document.getElementById('basket-overlay').classList.remove('open');
-      document.getElementById('basket-drawer').classList.remove('open');
-    }
-
-    function renderBasket() {
-      var body   = document.getElementById('basket-body');
+    function renderBasket(){
+      var body = document.getElementById('basket-body');
       var footer = document.getElementById('basket-footer');
-      if (!basket.length) {
-        body.innerHTML   = '<div class="empty-basket"><div class="empty-basket-icon" style="font-size:2.8rem;margin-bottom:14px;opacity:.2;">—</div><p style="color:var(--muted)">Your basket is empty.</p></div>';
+      if (!basket.length){
+        body.innerHTML = '<div class="empty-basket"><div class="empty-basket-icon" style="font-size:2.8rem;margin-bottom:14px;opacity:.2;">—</div><p style="color:var(--muted)">Your basket is empty.</p></div>';
         footer.innerHTML = '';
         return;
       }
-      body.innerHTML = basket.map(function(item) {
+      body.innerHTML = basket.map(function(item){
         return '<div class="basket-item">' +
           '<img class="basket-item-img" src="' + item.image + '" alt="' + item.name + '"/>' +
-          '<div>' +
-            '<div class="basket-item-name">' + item.name + '</div>' +
-            '<div class="basket-item-price">' + gbp(item.price) + ' each</div>' +
-            '<div class="basket-item-qty">' +
-              '<button class="biq-btn" onclick="updateBasketQty(\'' + item.slug + '\',-1)">−</button>' +
-              '<span class="biq-num">' + item.qty + '</span>' +
-              '<button class="biq-btn" onclick="updateBasketQty(\'' + item.slug + '\',1)">+</button>' +
-            '</div>' +
-          '</div>' +
+          '<div><div class="basket-item-name">' + item.name + '</div><div class="basket-item-price">' + gbp(item.price) + ' each</div><div class="basket-item-qty"><button class="biq-btn" onclick="updateBasketQty(\'' + item.slug + '\',-1)">−</button><span class="biq-num">' + item.qty + '</span><button class="biq-btn" onclick="updateBasketQty(\'' + item.slug + '\',1)">+</button></div></div>' +
           '<button class="basket-item-remove" onclick="removeFromBasket(\'' + item.slug + '\')" title="Remove">✕</button>' +
         '</div>';
       }).join('');
-
-      var subtotal = basket.reduce(function(s, i) { return s + i.price * i.qty; }, 0);
-      footer.innerHTML =
-        '<div class="basket-summary">' +
-          '<div class="basket-summary-row"><span>Subtotal</span><strong>' + gbp(subtotal) + '</strong></div>' +
-          '<div class="basket-summary-row"><span>Shipping</span><span style="color:var(--success)">Free</span></div>' +
-          '<div class="basket-summary-row total"><span>Total</span><strong>' + gbp(subtotal) + '</strong></div>' +
-        '</div>' +
-        '<p class="shipping-note">Free UK shipping on all orders</p>' +
-        '<button class="btn btn-primary" style="width:100%;" onclick="showPage(\'checkout\');closeBasket();">Proceed to Checkout</button>';
+      var subtotal = basket.reduce(function(s, i){ return s + i.price * i.qty; }, 0);
+      footer.innerHTML = '<div class="basket-summary"><div class="basket-summary-row"><span>Subtotal</span><strong>' + gbp(subtotal) + '</strong></div><div class="basket-summary-row"><span>Shipping</span><span style="color:var(--success)">Free</span></div><div class="basket-summary-row total"><span>Total</span><strong>' + gbp(subtotal) + '</strong></div></div><p class="shipping-note">Free UK shipping on all orders</p><button class="btn btn-primary" style="width:100%;" onclick="showPage(\'checkout\');closeBasket();">Proceed to Checkout</button>';
     }
 
-    /* ── PAGES ── */
-    function showPage(name) {
-      document.querySelectorAll('.page').forEach(function(p) {
-        p.classList.remove('active');
-        p.style.display    = 'none';
-        p.style.opacity    = '0';
-        p.style.transform  = 'translateY(12px)';
-      });
+    function showPage(name){
+      document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); p.style.display='none'; p.style.opacity='0'; p.style.transform='translateY(12px)'; });
       var page = document.querySelector('[data-page="' + name + '"]');
       if (!page) return;
       page.style.display = 'block';
-      requestAnimationFrame(function() {
-        page.classList.add('active');
-        page.style.animation = 'pageFadeIn .45s cubic-bezier(.22,1,.36,1) forwards';
-      });
+      requestAnimationFrame(function(){ page.classList.add('active'); page.style.animation = 'pageFadeIn .45s cubic-bezier(.22,1,.36,1) forwards'; });
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function setActiveNav(route) {
-      document.querySelectorAll('.nav-link, .mobile-nav-item').forEach(function(el) {
-        el.classList.toggle('active', (el.dataset.route || '') === route);
-      });
+    function setActiveNav(route){
+      document.querySelectorAll('.nav-link, .mobile-nav-item').forEach(function(el){ el.classList.toggle('active', (el.dataset.route || '') === route); });
     }
 
-    /* ── ROUTER ── */
-    function router() {
+    function router(){
       var hash = location.hash.replace('#', '');
       if (!hash) hash = 'home';
-
-      if (hash.startsWith('product/')) {
-        var slug = hash.replace('product/', '');
-        renderProduct(slug);
+      if (hash.indexOf('product/') === 0){
+        renderProduct(hash.replace('product/', ''));
         showPage('product');
         return;
       }
-
-      var validPages = ['home', 'wall-art', 'artifacts', 'bundles', 'about', 'checkout'];
-      if (validPages.indexOf(hash) > -1) {
-        showPage(hash);
-        setActiveNav(hash);
-      } else {
-        showPage('home');
-        setActiveNav('home');
-      }
+      var validPages = ['home','wall-art','artifacts','bundles','about','checkout'];
+      if (validPages.indexOf(hash) > -1){ showPage(hash); setActiveNav(hash); }
+      else { showPage('home'); setActiveNav('home'); }
     }
 
-    /* ── RENDER FEATURED ── */
-    /*
-      Uses featuredSlugs from load-catalogue (your featured_slugs table),
-      matched against products loaded from Supabase.
-      Renders a grid of spotlight cards.
-    */
-    function renderFeatured() {
+    function renderFeatured(){
       var wrap = document.getElementById('featured-spotlight-wrap');
       if (!wrap) return;
-
       var featured = [];
-      featuredSlugs.forEach(function(slug) {
-        var p = products.find(function(x) { return x.slug === slug && x.isPublished !== false; });
+      featuredSlugs.forEach(function(slug){
+        var p = products.find(function(x){ return x.slug === slug; });
         if (p) featured.push(p);
       });
-
-      if (!featured.length) {
-        /* Fall back to first 3 published products if featured_slugs don't match */
-        featured = products.filter(function(p) { return p.isPublished !== false; }).slice(0, 3);
-      }
-
-      if (!featured.length) {
-        wrap.innerHTML = '<p style="color:var(--muted);font-size:.88rem;">No products found.</p>';
-        return;
-      }
-
-      /* Render the first featured item as a large spotlight card,
-         remaining ones as a secondary row */
+      if (!featured.length) featured = products.slice(0, 3);
+      if (!featured.length){ wrap.innerHTML = '<p style="color:var(--muted);font-size:.88rem;">No products found.</p>'; return; }
       var main = featured[0];
       var rest = featured.slice(1, 4);
-
-      var html =
-        '<a class="spl-card" href="#product/' + main.slug + '"' +
-        ' onclick="event.preventDefault();location.hash=\'#product/' + main.slug + '\';router();">' +
-          '<img class="spl-card-img" src="' + (main.image || '') + '" alt="' + main.name + '" loading="eager"/>' +
-          '<div class="spl-card-overlay">' +
-            '<div class="spl-card-eyebrow">Featured series</div>' +
-            '<div class="spl-card-name">' + main.name + '</div>' +
-            '<div class="spl-card-sub">' +
-              (main.category || '') +
-              (main.pieces  ? ' · ' + main.pieces + ' panels' : '') +
-              (main.price   ? ' · ' + gbp(main.price) : '') +
-            '</div>' +
-          '</div>' +
-        '</a>';
-
-      if (rest.length) {
+      var html = '<a class="spl-card" href="#product/' + main.slug + '" onclick="event.preventDefault();location.hash=\'#product/' + main.slug + '\';router();"><img class="spl-card-img" src="' + (main.image || '') + '" alt="' + main.name + '" loading="eager"/><div class="spl-card-overlay"><div class="spl-card-eyebrow">Featured series</div><div class="spl-card-name">' + main.name + '</div><div class="spl-card-sub">' + (main.category || '') + (main.pieces ? ' · ' + main.pieces + ' panels' : '') + (main.price ? ' · ' + gbp(main.price) : '') + '</div></div></a>';
+      if (rest.length){
         html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-top:16px;">';
-        rest.forEach(function(p) {
-          html +=
-            '<a class="spl-card" href="#product/' + p.slug + '"' +
-            ' onclick="event.preventDefault();location.hash=\'#product/' + p.slug + '\';router();"' +
-            ' style="min-height:220px;border-radius:16px;">' +
-              '<img class="spl-card-img" src="' + (p.image || '') + '" alt="' + p.name + '" loading="lazy"/>' +
-              '<div class="spl-card-overlay">' +
-                '<div class="spl-card-eyebrow">Series</div>' +
-                '<div class="spl-card-name" style="font-size:1rem;">' + p.name + '</div>' +
-                '<div class="spl-card-sub">' +
-                  (p.category || '') +
-                  (p.pieces  ? ' · ' + p.pieces + ' panels' : '') +
-                  (p.price   ? ' · ' + gbp(p.price) : '') +
-                '</div>' +
-              '</div>' +
-            '</a>';
+        rest.forEach(function(p){
+          html += '<a class="spl-card" href="#product/' + p.slug + '" onclick="event.preventDefault();location.hash=\'#product/' + p.slug + '\';router();" style="min-height:220px;border-radius:16px;"><img class="spl-card-img" src="' + (p.image || '') + '" alt="' + p.name + '" loading="lazy"/><div class="spl-card-overlay"><div class="spl-card-eyebrow">Series</div><div class="spl-card-name" style="font-size:1rem;">' + p.name + '</div><div class="spl-card-sub">' + (p.category || '') + (p.pieces ? ' · ' + p.pieces + ' panels' : '') + (p.price ? ' · ' + gbp(p.price) : '') + '</div></div></a>';
         });
         html += '</div>';
       }
-
       wrap.innerHTML = html;
     }
 
-    /* ── RENDER WALL ART ── */
-    function renderWallArt() {
+    function renderWallArt(){
       var grid = document.getElementById('wall-art-grid');
       if (!grid) return;
-      var visible = products.filter(function(p) { return p.isPublished !== false; });
-      grid.innerHTML = visible.map(function(p) {
-        return '<div class="card">' +
-          '<div class="card-media">' +
-            '<img src="' + (p.image || '') + '" alt="' + p.name + '" loading="lazy"/>' +
-            '<div class="badge-row">' +
-              '<span class="badge">' + (p.category || '') + '</span>' +
-              (p.pieces ? '<span class="badge badge-accent">' + p.pieces + ' panels</span>' : '') +
-            '</div>' +
-          '</div>' +
-          '<div class="card-body">' +
-            '<h3>' + p.name + '</h3>' +
-            '<p class="muted">' + (p.short || '') + '</p>' +
-            '<div class="price">' + gbp(p.price) + '</div>' +
-            '<div class="card-actions">' +
-              '<button class="btn btn-primary btn-sm" onclick="addToBasket(\'' + p.slug + '\')">Add to Basket</button>' +
-              '<a class="btn btn-ghost btn-sm" href="#product/' + p.slug + '" onclick="location.hash=\'#product/' + p.slug + '\';router();">View</a>' +
-            '</div>' +
-          '</div>' +
-        '</div>';
+      grid.innerHTML = products.map(function(p){
+        return '<div class="card"><div class="card-media"><img src="' + (p.image || '') + '" alt="' + p.name + '" loading="lazy"/><div class="badge-row"><span class="badge">' + (p.category || '') + '</span>' + (p.pieces ? '<span class="badge badge-accent">' + p.pieces + ' panels</span>' : '') + '</div></div><div class="card-body"><h3>' + p.name + '</h3><p class="muted">' + (p.short || '') + '</p><div class="price">' + gbp(p.price) + '</div><div class="card-actions"><button class="btn btn-primary btn-sm" onclick="addToBasket(\'' + p.slug + '\')">Add to Basket</button><a class="btn btn-ghost btn-sm" href="#product/' + p.slug + '" onclick="location.hash=\'#product/' + p.slug + '\';router();">View</a></div></div></div>';
       }).join('');
     }
 
-    /* ── RENDER BUNDLES ── */
-    function renderBundles() {
+    function renderBundles(){
       var grid = document.getElementById('bundles-grid');
       if (!grid) return;
-      grid.innerHTML = bundles.map(function(b) {
-        return '<div class="card bundle-card">' +
-          '<div class="card-media">' +
-            '<img src="' + (b.image || '') + '" alt="' + b.name + '" loading="lazy"/>' +
-          '</div>' +
-          '<div class="bundle-card-inner">' +
-            '<h3 style="font-family:var(--fd);font-size:1.3rem;font-weight:400;margin-bottom:6px;">' + b.name + '</h3>' +
-            '<p class="muted">' + (b.text || '') + '</p>' +
-            '<div class="price">' + gbp(b.price) + '</div>' +
-          '</div>' +
-          '<div class="bundle-includes">' +
-            (b.items || []).map(function(inc) { return '<span>' + (typeof inc === 'string' ? inc : (inc.name || '')) + '</span>'; }).join('') +
-          '</div>' +
-          '<div class="card-actions" style="padding:16px 24px;border-top:1px solid var(--border);margin:0;">' +
-            '<button class="btn btn-primary btn-sm" onclick="addToBasket(\'' + b.slug + '\')">Add Bundle to Basket</button>' +
-          '</div>' +
-        '</div>';
+      grid.innerHTML = bundles.map(function(b){
+        return '<div class="card bundle-card"><div class="card-media"><img src="' + (b.image || '') + '" alt="' + b.name + '" loading="lazy"/></div><div class="bundle-card-inner"><h3 style="font-family:var(--fd);font-size:1.3rem;font-weight:400;margin-bottom:6px;">' + b.name + '</h3><p class="muted">' + (b.text || '') + '</p><div class="price">' + gbp(b.price) + '</div></div><div class="bundle-includes">' + (b.items || []).map(function(inc){ return '<span>' + (typeof inc === 'string' ? inc : (inc.name || '')) + '</span>'; }).join('') + '</div><div class="card-actions" style="padding:16px 24px;border-top:1px solid var(--border);margin:0;"><button class="btn btn-primary btn-sm" onclick="addToBasket(\'' + b.slug + '\')">Add Bundle to Basket</button></div></div>';
       }).join('');
     }
 
-    /* ── RENDER ARTIFACTS ── */
-    function renderArtifacts() {
+    function renderArtifacts(){
       var grid = document.getElementById('artifacts-grid');
       if (!grid) return;
-      grid.innerHTML = artifacts.map(function(a) {
-        return '<div class="artifact-card">' +
-          '<img class="artifact-card-img" src="' + (a.image || '') + '" alt="' + a.name + '" loading="lazy"/>' +
-          '<div class="artifact-card-body">' +
-            '<span class="artifact-tag">' + (a.category || '') + '</span>' +
-            '<h3>' + a.name + '</h3>' +
-            '<p>' + (a.desc || a.description || '') + '</p>' +
-            '<div class="artifact-price">' + gbp(a.price) + '</div>' +
-            '<button class="btn btn-primary btn-sm" onclick="addToBasket(\'' + (a.slug || a.name) + '\')">Add to Basket</button>' +
-          '</div>' +
-        '</div>';
+      grid.innerHTML = artifacts.map(function(a){
+        return '<div class="artifact-card"><img class="artifact-card-img" src="' + (a.image || '') + '" alt="' + a.name + '" loading="lazy"/><div class="artifact-card-body"><span class="artifact-tag">' + (a.category || '') + '</span><h3>' + a.name + '</h3><p>' + (a.desc || a.description || '') + '</p><div class="artifact-price">' + gbp(a.price) + '</div><button class="btn btn-primary btn-sm" onclick="addToBasket(\'' + (a.slug || a.name) + '\')">Add to Basket</button></div></div>';
       }).join('');
     }
 
-    /* ── RENDER PRODUCT DETAIL ── */
-    function renderProduct(slug) {
-      var p    = products.find(function(x) { return x.slug === slug; });
+    function renderProduct(slug){
+      var p = products.find(function(x){ return x.slug === slug; });
       var wrap = document.getElementById('product-detail-wrap');
       if (!p || !wrap) return;
-
-      wrap.innerHTML =
-        '<div class="breadcrumbs">' +
-          '<a href="#home" onclick="showPage(\'home\');setActiveNav(\'home\')">Home</a>' +
-          '<span>›</span>' +
-          '<a href="#wall-art" onclick="showPage(\'wall-art\');setActiveNav(\'wall-art\')">Wall Art</a>' +
-          '<span>›</span>' +
-          '<span>' + p.name + '</span>' +
-        '</div>' +
-        '<div class="product-hero">' +
-          '<div class="product-media">' +
-            '<img src="' + (p.image || '') + '" alt="' + p.name + '"/>' +
-          '</div>' +
-          '<div class="product-info">' +
-            '<h2>' + p.name + '</h2>' +
-            '<p class="product-tagline">' + (p.short || '') + '</p>' +
-            '<div class="product-price-row">' +
-              '<span class="product-price-main">' + gbp(p.price) + '</span>' +
-              (p.pieces ? '<span class="product-price-range">' + p.pieces + '-panel set</span>' : '') +
-            '</div>' +
-            '<p style="color:var(--muted);font-size:.93rem;line-height:1.8;margin-bottom:24px;">' + (p.description || '') + '</p>' +
-            '<div class="specs">' +
-              '<div class="spec"><span>Category</span><strong>' + (p.category || '—') + '</strong></div>' +
-              '<div class="spec"><span>Panels</span><strong>' + (p.pieces || '—') + '</strong></div>' +
-              '<div class="spec"><span>Material</span><strong>' + (p.material || 'Aluminium print') + '</strong></div>' +
-              '<div class="spec"><span>Alignment</span><strong>Magnetic</strong></div>' +
-            '</div>' +
-            '<div class="product-actions">' +
-              '<button class="btn btn-gold" onclick="addToBasket(\'' + p.slug + '\')">Add to Basket — ' + gbp(p.price) + '</button>' +
-            '</div>' +
-            '<div class="notice">Made to order — allow 5–7 working days. Free tracked UK delivery included.</div>' +
-          '</div>' +
-        '</div>';
+      wrap.innerHTML = '<div class="breadcrumbs"><a href="#home" onclick="showPage(\'home\');setActiveNav(\'home\')">Home</a><span>›</span><a href="#wall-art" onclick="showPage(\'wall-art\');setActiveNav(\'wall-art\')">Wall Art</a><span>›</span><span>' + p.name + '</span></div><div class="product-hero"><div class="product-media"><img src="' + (p.image || '') + '" alt="' + p.name + '"/></div><div class="product-info"><h2>' + p.name + '</h2><p class="product-tagline">' + (p.short || '') + '</p><div class="product-price-row"><span class="product-price-main">' + gbp(p.price) + '</span>' + (p.pieces ? '<span class="product-price-range">' + p.pieces + '-panel set</span>' : '') + '</div><p style="color:var(--muted);font-size:.93rem;line-height:1.8;margin-bottom:24px;">' + (p.description || '') + '</p><div class="specs"><div class="spec"><span>Category</span><strong>' + (p.category || '—') + '</strong></div><div class="spec"><span>Panels</span><strong>' + (p.pieces || '—') + '</strong></div><div class="spec"><span>Material</span><strong>' + (p.material || 'Aluminium print') + '</strong></div><div class="spec"><span>Alignment</span><strong>Magnetic</strong></div></div><div class="product-actions"><button class="btn btn-gold" onclick="addToBasket(\'' + p.slug + '\')">Add to Basket — ' + gbp(p.price) + '</button></div><div class="notice">Made to order — allow 5–7 working days. Free tracked UK delivery included.</div></div></div>';
     }
 
-    /* ── MARQUEE ── */
-    function initMarquee() {
+    function initMarquee(){
       var items = ['Gallery aluminium print','Magnetic alignment','Free UK shipping','Made to order','CNC precision cut','Gallery quality','Easy installation','Rearrange anytime'];
       var track = document.getElementById('marquee-track');
       if (!track) return;
-      var html = items.map(function(t) { return '<span class="marquee-item">' + t + '</span>'; }).join('');
+      var html = items.map(function(t){ return '<span class="marquee-item">' + t + '</span>'; }).join('');
       track.innerHTML = html + html;
     }
 
-    /* ── BACK TO TOP ── */
-    window.addEventListener('scroll', function() {
+    window.addEventListener('scroll', function(){
       var btn = document.getElementById('back-to-top');
       if (btn) btn.classList.toggle('visible', window.scrollY > 400);
     }, { passive: true });
 
-    /* ── INIT ── */
     window.addEventListener('hashchange', router);
-    document.addEventListener('DOMContentLoaded', function() {
-      initMarquee();
-      router();
-    });
+    document.addEventListener('DOMContentLoaded', function(){ initMarquee(); router(); });
   </script>
 
 </body>
