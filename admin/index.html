@@ -28,32 +28,18 @@
 <div class="auth-screen" id="auth-screen"><div class="auth-box"><h2>Admin Access</h2><p>Enter team password to open the dashboard.</p><input id="auth-pw" class="auth-inp" type="password" placeholder="Team password"/><div class="auth-err" id="auth-err">Incorrect password. Try again.</div><button class="btn btn-accent" style="margin-top:14px;width:100%" onclick="unlockAdmin()">Open dashboard</button></div></div>
 <div class="topbar"><img src="../Spacenova_font.png" alt="spacenova" onerror="this.style.display='none'"/><div class="topbar-title">Admin dashboard</div><div class="spacer"></div><a class="btn" href="/">View store</a><a class="btn btn-accent" href="/admin/creator.html">Open creator</a></div>
 <div class="wrap">
-  <div class="hero">
-    <div>
-      <h1>Catalogue command centre</h1>
-      <p>Quick read on what is live, what is still draft, and what needs attention before it escapes into the wild.</p>
-    </div>
-  </div>
+  <div class="hero"><div><h1>Operations command centre</h1><p>Live view of products, orders and payment totals. Built for daily trading decisions.</p></div></div>
   <div class="grid">
     <div class="card"><div class="metric-label">Products</div><div class="metric-value" id="m-products">-</div><div class="metric-sub">Total catalogue entries</div></div>
-    <div class="card"><div class="metric-label">Published</div><div class="metric-value" id="m-live">-</div><div class="metric-sub">Visible on the storefront</div></div>
-    <div class="card"><div class="metric-label">Drafts</div><div class="metric-value" id="m-drafts">-</div><div class="metric-sub">Hidden from the storefront</div></div>
-    <div class="card"><div class="metric-label">Artifacts</div><div class="metric-value" id="m-artifacts">-</div><div class="metric-sub">Accessory products listed</div></div>
+    <div class="card"><div class="metric-label">Published</div><div class="metric-value" id="m-live">-</div><div class="metric-sub">Visible on storefront</div></div>
+    <div class="card"><div class="metric-label">Orders</div><div class="metric-value" id="m-orders">-</div><div class="metric-sub">All captured orders</div></div>
+    <div class="card"><div class="metric-label">Total revenue</div><div class="metric-value" id="m-revenue">-</div><div class="metric-sub">Estimated paid volume</div></div>
+    <div class="card"><div class="metric-label">30-day revenue</div><div class="metric-value" id="m-month">-</div><div class="metric-sub">Rolling monthly volume</div></div>
+    <div class="card"><div class="metric-label">AOV</div><div class="metric-value" id="m-aov">-</div><div class="metric-sub">Average order value</div></div>
   </div>
   <div class="two-col">
-    <div class="card">
-      <div class="section-title">Recent products</div>
-      <div class="list" id="recent-products"></div>
-    </div>
-    <div class="card">
-      <div class="section-title">Overview</div>
-      <div class="list">
-        <div class="row"><div><h3 id="m-series">-</h3><p>Series products</p></div><span class="tag">series</span></div>
-        <div class="row"><div><h3 id="m-collections">-</h3><p>Collection products</p></div><span class="tag">collections</span></div>
-        <div class="row"><div><h3 id="m-featured">-</h3><p>Featured homepage slots</p></div><span class="tag">featured</span></div>
-      </div>
-      <div class="notice" style="margin-top:18px">Tip - keep the homepage mostly published hero products and leave experiments as draft until they look showroom-ready.</div>
-    </div>
+    <div class="card"><div class="section-title">Recent products</div><div class="list" id="recent-products"></div></div>
+    <div class="card"><div class="section-title">Recent orders</div><div class="list" id="recent-orders"></div><div class="notice" style="margin-top:14px">Payment metrics are calculated from saved order totals. If an order is missing, check checkout webhook/save-order flow.</div></div>
   </div>
 </div>
 <script>
