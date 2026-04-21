@@ -278,6 +278,83 @@ tbody td:first-child{color:var(--text);font-weight:600}
 
 /* ── RESPONSIVE ── */
 @media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{display:none}.main{padding:20px}.two-col,.three-col{grid-template-columns:1fr}}
+
+/* ══ POLISH UPGRADES ══ */
+
+/* Smooth page section transitions */
+section { animation: sectionIn .32s cubic-bezier(.22,1,.36,1) both; }
+@keyframes sectionIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+/* Auth box entry animation */
+.auth-box { animation: authIn .44s cubic-bezier(.22,1,.36,1) both; }
+@keyframes authIn { from { opacity:0; transform:translateY(24px) scale(.97); } to { opacity:1; transform:translateY(0) scale(1); } }
+
+/* Active nav item accent line */
+.nav-item.active {
+  background: rgba(240,140,26,.08) !important;
+  color: var(--text) !important;
+  border-left: 2px solid var(--accent);
+  padding-left: 12px;
+}
+
+/* Metric card hover glow */
+.metric-card:hover {
+  border-color: rgba(240,140,26,.25) !important;
+  box-shadow: 0 0 0 1px rgba(240,140,26,.08), 0 8px 32px rgba(0,0,0,.3);
+}
+
+/* Table row tint on hover */
+tbody tr:hover { background: rgba(240,140,26,.03) !important; }
+
+/* List row slide on hover */
+.list-row { transition: border-color .18s, background .18s, transform .18s; }
+.list-row:hover { transform: translateX(3px); }
+
+/* Stat pill hover */
+.stat-pill { transition: background .2s, border-color .2s; }
+.stat-pill:hover { background: rgba(255,255,255,.05); border-color: var(--border2); }
+
+/* Creator CTA pulse in topbar */
+@keyframes ctaPulse { 0%,100% { box-shadow: 0 4px 20px rgba(240,140,26,.28); } 50% { box-shadow: 0 4px 30px rgba(240,140,26,.52); } }
+.topbar-actions .btn-primary { animation: ctaPulse 3s ease-in-out infinite; }
+.topbar-actions .btn-primary:hover { animation: none; }
+
+/* Sidebar subtle scroll */
+.sidebar::-webkit-scrollbar { width: 3px; }
+.sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.08); border-radius: 2px; }
+
+/* Smooth focus ring */
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+
+/* Selection colour */
+::selection { background: rgba(240,140,26,.22); color: var(--text); }
+
+/* Top shimmer line on cards */
+.card::before {
+  background: linear-gradient(90deg,transparent,rgba(240,140,26,.07),transparent) !important;
+}
+
+/* Table header hover */
+thead th { transition: color .15s; cursor: default; }
+thead th:hover { color: var(--text2); }
+
+/* Auth password input enter key hint */
+.auth-inp:focus { box-shadow: 0 0 0 3px rgba(240,140,26,.12) !important; }
+
+/* Topbar sticky drop shadow on scroll */
+.topbar { transition: box-shadow .3s; }
+
+/* Metric value count-up shimmer */
+.metric-value { transition: color .3s; }
+
+/* Responsive admin layout */
+@media(max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .main{padding:20px}
+  .two-col,.three-col{grid-template-columns:1fr}
+}
+
 </style>
 </head>
 <body>
