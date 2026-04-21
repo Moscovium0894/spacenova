@@ -2,15 +2,297 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
   <meta name="description" content="SPACENOVA — Magnetic hexagon wall art panels. Gallery-quality deep-space murals for your home."/>
   <title>SPACENOVA — The Universe on Your Wall</title>
   <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    html, body {
+      max-width: 100%;
+      overflow-x: hidden;
+      touch-action: pan-y;
+    }
+
+    body {
+      -webkit-text-size-adjust: 100%;
+      overscroll-behavior-x: none;
+    }
+
+    img, video, canvas, svg {
+      max-width: 100%;
+      height: auto;
+    }
+
+    #main-nav {
+      background: rgba(8, 10, 18, 0.72);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    #main-nav.nav-transparent {
+      background: rgba(8, 10, 18, 0.14);
+      border-bottom-color: rgba(255,255,255,0.05);
+    }
+
+    #main-nav.nav-solid {
+      background: rgba(8, 10, 18, 0.82);
+      border-bottom-color: rgba(255,255,255,0.1);
+    }
+
+    .footer-logo-img {
+      display: block;
+      width: 170px;
+      max-width: 100%;
+      height: auto;
+    }
+
+    .mobile-menu-toggle {
+      display: none;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.06);
+      color: #fff;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      padding: 0;
+      flex-shrink: 0;
+    }
+
+    .mobile-menu-toggle svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .mobile-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 10px);
+      left: 16px;
+      right: 16px;
+      z-index: 1200;
+      border-radius: 18px;
+      background: rgba(10, 12, 22, 0.96);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.35);
+      padding: 12px;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .mobile-menu.open {
+      display: block;
+    }
+
+    .mobile-menu a,
+    .mobile-menu button {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-radius: 12px;
+      color: #fff;
+      text-decoration: none;
+      background: transparent;
+      border: 0;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .mobile-menu a:hover,
+    .mobile-menu button:hover,
+    .mobile-menu a:focus,
+    .mobile-menu button:focus {
+      background: rgba(255,255,255,0.06);
+      outline: none;
+    }
+
+    .mobile-menu-divider {
+      height: 1px;
+      background: rgba(255,255,255,0.08);
+      margin: 8px 0;
+    }
+
+    @media (max-width: 820px) {
+      #main-nav {
+        padding-top: calc(env(safe-area-inset-top, 0px) + 10px);
+      }
+
+      #main-nav.nav-transparent,
+      #main-nav.nav-solid {
+        background-clip: padding-box;
+      }
+
+      .nav-links,
+      .nav-spacer,
+      .nav-basket-btn {
+        display: none !important;
+      }
+
+      .mobile-menu-toggle {
+        display: inline-flex;
+      }
+
+      .mobile-bottom-nav {
+        display: none !important;
+      }
+
+      .hero {
+        min-height: 82svh;
+        padding: calc(env(safe-area-inset-top, 0px) + 104px) 20px 64px;
+        background-position: center center;
+      }
+
+      .hero-content {
+        max-width: 100% !important;
+      }
+
+      .hero h1 {
+        font-size: clamp(2.3rem, 10vw, 3.8rem);
+        line-height: 0.96;
+      }
+
+      .hero-sub {
+        font-size: 0.98rem;
+        line-height: 1.65;
+        max-width: 100%;
+      }
+
+      .hero-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+        width: 100%;
+      }
+
+      .hero-actions .btn {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .hero-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .section,
+      .artifacts-hero,
+      .product-wrap,
+      .home-spotlight-section,
+      footer {
+        overflow-x: hidden;
+      }
+
+      .section {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      .testimonials {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: 86%;
+        overflow-x: auto;
+        gap: 14px;
+        padding-bottom: 6px;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .testimonial {
+        scroll-snap-align: start;
+      }
+
+      .testimonials::-webkit-scrollbar {
+        display: none;
+      }
+
+      #featured-spotlight-wrap,
+      .home-spotlight-section > div:first-child {
+        padding-left: 18px !important;
+        padding-right: 18px !important;
+      }
+
+      #featured-spotlight-wrap > div {
+        grid-template-columns: 1fr !important;
+      }
+
+      .grid,
+      .artifact-grid,
+      .about-grid,
+      .footer-inner {
+        grid-template-columns: 1fr !important;
+      }
+
+      .card-actions,
+      .product-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .card-actions .btn,
+      .product-actions .btn {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .product-hero {
+        gap: 20px;
+      }
+
+      .breadcrumbs {
+        overflow-x: auto;
+        white-space: nowrap;
+        padding-bottom: 4px;
+      }
+
+      footer {
+        padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+      }
+
+      .footer-inner {
+        gap: 28px;
+      }
+
+      .footer-brand,
+      .footer-col {
+        min-width: 0;
+      }
+
+      .footer-col a,
+      .footer-brand p,
+      .footer-bottom span {
+        word-break: break-word;
+      }
+
+      .footer-bottom {
+        display: grid !important;
+        grid-template-columns: 1fr;
+        gap: 8px;
+        text-align: left;
+      }
+
+      .page[data-page="checkout"] > div {
+        padding-left: 18px !important;
+        padding-right: 18px !important;
+        padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)) !important;
+      }
+
+      .page {
+        padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 32px);
+      }
+    }
+  </style>
 </head>
 
 <body>
 
-  <nav id="main-nav">
+  <nav id="main-nav" class="nav-transparent">
     <a class="nav-logo" href="#home">
       <img src="Spacenovalogocropped.png" alt="spacenova" class="nav-logo-img"
            onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
@@ -33,6 +315,22 @@
       Basket
       <span class="basket-badge" id="basket-badge">0</span>
     </button>
+    <button class="mobile-menu-toggle" id="mobile-menu-toggle" type="button" aria-label="Open menu" aria-expanded="false" onclick="toggleMobileMenu()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="4" y1="7" x2="20" y2="7"></line>
+        <line x1="4" y1="12" x2="20" y2="12"></line>
+        <line x1="4" y1="17" x2="20" y2="17"></line>
+      </svg>
+    </button>
+    <div class="mobile-menu" id="mobile-menu">
+      <a href="#home" data-route="home" onclick="navigateAndClose('home')">Home <span>→</span></a>
+      <a href="#wall-art" data-route="wall-art" onclick="navigateAndClose('wall-art')">Wall Art <span>→</span></a>
+      <a href="#artifacts" data-route="artifacts" onclick="navigateAndClose('artifacts')">Artifacts <span>→</span></a>
+      <a href="#bundles" data-route="bundles" onclick="navigateAndClose('bundles')">Bundles <span>→</span></a>
+      <a href="#about" data-route="about" onclick="navigateAndClose('about')">About <span>→</span></a>
+      <div class="mobile-menu-divider"></div>
+      <button type="button" onclick="closeMobileMenu();openBasket();">Basket <span id="mobile-menu-basket-count">0</span></button>
+    </div>
   </nav>
 
   <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
@@ -220,7 +518,9 @@
   <footer>
     <div class="footer-inner">
       <div class="footer-brand">
-        <div class="nav-logo" style="font-size:1.1rem;">SPACENOVA</div>
+        <a href="#home" onclick="showPage('home');setActiveNav('home')" style="display:inline-block;">
+          <img src="Spacenovalogocropped.png" alt="SPACENOVA logo" class="footer-logo-img" onerror="this.style.display='none';this.parentElement.insertAdjacentHTML('beforeend','<div class=&quot;nav-logo&quot; style=&quot;font-size:1.1rem;&quot;>SPACENOVA</div>')"/>
+        </a>
         <p>Magnetic hexagon wall art panels. The universe, exactly as you imagine it.</p>
       </div>
       <div class="footer-col">
@@ -315,10 +615,46 @@
       var total = basket.reduce(function(s, i){ return s + i.qty; }, 0);
       badge.textContent = total;
       badge.classList.toggle('visible', total > 0);
+      var mobileCount = document.getElementById('mobile-menu-basket-count');
+      if (mobileCount) mobileCount.textContent = total;
     }
 
-    function openBasket(){ renderBasket(); document.getElementById('basket-overlay').classList.add('open'); document.getElementById('basket-drawer').classList.add('open'); }
+    function openBasket(){ renderBasket(); document.getElementById('basket-overlay').classList.add('open'); document.getElementById('basket-drawer').classList.add('open'); closeMobileMenu(); }
     function closeBasket(){ document.getElementById('basket-overlay').classList.remove('open'); document.getElementById('basket-drawer').classList.remove('open'); }
+
+    function toggleMobileMenu(){
+      var menu = document.getElementById('mobile-menu');
+      var btn = document.getElementById('mobile-menu-toggle');
+      if (!menu || !btn) return;
+      var isOpen = menu.classList.toggle('open');
+      btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    }
+
+    function closeMobileMenu(){
+      var menu = document.getElementById('mobile-menu');
+      var btn = document.getElementById('mobile-menu-toggle');
+      if (!menu || !btn) return;
+      menu.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+    }
+
+    function navigateAndClose(page){
+      closeMobileMenu();
+      showPage(page);
+      setActiveNav(page);
+    }
+
+    function updateNavBackground(){
+      var nav = document.getElementById('main-nav');
+      if (!nav) return;
+      if (window.scrollY > 24) {
+        nav.classList.add('nav-solid');
+        nav.classList.remove('nav-transparent');
+      } else {
+        nav.classList.add('nav-transparent');
+        nav.classList.remove('nav-solid');
+      }
+    }
 
     function renderBasket(){
       var body = document.getElementById('basket-body');
@@ -346,6 +682,7 @@
       page.style.display = 'block';
       requestAnimationFrame(function(){ page.classList.add('active'); page.style.animation = 'pageFadeIn .45s cubic-bezier(.22,1,.36,1) forwards'; });
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      updateNavBackground();
     }
 
     function setActiveNav(route){
@@ -355,6 +692,7 @@
     function router(){
       var hash = location.hash.replace('#', '');
       if (!hash) hash = 'home';
+      closeMobileMenu();
       if (hash.indexOf('product/') === 0){
         renderProduct(hash.replace('product/', ''));
         showPage('product');
@@ -427,13 +765,22 @@
       track.innerHTML = html + html;
     }
 
+    document.addEventListener('click', function(e){
+      var menu = document.getElementById('mobile-menu');
+      var btn = document.getElementById('mobile-menu-toggle');
+      if (!menu || !btn) return;
+      if (!menu.contains(e.target) && !btn.contains(e.target)) closeMobileMenu();
+    });
+
     window.addEventListener('scroll', function(){
       var btn = document.getElementById('back-to-top');
       if (btn) btn.classList.toggle('visible', window.scrollY > 400);
+      updateNavBackground();
     }, { passive: true });
 
     window.addEventListener('hashchange', router);
-    document.addEventListener('DOMContentLoaded', function(){ initMarquee(); router(); });
+    window.addEventListener('resize', closeMobileMenu);
+    document.addEventListener('DOMContentLoaded', function(){ initMarquee(); updateBasketBadge(); updateNavBackground(); router(); });
   </script>
 
 </body>
