@@ -28,10 +28,27 @@
 </script>
 <style>
 /* ── STOREFRONT-SPECIFIC ENHANCEMENTS ── */
-.nav-logo-img { height: 30px; width: auto; display: block; }
-.nav-logo { gap: 8px; align-items: center; display: flex; position: relative; z-index: 2; flex: 0 0 auto; }
+.nav-logo-img {
+  height: 24px;
+  width: auto;
+  display: block;
+  vertical-align: middle;
+}
+.nav-logo {
+  gap: 8px;
+  align-items: center;
+  display: flex;
+  position: relative;
+  z-index: 2;
+  flex: 0 0 auto;
+  height: 100%;
+}
 nav {
   position: sticky; top: 0; z-index: 900;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
   background: rgba(255,255,255,0.94);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -84,7 +101,6 @@ nav.scrolled { box-shadow: 0 2px 20px rgba(0,0,0,0.06); }
 }
 .hero-chip-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px rgba(240,140,26,.8); animation: blink 2s ease-in-out infinite; }
 @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
-
 /* Product section divider */
 .section-rule {
   height: 1px; width: 100%;
