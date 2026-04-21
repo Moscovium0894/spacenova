@@ -1,444 +1,698 @@
 <!DOCTYPE html>
-<!--
-  SPACENOVA — HOME PAGE PATCH
-  ═══════════════════════════
-  Drop these sections into index.html as described.
-  Each block is labelled with exactly what it replaces.
--->
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="SPACENOVA — Magnetic hexagon wall art panels. Gallery-quality deep-space murals for your home."/>
+  <title>SPACENOVA — The Universe on Your Wall</title>
 
-<!-- ─────────────────────────────────────────────────────
-  1. REPLACE the entire <style> block inside <head>
-     (everything between <style> and </style> in the <head>)
-────────────────────────────────────────────────────── -->
-<style id="REPLACE_INLINE_STYLE_IN_HEAD">
-/* ══ SPACENOVA STOREFRONT STYLES ══ */
+  <!-- External stylesheet — all styles live in css/style.css -->
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
 
-/* ── NAV ─────────────────────────────────────────────── */
-/*
-  Fixed, always frosted glass — NO scroll transition.
-  background stays the same regardless of scroll position.
-*/
-nav {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  z-index: 900;
-  height: 52px;
-  display: flex;
-  align-items: center;
-  padding: 0 24px;
-  /* constant frosted glass — scroll does NOT change this */
-  background: rgba(255,255,255,0.72);
-  backdrop-filter: saturate(180%) blur(28px);
-  -webkit-backdrop-filter: saturate(180%) blur(28px);
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-}
-/* Remove any .scrolled override so scroll events do nothing visual */
-nav.scrolled {
-  background: rgba(255,255,255,0.72);
-  box-shadow: none;
-}
+<body>
 
-.nav-logo-img {
-  height: 18px;
-  width: auto;
-  display: block;
-}
-.nav-logo {
-  gap: 8px;
-  align-items: center;
-  display: flex;
-  position: relative;
-  z-index: 2;
-  flex: 0 0 auto;
-  height: 100%;
-}
-.nav-links {
-  position: absolute; left: 50%; top: 50%;
-  transform: translate(-50%, -50%);
-  display: flex; align-items: center;
-  justify-content: center; gap: 2px;
-  z-index: 1; white-space: nowrap;
-}
-.nav-link {
-  color: rgba(0,0,0,0.52) !important;
-  font-size: .72rem !important;
-  font-weight: 600 !important;
-  letter-spacing: .02em !important;
-  padding: 6px 13px !important;
-  border-radius: 999px !important;
-  transition: background .15s, color .15s !important;
-  text-decoration: none !important;
-  font-family: var(--fu) !important;
-  text-transform: none !important;
-}
-.nav-link:hover { background: rgba(0,0,0,0.05); color: #111 !important; }
-.nav-link.active { color: #111 !important; background: rgba(0,0,0,0.06); }
-
-.nav-spacer { flex: 1 1 auto; min-width: 0; }
-
-/* Basket button — badge sits INLINE, not absolutely positioned */
-.nav-basket-btn {
-  position: relative; z-index: 2; margin-left: auto;
-  background: #111 !important; color: #fff !important;
-  border: none !important; border-radius: 999px !important;
-  padding: 8px 16px !important; font-size: .68rem !important;
-  font-weight: 700 !important; letter-spacing: .04em !important;
-  cursor: pointer; font-family: var(--fu) !important;
-  text-transform: none !important;
-  transition: opacity .15s, transform .15s !important;
-  display: flex; align-items: center; gap: 6px;
-}
-.nav-basket-btn:hover { opacity: .88; transform: translateY(-1px); }
-
-/* Badge is inline — no absolute positioning */
-.basket-badge {
-  background: #f08c1a !important;
-  color: #fff !important;
-  border-radius: 999px !important;
-  font-size: .6rem !important;
-  font-weight: 800 !important;
-  min-width: 16px;
-  height: 16px;
-  padding: 0 5px;
-  display: flex; align-items: center; justify-content: center;
-  opacity: 0;
-  transition: opacity .2s;
-}
-.basket-badge.visible { opacity: 1 !important; }
-
-/* ── HERO ─────────────────────────────────────────────── */
-/*
-  Hero fills full viewport from the very top — content sits
-  behind the transparent nav. Internal padding-top clears the nav height.
-*/
-.hero {
-  padding-top: calc(52px + 72px) !important;
-}
-
-/* ── FEATURED SPOTLIGHT ───────────────────────────────── */
-.home-spotlight-section {
-  padding: 0 0 32px;
-  background: #fff;
-}
-.home-spotlight-footer {
-  display: flex;
-  justify-content: center;
-  padding: 20px 16px 0;
-}
-
-.spl-card {
-  position: relative;
-  display: block;
-  width: 100%;
-  text-decoration: none;
-  overflow: hidden;
-  background: #111;
-  cursor: pointer;
-  border-radius: 0;       /* edge-to-edge on mobile */
-  min-height: 70vw;
-  max-height: 92vh;
-}
-@media (min-width: 600px) {
-  .home-spotlight-section { padding: 28px 24px 36px; }
-  .spl-card {
-    border-radius: 22px;
-    min-height: 480px;
-    max-height: 680px;
-  }
-}
-
-.spl-card-img {
-  position: absolute; inset: 0;
-  width: 100%; height: 100%;
-  object-fit: cover; object-position: center;
-  display: block;
-  transition: transform .65s ease;
-}
-.spl-card:hover .spl-card-img { transform: scale(1.025); }
-
-/* Subtle gradient so overlay doesn't need to work so hard */
-.spl-card::after {
-  content: '';
-  position: absolute; inset: 0;
-  background: linear-gradient(
-    to top,
-    rgba(0,0,0,.32) 0%,
-    rgba(0,0,0,.10) 38%,
-    rgba(0,0,0,0)   62%
-  );
-  pointer-events: none;
-}
-
-/* Frosted glass overlay — light, translucent */
-.spl-card-overlay {
-  position: absolute;
-  left: 14px; right: 14px; bottom: 14px;
-  z-index: 2;
-  background: rgba(235,235,235,.66);
-  backdrop-filter: blur(14px) saturate(1.5);
-  -webkit-backdrop-filter: blur(14px) saturate(1.5);
-  border: 1px solid rgba(255,255,255,.52);
-  border-radius: 18px;
-  padding: 14px 16px;
-  pointer-events: none;
-}
-@media (min-width: 600px) {
-  .spl-card-overlay {
-    left: 20px; right: 20px; bottom: 20px;
-    border-radius: 20px; padding: 16px 20px;
-  }
-}
-
-.spl-card-eyebrow {
-  font-family: var(--fm);
-  font-size: .56rem; font-weight: 700;
-  letter-spacing: .18em; text-transform: uppercase;
-  color: rgba(0,0,0,.48); margin-bottom: 4px;
-}
-.spl-card-name {
-  font-family: var(--fd);
-  font-size: clamp(1.05rem, 4vw, 1.5rem);
-  font-weight: 400; color: #111;
-  letter-spacing: -.02em; line-height: 1.15;
-}
-.spl-card-sub {
-  font-size: .7rem; color: rgba(0,0,0,.44);
-  margin-top: 4px; font-family: var(--fm);
-}
-
-/* ── SECTION RULE ─────────────────────────────────────── */
-.section-rule {
-  height: 1px; width: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(0,0,0,.06) 30%,
-    rgba(0,0,0,.06) 70%,
-    transparent
-  );
-  margin: 0;
-}
-
-/* ── HIDE FEATURE STRIPS COMPLETELY ───────────────────── */
-.feature-strips { display: none !important; }
-
-/* ── MOBILE ───────────────────────────────────────────── */
-@media (max-width: 700px) {
-  .nav-links { display: none; }
-}
-@media (max-width: 932px) {
-  .nav-logo-img { height: 16px; }
-  .mobile-bottom-nav { display: flex !important; }
-  /* Prevent content being hidden behind fixed bottom nav */
-  body { padding-bottom: 64px; }
-}
-
-/* ── HERO CHIP ────────────────────────────────────────── */
-.hero-chip {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: rgba(255,255,255,.08);
-  border: 1px solid rgba(255,255,255,.15);
-  backdrop-filter: blur(20px);
-  border-radius: 999px;
-  padding: 6px 14px;
-  font-family: var(--fm); font-size: .62rem;
-  letter-spacing: .16em; text-transform: uppercase;
-  color: var(--text2); margin-bottom: 28px;
-}
-.hero-chip-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 8px rgba(240,140,26,.8);
-  animation: blink 2s ease-in-out infinite;
-}
-@keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
-
-/* ── PROMO / CHECKOUT (unchanged from original) ───────── */
-.promo-wrap { display: flex; gap: 8px; margin-bottom: 12px; }
-.promo-input { flex: 1; padding: 10px 14px; background: var(--surface); border: 1px solid var(--border2); border-radius: var(--rs); color: var(--text); font-family: var(--fm); font-size: .82rem; letter-spacing: .1em; text-transform: uppercase; outline: none; transition: border-color .2s; }
-.promo-input:focus { border-color: var(--accent); }
-.promo-input::placeholder { text-transform: none; letter-spacing: 0; color: var(--muted); }
-.promo-apply-btn { padding: 10px 18px; background: var(--surface2); border: 1px solid var(--border2); color: var(--text); border-radius: var(--rs); font-family: var(--fu); font-size: .7rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; cursor: pointer; transition: .18s; }
-.promo-apply-btn:hover { border-color: var(--accent); color: var(--accent); }
-.promo-apply-btn:disabled { opacity: .5; cursor: not-allowed; }
-.promo-badge { display: flex; align-items: center; justify-content: space-between; background: rgba(48,209,88,.06); border: 1px solid rgba(48,209,88,.2); border-radius: var(--rs); padding: 10px 14px; margin-bottom: 12px; font-size: .84rem; }
-.promo-badge-left { display: flex; align-items: center; gap: 8px; color: var(--success); }
-.promo-badge-remove { background: transparent; border: none; color: var(--muted); cursor: pointer; padding: 2px 6px; border-radius: 6px; transition: color .15s; }
-.promo-badge-remove:hover { color: var(--danger); }
-.promo-error { color: var(--danger); font-size: .78rem; margin: -6px 0 8px; display: none; }
-.promo-checking { opacity: .6; font-size: .78rem; color: var(--muted); margin: -4px 0 8px; display: none; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.spin { display: inline-block; width: 13px; height: 13px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; vertical-align: middle; }
-.payment-gate-notice { background: rgba(255,67,58,.06); border: 1px solid rgba(255,67,58,.2); border-radius: var(--rs); padding: 12px 16px; font-size: .84rem; color: var(--danger); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
-</style>
-
-
-<!-- ─────────────────────────────────────────────────────
-  2. REPLACE the <nav> element HTML
-────────────────────────────────────────────────────── -->
-<nav id="REPLACE_NAV">
-  <a class="nav-logo" href="#home">
-    <img src="Spacenovalogocropped.png" alt="spacenova" class="nav-logo-img"
-         onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
-    <div class="nav-logo-mark" style="display:none"></div>
-  </a>
-  <div class="nav-links">
-    <a class="nav-link" href="#home"      data-route="home">Home</a>
-    <a class="nav-link" href="#wall-art"  data-route="wall-art">Wall Art</a>
-    <a class="nav-link" href="#artifacts" data-route="artifacts">Artifacts</a>
-    <a class="nav-link" href="#bundles"   data-route="bundles">Bundles</a>
-    <a class="nav-link" href="#about"     data-route="about">About</a>
-  </div>
-  <div class="nav-spacer"></div>
-  <button class="nav-basket-btn" id="nav-basket-btn" onclick="openBasket()" type="button">
-    <svg width="13" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
-      <line x1="3" y1="6" x2="21" y2="6"/>
-      <path d="M16 10a4 4 0 01-8 0"/>
-    </svg>
-    Basket
-    <span class="basket-badge" id="basket-badge">0</span>
-  </button>
-</nav>
-
-
-<!-- ─────────────────────────────────────────────────────
-  3. REPLACE the <div data-page="home"> content
-     (keep the outer div, replace everything inside)
-────────────────────────────────────────────────────── -->
-<div class="page active" data-page="home" id="REPLACE_HOME_PAGE_CONTENT">
-
-  <!-- HERO — full viewport, sits behind transparent nav -->
-  <div class="hero">
-    <div class="hero-bg">
-      <img src="https://images.unsplash.com/photo-1446776877081-d282a0f896e2?auto=format&fit=crop&w=2000&q=90"
-           alt="Deep space"/>
+  <!-- ══════════════════════════════════════════════════════
+       NAV — fixed frosted glass, no scroll-state changes
+  ══════════════════════════════════════════════════════ -->
+  <nav id="main-nav">
+    <a class="nav-logo" href="#home">
+      <img src="Spacenovalogocropped.png" alt="spacenova" class="nav-logo-img"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+      <div class="nav-logo-mark" style="display:none"></div>
+    </a>
+    <div class="nav-links">
+      <a class="nav-link" href="#home"      data-route="home">Home</a>
+      <a class="nav-link" href="#wall-art"  data-route="wall-art">Wall Art</a>
+      <a class="nav-link" href="#artifacts" data-route="artifacts">Artifacts</a>
+      <a class="nav-link" href="#bundles"   data-route="bundles">Bundles</a>
+      <a class="nav-link" href="#about"     data-route="about">About</a>
     </div>
-    <div class="hero-content">
-      <div class="hero-chip afu">
-        <span class="hero-chip-dot"></span>
-        New collection available
+    <div class="nav-spacer"></div>
+    <button class="nav-basket-btn" id="nav-basket-btn" onclick="openBasket()" type="button">
+      <svg width="13" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <path d="M16 10a4 4 0 01-8 0"/>
+      </svg>
+      Basket
+      <span class="basket-badge" id="basket-badge">0</span>
+    </button>
+  </nav>
+
+  <!-- Mobile bottom nav -->
+  <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
+    <a class="mobile-nav-item active" href="#home" data-route="home" onclick="showPage('home');setActiveNav('home')">
+      <svg class="mobile-nav-icon" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Home
+    </a>
+    <a class="mobile-nav-item" href="#wall-art" data-route="wall-art" onclick="showPage('wall-art');setActiveNav('wall-art')">
+      <svg class="mobile-nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      Wall Art
+    </a>
+    <a class="mobile-nav-item" href="#artifacts" data-route="artifacts" onclick="showPage('artifacts');setActiveNav('artifacts')">
+      <svg class="mobile-nav-icon" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      Artifacts
+    </a>
+    <a class="mobile-nav-item" href="#bundles" data-route="bundles" onclick="showPage('bundles');setActiveNav('bundles')">
+      <svg class="mobile-nav-icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+      Bundles
+    </a>
+    <button class="mobile-nav-item" onclick="openBasket()" type="button">
+      <svg class="mobile-nav-icon" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+      Basket
+    </button>
+  </nav>
+
+  <!-- Toast container -->
+  <div id="toast-container"></div>
+
+  <!-- Back to top -->
+  <button id="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Back to top">↑</button>
+
+  <!-- ══════════════════════════════════════════════════════
+       BASKET DRAWER
+  ══════════════════════════════════════════════════════ -->
+  <div id="basket-overlay" onclick="closeBasket()"></div>
+  <div id="basket-drawer">
+    <div class="drawer-header">
+      <h2>Your Basket</h2>
+      <button onclick="closeBasket()" style="background:none;border:none;cursor:pointer;font-size:1.4rem;color:var(--muted);">✕</button>
+    </div>
+    <div class="drawer-body" id="basket-body"></div>
+    <div class="drawer-footer" id="basket-footer"></div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       PAGES
+  ══════════════════════════════════════════════════════ -->
+
+  <!-- ── HOME ──────────────────────────────────────── -->
+  <div class="page active" data-page="home">
+
+    <!-- HERO — full viewport, content sits behind transparent nav.
+         padding-top in CSS clears the nav bar height. -->
+    <div class="hero">
+      <div class="hero-bg">
+        <img src="https://images.unsplash.com/photo-1446776877081-d282a0f896e2?auto=format&fit=crop&w=2000&q=90"
+             alt="Deep space"/>
       </div>
-      <h1 class="afu d1">The universe,<br/><em>on your wall.</em></h1>
-      <p class="hero-sub afu d2">Magnetic hexagon panels that transform your space into a continuous deep-space mural. Gallery quality. Precision aligned.</p>
-      <div class="hero-actions afu d3">
-        <a class="btn btn-gold" href="#wall-art">Shop Wall Art</a>
-        <a class="btn btn-ghost" href="#about">Our craft</a>
+      <div class="hero-content">
+        <div class="hero-chip afu">
+          <span class="hero-chip-dot"></span>
+          New collection available
+        </div>
+        <h1 class="afu d1">The universe,<br/><em>on your wall.</em></h1>
+        <p class="hero-sub afu d2">Magnetic hexagon panels that transform your space into a continuous deep-space mural. Gallery quality. Precision aligned.</p>
+        <div class="hero-actions afu d3">
+          <a class="btn btn-gold" href="#wall-art" onclick="showPage('wall-art');setActiveNav('wall-art')">Shop Wall Art</a>
+          <a class="btn btn-ghost" href="#about"   onclick="showPage('about');setActiveNav('about')">Our craft</a>
+        </div>
+        <div class="hero-stats afu d4">
+          <div class="hero-stat"><div class="hero-stat-num">12</div><div class="hero-stat-label">Series</div></div>
+          <div class="hero-stat"><div class="hero-stat-num">6</div><div class="hero-stat-label">Bundles</div></div>
+          <div class="hero-stat"><div class="hero-stat-num">3–9</div><div class="hero-stat-label">Panels</div></div>
+          <div class="hero-stat"><div class="hero-stat-num">Mag</div><div class="hero-stat-label">Aligned</div></div>
+        </div>
       </div>
-      <div class="hero-stats afu d4">
-        <div class="hero-stat"><div class="hero-stat-num">12</div><div class="hero-stat-label">Series</div></div>
-        <div class="hero-stat"><div class="hero-stat-num">6</div><div class="hero-stat-label">Bundles</div></div>
-        <div class="hero-stat"><div class="hero-stat-num">3–9</div><div class="hero-stat-label">Panels</div></div>
-        <div class="hero-stat"><div class="hero-stat-num">Mag</div><div class="hero-stat-label">Aligned</div></div>
+    </div>
+
+    <!-- MARQUEE -->
+    <div class="marquee-wrap">
+      <div class="marquee-track" id="marquee-track"></div>
+    </div>
+
+    <!-- FEATURED SPOTLIGHT — populated by renderFeatured() -->
+    <section class="home-spotlight-section">
+      <div id="featured-spotlight-wrap"></div>
+      <div class="home-spotlight-footer">
+        <a class="btn btn-ghost btn-sm" href="#wall-art" data-route="wall-art"
+           onclick="showPage('wall-art');setActiveNav('wall-art')">View all wall art →</a>
       </div>
+    </section>
+
+    <div class="section-rule"></div>
+
+    <!-- TESTIMONIALS -->
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <p class="section-eyebrow">Happy collectors</p>
+          <h2>What people say</h2>
+        </div>
+      </div>
+      <div class="testimonials">
+        <div class="testimonial">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-text">"The Andromeda Galaxy set completely transformed my living room. Magnetic alignment was dead-on and print quality is extraordinary."</p>
+          <div class="testimonial-author">James H. — London</div>
+        </div>
+        <div class="testimonial">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-text">"I ordered the Aurora over Earth for my studio. Colleagues ask about it every single day. Worth every penny."</p>
+          <div class="testimonial-author">Priya S. — Edinburgh</div>
+        </div>
+        <div class="testimonial">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-text">"Shipping was quick, packaging was premium, the Moon Landing triptych looks incredible above my desk."</p>
+          <div class="testimonial-author">Marcus L. — Manchester</div>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /home -->
+
+  <!-- ── WALL ART ───────────────────────────────────── -->
+  <div class="page" data-page="wall-art">
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <p class="section-eyebrow">Gallery collection</p>
+          <h2>Wall Art</h2>
+        </div>
+      </div>
+      <div class="filter-bar" id="wall-art-filters"></div>
+      <div class="grid" id="wall-art-grid"></div>
+    </section>
+  </div>
+
+  <!-- ── ARTIFACTS ──────────────────────────────────── -->
+  <div class="page" data-page="artifacts">
+    <div class="artifacts-hero">
+      <p class="section-eyebrow">Collector's edition</p>
+      <h2 style="font-family:var(--fd);font-size:clamp(2rem,4vw,3.4rem);font-weight:300;">Space Artifacts</h2>
+      <p style="color:var(--muted);margin-top:12px;max-width:460px;margin-left:auto;margin-right:auto;">
+        Curated physical objects from the space age — meteorite fragments, mission patches, archival prints.
+      </p>
+    </div>
+    <div class="artifact-grid" id="artifacts-grid"></div>
+  </div>
+
+  <!-- ── BUNDLES ────────────────────────────────────── -->
+  <div class="page" data-page="bundles">
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <p class="section-eyebrow">Save more</p>
+          <h2>Curated Bundles</h2>
+        </div>
+      </div>
+      <div class="grid" id="bundles-grid"></div>
+    </section>
+  </div>
+
+  <!-- ── ABOUT ──────────────────────────────────────── -->
+  <div class="page" data-page="about">
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <p class="section-eyebrow">Our story</p>
+          <h2>Crafted for the curious</h2>
+        </div>
+      </div>
+      <div class="about-grid">
+        <div class="about-img">
+          <img src="https://images.unsplash.com/photo-1545987796-200677ee1011?auto=format&fit=crop&w=900&q=80" alt="Workshop"/>
+        </div>
+        <div>
+          <p style="color:var(--muted);font-size:.97rem;line-height:1.8;margin-bottom:24px;">
+            SPACENOVA was born from a simple obsession: making the cosmos feel tangible. Every panel is gallery-printed on aluminium, precision-cut, and fitted with rare-earth magnets so your mural snaps together perfectly — and rearranges effortlessly.
+          </p>
+          <div class="feature-list">
+            <div class="feature-item">
+              <div class="feature-icon">🖼️</div>
+              <div><h4>Gallery aluminium print</h4><p>Ultra-vivid, anti-glare surface. Colours that endure for decades without fading.</p></div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">🧲</div>
+              <div><h4>Magnetic alignment system</h4><p>Rare-earth magnets embedded in every edge. Panels click into place within a millimetre.</p></div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">📐</div>
+              <div><h4>Precision hexagon cut</h4><p>CNC-routed to ±0.2 mm tolerance. Every tiling is seamless.</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ── PRODUCT DETAIL (dynamic) ───────────────────── -->
+  <div class="page" data-page="product">
+    <div class="product-wrap" id="product-detail-wrap"></div>
+  </div>
+
+  <!-- ── CHECKOUT ──────────────────────────────────── -->
+  <div class="page" data-page="checkout">
+    <div style="max-width:600px;margin:0 auto;padding:56px 24px 100px;">
+      <div id="checkout-inner"></div>
     </div>
   </div>
 
-  <!-- MARQUEE -->
-  <div class="marquee-wrap">
-    <div class="marquee-track" id="marquee-track"></div>
-  </div>
-
-  <!-- FEATURED SPOTLIGHT — JS targets #featured-spotlight-wrap -->
-  <section class="home-spotlight-section">
-    <div id="featured-spotlight-wrap">
-      <!-- Populated by renderFeatured() -->
-    </div>
-    <div class="home-spotlight-footer">
-      <a class="btn btn-ghost btn-sm" href="#wall-art" data-route="wall-art"
-         onclick="showPage('wall-art');setActiveNav('wall-art')">View all wall art →</a>
-    </div>
-  </section>
-
-  <div class="section-rule"></div>
-
-  <!-- TESTIMONIALS — unchanged -->
-  <section class="section">
-    <div class="section-head">
-      <div><p class="section-eyebrow">Happy collectors</p><h2>What people say</h2></div>
-    </div>
-    <div class="testimonials">
-      <div class="testimonial">
-        <div class="testimonial-stars">★★★★★</div>
-        <p class="testimonial-text">"The Andromeda Galaxy set completely transformed my living room. Magnetic alignment was dead-on and print quality is extraordinary."</p>
-        <div class="testimonial-author">James H. — London</div>
+  <!-- ══════════════════════════════════════════════════════
+       FOOTER
+  ══════════════════════════════════════════════════════ -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="nav-logo" style="font-size:1.1rem;">SPACENOVA</div>
+        <p>Magnetic hexagon wall art panels. The universe, exactly as you imagine it.</p>
       </div>
-      <div class="testimonial">
-        <div class="testimonial-stars">★★★★★</div>
-        <p class="testimonial-text">"I ordered the Aurora over Earth for my studio. Colleagues ask about it every single day. Worth every penny."</p>
-        <div class="testimonial-author">Priya S. — Edinburgh</div>
+      <div class="footer-col">
+        <h4>Shop</h4>
+        <a href="#wall-art"  onclick="showPage('wall-art');setActiveNav('wall-art')">Wall Art</a>
+        <a href="#artifacts" onclick="showPage('artifacts');setActiveNav('artifacts')">Artifacts</a>
+        <a href="#bundles"   onclick="showPage('bundles');setActiveNav('bundles')">Bundles</a>
       </div>
-      <div class="testimonial">
-        <div class="testimonial-stars">★★★★★</div>
-        <p class="testimonial-text">"Shipping was quick, packaging was premium, the Moon Landing triptych looks incredible above my desk."</p>
-        <div class="testimonial-author">Marcus L. — Manchester</div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a href="#about" onclick="showPage('about');setActiveNav('about')">About</a>
+        <a href="#">Press</a>
+        <a href="#">Careers</a>
+      </div>
+      <div class="footer-col">
+        <h4>Support</h4>
+        <a href="#">Shipping</a>
+        <a href="#">Returns</a>
+        <a href="#">FAQ</a>
+        <a href="#">Contact</a>
       </div>
     </div>
-  </section>
+    <div class="footer-bottom">
+      <span>© 2025 Spacenova Ltd. All rights reserved.</span>
+      <span>Designed &amp; made in the UK</span>
+    </div>
+  </footer>
 
-</div><!-- end data-page="home" -->
+  <!-- ══════════════════════════════════════════════════════
+       SCRIPTS
+       NOTE: No scroll-listener that toggles nav.scrolled class.
+             The nav style is constant — no JS scroll events needed.
+  ══════════════════════════════════════════════════════ -->
+  <script>
+    /* ─── DATA ──────────────────────────────────────────── */
+    var featuredSlugs = ['andromeda-galaxy'];
 
+    var products = [
+      {
+        slug: 'andromeda-galaxy',
+        name: 'Andromeda Galaxy',
+        category: 'Deep Space',
+        tagline: 'Our nearest galactic neighbour, rendered in extraordinary detail.',
+        image: 'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=900&q=80',
+        price: 149,
+        pieces: 7,
+        isPublished: true,
+        description: 'A sweeping view of the Andromeda Galaxy (M31) — 2.537 million light-years away and the closest spiral galaxy to the Milky Way. Captured by the Hubble Space Telescope and rendered across seven magnetically-aligned hexagonal panels.'
+      },
+      {
+        slug: 'aurora-over-earth',
+        name: 'Aurora Over Earth',
+        category: 'Earth Views',
+        tagline: 'The aurora australis as seen from the ISS.',
+        image: 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?auto=format&fit=crop&w=900&q=80',
+        price: 129,
+        pieces: 5,
+        isPublished: true,
+        description: 'Photographed by astronauts aboard the International Space Station as it passed over the southern hemisphere. The electric greens and purples of the aurora australis arch across five panels.'
+      },
+      {
+        slug: 'pillars-of-creation',
+        name: 'Pillars of Creation',
+        category: 'Nebulae',
+        tagline: 'The Eagle Nebula\'s iconic star-forming columns.',
+        image: 'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?auto=format&fit=crop&w=900&q=80',
+        price: 169,
+        pieces: 9,
+        isPublished: true,
+        description: 'One of the most iconic images in the history of astronomy. The Pillars of Creation in the Eagle Nebula (M16), reimagined across nine panels in the James Webb Space Telescope\'s near-infrared palette.'
+      },
+      {
+        slug: 'moon-landing',
+        name: 'Moon Landing',
+        category: 'Historic',
+        tagline: 'Apollo 11. July 1969. The defining moment.',
+        image: 'https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?auto=format&fit=crop&w=900&q=80',
+        price: 139,
+        pieces: 3,
+        isPublished: true,
+        description: 'Restored and colour-graded from the original NASA photography archive. Buzz Aldrin descends the Eagle\'s ladder onto the Sea of Tranquillity, captured in a three-panel triptych.'
+      }
+    ];
 
-<!-- ─────────────────────────────────────────────────────
-  4. REPLACE the renderFeatured() function in your <script> block.
-     Also REMOVE the two nav scroll-effect addEventListener blocks
-     (the ones that add/remove the .scrolled class on scroll).
-────────────────────────────────────────────────────── -->
-<script id="REPLACE_RENDER_FEATURED_FUNCTION">
-/*
-  renderFeatured()
-  ────────────────
-  Renders the hero spotlight card into #featured-spotlight-wrap.
-  Uses featuredSlugs[0] if available, otherwise falls back to first
-  published product. Does nothing if no products are loaded yet.
-*/
-function renderFeatured() {
-  var wrap = document.getElementById('featured-spotlight-wrap');
-  if (!wrap) return;
+    var bundles = [
+      {
+        slug: 'deep-space-duo',
+        name: 'Deep Space Duo',
+        tagline: 'Andromeda Galaxy + Pillars of Creation',
+        image: 'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=900&q=80',
+        price: 289,
+        includes: ['Andromeda Galaxy (7 panels)', 'Pillars of Creation (9 panels)', 'Magnetic wall mounts'],
+        isPublished: true
+      },
+      {
+        slug: 'earth-sky-bundle',
+        name: 'Earth & Sky',
+        tagline: 'Aurora Over Earth + Moon Landing',
+        image: 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?auto=format&fit=crop&w=900&q=80',
+        price: 239,
+        includes: ['Aurora Over Earth (5 panels)', 'Moon Landing (3 panels)', 'Gift packaging'],
+        isPublished: true
+      }
+    ];
 
-  // Pick the featured product
-  var p = null;
+    var artifacts = [
+      {
+        slug: 'meteorite-fragment',
+        name: 'Pallasite Meteorite',
+        tag: 'Authentic specimen',
+        description: 'A genuine pallasite meteorite slice, approx. 4.5 billion years old. Museum-quality display mount included.',
+        image: 'https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?auto=format&fit=crop&w=600&q=80',
+        price: 249
+      },
+      {
+        slug: 'apollo-mission-patch',
+        name: 'Apollo Mission Patch Set',
+        tag: 'Archival reproduction',
+        description: 'Officially licensed reproductions of all 17 Apollo mission patches, frameable in the included display case.',
+        image: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?auto=format&fit=crop&w=600&q=80',
+        price: 89
+      }
+    ];
 
-  if (featuredSlugs && featuredSlugs.length) {
-    p = products.find(function(x) { return x.slug === featuredSlugs[0]; });
-  }
-  if (!p && products.length) {
-    p = products.find(function(x) { return x.isPublished !== false; }) || products[0];
-  }
-  if (!p) {
-    wrap.innerHTML = '';
-    return;
-  }
+    /* ─── UTILITY ───────────────────────────────────────── */
+    function gbp(n) {
+      return '£' + Number(n).toFixed(2).replace(/\.00$/, '');
+    }
 
-  // Build spotlight card HTML
-  wrap.innerHTML =
-    '<a class="spl-card" href="#product/' + p.slug + '"' +
-    ' onclick="event.preventDefault();location.hash=\'#product/' + p.slug + '\';router();">' +
-      '<img class="spl-card-img" src="' + p.image + '" alt="' + p.name + '" loading="eager"/>' +
-      '<div class="spl-card-overlay">' +
-        '<div class="spl-card-eyebrow">Featured series</div>' +
-        '<div class="spl-card-name">' + p.name + '</div>' +
-        '<div class="spl-card-sub">' +
-          (p.category || '') +
-          (p.pieces ? ' · ' + p.pieces + ' panels' : '') +
-          (p.price  ? ' · ' + gbp(p.price) : '') +
+    function showToast(msg, type) {
+      var c = document.getElementById('toast-container');
+      var t = document.createElement('div');
+      t.className = 'toast';
+      t.style.borderLeftColor = type === 'error' ? 'var(--danger)' : 'var(--success)';
+      t.textContent = msg;
+      c.appendChild(t);
+      setTimeout(function() { t.remove(); }, 2600);
+    }
+
+    /* ─── BASKET ────────────────────────────────────────── */
+    var basket = [];
+
+    function addToBasket(slug, qty) {
+      qty = qty || 1;
+      var p = products.find(function(x) { return x.slug === slug; })
+           || bundles.find(function(x) { return x.slug === slug; })
+           || artifacts.find(function(x) { return x.slug === slug; });
+      if (!p) return;
+      var existing = basket.find(function(i) { return i.slug === slug; });
+      if (existing) { existing.qty += qty; }
+      else { basket.push({ slug: slug, name: p.name, price: p.price, image: p.image, qty: qty }); }
+      updateBasketBadge();
+      showToast('Added to basket — ' + p.name);
+    }
+
+    function removeFromBasket(slug) {
+      basket = basket.filter(function(i) { return i.slug !== slug; });
+      updateBasketBadge();
+      renderBasket();
+    }
+
+    function updateBasketQty(slug, delta) {
+      var item = basket.find(function(i) { return i.slug === slug; });
+      if (!item) return;
+      item.qty = Math.max(1, item.qty + delta);
+      renderBasket();
+    }
+
+    function updateBasketBadge() {
+      var badge = document.getElementById('basket-badge');
+      var total = basket.reduce(function(s, i) { return s + i.qty; }, 0);
+      badge.textContent = total;
+      badge.classList.toggle('visible', total > 0);
+    }
+
+    function openBasket() {
+      renderBasket();
+      document.getElementById('basket-overlay').classList.add('open');
+      document.getElementById('basket-drawer').classList.add('open');
+    }
+
+    function closeBasket() {
+      document.getElementById('basket-overlay').classList.remove('open');
+      document.getElementById('basket-drawer').classList.remove('open');
+    }
+
+    function renderBasket() {
+      var body = document.getElementById('basket-body');
+      var footer = document.getElementById('basket-footer');
+      if (!basket.length) {
+        body.innerHTML = '<div class="empty-basket"><div class="empty-basket-icon">🛒</div><p style="color:var(--muted)">Your basket is empty.</p></div>';
+        footer.innerHTML = '';
+        return;
+      }
+      body.innerHTML = basket.map(function(item) {
+        return '<div class="basket-item">' +
+          '<img class="basket-item-img" src="' + item.image + '" alt="' + item.name + '"/>' +
+          '<div>' +
+            '<div class="basket-item-name">' + item.name + '</div>' +
+            '<div class="basket-item-price">' + gbp(item.price) + ' each</div>' +
+            '<div class="basket-item-qty">' +
+              '<button class="biq-btn" onclick="updateBasketQty(\'' + item.slug + '\',-1)">−</button>' +
+              '<span class="biq-num">' + item.qty + '</span>' +
+              '<button class="biq-btn" onclick="updateBasketQty(\'' + item.slug + '\',1)">+</button>' +
+            '</div>' +
+          '</div>' +
+          '<button class="basket-item-remove" onclick="removeFromBasket(\'' + item.slug + '\')" title="Remove">✕</button>' +
+        '</div>';
+      }).join('');
+
+      var subtotal = basket.reduce(function(s, i) { return s + i.price * i.qty; }, 0);
+      footer.innerHTML =
+        '<div class="basket-summary">' +
+          '<div class="basket-summary-row"><span>Subtotal</span><strong>' + gbp(subtotal) + '</strong></div>' +
+          '<div class="basket-summary-row"><span>Shipping</span><span style="color:var(--success)">Free</span></div>' +
+          '<div class="basket-summary-row total"><span>Total</span><strong>' + gbp(subtotal) + '</strong></div>' +
         '</div>' +
-      '</div>' +
-    '</a>';
-}
+        '<p class="shipping-note">✓ Free UK shipping on all orders</p>' +
+        '<button class="btn btn-primary" style="width:100%;" onclick="showPage(\'checkout\');closeBasket();">Proceed to Checkout</button>';
+    }
 
-/*
-  IMPORTANT: Remove (or do not add) any addEventListener blocks
-  that toggle nav.classList 'scrolled' based on window.scrollY.
-  The nav style is constant — no scroll behaviour needed.
+    /* ─── PAGES ─────────────────────────────────────────── */
+    function showPage(name) {
+      document.querySelectorAll('.page').forEach(function(p) {
+        p.classList.remove('active');
+        p.style.display = 'none';
+        p.style.opacity = '0';
+        p.style.transform = 'translateY(12px)';
+      });
+      var page = document.querySelector('[data-page="' + name + '"]');
+      if (!page) return;
+      page.style.display = 'block';
+      requestAnimationFrame(function() {
+        page.classList.add('active');
+        page.style.animation = 'pageFadeIn .45s cubic-bezier(.22,1,.36,1) forwards';
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 
-  Specifically, DELETE these blocks if they exist anywhere in your script:
+    function setActiveNav(route) {
+      document.querySelectorAll('.nav-link, .mobile-nav-item').forEach(function(el) {
+        el.classList.toggle('active', (el.dataset.route || '') === route);
+      });
+    }
 
-    window.addEventListener('scroll', function(){
-      var nav = document.querySelector('nav');
-      if(nav) nav.classList.toggle('scrolled', window.scrollY > 10);
+    /* ─── ROUTER ────────────────────────────────────────── */
+    function router() {
+      var hash = location.hash.replace('#', '');
+      if (!hash) hash = 'home';
+
+      if (hash.startsWith('product/')) {
+        var slug = hash.replace('product/', '');
+        renderProduct(slug);
+        showPage('product');
+        return;
+      }
+
+      var validPages = ['home', 'wall-art', 'artifacts', 'bundles', 'about', 'checkout'];
+      if (validPages.indexOf(hash) > -1) {
+        showPage(hash);
+        setActiveNav(hash);
+      } else {
+        showPage('home');
+        setActiveNav('home');
+      }
+    }
+
+    /* ─── RENDER FEATURED ───────────────────────────────── */
+    /*
+      Renders the hero spotlight card into #featured-spotlight-wrap.
+      Uses featuredSlugs[0] if available, otherwise falls back to
+      first published product.
+    */
+    function renderFeatured() {
+      var wrap = document.getElementById('featured-spotlight-wrap');
+      if (!wrap) return;
+
+      var p = null;
+      if (featuredSlugs && featuredSlugs.length) {
+        p = products.find(function(x) { return x.slug === featuredSlugs[0]; });
+      }
+      if (!p && products.length) {
+        p = products.find(function(x) { return x.isPublished !== false; }) || products[0];
+      }
+      if (!p) { wrap.innerHTML = ''; return; }
+
+      wrap.innerHTML =
+        '<a class="spl-card" href="#product/' + p.slug + '"' +
+        ' onclick="event.preventDefault();location.hash=\'#product/' + p.slug + '\';router();">' +
+          '<img class="spl-card-img" src="' + p.image + '" alt="' + p.name + '" loading="eager"/>' +
+          '<div class="spl-card-overlay">' +
+            '<div class="spl-card-eyebrow">Featured series</div>' +
+            '<div class="spl-card-name">' + p.name + '</div>' +
+            '<div class="spl-card-sub">' +
+              (p.category || '') +
+              (p.pieces ? ' · ' + p.pieces + ' panels' : '') +
+              (p.price  ? ' · ' + gbp(p.price) : '') +
+            '</div>' +
+          '</div>' +
+        '</a>';
+    }
+
+    /* ─── RENDER WALL ART PAGE ──────────────────────────── */
+    function renderWallArt() {
+      var grid = document.getElementById('wall-art-grid');
+      if (!grid) return;
+      grid.innerHTML = products.filter(function(p) { return p.isPublished !== false; }).map(function(p) {
+        return '<div class="card">' +
+          '<div class="card-media">' +
+            '<img src="' + p.image + '" alt="' + p.name + '" loading="lazy"/>' +
+            '<div class="badge-row">' +
+              '<span class="badge">' + (p.category || '') + '</span>' +
+              (p.pieces ? '<span class="badge badge-accent">' + p.pieces + ' panels</span>' : '') +
+            '</div>' +
+          '</div>' +
+          '<div class="card-body">' +
+            '<h3>' + p.name + '</h3>' +
+            '<p class="muted">' + (p.tagline || '') + '</p>' +
+            '<div class="price">' + gbp(p.price) + '</div>' +
+            '<div class="card-actions">' +
+              '<button class="btn btn-primary btn-sm" onclick="addToBasket(\'' + p.slug + '\')">Add to Basket</button>' +
+              '<a class="btn btn-ghost btn-sm" href="#product/' + p.slug + '" onclick="location.hash=\'#product/' + p.slug + '\';router();">View</a>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    /* ─── RENDER BUNDLES PAGE ───────────────────────────── */
+    function renderBundles() {
+      var grid = document.getElementById('bundles-grid');
+      if (!grid) return;
+      grid.innerHTML = bundles.filter(function(b) { return b.isPublished !== false; }).map(function(b) {
+        return '<div class="card bundle-card">' +
+          '<div class="card-media">' +
+            '<img src="' + b.image + '" alt="' + b.name + '" loading="lazy"/>' +
+          '</div>' +
+          '<div class="bundle-card-inner">' +
+            '<h3 style="font-family:var(--fd);font-size:1.3rem;font-weight:400;margin-bottom:6px;">' + b.name + '</h3>' +
+            '<p class="muted">' + b.tagline + '</p>' +
+            '<div class="price">' + gbp(b.price) + '</div>' +
+          '</div>' +
+          '<div class="bundle-includes">' +
+            (b.includes || []).map(function(inc) { return '<span>' + inc + '</span>'; }).join('') +
+          '</div>' +
+          '<div class="card-actions">' +
+            '<button class="btn btn-primary btn-sm" onclick="addToBasket(\'' + b.slug + '\')">Add Bundle to Basket</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    /* ─── RENDER ARTIFACTS PAGE ─────────────────────────── */
+    function renderArtifacts() {
+      var grid = document.getElementById('artifacts-grid');
+      if (!grid) return;
+      grid.innerHTML = artifacts.map(function(a) {
+        return '<div class="artifact-card">' +
+          '<img class="artifact-card-img" src="' + a.image + '" alt="' + a.name + '" loading="lazy"/>' +
+          '<div class="artifact-card-body">' +
+            '<span class="artifact-tag">' + a.tag + '</span>' +
+            '<h3>' + a.name + '</h3>' +
+            '<p>' + a.description + '</p>' +
+            '<div class="artifact-price">' + gbp(a.price) + '</div>' +
+            '<button class="btn btn-primary btn-sm" onclick="addToBasket(\'' + a.slug + '\')">Add to Basket</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    /* ─── RENDER PRODUCT DETAIL ─────────────────────────── */
+    function renderProduct(slug) {
+      var p = products.find(function(x) { return x.slug === slug; });
+      var wrap = document.getElementById('product-detail-wrap');
+      if (!p || !wrap) return;
+
+      wrap.innerHTML =
+        '<div class="breadcrumbs">' +
+          '<a href="#home" onclick="showPage(\'home\');setActiveNav(\'home\')">Home</a>' +
+          '<span>›</span>' +
+          '<a href="#wall-art" onclick="showPage(\'wall-art\');setActiveNav(\'wall-art\')">Wall Art</a>' +
+          '<span>›</span>' +
+          '<span>' + p.name + '</span>' +
+        '</div>' +
+        '<div class="product-hero">' +
+          '<div class="product-media">' +
+            '<img src="' + p.image + '" alt="' + p.name + '"/>' +
+          '</div>' +
+          '<div class="product-info">' +
+            '<h2>' + p.name + '</h2>' +
+            '<p class="product-tagline">' + (p.tagline || '') + '</p>' +
+            '<div class="product-price-row">' +
+              '<span class="product-price-main">' + gbp(p.price) + '</span>' +
+              (p.pieces ? '<span class="product-price-range">' + p.pieces + '-panel set</span>' : '') +
+            '</div>' +
+            '<p style="color:var(--muted);font-size:.93rem;line-height:1.8;margin-bottom:24px;">' + (p.description || '') + '</p>' +
+            '<div class="specs">' +
+              '<div class="spec"><span>Category</span><strong>' + (p.category || '—') + '</strong></div>' +
+              '<div class="spec"><span>Panels</span><strong>' + (p.pieces || '—') + '</strong></div>' +
+              '<div class="spec"><span>Material</span><strong>Aluminium print</strong></div>' +
+              '<div class="spec"><span>Alignment</span><strong>Magnetic</strong></div>' +
+            '</div>' +
+            '<div class="product-actions">' +
+              '<button class="btn btn-gold" onclick="addToBasket(\'' + p.slug + '\')">Add to Basket — ' + gbp(p.price) + '</button>' +
+            '</div>' +
+            '<div class="notice">🚀 Made to order — allow 5–7 working days. Free tracked UK delivery included.</div>' +
+          '</div>' +
+        '</div>';
+    }
+
+    /* ─── MARQUEE ───────────────────────────────────────── */
+    function initMarquee() {
+      var items = ['Gallery aluminium print', 'Magnetic alignment', 'Free UK shipping', 'Made to order', 'CNC precision cut', 'Gallery quality', 'Easy installation', 'Rearrange anytime'];
+      var track = document.getElementById('marquee-track');
+      if (!track) return;
+      var html = items.map(function(t) { return '<span class="marquee-item">' + t + '</span>'; }).join('');
+      track.innerHTML = html + html; // doubled for seamless loop
+    }
+
+    /* ─── BACK TO TOP ───────────────────────────────────── */
+    window.addEventListener('scroll', function() {
+      var btn = document.getElementById('back-to-top');
+      if (btn) btn.classList.toggle('visible', window.scrollY > 400);
     }, { passive: true });
 
-  There should be ZERO references to nav.classList and 'scrolled' in scroll handlers.
-*/
-</script>
+    /* ─── INIT ──────────────────────────────────────────── */
+    window.addEventListener('hashchange', router);
+
+    document.addEventListener('DOMContentLoaded', function() {
+      initMarquee();
+      renderFeatured();
+      renderWallArt();
+      renderBundles();
+      renderArtifacts();
+      router();
+    });
+  </script>
+
+</body>
+</html>
