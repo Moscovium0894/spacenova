@@ -5,16 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="description" content="SPACENOVA — Magnetic hexagon wall art panels. Gallery-quality deep-space murals for your home."/>
   <title>SPACENOVA — The Universe on Your Wall</title>
-
-  <!-- External stylesheet — all styles live in css/style.css -->
   <link rel="stylesheet" href="css/style.css"/>
 </head>
 
 <body>
 
-  <!-- ══════════════════════════════════════════════════════
-       NAV — fixed frosted glass, no scroll-state changes
-  ══════════════════════════════════════════════════════ -->
   <nav id="main-nav">
     <a class="nav-logo" href="#home">
       <img src="Spacenovalogocropped.png" alt="spacenova" class="nav-logo-img"
@@ -40,7 +35,6 @@
     </button>
   </nav>
 
-  <!-- Mobile bottom nav -->
   <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
     <a class="mobile-nav-item active" href="#home" data-route="home" onclick="showPage('home');setActiveNav('home')">
       <svg class="mobile-nav-icon" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -64,15 +58,9 @@
     </button>
   </nav>
 
-  <!-- Toast container -->
   <div id="toast-container"></div>
-
-  <!-- Back to top -->
   <button id="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Back to top">↑</button>
 
-  <!-- ══════════════════════════════════════════════════════
-       BASKET DRAWER
-  ══════════════════════════════════════════════════════ -->
   <div id="basket-overlay" onclick="closeBasket()"></div>
   <div id="basket-drawer">
     <div class="drawer-header">
@@ -83,20 +71,29 @@
     <div class="drawer-footer" id="basket-footer"></div>
   </div>
 
-  <!-- ══════════════════════════════════════════════════════
-       PAGES
-  ══════════════════════════════════════════════════════ -->
-
-  <!-- ── HOME ──────────────────────────────────────── -->
+  <!-- HOME PAGE -->
   <div class="page active" data-page="home">
 
-    <!-- HERO — full viewport, content sits behind transparent nav.
-         padding-top in CSS clears the nav bar height. -->
-    <div class="hero">
-      <div class="hero-bg">
-        <img src="https://images.unsplash.com/photo-1446776877081-d282a0f896e2?auto=format&fit=crop&w=2000&q=90"
-             alt="Deep space"/>
-      </div>
+    <!-- HERO: background set via inline style so the image always loads -->
+    <div class="hero" style="
+      background-image: url('https://images.unsplash.com/photo-1446776877081-d282a0f896e2?auto=format&fit=crop&w=2000&q=90');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    ">
+      <!-- Gradient overlay sits on top of the bg image -->
+      <div style="
+        position:absolute;inset:0;z-index:0;
+        background: linear-gradient(
+          to bottom,
+          rgba(0,0,0,0.38) 0%,
+          rgba(0,0,0,0.52) 40%,
+          rgba(0,0,0,0.80) 80%,
+          #000 100%
+        );
+        pointer-events:none;
+      "></div>
+
       <div class="hero-content">
         <div class="hero-chip afu">
           <span class="hero-chip-dot"></span>
@@ -106,7 +103,7 @@
         <p class="hero-sub afu d2">Magnetic hexagon panels that transform your space into a continuous deep-space mural. Gallery quality. Precision aligned.</p>
         <div class="hero-actions afu d3">
           <a class="btn btn-gold" href="#wall-art" onclick="showPage('wall-art');setActiveNav('wall-art')">Shop Wall Art</a>
-          <a class="btn btn-ghost" href="#about"   onclick="showPage('about');setActiveNav('about')">Our craft</a>
+          <a class="btn btn-ghost" href="#about" onclick="showPage('about');setActiveNav('about')" style="color:#fff;border-color:rgba(255,255,255,0.35);">Our craft</a>
         </div>
         <div class="hero-stats afu d4">
           <div class="hero-stat"><div class="hero-stat-num">12</div><div class="hero-stat-label">Series</div></div>
@@ -122,9 +119,15 @@
       <div class="marquee-track" id="marquee-track"></div>
     </div>
 
-    <!-- FEATURED SPOTLIGHT — populated by renderFeatured() -->
+    <!-- FEATURED SETS — rendered from Supabase via load-catalogue -->
     <section class="home-spotlight-section">
-      <div id="featured-spotlight-wrap"></div>
+      <div style="padding:48px 24px 0;max-width:1200px;margin:0 auto;">
+        <p class="section-eyebrow">Featured sets</p>
+        <h2 style="font-family:var(--fd);font-size:clamp(2rem,4vw,3.2rem);font-weight:300;letter-spacing:-.01em;margin-bottom:32px;">Chosen for your walls</h2>
+      </div>
+      <div id="featured-spotlight-wrap" style="padding:0 24px;max-width:1200px;margin:0 auto;">
+        <p style="color:var(--muted);font-size:.88rem;">Loading collections…</p>
+      </div>
       <div class="home-spotlight-footer">
         <a class="btn btn-ghost btn-sm" href="#wall-art" data-route="wall-art"
            onclick="showPage('wall-art');setActiveNav('wall-art')">View all wall art →</a>
@@ -162,7 +165,7 @@
 
   </div><!-- /home -->
 
-  <!-- ── WALL ART ───────────────────────────────────── -->
+  <!-- WALL ART PAGE -->
   <div class="page" data-page="wall-art">
     <section class="section">
       <div class="section-head">
@@ -176,7 +179,7 @@
     </section>
   </div>
 
-  <!-- ── ARTIFACTS ──────────────────────────────────── -->
+  <!-- ARTIFACTS PAGE -->
   <div class="page" data-page="artifacts">
     <div class="artifacts-hero">
       <p class="section-eyebrow">Collector's edition</p>
@@ -188,7 +191,7 @@
     <div class="artifact-grid" id="artifacts-grid"></div>
   </div>
 
-  <!-- ── BUNDLES ────────────────────────────────────── -->
+  <!-- BUNDLES PAGE -->
   <div class="page" data-page="bundles">
     <section class="section">
       <div class="section-head">
@@ -201,7 +204,7 @@
     </section>
   </div>
 
-  <!-- ── ABOUT ──────────────────────────────────────── -->
+  <!-- ABOUT PAGE -->
   <div class="page" data-page="about">
     <section class="section">
       <div class="section-head">
@@ -220,15 +223,21 @@
           </p>
           <div class="feature-list">
             <div class="feature-item">
-              <div class="feature-icon">🖼️</div>
+              <div class="feature-icon" style="font-size:1rem;display:flex;align-items:center;justify-content:center;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+              </div>
               <div><h4>Gallery aluminium print</h4><p>Ultra-vivid, anti-glare surface. Colours that endure for decades without fading.</p></div>
             </div>
             <div class="feature-item">
-              <div class="feature-icon">🧲</div>
+              <div class="feature-icon" style="font-size:1rem;display:flex;align-items:center;justify-content:center;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+              </div>
               <div><h4>Magnetic alignment system</h4><p>Rare-earth magnets embedded in every edge. Panels click into place within a millimetre.</p></div>
             </div>
             <div class="feature-item">
-              <div class="feature-icon">📐</div>
+              <div class="feature-icon" style="font-size:1rem;display:flex;align-items:center;justify-content:center;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/></svg>
+              </div>
               <div><h4>Precision hexagon cut</h4><p>CNC-routed to ±0.2 mm tolerance. Every tiling is seamless.</p></div>
             </div>
           </div>
@@ -237,21 +246,19 @@
     </section>
   </div>
 
-  <!-- ── PRODUCT DETAIL (dynamic) ───────────────────── -->
+  <!-- PRODUCT DETAIL -->
   <div class="page" data-page="product">
     <div class="product-wrap" id="product-detail-wrap"></div>
   </div>
 
-  <!-- ── CHECKOUT ──────────────────────────────────── -->
+  <!-- CHECKOUT -->
   <div class="page" data-page="checkout">
     <div style="max-width:600px;margin:0 auto;padding:56px 24px 100px;">
       <div id="checkout-inner"></div>
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════════════════
-       FOOTER
-  ══════════════════════════════════════════════════════ -->
+  <!-- FOOTER -->
   <footer>
     <div class="footer-inner">
       <div class="footer-brand">
@@ -284,103 +291,33 @@
     </div>
   </footer>
 
-  <!-- ══════════════════════════════════════════════════════
-       SCRIPTS
-       NOTE: No scroll-listener that toggles nav.scrolled class.
-             The nav style is constant — no JS scroll events needed.
-  ══════════════════════════════════════════════════════ -->
   <script>
-    /* ─── DATA ──────────────────────────────────────────── */
-    var featuredSlugs = ['andromeda-galaxy'];
+    /* ── CATALOGUE STATE ── */
+    var products      = [];
+    var bundles       = [];
+    var artifacts     = [];
+    var featuredSlugs = [];
 
-    var products = [
-      {
-        slug: 'andromeda-galaxy',
-        name: 'Andromeda Galaxy',
-        category: 'Deep Space',
-        tagline: 'Our nearest galactic neighbour, rendered in extraordinary detail.',
-        image: 'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=900&q=80',
-        price: 149,
-        pieces: 7,
-        isPublished: true,
-        description: 'A sweeping view of the Andromeda Galaxy (M31) — 2.537 million light-years away and the closest spiral galaxy to the Milky Way. Captured by the Hubble Space Telescope and rendered across seven magnetically-aligned hexagonal panels.'
-      },
-      {
-        slug: 'aurora-over-earth',
-        name: 'Aurora Over Earth',
-        category: 'Earth Views',
-        tagline: 'The aurora australis as seen from the ISS.',
-        image: 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?auto=format&fit=crop&w=900&q=80',
-        price: 129,
-        pieces: 5,
-        isPublished: true,
-        description: 'Photographed by astronauts aboard the International Space Station as it passed over the southern hemisphere. The electric greens and purples of the aurora australis arch across five panels.'
-      },
-      {
-        slug: 'pillars-of-creation',
-        name: 'Pillars of Creation',
-        category: 'Nebulae',
-        tagline: 'The Eagle Nebula\'s iconic star-forming columns.',
-        image: 'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?auto=format&fit=crop&w=900&q=80',
-        price: 169,
-        pieces: 9,
-        isPublished: true,
-        description: 'One of the most iconic images in the history of astronomy. The Pillars of Creation in the Eagle Nebula (M16), reimagined across nine panels in the James Webb Space Telescope\'s near-infrared palette.'
-      },
-      {
-        slug: 'moon-landing',
-        name: 'Moon Landing',
-        category: 'Historic',
-        tagline: 'Apollo 11. July 1969. The defining moment.',
-        image: 'https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?auto=format&fit=crop&w=900&q=80',
-        price: 139,
-        pieces: 3,
-        isPublished: true,
-        description: 'Restored and colour-graded from the original NASA photography archive. Buzz Aldrin descends the Eagle\'s ladder onto the Sea of Tranquillity, captured in a three-panel triptych.'
-      }
-    ];
+    /* ── LOAD FROM SUPABASE via existing load-catalogue function ── */
+    fetch('/.netlify/functions/load-catalogue')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        products      = data.products      || [];
+        bundles       = data.bundles       || [];
+        artifacts     = data.artifacts     || [];
+        featuredSlugs = data.featuredSlugs || [];
+        renderFeatured();
+        renderWallArt();
+        renderBundles();
+        renderArtifacts();
+      })
+      .catch(function(err) {
+        console.error('Failed to load catalogue:', err);
+        var wrap = document.getElementById('featured-spotlight-wrap');
+        if (wrap) wrap.innerHTML = '<p style="color:var(--muted);font-size:.88rem;">Unable to load products. Please refresh.</p>';
+      });
 
-    var bundles = [
-      {
-        slug: 'deep-space-duo',
-        name: 'Deep Space Duo',
-        tagline: 'Andromeda Galaxy + Pillars of Creation',
-        image: 'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=900&q=80',
-        price: 289,
-        includes: ['Andromeda Galaxy (7 panels)', 'Pillars of Creation (9 panels)', 'Magnetic wall mounts'],
-        isPublished: true
-      },
-      {
-        slug: 'earth-sky-bundle',
-        name: 'Earth & Sky',
-        tagline: 'Aurora Over Earth + Moon Landing',
-        image: 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?auto=format&fit=crop&w=900&q=80',
-        price: 239,
-        includes: ['Aurora Over Earth (5 panels)', 'Moon Landing (3 panels)', 'Gift packaging'],
-        isPublished: true
-      }
-    ];
-
-    var artifacts = [
-      {
-        slug: 'meteorite-fragment',
-        name: 'Pallasite Meteorite',
-        tag: 'Authentic specimen',
-        description: 'A genuine pallasite meteorite slice, approx. 4.5 billion years old. Museum-quality display mount included.',
-        image: 'https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?auto=format&fit=crop&w=600&q=80',
-        price: 249
-      },
-      {
-        slug: 'apollo-mission-patch',
-        name: 'Apollo Mission Patch Set',
-        tag: 'Archival reproduction',
-        description: 'Officially licensed reproductions of all 17 Apollo mission patches, frameable in the included display case.',
-        image: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?auto=format&fit=crop&w=600&q=80',
-        price: 89
-      }
-    ];
-
-    /* ─── UTILITY ───────────────────────────────────────── */
+    /* ── UTILITY ── */
     function gbp(n) {
       return '£' + Number(n).toFixed(2).replace(/\.00$/, '');
     }
@@ -395,18 +332,18 @@
       setTimeout(function() { t.remove(); }, 2600);
     }
 
-    /* ─── BASKET ────────────────────────────────────────── */
+    /* ── BASKET ── */
     var basket = [];
 
     function addToBasket(slug, qty) {
       qty = qty || 1;
       var p = products.find(function(x) { return x.slug === slug; })
-           || bundles.find(function(x) { return x.slug === slug; })
-           || artifacts.find(function(x) { return x.slug === slug; });
+           || bundles.find(function(x)  { return x.slug === slug; })
+           || artifacts.find(function(x){ return x.slug === slug; });
       if (!p) return;
       var existing = basket.find(function(i) { return i.slug === slug; });
       if (existing) { existing.qty += qty; }
-      else { basket.push({ slug: slug, name: p.name, price: p.price, image: p.image, qty: qty }); }
+      else { basket.push({ slug: slug, name: p.name, price: Number(p.price), image: p.image || '', qty: qty }); }
       updateBasketBadge();
       showToast('Added to basket — ' + p.name);
     }
@@ -443,10 +380,10 @@
     }
 
     function renderBasket() {
-      var body = document.getElementById('basket-body');
+      var body   = document.getElementById('basket-body');
       var footer = document.getElementById('basket-footer');
       if (!basket.length) {
-        body.innerHTML = '<div class="empty-basket"><div class="empty-basket-icon">🛒</div><p style="color:var(--muted)">Your basket is empty.</p></div>';
+        body.innerHTML   = '<div class="empty-basket"><div class="empty-basket-icon" style="font-size:2.8rem;margin-bottom:14px;opacity:.2;">—</div><p style="color:var(--muted)">Your basket is empty.</p></div>';
         footer.innerHTML = '';
         return;
       }
@@ -473,17 +410,17 @@
           '<div class="basket-summary-row"><span>Shipping</span><span style="color:var(--success)">Free</span></div>' +
           '<div class="basket-summary-row total"><span>Total</span><strong>' + gbp(subtotal) + '</strong></div>' +
         '</div>' +
-        '<p class="shipping-note">✓ Free UK shipping on all orders</p>' +
+        '<p class="shipping-note">Free UK shipping on all orders</p>' +
         '<button class="btn btn-primary" style="width:100%;" onclick="showPage(\'checkout\');closeBasket();">Proceed to Checkout</button>';
     }
 
-    /* ─── PAGES ─────────────────────────────────────────── */
+    /* ── PAGES ── */
     function showPage(name) {
       document.querySelectorAll('.page').forEach(function(p) {
         p.classList.remove('active');
-        p.style.display = 'none';
-        p.style.opacity = '0';
-        p.style.transform = 'translateY(12px)';
+        p.style.display    = 'none';
+        p.style.opacity    = '0';
+        p.style.transform  = 'translateY(12px)';
       });
       var page = document.querySelector('[data-page="' + name + '"]');
       if (!page) return;
@@ -501,7 +438,7 @@
       });
     }
 
-    /* ─── ROUTER ────────────────────────────────────────── */
+    /* ── ROUTER ── */
     function router() {
       var hash = location.hash.replace('#', '');
       if (!hash) hash = 'home';
@@ -523,49 +460,86 @@
       }
     }
 
-    /* ─── RENDER FEATURED ───────────────────────────────── */
+    /* ── RENDER FEATURED ── */
     /*
-      Renders the hero spotlight card into #featured-spotlight-wrap.
-      Uses featuredSlugs[0] if available, otherwise falls back to
-      first published product.
+      Uses featuredSlugs from load-catalogue (your featured_slugs table),
+      matched against products loaded from Supabase.
+      Renders a grid of spotlight cards.
     */
     function renderFeatured() {
       var wrap = document.getElementById('featured-spotlight-wrap');
       if (!wrap) return;
 
-      var p = null;
-      if (featuredSlugs && featuredSlugs.length) {
-        p = products.find(function(x) { return x.slug === featuredSlugs[0]; });
-      }
-      if (!p && products.length) {
-        p = products.find(function(x) { return x.isPublished !== false; }) || products[0];
-      }
-      if (!p) { wrap.innerHTML = ''; return; }
+      var featured = [];
+      featuredSlugs.forEach(function(slug) {
+        var p = products.find(function(x) { return x.slug === slug && x.isPublished !== false; });
+        if (p) featured.push(p);
+      });
 
-      wrap.innerHTML =
-        '<a class="spl-card" href="#product/' + p.slug + '"' +
-        ' onclick="event.preventDefault();location.hash=\'#product/' + p.slug + '\';router();">' +
-          '<img class="spl-card-img" src="' + p.image + '" alt="' + p.name + '" loading="eager"/>' +
+      if (!featured.length) {
+        /* Fall back to first 3 published products if featured_slugs don't match */
+        featured = products.filter(function(p) { return p.isPublished !== false; }).slice(0, 3);
+      }
+
+      if (!featured.length) {
+        wrap.innerHTML = '<p style="color:var(--muted);font-size:.88rem;">No products found.</p>';
+        return;
+      }
+
+      /* Render the first featured item as a large spotlight card,
+         remaining ones as a secondary row */
+      var main = featured[0];
+      var rest = featured.slice(1, 4);
+
+      var html =
+        '<a class="spl-card" href="#product/' + main.slug + '"' +
+        ' onclick="event.preventDefault();location.hash=\'#product/' + main.slug + '\';router();">' +
+          '<img class="spl-card-img" src="' + (main.image || '') + '" alt="' + main.name + '" loading="eager"/>' +
           '<div class="spl-card-overlay">' +
             '<div class="spl-card-eyebrow">Featured series</div>' +
-            '<div class="spl-card-name">' + p.name + '</div>' +
+            '<div class="spl-card-name">' + main.name + '</div>' +
             '<div class="spl-card-sub">' +
-              (p.category || '') +
-              (p.pieces ? ' · ' + p.pieces + ' panels' : '') +
-              (p.price  ? ' · ' + gbp(p.price) : '') +
+              (main.category || '') +
+              (main.pieces  ? ' · ' + main.pieces + ' panels' : '') +
+              (main.price   ? ' · ' + gbp(main.price) : '') +
             '</div>' +
           '</div>' +
         '</a>';
+
+      if (rest.length) {
+        html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-top:16px;">';
+        rest.forEach(function(p) {
+          html +=
+            '<a class="spl-card" href="#product/' + p.slug + '"' +
+            ' onclick="event.preventDefault();location.hash=\'#product/' + p.slug + '\';router();"' +
+            ' style="min-height:220px;border-radius:16px;">' +
+              '<img class="spl-card-img" src="' + (p.image || '') + '" alt="' + p.name + '" loading="lazy"/>' +
+              '<div class="spl-card-overlay">' +
+                '<div class="spl-card-eyebrow">Series</div>' +
+                '<div class="spl-card-name" style="font-size:1rem;">' + p.name + '</div>' +
+                '<div class="spl-card-sub">' +
+                  (p.category || '') +
+                  (p.pieces  ? ' · ' + p.pieces + ' panels' : '') +
+                  (p.price   ? ' · ' + gbp(p.price) : '') +
+                '</div>' +
+              '</div>' +
+            '</a>';
+        });
+        html += '</div>';
+      }
+
+      wrap.innerHTML = html;
     }
 
-    /* ─── RENDER WALL ART PAGE ──────────────────────────── */
+    /* ── RENDER WALL ART ── */
     function renderWallArt() {
       var grid = document.getElementById('wall-art-grid');
       if (!grid) return;
-      grid.innerHTML = products.filter(function(p) { return p.isPublished !== false; }).map(function(p) {
+      var visible = products.filter(function(p) { return p.isPublished !== false; });
+      grid.innerHTML = visible.map(function(p) {
         return '<div class="card">' +
           '<div class="card-media">' +
-            '<img src="' + p.image + '" alt="' + p.name + '" loading="lazy"/>' +
+            '<img src="' + (p.image || '') + '" alt="' + p.name + '" loading="lazy"/>' +
             '<div class="badge-row">' +
               '<span class="badge">' + (p.category || '') + '</span>' +
               (p.pieces ? '<span class="badge badge-accent">' + p.pieces + ' panels</span>' : '') +
@@ -573,7 +547,7 @@
           '</div>' +
           '<div class="card-body">' +
             '<h3>' + p.name + '</h3>' +
-            '<p class="muted">' + (p.tagline || '') + '</p>' +
+            '<p class="muted">' + (p.short || '') + '</p>' +
             '<div class="price">' + gbp(p.price) + '</div>' +
             '<div class="card-actions">' +
               '<button class="btn btn-primary btn-sm" onclick="addToBasket(\'' + p.slug + '\')">Add to Basket</button>' +
@@ -584,51 +558,51 @@
       }).join('');
     }
 
-    /* ─── RENDER BUNDLES PAGE ───────────────────────────── */
+    /* ── RENDER BUNDLES ── */
     function renderBundles() {
       var grid = document.getElementById('bundles-grid');
       if (!grid) return;
-      grid.innerHTML = bundles.filter(function(b) { return b.isPublished !== false; }).map(function(b) {
+      grid.innerHTML = bundles.map(function(b) {
         return '<div class="card bundle-card">' +
           '<div class="card-media">' +
-            '<img src="' + b.image + '" alt="' + b.name + '" loading="lazy"/>' +
+            '<img src="' + (b.image || '') + '" alt="' + b.name + '" loading="lazy"/>' +
           '</div>' +
           '<div class="bundle-card-inner">' +
             '<h3 style="font-family:var(--fd);font-size:1.3rem;font-weight:400;margin-bottom:6px;">' + b.name + '</h3>' +
-            '<p class="muted">' + b.tagline + '</p>' +
+            '<p class="muted">' + (b.text || '') + '</p>' +
             '<div class="price">' + gbp(b.price) + '</div>' +
           '</div>' +
           '<div class="bundle-includes">' +
-            (b.includes || []).map(function(inc) { return '<span>' + inc + '</span>'; }).join('') +
+            (b.items || []).map(function(inc) { return '<span>' + (typeof inc === 'string' ? inc : (inc.name || '')) + '</span>'; }).join('') +
           '</div>' +
-          '<div class="card-actions">' +
+          '<div class="card-actions" style="padding:16px 24px;border-top:1px solid var(--border);margin:0;">' +
             '<button class="btn btn-primary btn-sm" onclick="addToBasket(\'' + b.slug + '\')">Add Bundle to Basket</button>' +
           '</div>' +
         '</div>';
       }).join('');
     }
 
-    /* ─── RENDER ARTIFACTS PAGE ─────────────────────────── */
+    /* ── RENDER ARTIFACTS ── */
     function renderArtifacts() {
       var grid = document.getElementById('artifacts-grid');
       if (!grid) return;
       grid.innerHTML = artifacts.map(function(a) {
         return '<div class="artifact-card">' +
-          '<img class="artifact-card-img" src="' + a.image + '" alt="' + a.name + '" loading="lazy"/>' +
+          '<img class="artifact-card-img" src="' + (a.image || '') + '" alt="' + a.name + '" loading="lazy"/>' +
           '<div class="artifact-card-body">' +
-            '<span class="artifact-tag">' + a.tag + '</span>' +
+            '<span class="artifact-tag">' + (a.category || '') + '</span>' +
             '<h3>' + a.name + '</h3>' +
-            '<p>' + a.description + '</p>' +
+            '<p>' + (a.desc || a.description || '') + '</p>' +
             '<div class="artifact-price">' + gbp(a.price) + '</div>' +
-            '<button class="btn btn-primary btn-sm" onclick="addToBasket(\'' + a.slug + '\')">Add to Basket</button>' +
+            '<button class="btn btn-primary btn-sm" onclick="addToBasket(\'' + (a.slug || a.name) + '\')">Add to Basket</button>' +
           '</div>' +
         '</div>';
       }).join('');
     }
 
-    /* ─── RENDER PRODUCT DETAIL ─────────────────────────── */
+    /* ── RENDER PRODUCT DETAIL ── */
     function renderProduct(slug) {
-      var p = products.find(function(x) { return x.slug === slug; });
+      var p    = products.find(function(x) { return x.slug === slug; });
       var wrap = document.getElementById('product-detail-wrap');
       if (!p || !wrap) return;
 
@@ -642,11 +616,11 @@
         '</div>' +
         '<div class="product-hero">' +
           '<div class="product-media">' +
-            '<img src="' + p.image + '" alt="' + p.name + '"/>' +
+            '<img src="' + (p.image || '') + '" alt="' + p.name + '"/>' +
           '</div>' +
           '<div class="product-info">' +
             '<h2>' + p.name + '</h2>' +
-            '<p class="product-tagline">' + (p.tagline || '') + '</p>' +
+            '<p class="product-tagline">' + (p.short || '') + '</p>' +
             '<div class="product-price-row">' +
               '<span class="product-price-main">' + gbp(p.price) + '</span>' +
               (p.pieces ? '<span class="product-price-range">' + p.pieces + '-panel set</span>' : '') +
@@ -655,41 +629,36 @@
             '<div class="specs">' +
               '<div class="spec"><span>Category</span><strong>' + (p.category || '—') + '</strong></div>' +
               '<div class="spec"><span>Panels</span><strong>' + (p.pieces || '—') + '</strong></div>' +
-              '<div class="spec"><span>Material</span><strong>Aluminium print</strong></div>' +
+              '<div class="spec"><span>Material</span><strong>' + (p.material || 'Aluminium print') + '</strong></div>' +
               '<div class="spec"><span>Alignment</span><strong>Magnetic</strong></div>' +
             '</div>' +
             '<div class="product-actions">' +
               '<button class="btn btn-gold" onclick="addToBasket(\'' + p.slug + '\')">Add to Basket — ' + gbp(p.price) + '</button>' +
             '</div>' +
-            '<div class="notice">🚀 Made to order — allow 5–7 working days. Free tracked UK delivery included.</div>' +
+            '<div class="notice">Made to order — allow 5–7 working days. Free tracked UK delivery included.</div>' +
           '</div>' +
         '</div>';
     }
 
-    /* ─── MARQUEE ───────────────────────────────────────── */
+    /* ── MARQUEE ── */
     function initMarquee() {
-      var items = ['Gallery aluminium print', 'Magnetic alignment', 'Free UK shipping', 'Made to order', 'CNC precision cut', 'Gallery quality', 'Easy installation', 'Rearrange anytime'];
+      var items = ['Gallery aluminium print','Magnetic alignment','Free UK shipping','Made to order','CNC precision cut','Gallery quality','Easy installation','Rearrange anytime'];
       var track = document.getElementById('marquee-track');
       if (!track) return;
       var html = items.map(function(t) { return '<span class="marquee-item">' + t + '</span>'; }).join('');
-      track.innerHTML = html + html; // doubled for seamless loop
+      track.innerHTML = html + html;
     }
 
-    /* ─── BACK TO TOP ───────────────────────────────────── */
+    /* ── BACK TO TOP ── */
     window.addEventListener('scroll', function() {
       var btn = document.getElementById('back-to-top');
       if (btn) btn.classList.toggle('visible', window.scrollY > 400);
     }, { passive: true });
 
-    /* ─── INIT ──────────────────────────────────────────── */
+    /* ── INIT ── */
     window.addEventListener('hashchange', router);
-
     document.addEventListener('DOMContentLoaded', function() {
       initMarquee();
-      renderFeatured();
-      renderWallArt();
-      renderBundles();
-      renderArtifacts();
       router();
     });
   </script>
