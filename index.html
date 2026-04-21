@@ -96,6 +96,9 @@ nav { position: relative; }
   .nav-logo-img { height: 48px; }
   .mobile-bottom-nav { display: flex !important; }
 }
+
+
+  
 </style>
 </head>
 <body>
@@ -435,7 +438,9 @@ function teamLogin(){
   var pw=document.getElementById('team-password').value;
   var err=document.getElementById('team-error');
   err.style.display='none';
-  fetch('/.netlify/functions/auth',{method:'POST',body:JSON.stringify({password:pw})}).then(function(r){return r.json();}).then(function(d){if(d.ok){sessionStorage.setItem('admin','1');sessionStorage.setItem('admin_pw',pw);window.location.href='/admin/creator.html';}else{err.style.display='block';document.getElementById('team-password').value='';}}).catch(function(){err.style.display='block';});
+  var btn=document.querySelector('.team-login-form .btn-primary');
+  if(btn){btn.disabled=true;btn.textContent='Signing in…';}
+  fetch('/.netlify/functions/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw})}).then(function(r){return r.json();}).then(function(d){if(d.ok){sessionStorage.setItem('admin','1');sessionStorage.setItem('admin_pw',pw);window.location.href='/admin/';}else{err.style.display='block';document.getElementById('team-password').value='';if(btn){btn.disabled=false;btn.textContent='Enter Creator →';}}}).catch(function(){err.style.display='block';if(btn){btn.disabled=false;btn.textContent='Enter Creator →';}});
 }
 
 /* ═══ BASKET ═══ */
@@ -605,11 +610,113 @@ function renderCollections(){var grid=document.getElementById('collections-grid'
 /* ═══ BACK TO TOP ═══ */
 window.addEventListener('scroll',function(){var btn=document.getElementById('back-to-top');if(btn)btn.classList.toggle('visible',window.scrollY>400);},{passive:true});
 
+/* ═══ NAV SCROLL EFFECT ═══ */
+window.addEventListener('scroll',function(){
+  var nav=document.querySelector('nav');
+  if(nav)nav.classList.toggle('scrolled',window.scrollY>10);
+},{passive:true});
+  
 /* ═══ INIT ═══ */
-updateBadge();renderDrawer();
-window.addEventListener('hashchange',router);
-(function(){var nav=document.getElementById('mobile-bottom-nav');function c(){if(nav)nav.style.display=window.innerWidth<=430?'flex':'none';}c();window.addEventListener('resize',c);})();
-loadCatalogue().then(function(){router();});
-</script>
-</body>
-</html>
+updateBadge();
+renderDrawer();
+
+/* ═══ LAZY IMAGE OBSERVER ═══ */
+(function(){
+  if(!('IntersectionObserver' in window)) return;
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){
+        var img = e.target;
+        if(img.dataset.src){ img.src = img.dataset.src; delete img.dataset.src; }
+        img.addEventListener('load', function(){ img.classList.add('loaded'); });
+        io.unobserve(img);
+      }
+    });
+  }, { rootMargin: '200px' });
+  document.querySelectorAll('img[loading="lazy"]').forEach(function(img){ io.observe(img); });
+})();
+
+/* ═══ NAV SCROLL EFFECT ═══ */
+window.addEventListener('scroll', function(){
+  var nav = document.querySelector('nav');
+  if(nav) nav.classList.toggle('scrolled', window.scrollY > 10);
+}, { passive: true });
+
+/* ═══ BACK TO TOP ═══ */
+(function(){
+  var btn = document.getElementById('back-to-top');
+  if(!btn) return;
+  window.addEventListener('scroll', function(){
+    btn.classList.toggle('visible', window.scrollY > 400);
+  }, { passive: true });
+  btn.addEventListener('click', function(){
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+})();
+
+/* ═══ FADE-UP OBSERVER ═══ */
+(function(){
+  if(!('IntersectionObserver' in window)) return;
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){
+        e.target.style.animationPlayState = 'running';
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.afu').forEach(function(el){
+    el.style.animationPlayState = 'paused';
+    io.observe(el);
+  });
+})();
+
+/* ═══ MOBILE NAV ACTIVE STATE ═══ */
+(function(){
+  document.querySelectorAll('.mobile-nav-item').forEach(function(item){
+    item.addEventListener('click', function(){
+      document.querySelectorAll('.mobile-nav-item').forEach(function(i){ i.classList.remove('active'); });
+      item.classList.add('active');
+    });
+  });
+})();
+
+/* ═══ STICKY ADD BAR ═══ */
+(function(){
+  var bar = document.querySelector('.sticky-add-bar');
+  if(!bar) return;
+  var trigger = document.querySelector('.product-actions');
+  if(!trigger) return;
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      bar.classList.toggle('visible', !e.isIntersecting);
+    });
+  }, { threshold: 0 });
+  io.observe(trigger);
+})();
+
+/* ═══ KEYBOARD SHORTCUTS ═══ */
+document.addEventListener('keydown', function(e){
+  /* Escape closes basket drawer */
+  if(e.key === 'Escape'){
+    var drawer = document.getElementById('basket-drawer');
+    var overlay = document.getElementById('basket-overlay');
+    if(drawer && drawer.classList.contains('open')){
+      drawer.classList.remove('open');
+      if(overlay) overlay.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  }
+  /* Slash key focuses search if it exists */
+  if(e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA'){
+    var search = document.querySelector('.search-input');
+    if(search){ e.preventDefault(); search.focus(); }
+  }
+});
+
+/* ═══ SMOOTH PAGE TRANSITIONS ═══ */
+(function(){
+  /* Ensure active page is visible on load */
+  var active = document.querySelector('.page.active');
+  if(active) active.style.opacity = '1';
+})();
