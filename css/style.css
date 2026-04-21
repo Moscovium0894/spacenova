@@ -75,23 +75,34 @@ img, svg, canvas, video { max-width: 100%; display: block; }
 
 /* ── PAGE TRANSITION ── */
 .page { display: none; opacity: 0; transform: translateY(12px); }
-.page.active { display: block; animation: pageFadeIn .38s cubic-bezier(.22,1,.36,1) forwards; }
+.page.active {
+  padding-top: var(--nav-h);
+}
+[data-page="home"].page.active {
+  padding-top: 0;
+}
 @keyframes pageFadeIn { to { opacity: 1; transform: translateY(0); } }
 
 /* ── NAV ── */
 nav {
   display: flex;
   align-items: center;
-  padding: max(env(safe-area-inset-top), 0px) 28px 0;
+  padding: 0 28px;
   height: var(--nav-h);
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 100;
-  background: rgba(255,255,255,.88);
-  backdrop-filter: var(--blur);
-  -webkit-backdrop-filter: var(--blur);
+  background: rgba(255,255,255,.72);
+  backdrop-filter: saturate(180%) blur(28px);
+  -webkit-backdrop-filter: saturate(180%) blur(28px);
   border-bottom: 1px solid var(--border);
   transition: background .3s, box-shadow .3s;
+}
+nav.scrolled {
+  background: rgba(255,255,255,.90);
+  box-shadow: 0 1px 20px rgba(0,0,0,.08);
 }
 nav.scrolled {
   box-shadow: 0 1px 20px rgba(0,0,0,.08);
