@@ -1,33 +1,43 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-<meta name="theme-color" content="#ffffff"/>
-<link rel="manifest" href="/site.webmanifest"/>
-<link rel="icon" href="/favicon.ico" sizes="any"/>
-<link rel="icon" href="/Spacenovafavicon.png" type="image/png"/>
-<link rel="apple-touch-icon" href="/Spacenovafavicon.png"/>
-<link rel="icon" type="image/png" sizes="32x32" href="/Spacenovafavicon.png?v=3"/>
-<link rel="icon" type="image/png" sizes="192x192" href="/Spacenovafavicon.png?v=3"/>
-<meta property="og:image" content="https://www.spacenova.co.uk/Spacenovafavicon.png"/>
-<meta name="twitter:image" content="https://www.spacenova.co.uk/Spacenovafavicon.png"/>
-<title>Modular Hexagon Space Wall Art | Spacenova</title>
-<meta name="description" content="Luxury magnetic space wall art. Modular hexagon panels with inspiring deep-space imagery. Designed for premium modern spaces."/>
-<meta property="og:type" content="website"/>
-<meta property="og:title" content="Spacenova — Magnetic Space Wall Art"/>
-<meta property="og:description" content="Multi-panel magnetic sets with gallery-quality printing."/>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="css/style.css"/>
-<script src="https://js.stripe.com/v3/"></script>
-<script>
-  window.ENV = {
-    STRIPE_PUBLISHABLE_KEY: "pk_live_51TNtFFGnvROGMUU3OTHqQLdFA6BL1hee48MJqm9wFqBylclW6hgy7cSIJDsbO7rs2sKpHr1XWI0Z8AGYv8d7hTBu00tRsWW7mr"
-  };
-</script>
-<style>
-/* ── STOREFRONT-SPECIFIC ENHANCEMENTS ── */
+<!--
+  SPACENOVA — HOME PAGE PATCH
+  ═══════════════════════════
+  Drop these sections into index.html as described.
+  Each block is labelled with exactly what it replaces.
+-->
+
+<!-- ─────────────────────────────────────────────────────
+  1. REPLACE the entire <style> block inside <head>
+     (everything between <style> and </style> in the <head>)
+────────────────────────────────────────────────────── -->
+<style id="REPLACE_INLINE_STYLE_IN_HEAD">
+/* ══ SPACENOVA STOREFRONT STYLES ══ */
+
+/* ── NAV ─────────────────────────────────────────────── */
+/*
+  Fixed, always frosted glass — NO scroll transition.
+  background stays the same regardless of scroll position.
+*/
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 900;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  /* constant frosted glass — scroll does NOT change this */
+  background: rgba(255,255,255,0.72);
+  backdrop-filter: saturate(180%) blur(28px);
+  -webkit-backdrop-filter: saturate(180%) blur(28px);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+/* Remove any .scrolled override so scroll events do nothing visual */
+nav.scrolled {
+  background: rgba(255,255,255,0.72);
+  box-shadow: none;
+}
+
 .nav-logo-img {
   height: 18px;
   width: auto;
@@ -42,29 +52,9 @@
   flex: 0 0 auto;
   height: 100%;
 }
-nav {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 900;
-  height: 52px;
-  display: flex;
-  align-items: center;
-  padding: 0 24px;
-  background: rgba(255,255,255,0.72);
-  backdrop-filter: saturate(180%) blur(28px);
-  -webkit-backdrop-filter: saturate(180%) blur(28px);
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  transition: background .3s, box-shadow .3s;
-}
-nav.scrolled {
-  background: rgba(255,255,255,0.88);
-  box-shadow: 0 1px 24px rgba(0,0,0,0.07);
-}
 .nav-links {
   position: absolute; left: 50%; top: 50%;
-  transform: translate(-50%,-50%);
+  transform: translate(-50%, -50%);
   display: flex; align-items: center;
   justify-content: center; gap: 2px;
   z-index: 1; white-space: nowrap;
@@ -83,7 +73,10 @@ nav.scrolled {
 }
 .nav-link:hover { background: rgba(0,0,0,0.05); color: #111 !important; }
 .nav-link.active { color: #111 !important; background: rgba(0,0,0,0.06); }
+
 .nav-spacer { flex: 1 1 auto; min-width: 0; }
+
+/* Basket button — badge sits INLINE, not absolutely positioned */
 .nav-basket-btn {
   position: relative; z-index: 2; margin-left: auto;
   background: #111 !important; color: #fff !important;
@@ -96,22 +89,151 @@ nav.scrolled {
   display: flex; align-items: center; gap: 6px;
 }
 .nav-basket-btn:hover { opacity: .88; transform: translateY(-1px); }
+
+/* Badge is inline — no absolute positioning */
 .basket-badge {
   background: #f08c1a !important;
-  position: relative !important;
-  top: auto !important; right: auto !important;
-  border: none !important;
-  opacity: 1 !important;
-  transform: none !important;
+  color: #fff !important;
+  border-radius: 999px !important;
+  font-size: .6rem !important;
+  font-weight: 800 !important;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 5px;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0;
+  transition: opacity .2s;
 }
-.basket-badge.visible { opacity: 1 !important; transform: none !important; }
+.basket-badge.visible { opacity: 1 !important; }
 
-/* Push page content below fixed nav */
-body > .page:first-of-type,
-[data-page="home"] { padding-top: 0; }
-.hero { padding-top: calc(52px + 80px) !important; }
+/* ── HERO ─────────────────────────────────────────────── */
+/*
+  Hero fills full viewport from the very top — content sits
+  behind the transparent nav. Internal padding-top clears the nav height.
+*/
+.hero {
+  padding-top: calc(52px + 72px) !important;
+}
 
-/* Hero section refinements */
+/* ── FEATURED SPOTLIGHT ───────────────────────────────── */
+.home-spotlight-section {
+  padding: 0 0 32px;
+  background: #fff;
+}
+.home-spotlight-footer {
+  display: flex;
+  justify-content: center;
+  padding: 20px 16px 0;
+}
+
+.spl-card {
+  position: relative;
+  display: block;
+  width: 100%;
+  text-decoration: none;
+  overflow: hidden;
+  background: #111;
+  cursor: pointer;
+  border-radius: 0;       /* edge-to-edge on mobile */
+  min-height: 70vw;
+  max-height: 92vh;
+}
+@media (min-width: 600px) {
+  .home-spotlight-section { padding: 28px 24px 36px; }
+  .spl-card {
+    border-radius: 22px;
+    min-height: 480px;
+    max-height: 680px;
+  }
+}
+
+.spl-card-img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: center;
+  display: block;
+  transition: transform .65s ease;
+}
+.spl-card:hover .spl-card-img { transform: scale(1.025); }
+
+/* Subtle gradient so overlay doesn't need to work so hard */
+.spl-card::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0,0,0,.32) 0%,
+    rgba(0,0,0,.10) 38%,
+    rgba(0,0,0,0)   62%
+  );
+  pointer-events: none;
+}
+
+/* Frosted glass overlay — light, translucent */
+.spl-card-overlay {
+  position: absolute;
+  left: 14px; right: 14px; bottom: 14px;
+  z-index: 2;
+  background: rgba(235,235,235,.66);
+  backdrop-filter: blur(14px) saturate(1.5);
+  -webkit-backdrop-filter: blur(14px) saturate(1.5);
+  border: 1px solid rgba(255,255,255,.52);
+  border-radius: 18px;
+  padding: 14px 16px;
+  pointer-events: none;
+}
+@media (min-width: 600px) {
+  .spl-card-overlay {
+    left: 20px; right: 20px; bottom: 20px;
+    border-radius: 20px; padding: 16px 20px;
+  }
+}
+
+.spl-card-eyebrow {
+  font-family: var(--fm);
+  font-size: .56rem; font-weight: 700;
+  letter-spacing: .18em; text-transform: uppercase;
+  color: rgba(0,0,0,.48); margin-bottom: 4px;
+}
+.spl-card-name {
+  font-family: var(--fd);
+  font-size: clamp(1.05rem, 4vw, 1.5rem);
+  font-weight: 400; color: #111;
+  letter-spacing: -.02em; line-height: 1.15;
+}
+.spl-card-sub {
+  font-size: .7rem; color: rgba(0,0,0,.44);
+  margin-top: 4px; font-family: var(--fm);
+}
+
+/* ── SECTION RULE ─────────────────────────────────────── */
+.section-rule {
+  height: 1px; width: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(0,0,0,.06) 30%,
+    rgba(0,0,0,.06) 70%,
+    transparent
+  );
+  margin: 0;
+}
+
+/* ── HIDE FEATURE STRIPS COMPLETELY ───────────────────── */
+.feature-strips { display: none !important; }
+
+/* ── MOBILE ───────────────────────────────────────────── */
+@media (max-width: 700px) {
+  .nav-links { display: none; }
+}
+@media (max-width: 932px) {
+  .nav-logo-img { height: 16px; }
+  .mobile-bottom-nav { display: flex !important; }
+  /* Prevent content being hidden behind fixed bottom nav */
+  body { padding-bottom: 64px; }
+}
+
+/* ── HERO CHIP ────────────────────────────────────────── */
 .hero-chip {
   display: inline-flex; align-items: center; gap: 8px;
   background: rgba(255,255,255,.08);
@@ -123,122 +245,15 @@ body > .page:first-of-type,
   letter-spacing: .16em; text-transform: uppercase;
   color: var(--text2); margin-bottom: 28px;
 }
-.hero-chip-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px rgba(240,140,26,.8); animation: blink 2s ease-in-out infinite; }
+.hero-chip-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px rgba(240,140,26,.8);
+  animation: blink 2s ease-in-out infinite;
+}
 @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
 
-/* Product section divider */
-.section-rule {
-  height: 1px; width: 100%;
-  background: linear-gradient(90deg, transparent, rgba(0,0,0,.06) 30%, rgba(0,0,0,.06) 70%, transparent);
-  margin: 0;
-}
-
-/* hide old feature-strips */
-.feature-strips { display: none !important; }
-
-/* ── HOME SPOTLIGHT ── */
-.home-spotlight-section {
-  padding: 20px 0 32px;
-  background: #fff;
-}
-.home-spotlight-footer {
-  display: flex;
-  justify-content: center;
-  padding: 20px 16px 0;
-}
-.spl-card {
-  position: relative;
-  display: block;
-  width: 100%;
-  text-decoration: none;
-  overflow: hidden;
-  background: #0a0a0a;
-  cursor: pointer;
-  min-height: 68vw;
-  max-height: 94vh;
-  border-radius: 0;
-}
-@media(min-width:600px){
-  .home-spotlight-section { padding: 24px 20px 32px; }
-  .spl-card {
-    border-radius: 22px;
-    min-height: 460px;
-    max-height: 680px;
-  }
-}
-.spl-card-img {
-  position: absolute; inset: 0;
-  width: 100%; height: 100%;
-  object-fit: cover; object-position: center;
-  display: block;
-  transition: transform .7s ease;
-}
-.spl-card:hover .spl-card-img { transform: scale(1.03); }
-.spl-card::after {
-  content: '';
-  position: absolute; inset: 0;
-  background: linear-gradient(
-    to top,
-    rgba(0,0,0,.38) 0%,
-    rgba(0,0,0,.12) 38%,
-    rgba(0,0,0,0) 62%
-  );
-  pointer-events: none;
-}
-.spl-card-overlay {
-  position: absolute;
-  left: 14px; right: 14px; bottom: 14px;
-  z-index: 2;
-  background: rgba(232,232,232,.62);
-  backdrop-filter: blur(16px) saturate(1.6);
-  -webkit-backdrop-filter: blur(16px) saturate(1.6);
-  border: 1px solid rgba(255,255,255,.55);
-  border-radius: 18px;
-  padding: 14px 16px;
-  pointer-events: none;
-}
-@media(min-width:600px){
-  .spl-card-overlay {
-    left: 22px; right: 22px; bottom: 22px;
-    border-radius: 22px; padding: 18px 22px;
-  }
-}
-.spl-card-eyebrow {
-  font-family: var(--fm);
-  font-size: .56rem; font-weight: 700;
-  letter-spacing: .18em; text-transform: uppercase;
-  color: rgba(0,0,0,.45); margin-bottom: 5px;
-}
-.spl-card-name {
-  font-family: var(--fd);
-  font-size: clamp(1.05rem, 4vw, 1.55rem);
-  font-weight: 400; color: #111;
-  letter-spacing: -.02em; line-height: 1.12;
-}
-.spl-card-sub {
-  font-size: .68rem; color: rgba(0,0,0,.42);
-  margin-top: 5px; font-family: var(--fm);
-}
-
-@media(max-width:700px){
-  .nav-links { display: none; }
-}
-@media(max-width:932px){
-  .nav-logo-img { height: 16px; }
-  .mobile-bottom-nav { display: flex !important; }
-}
-
-/* Feature highlights */
-.feature-strips { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; margin: 64px 0; }
-.feature-strip { background: var(--bg1); padding: 36px 28px; }
-.feature-strip-icon { font-size: 1.8rem; margin-bottom: 16px; }
-.feature-strip h3 { font-family: var(--fd); font-size: 1.2rem; font-weight: 400; margin-bottom: 8px; letter-spacing: -.005em; }
-.feature-strip p { color: var(--muted); font-size: .85rem; line-height: 1.7; }
-
-/* Product page hexagon overlay */
-.hex-overlay-container { position: relative; border-radius: var(--r); overflow: hidden; }
-
-/* Promo / checkout */
+/* ── PROMO / CHECKOUT (unchanged from original) ───────── */
 .promo-wrap { display: flex; gap: 8px; margin-bottom: 12px; }
 .promo-input { flex: 1; padding: 10px 14px; background: var(--surface); border: 1px solid var(--border2); border-radius: var(--rs); color: var(--text); font-family: var(--fm); font-size: .82rem; letter-spacing: .1em; text-transform: uppercase; outline: none; transition: border-color .2s; }
 .promo-input:focus { border-color: var(--accent); }
@@ -255,185 +270,49 @@ body > .page:first-of-type,
 @keyframes spin { to { transform: rotate(360deg); } }
 .spin { display: inline-block; width: 13px; height: 13px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; vertical-align: middle; }
 .payment-gate-notice { background: rgba(255,67,58,.06); border: 1px solid rgba(255,67,58,.2); border-radius: var(--rs); padding: 12px 16px; font-size: .84rem; color: var(--danger); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
-
-/* Team login */
-.team-login-wrap { display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 56px 24px; text-align: center; }
-
-@media(max-width:700px){
-  .feature-strips { grid-template-columns: 1fr; }
-  .nav-links { display: none; }
-}
-@media(max-width:932px){
-  .nav-logo-img { height: 48px; }
-  .mobile-bottom-nav { display: flex !important; }
-}
-
-/* ── HOME SPOTLIGHT ─────────────────────────── */
-.home-spotlight-section {
-  padding: 0 0 32px;
-  background: #fff;
-}
-.home-spotlight-footer {
-  display: flex;
-  justify-content: center;
-  padding: 20px 16px 0;
-}
-
-/* Single featured card */
-.spl-card {
-  position: relative;
-  display: block;
-  width: 100%;
-  text-decoration: none;
-  overflow: hidden;
-  background: #111;
-  cursor: pointer;
-  border-radius: 0;
-  min-height: 70vw;
-  max-height: 92vh;
-}
-@media(min-width:600px){
-  .home-spotlight-section { padding: 28px 24px 36px; }
-  .spl-card {
-    border-radius: 24px;
-    min-height: 480px;
-    max-height: 680px;
-  }
-}
-
-.spl-card-img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  display: block;
-  transition: transform .6s ease;
-}
-.spl-card:hover .spl-card-img { transform: scale(1.025); }
-
-.spl-card::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, rgba(0,0,0,.30) 0%, rgba(0,0,0,.10) 35%, rgba(0,0,0,0) 60%);
-  pointer-events: none;
-}
-
-.spl-card-overlay {
-  position: absolute;
-  left: 14px; right: 14px; bottom: 14px;
-  z-index: 2;
-  background: rgba(235,235,235,.68);
-  backdrop-filter: blur(14px) saturate(1.4);
-  -webkit-backdrop-filter: blur(14px) saturate(1.4);
-  border: 1px solid rgba(255,255,255,.5);
-  border-radius: 18px;
-  padding: 14px 16px;
-  pointer-events: none;
-}
-@media(min-width:600px){
-  .spl-card-overlay {
-    left: 20px; right: 20px; bottom: 20px;
-    border-radius: 20px;
-    padding: 16px 20px;
-  }
-}
-
-.spl-card-eyebrow {
-  font-family: var(--fm);
-  font-size: .58rem;
-  font-weight: 700;
-  letter-spacing: .16em;
-  text-transform: uppercase;
-  color: rgba(0,0,0,.5);
-  margin-bottom: 5px;
-}
-.spl-card-name {
-  font-family: var(--fd);
-  font-size: clamp(1.05rem, 4vw, 1.5rem);
-  font-weight: 400;
-  color: #111;
-  letter-spacing: -.02em;
-  line-height: 1.15;
-}
-.spl-card-sub {
-  font-size: .72rem;
-  color: rgba(0,0,0,.45);
-  margin-top: 4px;
-  font-family: var(--fm);
-}
-
-/* hide old feature-strips on home */
-.feature-strips { display: none !important; }
-
-/* nav override — make sure old dark nav styles don't bleed through */
-@media(max-width:700px){
-  .nav-links { display: none; }
-}
-  
 </style>
-</head>
-<body>
 
-<button id="back-to-top" title="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
 
-<!-- MOBILE NAV -->
-<nav class="mobile-bottom-nav" id="mobile-bottom-nav" style="display:none">
-  <a class="mobile-nav-item" href="#home" data-route="home">
-    <svg class="mobile-nav-icon" viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg>Home
-  </a>
-  <a class="mobile-nav-item" href="#wall-art" data-route="wall-art">
-    <svg class="mobile-nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Wall Art
-  </a>
-  <a class="mobile-nav-item" href="#artifacts" data-route="artifacts">
-    <svg class="mobile-nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Artifacts
-  </a>
-  <a class="mobile-nav-item" href="#bundles" data-route="bundles">
-    <svg class="mobile-nav-icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>Bundles
-  </a>
-  <button class="mobile-nav-item" onclick="openBasket()">
-    <svg class="mobile-nav-icon" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>Basket
-  </button>
-</nav>
-
-<nav>
+<!-- ─────────────────────────────────────────────────────
+  2. REPLACE the <nav> element HTML
+────────────────────────────────────────────────────── -->
+<nav id="REPLACE_NAV">
   <a class="nav-logo" href="#home">
-    <img src="Spacenovalogocropped.png" alt="spacenova" class="nav-logo-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+    <img src="Spacenovalogocropped.png" alt="spacenova" class="nav-logo-img"
+         onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
     <div class="nav-logo-mark" style="display:none"></div>
   </a>
   <div class="nav-links">
-    <a class="nav-link" href="#home" data-route="home">Home</a>
-    <a class="nav-link" href="#wall-art" data-route="wall-art">Wall Art</a>
+    <a class="nav-link" href="#home"      data-route="home">Home</a>
+    <a class="nav-link" href="#wall-art"  data-route="wall-art">Wall Art</a>
     <a class="nav-link" href="#artifacts" data-route="artifacts">Artifacts</a>
-    <a class="nav-link" href="#bundles" data-route="bundles">Bundles</a>
-    <a class="nav-link" href="#about" data-route="about">About</a>
+    <a class="nav-link" href="#bundles"   data-route="bundles">Bundles</a>
+    <a class="nav-link" href="#about"     data-route="about">About</a>
   </div>
   <div class="nav-spacer"></div>
   <button class="nav-basket-btn" id="nav-basket-btn" onclick="openBasket()" type="button">
-    <svg class="basket-icon" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+    <svg width="13" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+      <line x1="3" y1="6" x2="21" y2="6"/>
+      <path d="M16 10a4 4 0 01-8 0"/>
+    </svg>
     Basket
     <span class="basket-badge" id="basket-badge">0</span>
   </button>
 </nav>
 
-<div id="toast-container"></div>
-<div id="basket-overlay" onclick="closeBasket()"></div>
-<div id="basket-drawer">
-  <div class="drawer-header">
-    <h2>Your Basket</h2>
-    <button class="btn btn-ghost btn-sm" onclick="closeBasket()" type="button">✕</button>
-  </div>
-  <div class="drawer-body" id="drawer-body"></div>
-  <div class="drawer-footer" id="drawer-footer"></div>
-</div>
 
-<!-- ═══ HOME ═══ -->
-<div class="page active" data-page="home">
+<!-- ─────────────────────────────────────────────────────
+  3. REPLACE the <div data-page="home"> content
+     (keep the outer div, replace everything inside)
+────────────────────────────────────────────────────── -->
+<div class="page active" data-page="home" id="REPLACE_HOME_PAGE_CONTENT">
+
+  <!-- HERO — full viewport, sits behind transparent nav -->
   <div class="hero">
     <div class="hero-bg">
-      <img src="https://images.unsplash.com/photo-1446776877081-d282a0f896e2?auto=format&fit=crop&w=2000&q=90" alt="Deep space"/>
+      <img src="https://images.unsplash.com/photo-1446776877081-d282a0f896e2?auto=format&fit=crop&w=2000&q=90"
+           alt="Deep space"/>
     </div>
     <div class="hero-content">
       <div class="hero-chip afu">
@@ -455,549 +334,111 @@ body > .page:first-of-type,
     </div>
   </div>
 
+  <!-- MARQUEE -->
   <div class="marquee-wrap">
     <div class="marquee-track" id="marquee-track"></div>
   </div>
 
-<section class="home-spotlight-section">
-  <div id="featured-spotlight-wrap">
-    <!-- filled by JS -->
-  </div>
-  <div class="home-spotlight-footer">
-    <a class="btn btn-ghost btn-sm" href="#wall-art" data-route="wall-art" onclick="showPage('wall-art');setActiveNav('wall-art')">View all wall art →</a>
-  </div>
-</section>
+  <!-- FEATURED SPOTLIGHT — JS targets #featured-spotlight-wrap -->
+  <section class="home-spotlight-section">
+    <div id="featured-spotlight-wrap">
+      <!-- Populated by renderFeatured() -->
+    </div>
+    <div class="home-spotlight-footer">
+      <a class="btn btn-ghost btn-sm" href="#wall-art" data-route="wall-art"
+         onclick="showPage('wall-art');setActiveNav('wall-art')">View all wall art →</a>
+    </div>
+  </section>
 
   <div class="section-rule"></div>
 
+  <!-- TESTIMONIALS — unchanged -->
   <section class="section">
-    <div class="section-head"><div><p class="section-eyebrow">Happy collectors</p><h2>What people say</h2></div></div>
+    <div class="section-head">
+      <div><p class="section-eyebrow">Happy collectors</p><h2>What people say</h2></div>
+    </div>
     <div class="testimonials">
-      <div class="testimonial"><div class="testimonial-stars">★★★★★</div><p class="testimonial-text">"The Andromeda Galaxy set completely transformed my living room. Magnetic alignment was dead-on and print quality is extraordinary."</p><div class="testimonial-author">James H. — London</div></div>
-      <div class="testimonial"><div class="testimonial-stars">★★★★★</div><p class="testimonial-text">"I ordered the Aurora over Earth for my studio. Colleagues ask about it every single day. Worth every penny."</p><div class="testimonial-author">Priya S. — Edinburgh</div></div>
-      <div class="testimonial"><div class="testimonial-stars">★★★★★</div><p class="testimonial-text">"Shipping was quick, packaging was premium, the Moon Landing triptych looks incredible above my desk."</p><div class="testimonial-author">Marcus L. — Manchester</div></div>
-    </div>
-  </section>
-</div>
-
-<!-- ═══ WALL ART ═══ -->
-<div class="page" data-page="wall-art">
-  <section class="section">
-    <div class="section-head">
-      <div><p class="section-eyebrow">All products</p><h2>Wall Art</h2></div>
-      <div class="search-wrap">
-        <span class="search-icon">⌕</span>
-        <input class="search-input" type="text" id="wallart-search" placeholder="Search series…" oninput="renderWallArt()"/>
+      <div class="testimonial">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-text">"The Andromeda Galaxy set completely transformed my living room. Magnetic alignment was dead-on and print quality is extraordinary."</p>
+        <div class="testimonial-author">James H. — London</div>
       </div>
-    </div>
-    <div class="wa-tabs">
-      <button class="wa-tab active" id="wa-tab-series" onclick="setWaTab('series')">Series</button>
-      <button class="wa-tab" id="wa-tab-collections" onclick="setWaTab('collections')">Collections</button>
-    </div>
-    <div id="wa-series-view">
-      <div class="filter-bar" id="filter-bar"></div>
-      <div id="series-filter-banner"></div>
-      <div class="grid" id="series-grid"></div>
-    </div>
-    <div id="wa-collections-view" style="display:none">
-      <p style="color:var(--muted);font-size:.93rem;line-height:1.7;margin-bottom:28px">Each panel is a standalone portrait — display any combination, in any order.</p>
-      <div class="tiles-grid" id="collections-grid" style="padding:0;max-width:100%"></div>
-    </div>
-  </section>
-</div>
-
-<!-- ═══ ARTIFACTS ═══ -->
-<div class="page" data-page="artifacts">
-  <div class="artifacts-hero">
-    <p class="section-eyebrow">Space-inspired objects</p>
-    <h1 style="font-family:var(--fd);font-size:clamp(2.8rem,6vw,5rem);font-weight:300;margin-bottom:16px;letter-spacing:-.02em">Artifacts</h1>
-    <p style="color:var(--muted);font-size:1rem;max-width:540px;margin:0 auto 48px">Functional objects that bring deep space into everyday life.</p>
-  </div>
-  <div class="artifact-grid" id="artifact-grid"></div>
-  <section class="section" style="padding-top:0;border-top:1px solid var(--border)">
-    <div class="section-head" style="margin-top:64px">
-      <div><p class="section-eyebrow">Source &amp; supply</p><h2>Wholesale sourcing</h2></div>
-    </div>
-    <p style="color:var(--muted);line-height:1.8;max-width:640px;margin-bottom:48px;font-size:.92rem">Platforms for custom-printed artifacts with white-label drop-shipping.</p>
-    <div class="grid" id="wholesale-grid"></div>
-  </section>
-</div>
-
-<!-- ═══ BUNDLES ═══ -->
-<div class="page" data-page="bundles">
-  <section class="section">
-    <div class="section-head">
-      <div><p class="section-eyebrow">Curated sets</p><h2>Bundles</h2></div>
-      <p>Pairs and trios selected for colour harmony and wall proportion.</p>
-    </div>
-    <div class="grid" id="bundle-grid"></div>
-  </section>
-</div>
-
-<!-- ═══ ABOUT ═══ -->
-<div class="page" data-page="about">
-  <section class="section">
-    <div class="about-grid">
-      <div>
-        <p class="section-eyebrow">Our craft</p>
-        <h2 style="font-family:var(--fd);font-size:clamp(2rem,4vw,3.6rem);font-weight:300;margin-bottom:20px;letter-spacing:-.02em">Bringing deep space<br/><em style="font-style:italic;color:var(--gold)">to your walls.</em></h2>
-        <p style="color:var(--muted);line-height:1.85;margin-bottom:16px;font-size:.95rem">Each Spacenova series begins as a single large-format artwork, meticulously divided across 3–9 individually framed panels. Tiny magnets hidden inside each frame ensure precise, clean alignment.</p>
-        <p style="color:var(--muted);line-height:1.85;font-size:.95rem">Gallery-grade materials: heavyweight matte papers, museum-quality UV inks, and matte-black powder-coated aluminium frames. Built to last decades.</p>
-        <div class="feature-list">
-          <div class="feature-item"><div class="feature-icon">🔲</div><div><h4>Magnetic edge alignment</h4><p>Panels snap into precise position. No measuring, no guesswork.</p></div></div>
-          <div class="feature-item"><div class="feature-icon">🎨</div><div><h4>Museum-grade print quality</h4><p>UV-resistant inks on 280gsm cotton rag paper, rated for 100+ years.</p></div></div>
-          <div class="feature-item"><div class="feature-icon">📦</div><div><h4>Premium packaging</h4><p>Each panel ships in a rigid box with foam corners. Free shipping over £300.</p></div></div>
-        </div>
+      <div class="testimonial">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-text">"I ordered the Aurora over Earth for my studio. Colleagues ask about it every single day. Worth every penny."</p>
+        <div class="testimonial-author">Priya S. — Edinburgh</div>
       </div>
-      <div class="about-img">
-        <img src="https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=800&q=80" alt="Space artwork"/>
+      <div class="testimonial">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-text">"Shipping was quick, packaging was premium, the Moon Landing triptych looks incredible above my desk."</p>
+        <div class="testimonial-author">Marcus L. — Manchester</div>
       </div>
     </div>
   </section>
-  <section class="section" style="padding-top:0">
-    <div class="section-rule" style="margin-bottom:64px"></div>
-    <div class="section-head" style="margin-bottom:36px">
-      <div><p class="section-eyebrow">Internal</p><h2>Part of the team?</h2></div>
-    </div>
-    <div class="team-login-form" style="margin:0 auto">
-      <div class="team-login-icon" style="margin:0 auto 20px">🛸</div>
-      <h3>Creator access</h3>
-      <p>Log in to manage series, collections, and product imagery.</p>
-      <div style="margin-bottom:12px">
-        <input class="form-input" type="password" id="team-password" placeholder="Enter team password" onkeydown="if(event.key==='Enter')teamLogin()"/>
-      </div>
-      <p id="team-error" style="color:var(--danger);font-size:.82rem;margin-bottom:10px;display:none">Incorrect password.</p>
-      <button class="btn btn-primary" style="width:100%" onclick="teamLogin()">Enter Creator →</button>
-    </div>
-  </section>
-</div>
 
-<!-- ═══ PRODUCT ═══ -->
-<div class="page" data-page="product">
-  <div class="product-wrap" id="page-product"></div>
-  <div class="sticky-add-bar" id="sticky-add-bar">
-    <div>
-      <div class="sticky-add-bar-name" id="sticky-bar-name"></div>
-      <div style="font-size:.72rem;color:var(--muted)" id="sticky-bar-hint"></div>
-    </div>
-    <div style="display:flex;align-items:center;gap:14px">
-      <span class="sticky-add-bar-price" id="sticky-bar-price"></span>
-      <button class="btn btn-gold" id="sticky-bar-btn" onclick="stickyAddToBasket()">Add to basket</button>
-    </div>
-  </div>
-</div>
+</div><!-- end data-page="home" -->
 
-<footer>
-  <div class="footer-inner">
-    <div class="footer-brand">
-      <div style="margin-bottom:14px">
-        <img src="Spacenovalogocropped.png" alt="spacenova" style="height:64px;width:auto;filter:brightness(0) invert(1);opacity:.7" onerror="this.outerHTML='<span style=\'font-family:var(--fd);font-size:1.3rem;font-weight:600;color:var(--muted)\'>spacenova</span>'"/>
-      </div>
-      <p>Multi-panel magnetic wall art for discerning interiors. Gallery quality, deep-space atmosphere.</p>
-    </div>
-    <div class="footer-col"><h4>Shop</h4><a href="#wall-art">All series</a><a href="#wall-art">Collections</a><a href="#artifacts">Artifacts</a><a href="#bundles">Bundles</a></div>
-    <div class="footer-col"><h4>Company</h4><a href="#about">About</a><a href="#about">Sustainability</a><a href="#about">Press</a></div>
-    <div class="footer-col"><h4>Support</h4><a href="#about">FAQ</a><a href="#about">Shipping & returns</a><a href="#about">Contact us</a></div>
-  </div>
-  <div class="footer-bottom">
-    <span>© 2026 Spacenova</span>
-    <span>Free UK shipping on orders over £300</span>
-  </div>
-</footer>
 
-<script>
-/* ═══ DATA ═══ */
-var products=[], bundles=[], artifacts=[], wholesaleSources=[], featuredSlugs=[];
-var CATALOGUE_LOADING=true;
-
-function loadCatalogue(){
-  return fetch('/.netlify/functions/load-catalogue',{cache:'no-store'})
-    .then(function(r){if(!r.ok)throw new Error('Failed');return r.json();})
-    .then(function(data){
-      products=Array.isArray(data.products)?data.products:[];
-      bundles=Array.isArray(data.bundles)?data.bundles:[];
-      artifacts=Array.isArray(data.artifacts)?data.artifacts:[];
-      wholesaleSources=Array.isArray(data.wholesaleSources)?data.wholesaleSources:[];
-      featuredSlugs=Array.isArray(data.featuredSlugs)?data.featuredSlugs:[];
-      CATALOGUE_LOADING=false;
-      buildMarquee();renderFeatured();buildFilterBar();renderWallArt();renderBundles();renderArtifacts();
-    })
-    .catch(function(e){
-      console.error('Catalogue load failed:',e);
-      CATALOGUE_LOADING=false;
-      buildMarquee();renderFeatured();buildFilterBar();renderWallArt();renderBundles();renderArtifacts();
-      showToast('Could not load live catalogue','info');
-    });
-}
-
-/* ═══ STATE ═══ */
-var basket=[], wishlist=[], activeFilter=null, activeSeriesFilter=null, waTab='series';
-var checkoutStep=0, productQty=1, orderRef='';
-var stripe=null, stripeElements=null, stripePaymentElement=null, stripeClientSecret=null;
-var paymentConfirmed=false, savedDelivery={}, currentProductSlug=null;
-var appliedPromo=null;
-try{var sb=localStorage.getItem('cfBasket4');if(sb)basket=JSON.parse(sb);}catch(e){}
-try{var sw=localStorage.getItem('cfWishlist4');if(sw)wishlist=JSON.parse(sw);}catch(e){}
-var STRIPE_PK=(window.ENV&&window.ENV.STRIPE_PUBLISHABLE_KEY)?window.ENV.STRIPE_PUBLISHABLE_KEY:'';
-try{if(STRIPE_PK)stripe=Stripe(STRIPE_PK);}catch(e){}
-
-/* ═══ HELPERS ═══ */
-function gbp(n){return '£'+parseFloat(n).toFixed(2);}
-function saveState(){try{localStorage.setItem('cfBasket4',JSON.stringify(basket));localStorage.setItem('cfWishlist4',JSON.stringify(wishlist));}catch(e){}}
-function showToast(msg,type){
-  var tc=document.getElementById('toast-container');if(!tc)return;
-  var el=document.createElement('div');el.className='toast';
-  if(type==='danger')el.style.borderLeftColor='var(--danger)';
-  else if(type==='info')el.style.borderLeftColor='var(--accent)';
-  el.textContent=msg;tc.appendChild(el);
-  setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);},2700);
-}
-function updateBadge(){
-  var count=0;for(var i=0;i<basket.length;i++)count+=basket[i].qty;
-  var badge=document.getElementById('basket-badge');
-  if(badge){badge.textContent=count;badge.classList.toggle('visible',count>0);}
-}
-
-/* ═══ PROMO ═══ */
-function getDiscount(subtotal){if(!appliedPromo)return 0;if(appliedPromo.type==='percent')return Math.round(subtotal*appliedPromo.value)/100;return Math.min(appliedPromo.value,subtotal);}
-function applyPromoCode(){
-  var input=document.getElementById('promo-code-input');
-  var errEl=document.getElementById('promo-error');
-  var checkEl=document.getElementById('promo-checking');
-  var btn=document.getElementById('promo-apply-btn');
-  if(!input)return;
-  var code=input.value.trim();
-  if(!code){if(errEl){errEl.style.display='block';errEl.textContent='Please enter a code.';}return;}
-  if(errEl)errEl.style.display='none';
-  if(checkEl)checkEl.style.display='block';
-  if(btn)btn.disabled=true;
-  fetch('/.netlify/functions/validate-promo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:code,subtotal:getSubtotal()})}).then(function(r){return r.json();}).then(function(d){if(checkEl)checkEl.style.display='none';if(btn)btn.disabled=false;if(d.valid){appliedPromo={code:d.code,type:d.type,value:d.value,description:d.description};renderDrawer();showToast('Promo code applied: '+d.description);}else{if(errEl){errEl.style.display='block';errEl.textContent=d.error||'Invalid code.';}}}).catch(function(){if(checkEl)checkEl.style.display='none';if(btn)btn.disabled=false;if(errEl){errEl.style.display='block';errEl.textContent='Could not validate code.';}});
-}
-function removePromo(){appliedPromo=null;renderDrawer();showToast('Promo code removed','info');}
-
-/* ═══ TABS ═══ */
-function setWaTab(tab){
-  waTab=tab;
-  document.getElementById('wa-tab-series').classList.toggle('active',tab==='series');
-  document.getElementById('wa-tab-collections').classList.toggle('active',tab==='collections');
-  document.getElementById('wa-series-view').style.display=tab==='series'?'block':'none';
-  document.getElementById('wa-collections-view').style.display=tab==='collections'?'block':'none';
-  if(tab==='collections')renderCollections();
-}
-
-/* ═══ TEAM LOGIN ═══ */
-function teamLogin(){
-  var pw=document.getElementById('team-password').value;
-  var err=document.getElementById('team-error');
-  err.style.display='none';
-  var btn=document.querySelector('.team-login-form .btn-primary');
-  if(btn){btn.disabled=true;btn.textContent='Signing in…';}
-  fetch('/.netlify/functions/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw})}).then(function(r){return r.json();}).then(function(d){if(d.ok){sessionStorage.setItem('admin','1');sessionStorage.setItem('admin_pw',pw);window.location.href='/admin/';}else{err.style.display='block';document.getElementById('team-password').value='';if(btn){btn.disabled=false;btn.textContent='Enter Creator →';}}}).catch(function(){err.style.display='block';if(btn){btn.disabled=false;btn.textContent='Enter Creator →';}});
-}
-
-/* ═══ BASKET ═══ */
-function addToBasket(slug,qty){
-  if(!qty)qty=1;
-  var p=products.find(function(x){return x.slug===slug;});if(!p)return;
-  var found=false;
-  for(var j=0;j<basket.length;j++){if(basket[j].slug===slug){basket[j].qty+=qty;found=true;break;}}
-  if(!found)basket.push({slug:p.slug,name:p.name,price:p.price,image:p.image,qty:qty});
-  saveState();updateBadge();renderDrawer();showToast(p.name+' added to basket');
-}
-function addToBasketSilent(slug){var p=products.find(function(x){return x.slug===slug;});if(!p)return;var found=false;for(var j=0;j<basket.length;j++){if(basket[j].slug===slug){basket[j].qty++;found=true;break;}}if(!found)basket.push({slug:p.slug,name:p.name,price:p.price,image:p.image,qty:1});saveState();updateBadge();}
-function addBundleToBasket(bundleSlug){var bundle=bundles.find(function(b){return b.slug===bundleSlug;});if(!bundle)return;bundle.items.forEach(function(s){addToBasketSilent(s);});renderDrawer();showToast(bundle.name+' — all series added to basket');}
-function updateQty(slug,delta){for(var i=0;i<basket.length;i++){if(basket[i].slug===slug){basket[i].qty=Math.max(1,basket[i].qty+delta);break;}}saveState();updateBadge();renderDrawer();}
-function removeFromBasket(slug){basket=basket.filter(function(b){return b.slug!==slug;});saveState();updateBadge();renderDrawer();showToast('Item removed','info');}
-function getSubtotal(){var s=0;for(var i=0;i<basket.length;i++)s+=basket[i].price*basket[i].qty;return s;}
-function getShipping(){return(getSubtotal()-getDiscount(getSubtotal()))>=300?0:12;}
-function getTotal(){return Math.max(0,getSubtotal()-getDiscount(getSubtotal())+getShipping());}
-
-/* ═══ WISHLIST ═══ */
-function toggleWishlist(slug,event){
-  if(event){event.preventDefault();event.stopPropagation();}
-  var idx=wishlist.indexOf(slug);
-  if(idx>=0){wishlist.splice(idx,1);showToast('Removed from wishlist','info');}else{wishlist.push(slug);showToast('Added to wishlist');}
-  saveState();
-  document.querySelectorAll('.wl-btn[data-slug="'+slug+'"]').forEach(function(b){var inWl=wishlist.indexOf(slug)>=0;b.textContent=inWl?'♥':'♡';b.classList.toggle('active',inWl);});
-}
-
-/* ═══ DRAWER ═══ */
-function openBasket(){checkoutStep=0;stripeClientSecret=null;stripeElements=null;stripePaymentElement=null;paymentConfirmed=false;document.getElementById('basket-drawer').classList.add('open');document.getElementById('basket-overlay').classList.add('open');renderDrawer();}
-function closeBasket(){document.getElementById('basket-drawer').classList.remove('open');document.getElementById('basket-overlay').classList.remove('open');}
-function promoSection(){
-  if(appliedPromo){var disc=getDiscount(getSubtotal());return'<div class="promo-badge"><div class="promo-badge-left">✓ <strong>'+appliedPromo.code+'</strong> — '+appliedPromo.description+' (−'+gbp(disc)+')</div><button class="promo-badge-remove" onclick="removePromo()">✕</button></div>';}
-  return'<div class="promo-wrap"><input class="promo-input" id="promo-code-input" placeholder="Promo code" onkeydown="if(event.key===\'Enter\')applyPromoCode()"/><button class="promo-apply-btn" id="promo-apply-btn" onclick="applyPromoCode()">Apply</button></div><p class="promo-error" id="promo-error"></p><p class="promo-checking" id="promo-checking"><span class="spin"></span> Checking…</p>';
-}
-function renderDrawer(){
-  var body=document.getElementById('drawer-body'),footer=document.getElementById('drawer-footer');
-  if(!body||!footer)return;
-  updateBadge();
-  if(checkoutStep===4){body.innerHTML=renderOrderSuccess();footer.innerHTML='<button class="btn btn-ghost" style="width:100%" onclick="closeBasket()">Continue shopping</button>';return;}
-  if(checkoutStep>0){body.innerHTML=renderCheckoutForm();footer.innerHTML=renderCheckoutFooter();return;}
-  if(basket.length===0){body.innerHTML='<div class="empty-basket"><div class="empty-basket-icon">🛒</div><p style="color:var(--muted)">Your basket is empty.</p><p style="margin-top:10px"><a href="#wall-art" onclick="closeBasket()" style="color:var(--accent);font-family:var(--fm);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase">Browse the collection →</a></p></div>';footer.innerHTML='';return;}
-  var html='';
-  for(var i=0;i<basket.length;i++){var item=basket[i];html+='<div class="basket-item"><img class="basket-item-img" src="'+item.image+'" alt="'+item.name+'" onerror="this.style.background=\'var(--surface)\'"/><div><div class="basket-item-name">'+item.name+'</div><div class="basket-item-price">'+gbp(item.price)+' each · '+gbp(item.price*item.qty)+'</div><div class="basket-item-qty"><button class="biq-btn" onclick="updateQty(\''+item.slug+'\',-1)">−</button><span class="biq-num">'+item.qty+'</span><button class="biq-btn" onclick="updateQty(\''+item.slug+'\',1)">+</button></div></div><button class="basket-item-remove" onclick="removeFromBasket(\''+item.slug+'\')">✕</button></div>';}
-  body.innerHTML=html;
-  var sub=getSubtotal(),disc=getDiscount(sub),ship=getShipping(),tot=getTotal();
-  var discRow=disc>0?'<div class="basket-summary-row" style="color:var(--success)"><span>Discount ('+appliedPromo.code+')</span><strong>−'+gbp(disc)+'</strong></div>':'';
-  footer.innerHTML=promoSection()+'<div class="basket-summary"><div class="basket-summary-row"><span>Subtotal</span><strong>'+gbp(sub)+'</strong></div>'+discRow+'<div class="basket-summary-row"><span>Shipping</span>'+(ship===0?'<strong style="color:var(--success)">Free</strong>':'<strong>'+gbp(ship)+'</strong>')+'</div><div class="basket-summary-row total"><span>Total</span><strong>'+gbp(tot)+'</strong></div></div>'+(getSubtotal()-disc<300?'<p class="shipping-note">Add '+gbp(300-(getSubtotal()-disc))+' more for free shipping</p>':'<p class="shipping-note">✓ Free shipping unlocked</p>')+'<button class="btn btn-gold" style="width:100%" onclick="goCheckout()">Checkout →</button>';
-}
-
-/* ═══ CHECKOUT ═══ */
-function goCheckout(){checkoutStep=2;renderDrawer();createPaymentIntent(function(err){if(err){showToast('Could not initialise payment','danger');checkoutStep=0;renderDrawer();return;}requestAnimationFrame(mountStripeElement);});}
-function renderCheckoutForm(){
-  var labels=['Payment','Review'];
-  var mapped=checkoutStep===2?1:2;
-  var steps='<div class="checkout-steps">'+labels.map(function(l,i){var n=i+1;var cls=mapped>n?'done':mapped===n?'active':'';return'<div class="checkout-step '+cls+'">'+(mapped>n?'✓ ':'')+l+'</div>';}).join('')+'</div>';
-  if(checkoutStep===2)return steps+'<h3 style="font-family:var(--fd);font-weight:300;font-size:1.4rem;margin-bottom:16px">Delivery &amp; Payment</h3><p class="stripe-secure-note"><svg width="12" height="14" viewBox="0 0 12 14" fill="none"><path d="M6 1L1 3.5V7c0 2.76 2.14 5.34 5 6 2.86-.66 5-3.24 5-6V3.5L6 1z" stroke="var(--success)" stroke-width="1.2"/></svg>Secured by Stripe</p><div id="stripe-address-element" style="margin-bottom:16px"></div><div id="stripe-payment-element"></div><div id="stripe-error"></div>';
-  if(checkoutStep===3){var sub=getSubtotal(),disc=getDiscount(sub),ship=getShipping(),tot=getTotal();var rows=basket.map(function(b){return'<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:.86rem"><span>'+b.name+' × '+b.qty+'</span><strong>'+gbp(b.price*b.qty)+'</strong></div>';}).join('');var discRow2=disc>0?'<div class="basket-summary-row" style="color:var(--success)"><span>Promo</span><strong>−'+gbp(disc)+'</strong></div>':'';var pgMsg=!paymentConfirmed?'<div class="payment-gate-notice">Payment was not completed. Please go back.</div>':'<div style="background:rgba(48,209,88,.07);border:1px solid rgba(48,209,88,.2);border-radius:var(--rs);padding:12px 16px;font-size:.84rem;color:var(--success);margin-bottom:14px">✓ Payment authorised</div>';return steps+'<h3 style="font-family:var(--fd);font-weight:300;font-size:1.4rem;margin-bottom:18px">Review order</h3>'+pgMsg+'<div style="margin-bottom:18px">'+rows+'</div><div class="basket-summary"><div class="basket-summary-row"><span>Subtotal</span><strong>'+gbp(sub)+'</strong></div>'+discRow2+'<div class="basket-summary-row"><span>Shipping</span><strong>'+(ship===0?'Free':gbp(ship))+'</strong></div><div class="basket-summary-row total"><span>Total due</span><strong>'+gbp(tot)+'</strong></div></div>';}
-  return '';
-}
-function renderCheckoutFooter(){if(checkoutStep===2)return'<div style="display:flex;gap:10px"><button class="btn btn-ghost" onclick="checkoutStep=0;renderDrawer()">← Back</button><button class="btn btn-primary" style="flex:1" id="stripe-submit-btn" onclick="submitStripePayment()">'+(stripe?'Pay & review →':'Payment unavailable')+'</button></div>';if(checkoutStep===3)return'<div style="display:flex;gap:10px"><button class="btn btn-ghost" onclick="checkoutStep=2;renderDrawer()">← Back</button><button class="btn btn-gold" style="flex:1" '+(paymentConfirmed?'':'disabled')+' onclick="placeOrder()">Place order →</button></div>';return'';}
-
-/* ═══ STRIPE ═══ */
-function createPaymentIntent(callback){var totalPence=Math.round(getTotal()*100);if(totalPence<50){callback(new Error('Amount too low'));return;}fetch('/.netlify/functions/create-payment-intent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amount:totalPence,currency:'gbp',items:basket.map(function(b){return{name:b.name,price:b.price,qty:b.qty};})})}).then(function(r){return r.json();}).then(function(d){stripeClientSecret=d.clientSecret||null;callback(null);}).catch(function(e){stripeClientSecret=null;callback(e);});}
-function mountStripeElement(){var container=document.getElementById('stripe-payment-element');if(!container||!stripe||!stripeClientSecret)return;container.innerHTML='';stripeElements=stripe.elements({clientSecret:stripeClientSecret,appearance:{theme:'night',variables:{colorPrimary:'#f08c1a',colorBackground:'#1a1a1a',colorText:'#f5f5f7',colorDanger:'#ff453a',fontFamily:'"Syne",sans-serif',borderRadius:'12px'}}});var addrContainer=document.getElementById('stripe-address-element');if(addrContainer){addrContainer.innerHTML='';var addressElement=stripeElements.create('address',{mode:'shipping',defaultValues:{address:{country:'GB'}},fields:{phone:'always'},validation:{phone:{required:'always'}}});addressElement.mount('#stripe-address-element');addressElement.on('change',function(e){if(e.complete&&e.value&&e.value.address){var v=e.value;savedDelivery={name:v.name||'',email:'',address:[v.address.line1,v.address.line2,v.address.city,v.address.postal_code,v.address.country].filter(Boolean).join(', '),address1:v.address.line1||'',address2:v.address.line2||'',city:v.address.city||'',postcode:v.address.postal_code||'',country:v.address.country||'',phone:v.phone||''};var parts=(v.name||'').split(' ');savedDelivery.firstName=parts[0]||'';savedDelivery.lastName=parts.slice(1).join(' ')||'';}}); }var expressContainer=document.createElement('div');expressContainer.id='stripe-express-element';expressContainer.style.marginBottom='12px';container.appendChild(expressContainer);var expressEl=stripeElements.create('expressCheckout');expressEl.on('confirm',function(){stripe.confirmPayment({elements:stripeElements,clientSecret:stripeClientSecret,confirmParams:{return_url:window.location.origin+'/success.html'},redirect:'if_required'}).then(function(res){if(res.error){var e=document.getElementById('stripe-error');if(e)e.textContent=res.error.message;return;}if(res.paymentIntent&&res.paymentIntent.status==='succeeded'){paymentConfirmed=true;checkoutStep=3;renderDrawer();}});});expressEl.on('ready',function(event){if(!event.availablePaymentMethods)expressContainer.style.display='none';});expressEl.mount('#stripe-express-element');var innerContainer=document.createElement('div');innerContainer.id='stripe-payment-element-inner';container.appendChild(innerContainer);stripePaymentElement=stripeElements.create('payment');stripePaymentElement.mount('#stripe-payment-element-inner');}
-function submitStripePayment(){if(!stripe){showToast('Stripe not configured','danger');return;}if(!stripeClientSecret||!stripeElements){showToast('Payment not initialised','danger');return;}var btn=document.getElementById('stripe-submit-btn');var errEl=document.getElementById('stripe-error');if(btn){btn.disabled=true;btn.textContent='Processing…';}if(errEl)errEl.textContent='';stripeElements.submit().then(function(r){if(r.error){if(errEl)errEl.textContent=r.error.message;if(btn){btn.disabled=false;btn.textContent='Pay & review →';}return;}stripe.confirmPayment({elements:stripeElements,clientSecret:stripeClientSecret,confirmParams:{return_url:window.location.origin+'/success.html'},redirect:'if_required'}).then(function(res){if(res.error){if(errEl)errEl.textContent=res.error.message;if(btn){btn.disabled=false;btn.textContent='Pay & review →';}return;}var pi=res.paymentIntent;if(pi&&pi.status==='succeeded'){paymentConfirmed=true;checkoutStep=3;renderDrawer();}else{if(errEl)errEl.textContent='Payment not completed.';if(btn){btn.disabled=false;btn.textContent='Pay & review →';}}});});}
-function placeOrder(){if(!paymentConfirmed){showToast('Please complete payment first','danger');return;}var chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ref='SN-';for(var i=0;i<6;i++)ref+=chars[Math.floor(Math.random()*chars.length)];orderRef=ref;var orderPayload={ref:orderRef,items:basket.slice(),delivery:savedDelivery,total:getTotal(),promo_code:appliedPromo?appliedPromo.code:null,discount:appliedPromo?getDiscount(getSubtotal()):0,createdAt:new Date().toISOString()};fetch('/.netlify/functions/save-order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(orderPayload)}).catch(function(){});basket=[];appliedPromo=null;saveState();updateBadge();checkoutStep=4;renderDrawer();}
-function renderOrderSuccess(){var displayName=savedDelivery.name||savedDelivery.firstName||'there';return'<div class="order-success"><div class="order-success-icon">✓</div><h3>Order placed!</h3><p>Thank you, '+displayName+'. Your panels will be dispatched within 3–5 working days.</p><div class="order-ref">Order ref: '+orderRef+'</div></div>';}
-
-/* ═══ PRODUCT CARD ═══ */
-function typeTag(isCollection){var cls=isCollection?'collection':'series',lbl=isCollection?'Collection':'Series';return'<span class="type-tag '+cls+'">'+lbl+'</span>';}
-function productCard(product){
-  var inWl=wishlist.indexOf(product.slug)>=0;
-  return'<article class="card"><a href="#product/'+product.slug+'" style="text-decoration:none;display:block"><div class="card-media"><img src="'+product.image+'" alt="'+product.name+'" loading="lazy"/><div class="badge-row"><span class="badge">'+product.pieces+' panels</span><span class="badge badge-accent">'+product.priceLabel+'</span></div><button class="card-wishlist wl-btn '+(inWl?'active':'')+'" data-slug="'+product.slug+'" onclick="toggleWishlist(\''+product.slug+'\',event)">'+(inWl?'♥':'♡')+'</button></div></a><div class="card-body"><div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'+typeTag(product.isCollection)+'</div><h3>'+product.name+'</h3><p class="muted">'+product.short+'</p><div class="meta"><span>'+product.panelHint+'</span><span>Magnetic edges</span><span>'+product.accent+'</span></div><div class="card-actions"><a class="btn btn-primary btn-sm" href="#product/'+product.slug+'">View →</a><button class="btn btn-ghost btn-sm" onclick="addToBasket(\''+product.slug+'\',1)">Add to basket</button></div></div></article>';
-}
-
-/* ═══ FILTER ═══ */
-var categories=['All','nebula','earth','lunar','planets','galaxy'];
-function buildFilterBar(){var bar=document.getElementById('filter-bar');if(!bar)return;bar.innerHTML=categories.map(function(cat){var isActive=(cat==='All'&&!activeFilter)||activeFilter===cat;return'<button class="filter-pill '+(isActive?'active':'')+'" onclick="setFilter(\''+cat+'\')">'+cat.charAt(0).toUpperCase()+cat.slice(1)+'</button>';}).join('');}
-function setFilter(cat){activeFilter=cat==='All'?null:cat;buildFilterBar();renderWallArt();}
-function renderWallArt(){
-  var search=(document.getElementById('wallart-search')||{}).value||'';search=search.toLowerCase();
-  var shown=products.filter(function(p){if(p.isCollection)return false;if(activeSeriesFilter&&activeSeriesFilter.indexOf(p.slug)<0)return false;if(activeFilter&&p.category!==activeFilter)return false;if(search&&p.name.toLowerCase().indexOf(search)<0&&p.short.toLowerCase().indexOf(search)<0)return false;return true;});
-  var grid=document.getElementById('series-grid');
-  if(grid)grid.innerHTML=shown.length?shown.map(productCard).join(''):'<div style="grid-column:1/-1;text-align:center;padding:80px;color:var(--muted)">No series match your search.</div>';
-  var banner=document.getElementById('series-filter-banner');
-  if(banner)banner.innerHTML=activeSeriesFilter?'<div class="card" style="margin-bottom:24px"><div class="card-body" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px"><div><strong>Bundle view</strong><p class="muted" style="margin:0">Showing only series included in this bundle.</p></div><button class="btn btn-ghost btn-sm" onclick="clearSeriesFilter()">Show all</button></div></div>':'';
-}
-function showBundleProducts(bundleSlug){var bundle=bundles.find(function(b){return b.slug===bundleSlug;});if(!bundle)return;activeSeriesFilter=bundle.items.slice();activeFilter=null;setWaTab('series');buildFilterBar();renderWallArt();location.hash='#wall-art';}
-function clearSeriesFilter(){activeSeriesFilter=null;buildFilterBar();renderWallArt();}
-
-/* ═══ BUNDLES ═══ */
-function renderBundles(){var grid=document.getElementById('bundle-grid');if(!grid)return;grid.innerHTML=bundles.map(function(b){var includes=b.items.map(function(slug){var p=products.find(function(x){return x.slug===slug;});return'<span>'+(p?p.name:slug)+'</span>';}).join('');return'<article class="card bundle-card"><div class="bundle-card-inner"><h3 style="font-family:var(--fd);font-size:1.4rem;font-weight:400;margin-bottom:6px">'+b.name+'</h3><p class="price" style="font-size:1.7rem">'+b.price+'</p><p class="muted" style="margin-top:8px;font-size:.88rem;line-height:1.65">'+b.text+'</p></div><div class="bundle-includes">'+includes+'</div><div class="card-actions"><button class="btn btn-primary btn-sm" onclick="showBundleProducts(\''+b.slug+'\')">Browse series</button><button class="btn btn-ghost btn-sm" onclick="addBundleToBasket(\''+b.slug+'\')">Add all to basket</button></div></article>';}).join('');}
-
-/* ═══ ARTIFACTS ═══ */
-function renderArtifacts(){
-  var grid=document.getElementById('artifact-grid');if(!grid)return;
-  grid.innerHTML=artifacts.map(function(a){return'<div class="artifact-card"><img class="artifact-card-img" src="'+a.image+'" alt="'+a.name+'" loading="lazy" onerror="this.style.background=\'linear-gradient(135deg,#111,#000)\'"/><div class="artifact-card-body"><span class="artifact-tag">'+a.category+'</span><h3>'+a.name+'</h3><p>'+a.desc+'</p><div class="artifact-price">£'+parseFloat(a.price).toFixed(2)+'</div><button class="btn btn-primary btn-sm" style="width:100%" onclick="showToast(\'Coming soon — Artifacts launching this season\',\'info\')">Coming soon</button></div></div>';}).join('');
-  var wg=document.getElementById('wholesale-grid');if(!wg)return;
-  wg.innerHTML=wholesaleSources.map(function(s){return'<div class="card"><div class="card-body"><h3 style="font-family:var(--fd);font-size:1.2rem;font-weight:400;margin-bottom:6px">'+s.name+'</h3><div class="meta" style="margin-bottom:10px"><span>Best for: '+s.best+'</span></div><p class="muted" style="font-size:.87rem;line-height:1.65;margin-bottom:14px">'+s.desc+'</p><a href="'+s.url+'" target="_blank" rel="noopener" class="btn btn-ghost btn-sm">Visit site →</a></div></div>';}).join('');
-}
-
-/* ═══ FEATURED ═══ */
-function renderFeatured(){
+<!-- ─────────────────────────────────────────────────────
+  4. REPLACE the renderFeatured() function in your <script> block.
+     Also REMOVE the two nav scroll-effect addEventListener blocks
+     (the ones that add/remove the .scrolled class on scroll).
+────────────────────────────────────────────────────── -->
+<script id="REPLACE_RENDER_FEATURED_FUNCTION">
+/*
+  renderFeatured()
+  ────────────────
+  Renders the hero spotlight card into #featured-spotlight-wrap.
+  Uses featuredSlugs[0] if available, otherwise falls back to first
+  published product. Does nothing if no products are loaded yet.
+*/
+function renderFeatured() {
   var wrap = document.getElementById('featured-spotlight-wrap');
-  if(!wrap) return;
+  if (!wrap) return;
 
-  var featured = featuredSlugs.map(function(slug){
-    return products.find(function(x){ return x.slug === slug; });
-  }).filter(Boolean);
+  // Pick the featured product
+  var p = null;
 
-  if(!featured.length && products.length){
-    featured = products.filter(function(p){ return p.isPublished !== false; }).slice(0,1);
+  if (featuredSlugs && featuredSlugs.length) {
+    p = products.find(function(x) { return x.slug === featuredSlugs[0]; });
   }
-
-  if(!featured.length){
+  if (!p && products.length) {
+    p = products.find(function(x) { return x.isPublished !== false; }) || products[0];
+  }
+  if (!p) {
     wrap.innerHTML = '';
     return;
   }
 
-  // Show first featured product as the hero card
-  var p = featured[0];
-
+  // Build spotlight card HTML
   wrap.innerHTML =
-    '<a class="spl-card" href="#product/'+p.slug+'" onclick="event.preventDefault();location.hash=\'#product/'+p.slug+'\';router();">' +
-      '<img class="spl-card-img" src="'+p.image+'" alt="'+p.name+'" loading="eager"/>' +
+    '<a class="spl-card" href="#product/' + p.slug + '"' +
+    ' onclick="event.preventDefault();location.hash=\'#product/' + p.slug + '\';router();">' +
+      '<img class="spl-card-img" src="' + p.image + '" alt="' + p.name + '" loading="eager"/>' +
       '<div class="spl-card-overlay">' +
         '<div class="spl-card-eyebrow">Featured series</div>' +
-        '<div class="spl-card-name">'+p.name+'</div>' +
-        '<div class="spl-card-sub">'+p.category+' · '+(p.pieces||'?')+' panels · '+gbp(p.price)+'</div>' +
+        '<div class="spl-card-name">' + p.name + '</div>' +
+        '<div class="spl-card-sub">' +
+          (p.category || '') +
+          (p.pieces ? ' · ' + p.pieces + ' panels' : '') +
+          (p.price  ? ' · ' + gbp(p.price) : '') +
+        '</div>' +
       '</div>' +
     '</a>';
 }
 
-/* ═══ MARQUEE ═══ */
-function buildMarquee(){var el=document.getElementById('marquee-track');if(!el)return;var items=['Multi-panel magnetic sets','3 to 9 panels','Matte-black frames','Museum-grade inks','Free shipping over £300','Gallery-quality printing','Magnetic edge alignment','Deep-space imagery'];var all=items.concat(items);el.innerHTML=all.map(function(t){return'<span class="marquee-item">'+t+'</span>';}).join('');}
+/*
+  IMPORTANT: Remove (or do not add) any addEventListener blocks
+  that toggle nav.classList 'scrolled' based on window.scrollY.
+  The nav style is constant — no scroll behaviour needed.
 
-/* ═══ STICKY BAR ═══ */
-function updateStickyBar(product){var bar=document.getElementById('sticky-add-bar');if(!bar||!product)return;var nameEl=document.getElementById('sticky-bar-name');var hintEl=document.getElementById('sticky-bar-hint');var priceEl=document.getElementById('sticky-bar-price');if(nameEl)nameEl.textContent=product.name;if(hintEl)hintEl.textContent=product.panelHint;if(priceEl)priceEl.textContent=gbp(product.price);}
-function stickyAddToBasket(){if(currentProductSlug)addToBasket(currentProductSlug,productQty);}
-function changeProductQty(delta){productQty=Math.max(1,productQty+delta);['prod-qty','prod-qty-top'].forEach(function(id){var e=document.getElementById(id);if(e)e.textContent=productQty;});}
+  Specifically, DELETE these blocks if they exist anywhere in your script:
 
-/* ═══ PRODUCT PAGE ═══ */
-function renderProduct(slug){
-  var product=products.find(function(p){return p.slug===slug;});
-  var wrap=document.getElementById('page-product');productQty=1;currentProductSlug=slug;
-  if(!product){wrap.innerHTML='<div style="text-align:center;padding:100px 24px"><h2 style="font-family:var(--fd);font-weight:300;font-size:2.4rem;margin-bottom:20px">Product not found</h2><a class="btn btn-primary" href="#wall-art">Back to wall art</a></div>';return;}
-  updateStickyBar(product);
-  var stickyBar=document.getElementById('sticky-add-bar');if(stickyBar)stickyBar.classList.remove('visible');
-  setTimeout(function(){var observer=new IntersectionObserver(function(entries){entries.forEach(function(e){if(stickyBar)stickyBar.classList.toggle('visible',!e.isIntersecting);});},{rootMargin:'-80px 0px 0px 0px'});var anchor=document.querySelector('.product-actions');if(anchor)observer.observe(anchor);},200);
-  var related=products.filter(function(p){return p.slug!==slug&&p.category===product.category&&!p.isCollection;}).slice(0,3);
-  if(related.length<2)related=products.filter(function(p){return p.slug!==slug&&!p.isCollection;}).slice(0,3);
-  var inWl=wishlist.indexOf(slug)>=0;
-  var panelCount=parseInt(product.pieces)||4;
-  var frames='';for(var i=0;i<Math.min(panelCount,6);i++)frames+='<div class="mini-frame"></div>';
-  var trust='<div style="display:flex;gap:10px;margin-bottom:24px">'+['🚚 3–5 days','↩ 30-day returns','🔒 Secure checkout'].map(function(t){return'<div style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:12px 10px;text-align:center;font-family:var(--fm);font-size:.58rem;letter-spacing:.08em;color:var(--muted)">'+t+'</div>';}).join('')+'</div>';
-  var cta=function(qid){return'<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px"><label style="font-family:var(--fm);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)">Qty</label><div class="qty-control"><button class="qty-btn" onclick="changeProductQty(-1)">−</button><span class="qty-num" id="'+qid+'">1</span><button class="qty-btn" onclick="changeProductQty(1)">+</button></div></div><div class="product-actions" style="margin-bottom:18px"><button class="btn btn-gold" onclick="addToBasket(\''+slug+'\',productQty)">Add full set to basket</button><button class="btn btn-ghost wl-btn '+(inWl?'active':'')+'" data-slug="'+slug+'" onclick="toggleWishlist(\''+slug+'\',event)">'+(inWl?'♥ Wishlisted':'♡ Wishlist')+'</button></div>';};
-  ensureSelection(slug);
-  var hexOverlay=!product.isCollection?buildHexImageOverlay(slug,panelCount,tileSelections[slug]):'';
-  wrap.innerHTML='<div class="breadcrumbs"><a href="#home">Home</a><span>›</span><a href="#wall-art">Wall Art</a><span>›</span><span>'+product.name+'</span></div><div class="product-hero"><div class="product-media"><div class="hex-overlay-container"><img id="prod-main-img" src="'+product.image+'" alt="'+product.name+'" style="width:100%;display:block;border-radius:var(--r)"/>'+hexOverlay+'</div></div><div class="product-info"><div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">'+typeTag(product.isCollection)+'<span class="badge">'+product.category+'</span></div><h2>'+product.name+'</h2><p class="product-tagline">'+product.short+'</p><div class="product-price-row"><span class="product-price-main">'+gbp(product.price)+'</span><span class="product-price-range">'+product.priceLabel+'</span></div><div class="prod-tile-selector"><div class="prod-tile-selector-head">Individual panels <span>£34.99 each</span></div>'+buildTileSelectorWidget(product,'prod')+'</div>'+cta('prod-qty-top')+trust+'<p style="color:var(--muted);font-size:.9rem;line-height:1.75;margin-bottom:28px">'+product.description+'</p><div class="specs"><div class="spec"><span>Format</span><strong>'+product.pieces+' panels</strong></div><div class="spec"><span>Style</span><strong>'+product.panelHint+'</strong></div><div class="spec"><span>Finish</span><strong>'+product.material+'</strong></div><div class="spec"><span>Colour</span><strong>'+product.accent+'</strong></div><div class="spec"><span>Size</span><strong>'+product.size+'</strong></div><div class="spec"><span>Shipping</span><strong>'+(product.price>=300?'Free':'£12 standard')+'</strong></div></div><div class="notice" style="margin:20px 0">'+product.note+'</div>'+cta('prod-qty')+trust+'</div></div><section class="section" style="padding-top:0"><div class="section-head"><div><p class="section-eyebrow">How it works</p><h2>Magnetic layout</h2></div></div><div class="card"><div class="card-body"><div class="mini-magnet">'+frames+'</div><p class="muted" style="text-align:center;margin-top:10px;font-size:.88rem">'+product.note+'</p></div></div></section><section class="section" style="padding-top:0"><div class="section-head"><div><p class="section-eyebrow">You may also like</p><h2>Related works</h2></div><a class="btn btn-ghost btn-sm" href="#wall-art">View all →</a></div><div class="grid">'+related.map(productCard).join('')+'</div></section>';
-  setTimeout(function(){renderPreviewCanvas(slug,product,tileSelections[slug]||[]);},80);
-}
+    window.addEventListener('scroll', function(){
+      var nav = document.querySelector('nav');
+      if(nav) nav.classList.toggle('scrolled', window.scrollY > 10);
+    }, { passive: true });
 
-/* ═══ ROUTING ═══ */
-function setActiveNav(route){document.querySelectorAll('.nav-link').forEach(function(l){l.classList.toggle('active',l.dataset.route===route);});document.querySelectorAll('.mobile-nav-item').forEach(function(l){l.classList.toggle('active',l.dataset.route===route);});}
-function showPage(name){document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});var pg=document.querySelector('[data-page="'+name+'"]');if(pg)pg.classList.add('active');setActiveNav(name==='product'?'wall-art':name);var bar=document.getElementById('sticky-add-bar');if(bar)bar.classList.remove('visible');window.scrollTo({top:0,behavior:'smooth'});}
-function router(){var hash=location.hash||'#home';if(hash.indexOf('#product/')===0){var slug=hash.replace('#product/','').trim();renderProduct(slug);showPage('product');setActiveNav('wall-art');return;}var route=hash.replace('#','')||'home';if(['home','wall-art','artifacts','bundles','about'].indexOf(route)>=0){showPage(route);setActiveNav(route);if(route==='artifacts')renderArtifacts();if(route==='wall-art'){buildFilterBar();renderWallArt();}}else{location.hash='#home';}}
-
-/* ═══ TILE SYSTEM ═══ */
-var tileSelections={};
-function getPanelGrid(count){var n=parseInt(count)||4;if(n===1)return{cols:1,rows:1,panels:[[1]]};if(n===2)return{cols:2,rows:1,panels:[[1,2]]};if(n===3)return{cols:3,rows:1,panels:[[1,2,3]]};if(n===4)return{cols:2,rows:2,panels:[[1,2],[3,4]]};if(n===5)return{cols:3,rows:2,panels:[[1,2,3],[4,5,0]]};if(n===6)return{cols:3,rows:2,panels:[[1,2,3],[4,5,6]]};if(n===7)return{cols:4,rows:2,panels:[[1,2,3,4],[5,6,7,0]]};if(n===8)return{cols:4,rows:2,panels:[[1,2,3,4],[5,6,7,8]]};return{cols:3,rows:3,panels:[[1,2,3],[4,5,6],[7,8,9]]};}
-function hexPointsStr(cx,cy,r){var pts=[];for(var i=0;i<6;i++){var a=(Math.PI/3)*i-Math.PI/6;pts.push((cx+r*Math.cos(a)).toFixed(3)+','+(cy+r*Math.sin(a)).toFixed(3));}return pts.join(' ');}
-function buildHexPickerSVG(slug,count,sel,idPrefix){var grid=getPanelGrid(count),cols=grid.cols,rows=grid.rows;var r=20,hw=Math.sqrt(3)*r;var vbW=cols*hw+hw*.5+4,vbH=rows*1.5*r+r*.5+4;var parts=[];for(var row=0;row<rows;row++){for(var col=0;col<cols;col++){var n=grid.panels[row][col];if(!n)continue;var offset=(row%2===1)?hw/2:0;var cx=col*hw+hw/2+offset+2;var cy=row*1.5*r+r+2;var s=sel.indexOf(n)>=0;parts.push('<g data-panel="'+n+'" onclick="toggleTilePanel(\''+slug+'\','+n+')" style="cursor:pointer"><polygon points="'+hexPointsStr(cx,cy,r-.8)+'" fill="'+(s?'rgba(240,140,26,0.2)':'rgba(255,255,255,0.05)')+'" stroke="'+(s?'#f08c1a':'rgba(255,255,255,0.18)')+'" stroke-width="1.2"/><text x="'+cx.toFixed(1)+'" y="'+(cy+4).toFixed(1)+'" text-anchor="middle" font-family="\'DM Mono\',monospace" font-size="'+(Math.round(r*.55))+'" font-weight="700" fill="'+(s?'#f08c1a':'#6b7a96')+'">'+n+'</text></g>');}}return'<svg id="'+idPrefix+'-hpick-'+slug+'" viewBox="0 0 '+vbW.toFixed(1)+' '+vbH.toFixed(1)+'" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:'+Math.round(vbW*2)+'px;height:auto;display:block;overflow:visible;">'+parts.join('')+'</svg>';}
-function buildHexImageOverlay(slug,count,sel){var grid=getPanelGrid(count),cols=grid.cols,rows=grid.rows;var VW=100,VH=75;var rByW=VW/((cols*Math.sqrt(3)+.5*Math.sqrt(3))*1.05);var rByH=VH/((rows*1.5+.5)*1.05);var r=Math.min(rByW,rByH)*.92,hw=Math.sqrt(3)*r;var ox=(VW-(cols*hw+(rows>1?hw*.5:0)))/2+hw/2;var oy=(VH-(rows*1.5*r+r*.5))/2+r;var parts=[];for(var row=0;row<rows;row++){for(var col=0;col<cols;col++){var n=grid.panels[row][col];if(!n)continue;var offset=(row%2===1)?hw/2:0;var cx=col*hw+ox+offset;var cy=row*1.5*r+oy;var s=sel&&sel.indexOf(n)>=0;parts.push('<polygon data-panel="'+n+'" points="'+hexPointsStr(cx,cy,r)+'" fill="'+(s?'rgba(240,140,26,0.18)':'rgba(0,0,0,0.4)')+'" stroke="'+(s?'#f08c1a':'rgba(255,255,255,0.1)')+'" stroke-width="'+(s?.7:.3)+'" style="cursor:pointer" onclick="toggleTilePanel(\''+slug+'\','+n+')"/>');}}return'<svg id="hex-overlay-'+slug+'" viewBox="0 0 '+VW+' '+VH+'" preserveAspectRatio="xMidYMid meet" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:all;" xmlns="http://www.w3.org/2000/svg">'+parts.join('')+'</svg>';}
-function renderPreviewCanvas(slug,product,sel){var canvas=document.getElementById('prev-'+slug);if(!canvas)return;var ctx=canvas.getContext('2d'),W=canvas.parentElement?canvas.parentElement.offsetWidth||320:320,H=72;canvas.width=W;canvas.height=H;ctx.fillStyle='#050505';ctx.fillRect(0,0,W,H);if(!sel||sel.length===0){ctx.fillStyle='rgba(245,245,247,.3)';ctx.font='700 9px "Syne",sans-serif';ctx.textAlign='center';ctx.fillText('NO PANELS SELECTED',W/2,H/2+3);return;}var sortedSel=sel.slice().sort(function(a,b){return a-b;}),count=parseInt(product.pieces)||4,grid=getPanelGrid(count),panelW=Math.floor(W/sortedSel.length);if(product.isCollection&&product.panelImages&&product.panelImages.length){var loaded=0,total=sortedSel.length;for(var si=0;si<total;si++){(function(si,n){var img=new Image();img.crossOrigin='anonymous';img.onload=function(){var dstX=si*panelW,dstW=(si===total-1)?W-dstX:panelW,ss=Math.min(img.width,img.height),sx=(img.width-ss)/2,sy=(img.height-ss)/2;ctx.drawImage(img,sx,sy,ss,ss,dstX,0,dstW,H);if(si>0){ctx.strokeStyle='rgba(240,140,26,0.5)';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(dstX,0);ctx.lineTo(dstX,H);ctx.stroke();}loaded++;if(loaded===total){ctx.strokeStyle='rgba(240,140,26,0.4)';ctx.lineWidth=1.5;ctx.strokeRect(.75,.75,W-1.5,H-1.5);}};img.onerror=function(){};img.src=product.panelImages[n-1]||product.image;})(si,sortedSel[si]);}}else{var img=new Image();img.crossOrigin='anonymous';img.onload=function(){for(var si=0;si<sortedSel.length;si++){var n=sortedSel[si],pr=-1,pc=-1;outer:for(var r2=0;r2<grid.rows;r2++){for(var c2=0;c2<grid.cols;c2++){if(grid.panels[r2][c2]===n){pr=r2;pc=c2;break outer;}}}if(pr<0)continue;ctx.drawImage(img,(pc/grid.cols)*img.width,(pr/grid.rows)*img.height,img.width/grid.cols,img.height/grid.rows,si*panelW,0,(si===sortedSel.length-1)?W-si*panelW:panelW,H);if(si>0){ctx.strokeStyle='rgba(240,140,26,0.5)';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(si*panelW,0);ctx.lineTo(si*panelW,H);ctx.stroke();}}ctx.strokeStyle='rgba(240,140,26,0.4)';ctx.lineWidth=1.5;ctx.strokeRect(.75,.75,W-1.5,H-1.5);};img.onerror=function(){};img.src=product.image;}}
-function ensureSelection(slug){if(!tileSelections[slug]){var p=products.find(function(x){return x.slug===slug;});var c=p?parseInt(p.pieces)||4:4;tileSelections[slug]=[];for(var n=1;n<=c;n++)tileSelections[slug].push(n);}}
-function toggleTilePanel(slug,panelNum){ensureSelection(slug);var arr=tileSelections[slug],idx=arr.indexOf(panelNum);if(idx>=0)arr.splice(idx,1);else arr.push(panelNum);refreshTileUI(slug);}
-function selectAllTiles(slug){var p=products.find(function(x){return x.slug===slug;});var c=p?parseInt(p.pieces)||4:4;tileSelections[slug]=[];for(var n=1;n<=c;n++)tileSelections[slug].push(n);refreshTileUI(slug);}
-function selectNoTiles(slug){tileSelections[slug]=[];refreshTileUI(slug);}
-function refreshTileUI(slug){
-  var product=products.find(function(p){return p.slug===slug;});if(!product)return;
-  var sel=tileSelections[slug]||[],safe=slug.replace(/-/g,'_'),total=(sel.length*34.99).toFixed(2);
-  var ovSvg=document.getElementById('hex-overlay-'+slug);
-  if(ovSvg){ovSvg.querySelectorAll('polygon[data-panel]').forEach(function(p){var pn=parseInt(p.getAttribute('data-panel')),s=sel.indexOf(pn)>=0;p.setAttribute('fill',s?'rgba(240,140,26,0.18)':'rgba(0,0,0,0.4)');p.setAttribute('stroke',s?'#f08c1a':'rgba(255,255,255,0.1)');p.setAttribute('stroke-width',s?.7:.3);});}
-  document.querySelectorAll('[id$="-hpick-'+slug+'"]').forEach(function(sv){sv.querySelectorAll('g[data-panel]').forEach(function(g){var gn=parseInt(g.getAttribute('data-panel')),gs=sel.indexOf(gn)>=0;var py=g.querySelector('polygon'),tx=g.querySelector('text');if(py){py.setAttribute('fill',gs?'rgba(240,140,26,0.2)':'rgba(255,255,255,0.05)');py.setAttribute('stroke',gs?'#f08c1a':'rgba(255,255,255,0.18)');}if(tx)tx.setAttribute('fill',gs?'#f08c1a':'#6b7a96');});});
-  document.querySelectorAll('.tlc-'+safe).forEach(function(e){e.textContent=sel.length+' panel'+(sel.length!==1?'s':'')+' selected';});
-  document.querySelectorAll('.tlp-'+safe).forEach(function(e){e.textContent=sel.length>0?'£'+total:'£34.99 each';});
-  document.querySelectorAll('.tlab-'+safe).forEach(function(e){e.disabled=sel.length===0;e.textContent=sel.length===0?'Select panels above':'Add '+sel.length+' Panel'+(sel.length!==1?'s':'')+' to Basket — £'+total;});
-  renderPreviewCanvas(slug,product,sel);
-}
-function addSelectedTilesToBasket(slug){ensureSelection(slug);var sel=tileSelections[slug];if(!sel||sel.length===0){showToast('Select at least one panel');return;}var product=products.find(function(p){return p.slug===slug;});if(!product)return;sel.forEach(function(pn){var tslug=slug+'--tile-'+pn,found=false;for(var j=0;j<basket.length;j++){if(basket[j].slug===tslug){basket[j].qty++;found=true;break;}}if(!found)basket.push({slug:tslug,name:product.name+' — Panel '+pn+(product.panelNames&&product.panelNames[pn-1]?' ('+product.panelNames[pn-1]+')':''),price:34.99,qty:1,image:(product.panelImages?product.panelImages[pn-1]:product.image)||product.image,isTile:true,panelNum:pn});});updateBadge();renderDrawer();showToast(sel.length+' panel'+(sel.length!==1?'s':'')+' added to basket');}
-function buildTileSelectorWidget(product,idPrefix){var count=parseInt(product.pieces)||4;ensureSelection(product.slug);var sel=tileSelections[product.slug],safe=product.slug.replace(/-/g,'_'),total=(sel.length*34.99).toFixed(2);return'<div class="tile-prev-label">Panel preview</div><div class="tile-preview-wrap"><canvas id="prev-'+product.slug+'" class="tile-preview-canvas"></canvas></div><div style="display:flex;align-items:center;justify-content:space-between;margin:12px 0 8px"><div style="font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)">Select panels — £34.99 each</div><div style="display:flex;gap:5px"><button class="tile-quick-btn" onclick="selectAllTiles(\''+product.slug+'\')">All</button><button class="tile-quick-btn" onclick="selectNoTiles(\''+product.slug+'\')">None</button></div></div>'+buildHexPickerSVG(product.slug,count,sel,idPrefix)+'<div class="tile-count-row"><span class="tlc-'+safe+' tile-count-label">'+sel.length+' panel'+(sel.length!==1?'s':'')+' selected</span><span class="tlp-'+safe+' tile-count-price">£'+total+'</span></div><button class="tile-add-basket-btn tlab-'+safe+'"'+(sel.length===0?' disabled':'')+' onclick="addSelectedTilesToBasket(\''+product.slug+'\')">'+(sel.length===0?'Select panels above':'Add '+sel.length+' Panel'+(sel.length!==1?'s':'')+' to Basket — £'+total)+'</button>';}
-function buildCollectionCardHTML(p){ensureSelection(p.slug);return'<div class="tile-series-card"><div class="tile-series-img-wrap"><img class="tile-series-img" src="'+p.image+'" alt="'+p.name+'" loading="lazy"></div><div class="tile-series-body"><div style="margin-bottom:8px">'+typeTag(true)+'</div><div class="tile-series-name">'+p.name+'</div><div class="tile-series-hint">'+p.panelHint+'</div>'+buildTileSelectorWidget(p,'col')+'</div></div>';}
-function renderCollections(){var grid=document.getElementById('collections-grid');if(!grid)return;grid.innerHTML=products.filter(function(p){return p.isCollection;}).map(buildCollectionCardHTML).join('');setTimeout(function(){products.filter(function(p){return p.isCollection;}).forEach(function(p){ensureSelection(p.slug);renderPreviewCanvas(p.slug,p,tileSelections[p.slug]);});},80);}
-
-/* ═══ BACK TO TOP ═══ */
-window.addEventListener('scroll',function(){var btn=document.getElementById('back-to-top');if(btn)btn.classList.toggle('visible',window.scrollY>400);},{passive:true});
-
-/* ═══ NAV SCROLL EFFECT ═══ */
-window.addEventListener('scroll',function(){
-  var nav=document.querySelector('nav');
-  if(nav)nav.classList.toggle('scrolled',window.scrollY>10);
-},{passive:true});
-  
-/* ═══ INIT ═══ */
-updateBadge();
-renderDrawer();
-
-/* ═══ LAZY IMAGE OBSERVER ═══ */
-(function(){
-  if(!('IntersectionObserver' in window)) return;
-  var io = new IntersectionObserver(function(entries){
-    entries.forEach(function(e){
-      if(e.isIntersecting){
-        var img = e.target;
-        if(img.dataset.src){ img.src = img.dataset.src; delete img.dataset.src; }
-        img.addEventListener('load', function(){ img.classList.add('loaded'); });
-        io.unobserve(img);
-      }
-    });
-  }, { rootMargin: '200px' });
-  document.querySelectorAll('img[loading="lazy"]').forEach(function(img){ io.observe(img); });
-})();
-
-/* ═══ NAV SCROLL EFFECT ═══ */
-window.addEventListener('scroll', function(){
-  var nav = document.querySelector('nav');
-  if(nav) nav.classList.toggle('scrolled', window.scrollY > 10);
-}, { passive: true });
-
-/* ═══ BACK TO TOP ═══ */
-(function(){
-  var btn = document.getElementById('back-to-top');
-  if(!btn) return;
-  window.addEventListener('scroll', function(){
-    btn.classList.toggle('visible', window.scrollY > 400);
-  }, { passive: true });
-  btn.addEventListener('click', function(){
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  });
-})();
-
-/* ═══ FADE-UP OBSERVER ═══ */
-(function(){
-  if(!('IntersectionObserver' in window)) return;
-  var io = new IntersectionObserver(function(entries){
-    entries.forEach(function(e){
-      if(e.isIntersecting){
-        e.target.style.animationPlayState = 'running';
-        io.unobserve(e.target);
-      }
-    });
-  }, { threshold: 0.12 });
-  document.querySelectorAll('.afu').forEach(function(el){
-    el.style.animationPlayState = 'paused';
-    io.observe(el);
-  });
-})();
-
-/* ═══ MOBILE NAV ACTIVE STATE ═══ */
-(function(){
-  document.querySelectorAll('.mobile-nav-item').forEach(function(item){
-    item.addEventListener('click', function(){
-      document.querySelectorAll('.mobile-nav-item').forEach(function(i){ i.classList.remove('active'); });
-      item.classList.add('active');
-    });
-  });
-})();
-
-/* ═══ STICKY ADD BAR ═══ */
-(function(){
-  var bar = document.querySelector('.sticky-add-bar');
-  if(!bar) return;
-  var trigger = document.querySelector('.product-actions');
-  if(!trigger) return;
-  var io = new IntersectionObserver(function(entries){
-    entries.forEach(function(e){
-      bar.classList.toggle('visible', !e.isIntersecting);
-    });
-  }, { threshold: 0 });
-  io.observe(trigger);
-})();
-
-/* ═══ KEYBOARD SHORTCUTS ═══ */
-document.addEventListener('keydown', function(e){
-  /* Escape closes basket drawer */
-  if(e.key === 'Escape'){
-    var drawer = document.getElementById('basket-drawer');
-    var overlay = document.getElementById('basket-overlay');
-    if(drawer && drawer.classList.contains('open')){
-      drawer.classList.remove('open');
-      if(overlay) overlay.classList.remove('open');
-      document.body.style.overflow = '';
-    }
-  }
-  /* Slash key focuses search if it exists */
-  if(e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA'){
-    var search = document.querySelector('.search-input');
-    if(search){ e.preventDefault(); search.focus(); }
-  }
-});
-
-/* ═══ SMOOTH PAGE TRANSITIONS ═══ */
-(function(){
-  /* Ensure active page is visible on load */
-  var active = document.querySelector('.page.active');
-  if(active) active.style.opacity = '1';
-})();
+  There should be ZERO references to nav.classList and 'scrolled' in scroll handlers.
+*/
+</script>
