@@ -27,28 +27,30 @@
       position: sticky;
       top: 0;
       z-index: 1400;
-      background: rgba(8, 10, 18, 0.72);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      transition: transform .42s cubic-bezier(.22,1,.36,1), background .28s ease, border-color .28s ease, opacity .28s ease;
+      background: rgba(255, 255, 255, 0.58);
+      backdrop-filter: blur(20px) saturate(160%);
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
+      border-bottom: 1px solid rgba(255,255,255,0.34);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      transition: background .28s ease, border-color .28s ease, box-shadow .28s ease;
       opacity: 1;
     }
 
     #main-nav.nav-transparent {
-      background: rgba(255,255,255,0.08);
-      border-bottom-color: rgba(255,255,255,0.10);
+      background: rgba(255, 255, 255, 0.56);
+      border-bottom-color: rgba(255,255,255,0.34);
     }
 
     #main-nav.nav-solid {
-      background: rgba(8, 10, 18, 0.82);
-      border-bottom-color: rgba(255,255,255,0.1);
+      background: rgba(255, 255, 255, 0.72);
+      border-bottom-color: rgba(255,255,255,0.42);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.12);
     }
 
     #main-nav.nav-hidden {
-      transform: translateY(-120%);
-      opacity: 0;
-      pointer-events: none;
+      transform: none;
+      opacity: 1;
+      pointer-events: auto;
     }
 
     .footer-logo-img {
@@ -63,29 +65,31 @@
       width: 44px;
       height: 44px;
       border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.16);
-      background: rgba(255,255,255,0.10);
-      color: #fff;
+      border: 1px solid rgba(17,17,17,0.18);
+      background: rgba(255,255,255,0.86);
+      color: #111;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       padding: 0;
       flex-shrink: 0;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.16);
-      transition: background .22s ease, border-color .22s ease, transform .22s ease;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+      transition: background .22s ease, border-color .22s ease, transform .22s ease, box-shadow .22s ease;
     }
 
     .mobile-menu-toggle:hover,
     .mobile-menu-toggle:focus-visible {
-      background: rgba(255,255,255,0.14);
-      border-color: rgba(255,255,255,0.22);
+      background: rgba(255,255,255,0.94);
+      border-color: rgba(17,17,17,0.28);
       transform: translateY(-1px);
+      box-shadow: 0 12px 34px rgba(0,0,0,0.14);
       outline: none;
     }
 
     .mobile-menu-toggle svg {
       width: 20px;
       height: 20px;
+      stroke: currentColor;
     }
 
     .mobile-menu-shell {
@@ -105,12 +109,12 @@
       display: block;
       width: 100%;
       border-radius: 18px;
-      background: rgba(255,255,255,0.10);
-      border: 1px solid rgba(255,255,255,0.16);
-      box-shadow: 0 24px 60px rgba(0,0,0,0.28);
+      background: rgba(255,255,255,0.82);
+      border: 1px solid rgba(255,255,255,0.42);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.16);
       padding: 12px;
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
+      backdrop-filter: blur(18px) saturate(155%);
+      -webkit-backdrop-filter: blur(18px) saturate(155%);
       animation: mobileMenuIn .18s ease-out;
       overflow: hidden;
     }
@@ -122,25 +126,25 @@
       justify-content: space-between;
       padding: 14px 16px;
       border-radius: 12px;
-      color: #fff;
+      color: #111;
       text-decoration: none;
       background: transparent;
       border: 0;
       font: inherit;
       cursor: pointer;
-      transition: background .18s ease, transform .18s ease;
+      transition: background .18s ease, transform .18s ease, color .18s ease;
     }
 
     .mobile-menu a:hover,
     .mobile-menu a:focus-visible {
-      background: rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.34);
       transform: translateX(2px);
       outline: none;
     }
 
     .mobile-menu a.active {
-      background: rgba(255,255,255,0.12);
-      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.44);
+      border: 1px solid rgba(17,17,17,0.08);
     }
 
     @keyframes mobileMenuIn {
@@ -429,7 +433,7 @@
     <div class="hero" style="position:relative;background-image:url('https://images.unsplash.com/photo-1446776877081-d282a0f896e2?auto=format&fit=crop&w=2000&q=90');background-size:cover;background-position:center;background-repeat:no-repeat;">
       <div style="position:absolute;inset:0;z-index:1;background:linear-gradient(to bottom,rgba(0,0,0,0.22) 0%,rgba(0,0,0,0.42) 42%,rgba(0,0,0,0.78) 82%,rgba(0,0,0,0.94) 100%);"></div>
       <div class="hero-content" style="position:relative;z-index:2;max-width:860px;">
-        <div class="hero-chip afu" style="color:rgba(255,255,255,0.92);background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);">
+        <div class="hero-chip afu" style="color:#111;background:rgba(255,255,255,0.68);border:1px solid rgba(255,255,255,0.28);">
           <span class="hero-chip-dot"></span>
           New collection available
         </div>
@@ -437,7 +441,7 @@
         <p class="hero-sub afu d2" style="color:rgba(255,255,255,0.84);">Magnetic hexagon panels that transform your space into a continuous deep-space mural. Gallery quality. Precision aligned.</p>
         <div class="hero-actions afu d3">
           <a class="btn btn-gold" href="#wall-art" onclick="showPage('wall-art');setActiveNav('wall-art')">Shop Wall Art</a>
-          <a class="btn btn-ghost" href="#about" onclick="showPage('about');setActiveNav('about')" style="color:#fff;border-color:rgba(255,255,255,0.35);background:rgba(255,255,255,0.06);">Our craft</a>
+          <a class="btn btn-ghost" href="#about" onclick="showPage('about');setActiveNav('about')" style="color:#111;border-color:rgba(255,255,255,0.36);background:rgba(255,255,255,0.62);">Our craft</a>
         </div>
         <div class="hero-stats afu d4">
           <div class="hero-stat"><div class="hero-stat-num">12</div><div class="hero-stat-label">Series</div></div>
@@ -611,7 +615,6 @@
     var artifacts = [];
     var featuredSlugs = [];
     var basket = [];
-    var lastScrollY = window.scrollY;
 
     fetch('/.netlify/functions/load-catalogue')
       .then(function(r){ return r.json(); })
@@ -702,30 +705,20 @@
     function updateNavBackground(){
       var nav = document.getElementById('main-nav');
       if (!nav) return;
-      if (window.scrollY > 24) {
+      if (window.scrollY > 12) {
         nav.classList.add('nav-solid');
         nav.classList.remove('nav-transparent');
       } else {
         nav.classList.add('nav-transparent');
         nav.classList.remove('nav-solid');
       }
+      nav.classList.remove('nav-hidden');
     }
 
     function updateNavVisibility(){
       var nav = document.getElementById('main-nav');
       if (!nav) return;
-      var y = window.scrollY;
-      if (window.innerWidth <= 820) {
-        if (y > 260 && y > lastScrollY + 24) {
-          nav.classList.add('nav-hidden');
-          closeMobileMenu();
-        } else if (y < lastScrollY - 12 || y < 140) {
-          nav.classList.remove('nav-hidden');
-        }
-      } else {
-        nav.classList.remove('nav-hidden');
-      }
-      lastScrollY = y;
+      nav.classList.remove('nav-hidden');
     }
 
     function renderBasket(){
