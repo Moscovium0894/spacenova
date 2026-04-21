@@ -579,7 +579,6 @@ function renderDrawer(){
   if(checkoutStep>0){
     body.innerHTML=renderCheckoutForm();
     footer.innerHTML=renderCheckoutFooter();
-    if(checkoutStep===2) requestAnimationFrame(mountStripeElement);
     return;
   }
   if(basket.length===0){
@@ -611,12 +610,14 @@ function renderDrawer(){
 function goCheckout(){
   checkoutStep=2;
   renderDrawer();
-  // Create the payment intent now so the secret is ready when Stripe mounts
   createPaymentIntent(function(err){
-    if(err){ showToast('Could not initialise payment — please try again','danger'); checkoutStep=0; renderDrawer(); return; }
-    // mountStripeElement is called via requestAnimationFrame inside renderDrawer already,
-    // but now stripeClientSecret will be set. Re-trigger mount.
-    mountStripeElement();
+    if(err){
+      showToast('Could not initialise payment — please try again','danger');
+      checkoutStep=0;
+      renderDrawer();
+      return;
+    }
+    requestAnimationFrame(mountStripeElement);
   });
 }
 
