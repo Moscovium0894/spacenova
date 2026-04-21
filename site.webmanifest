@@ -1,0 +1,21 @@
+{
+  "name": "Spacenova",
+  "short_name": "Spacenova",
+  "description": "Luxury magnetic modular space wall art by Spacenova.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#060b12",
+  "theme_color": "#060b12",
+  "icons": [
+    {
+      "src": "/Spacenovafavicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/Spacenovafavicon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
