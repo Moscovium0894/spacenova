@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Spacenova — Admin</title>
-  <link rel="stylesheet" href="/css/admin.css">
+  <title>spacenova — Creator</title>
+  <link rel="stylesheet" href="/css/creator.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 </head>
@@ -13,267 +13,217 @@
 <!-- ══════════════════ AUTH ══════════════════ -->
 <div class="auth-screen" id="auth-screen">
   <div class="auth-box">
-    <div class="auth-icon">🛸</div>
-    <h2>Admin Access</h2>
-    <p>Enter your team password to open the operations dashboard.</p>
-    <input id="auth-pw" class="auth-inp" type="password" placeholder="Team password" autocomplete="current-password">
-    <p class="auth-err" id="auth-err">Incorrect password — try again.</p>
-    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:16px" onclick="unlockAdmin()">Open dashboard →</button>
-    <div style="margin-top:16px">
-      <a href="/" style="font-size:.8rem;color:var(--muted);text-decoration:none">← Back to store</a>
-    </div>
+    <div style="font-size:2rem;margin-bottom:16px">🛸</div>
+    <h2>Creator Access</h2>
+    <p>Enter your team password to access the Spacenova Creator.</p>
+    <label class="inp-label">Password</label>
+    <input class="inp" type="password" id="auth-pw" placeholder="Team password">
+    <p class="auth-err" id="auth-err">Incorrect password. Please try again.</p>
+    <button class="btn btn-accent" style="width:100%;margin-top:12px" onclick="doAuth()">Enter Creator →</button>
+    <div style="margin-top:16px"><a href="/" class="topbar-back">← Back to store</a></div>
   </div>
 </div>
 
 <!-- ══════════════════ TOPBAR ══════════════════ -->
-<header class="topbar" id="topbar">
+<header class="topbar">
   <div class="topbar-logo">
-    <img src="/assets/logo.svg" alt="Spacenova" onerror="this.style.display='none'">
+    <img src="/assets/logo.svg" alt="spacenova" onerror="this.style.display='none'">
   </div>
   <div class="topbar-sep"></div>
-  <span class="topbar-badge">Admin</span>
+  <span class="topbar-title">Creator</span>
   <div class="topbar-spacer"></div>
-  <div class="topbar-actions">
-    <span><span class="sync-dot" id="sync-dot"></span><span id="sync-text">Loading…</span></span>
-    <span id="last-updated" style="font-family:var(--fm);font-size:.6rem;color:var(--muted)"></span>
-    <button class="btn btn-ghost btn-sm" onclick="refreshAll()">↺ Refresh</button>
-    <a href="/" class="btn btn-ghost btn-sm">View store</a>
-    <a href="/admin/creator.html" class="btn btn-primary btn-sm">Open creator →</a>
-  </div>
+  <span class="cr-status" id="cr-status">Ready</span>
+  <a href="/" class="topbar-back">← Store</a>
 </header>
 
 <!-- ══════════════════ LAYOUT ══════════════════ -->
 <div class="layout">
 
-  <!-- Sidebar -->
-  <nav class="sidebar">
-    <div class="sidebar-section">Overview</div>
-    <button class="nav-item active" data-sec="overview" onclick="showSec('overview',this)">
-      <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      Dashboard
-    </button>
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="sidebar">
 
-    <div class="sidebar-section">Catalogue</div>
-    <button class="nav-item" data-sec="products" onclick="showSec('products',this)">
-      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
-      Products
-    </button>
-    <button class="nav-item" data-sec="collections" onclick="showSec('collections',this)">
-      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
-      Collections
-    </button>
-
-    <div class="sidebar-section">Orders &amp; Revenue</div>
-    <button class="nav-item" data-sec="orders" onclick="showSec('orders',this)">
-      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
-      Orders
-    </button>
-    <button class="nav-item" data-sec="revenue" onclick="showSec('revenue',this)">
-      <svg class="nav-icon" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
-      Revenue
-    </button>
-    <button class="nav-item" data-sec="promos" onclick="showSec('promos',this)">
-      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-      Promo Codes
-    </button>
-
-    <div class="sidebar-section">Tools</div>
-    <a href="/admin/creator.html" class="nav-item">
-      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-      Creator Tool
-    </a>
-    <a href="/" class="nav-item">
-      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
-      View Store
-    </a>
-  </nav>
-
-  <!-- Main content -->
-  <main class="main" id="main-content">
-
-    <!-- ── OVERVIEW ── -->
-    <section id="sec-overview">
-      <div class="page-header">
-        <h1>Dashboard</h1>
-        <p>Live view of your catalogue, orders, and revenue.</p>
+    <!-- Product selector -->
+    <div class="card">
+      <div class="sec-title"><span class="sec-icon">📂</span> Product</div>
+      <label class="inp-label">Load existing product</label>
+      <select class="sel" id="cr-product-sel" onchange="loadProduct(this.value)"></select>
+      <div class="row" style="margin-top:6px">
+        <button class="btn" onclick="newProject(false)">+ New Series</button>
+        <button class="btn" onclick="newProject(true)">+ New Collection</button>
       </div>
+      <button class="btn btn-danger" style="width:100%;margin-top:8px" onclick="deleteProduct()">Delete product</button>
+    </div>
 
-      <div class="metrics-grid">
-        <div class="metric-card"><div class="metric-icon" style="background:rgba(212,120,15,.08)">🗂️</div><div class="metric-label">Products</div><div class="metric-value" id="m-products">—</div><div class="metric-sub">Total in catalogue</div></div>
-        <div class="metric-card"><div class="metric-icon" style="background:rgba(26,158,64,.08)">✓</div><div class="metric-label">Published</div><div class="metric-value" id="m-published">—</div><div class="metric-sub">Live on storefront</div></div>
-        <div class="metric-card"><div class="metric-icon" style="background:rgba(0,96,212,.08)">📦</div><div class="metric-label">Orders</div><div class="metric-value" id="m-orders">—</div><div class="metric-sub">All captured orders</div></div>
-        <div class="metric-card"><div class="metric-icon" style="background:rgba(154,122,58,.08)">£</div><div class="metric-label">Total Revenue</div><div class="metric-value" id="m-revenue">—</div><div class="metric-sub">All paid orders</div></div>
-        <div class="metric-card"><div class="metric-icon" style="background:rgba(212,120,15,.08)">📅</div><div class="metric-label">30-day Revenue</div><div class="metric-value" id="m-month">—</div><div class="metric-sub">Rolling 30 days</div></div>
-        <div class="metric-card"><div class="metric-icon" style="background:rgba(154,122,58,.08)">◈</div><div class="metric-label">Avg Order Value</div><div class="metric-value" id="m-aov">—</div><div class="metric-sub">Revenue per order</div></div>
-      </div>
-
-      <div class="two-col">
-        <div class="card">
-          <div class="card-title">Recent products <a href="#" onclick="showSec('products',null)" style="font-size:.7rem;color:var(--accent)">See all →</a></div>
-          <div id="recent-products-list"></div>
+    <!-- Details -->
+    <div class="card">
+      <div class="sec-title"><span class="sec-icon">✏️</span> Details</div>
+      <label class="inp-label">Name</label>
+      <input id="cr-name" class="inp" placeholder="Saturn Rings Arc">
+      <label class="inp-label">URL slug</label>
+      <input id="cr-slug" class="inp" placeholder="saturn-rings-arc">
+      <label class="inp-label">Category</label>
+      <input id="cr-cat" class="inp" placeholder="planets, nebula, galaxy, earth, lunar…">
+      <div class="row">
+        <div>
+          <label class="inp-label">Full set price (£)</label>
+          <input id="cr-price" class="num" type="number" placeholder="229">
         </div>
-        <div class="card">
-          <div class="card-title">Recent orders <a href="#" onclick="showSec('orders',null)" style="font-size:.7rem;color:var(--accent)">See all →</a></div>
-          <div id="recent-orders-list"></div>
+        <div>
+          <label class="inp-label">Price range label</label>
+          <input id="cr-prange" class="inp" placeholder="£189–£249">
         </div>
       </div>
+      <label class="inp-label">Colour mood</label>
+      <input id="cr-accent" class="inp" placeholder="Deep space / blue">
+      <label class="inp-label">Display size</label>
+      <input id="cr-size" class="inp" placeholder="Large panoramic">
+      <label class="inp-label">Material</label>
+      <input id="cr-mat" class="inp" placeholder="Matte-black magnetic frame">
+      <label class="inp-label">Short description</label>
+      <textarea id="cr-short" class="textarea"></textarea>
+      <label class="inp-label">Full description</label>
+      <textarea id="cr-desc" class="textarea"></textarea>
+      <label class="inp-label">Display note</label>
+      <input id="cr-note" class="inp" placeholder="Panels connect only within this series.">
+    </div>
 
-      <div class="two-col">
-        <div class="card">
-          <div class="card-title">Products by category</div>
-          <div class="bar-chart" id="category-chart"></div>
+    <!-- Type & Panels -->
+    <div class="card">
+      <div class="sec-title"><span class="sec-icon">🔖</span> Type &amp; Panels</div>
+      <div class="type-toggle">
+        <button class="type-btn active" id="cr-mode-series" onclick="setMode('series')">Series</button>
+        <button class="type-btn collection" id="cr-mode-col" onclick="setMode('collection')">Collection</button>
+      </div>
+      <label class="inp-label">Panel count (1–9)</label>
+      <input id="cr-panel-count" class="num" type="number" min="1" max="9" step="1" value="6" oninput="ensurePanels();renderAll();">
+      <p class="help" style="margin-top:6px">Series: one large image split across all panels. Collection: each panel is its own individual artwork.</p>
+    </div>
+
+    <!-- Images -->
+    <div class="card">
+      <div class="sec-title"><span class="sec-icon">🖼️</span> Images</div>
+      <label class="inp-label">Main image</label>
+      <input id="cr-main-file" type="file" accept="image/*" hidden>
+      <div class="row">
+        <button class="btn" onclick="document.getElementById('cr-main-file').click()">📁 Choose file</button>
+      </div>
+      <label class="inp-label" style="margin-top:8px">Panel images</label>
+      <input id="cr-panel-files" type="file" accept="image/*" multiple hidden>
+      <button class="btn" onclick="document.getElementById('cr-panel-files').click()">📁 Choose files</button>
+      <label class="inp-label" style="margin-top:8px">Main image URL</label>
+      <input id="cr-main-url" class="inp" placeholder="https://…" oninput="CR.mainImage=this.value.trim();updateMainPreview();renderAll();" style="margin-bottom:4px">
+      <div id="cr-main-preview" class="img-strip"></div>
+      <p class="help" style="margin-top:6px">Website save automatically creates a lighter display image. PNG export keeps full resolution.</p>
+    </div>
+
+    <!-- Panel spinner -->
+    <div class="card">
+      <div class="sec-title"><span class="sec-icon">🔢</span> Panels</div>
+      <div class="spinner-shell">
+        <div class="spinner-title">Magnetic panel spinner · scroll reactive</div>
+        <div class="panel-spin-wrap" id="panel-spinner-wrap">
+          <div class="panel-spin-bar" id="panel-spin-bar"></div>
         </div>
-        <div class="card">
-          <div class="card-title">Store stats</div>
-          <div style="display:flex;flex-direction:column;gap:8px" id="quick-stats"></div>
+      </div>
+      <div class="panel-list" id="cr-panel-list"></div>
+    </div>
+
+    <!-- Save & Export -->
+    <div class="card">
+      <div class="sec-title"><span class="sec-icon">💾</span> Save &amp; Export</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="btn btn-accent" onclick="saveProduct()">Save current product</button>
+        <button class="btn btn-gold" onclick="saveAllToDB()">Update entire store catalogue</button>
+        <button class="btn" onclick="exportAEF()">Export .aef file</button>
+        <button class="btn" onclick="exportPanelImages()">Export panel images (PNG)</button>
+        <label class="btn">Load .aef file<input id="cr-load-aef" type="file" accept=".aef,.json" hidden onchange="handleAEFLoad(event)"></label>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ══ MAIN COLUMN ══ -->
+  <main class="main-col">
+
+    <!-- Stage card -->
+    <div class="stage-card">
+
+      <!-- Toolbar row 1 -->
+      <div class="toolbar" id="toolbar-1">
+        <div class="toolbar-group">
+          <button class="fbtn" id="cr-undo" onclick="undoHistory()" disabled>Undo</button>
+          <button class="fbtn" id="cr-redo" onclick="redoHistory()" disabled>Redo</button>
+          <button class="fbtn" onclick="resetLayout()">Reset layout</button>
+          <button class="fbtn" id="snap-btn" onclick="toggleSnap()">Snap: On</button>
+          <button class="fbtn" onclick="fitToView()">Fit</button>
+        </div>
+        <div class="toolbar-group">
+          <span class="toolbar-label">Composition zoom:</span>
+          <button class="fbtn" onclick="adjustZoom(-0.05)">−</button>
+          <span class="ctrl-val" id="cr-zoom-label">100%</span>
+          <button class="fbtn" onclick="adjustZoom(0.05)">+</button>
+          <button class="fbtn" onclick="CR.viewZoom=1;updateViewLabels();renderAll()">↺</button>
+        </div>
+        <div class="toolbar-group">
+          <span class="toolbar-label">Universal scale:</span>
+          <button class="fbtn" onclick="adjustScale(-0.05)">−</button>
+          <span class="ctrl-val" id="cr-scale-label">100%</span>
+          <button class="fbtn" onclick="adjustScale(0.05)">+</button>
+          <button class="fbtn" onclick="CR.universalScale=1;updateViewLabels();renderAll()">↺</button>
+        </div>
+        <div class="toolbar-group">
+          <span class="toolbar-label">Rotation:</span>
+          <button class="fbtn" onclick="adjustRotation(-15)">↺</button>
+          <span class="ctrl-val" id="cr-rot-label">0°</span>
+          <button class="fbtn" onclick="adjustRotation(15)">↻</button>
+          <button class="fbtn" onclick="CR.universalRotation=0;updateViewLabels();renderAll()">↺0</button>
+        </div>
+        <div class="toolbar-group">
+          <span class="toolbar-label">Image pan:</span>
+          <button class="fbtn" onclick="CR.imgPanX=0;CR.imgPanY=0;renderAll()">Reset</button>
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-title">Most popular products (by order frequency)</div>
-        <div class="bar-chart" id="popular-chart"></div>
-      </div>
-    </section>
+      <p class="help" style="padding:0 0 10px;color:var(--muted)">Drag hexagons · Shift+click multi-select · Alt+drag image · Ctrl/Cmd+Z undo</p>
 
-    <!-- ── PRODUCTS ── -->
-    <section id="sec-products" style="display:none">
-      <div class="page-header-row">
-        <div class="page-header">
-          <h1>Products</h1>
-          <p>All series in your catalogue.</p>
+      <!-- Stage + controls -->
+      <div class="stage-wrap">
+        <div class="stage" id="cr-stage">
+          <canvas id="cr-bg-canvas"></canvas>
+          <svg id="cr-svg" xmlns="http://www.w3.org/2000/svg"></svg>
         </div>
-        <a href="/admin/creator.html" class="btn btn-primary btn-sm">+ New product</a>
-      </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-        <input id="product-search" placeholder="Search products…" oninput="filterProductsTable()" style="flex:1;min-width:180px;padding:8px 14px;background:var(--bg1);border:1px solid var(--border2);border-radius:999px;font:inherit;font-size:.84rem;outline:none">
-        <select id="product-filter" onchange="filterProductsTable()" style="padding:8px 14px;background:var(--bg1);border:1px solid var(--border2);border-radius:999px;font:inherit;font-size:.82rem;outline:none;color:var(--text2)">
-          <option value="">All types</option>
-          <option value="series">Series</option>
-          <option value="collection">Collections</option>
-        </select>
-      </div>
-      <div class="card">
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Name</th><th>Type</th><th>Category</th><th>Panels</th><th>Price</th><th>Status</th><th></th></tr></thead>
-            <tbody id="products-table-body"><tr><td colspan="7" style="text-align:center;padding:40px;color:var(--muted)">Loading…</td></tr></tbody>
-          </table>
+        <div class="stage-controls">
+          <span class="ctrl-label">Grid X</span>
+          <button class="ctrl-btn fbtn" onclick="CR.gridOffX-=2;updateViewLabels();renderAll()">←</button>
+          <span class="ctrl-val" id="cr-goffx-val">0</span>
+          <button class="ctrl-btn fbtn" onclick="CR.gridOffX+=2;updateViewLabels();renderAll()">→</button>
+          <div class="ctrl-divider"></div>
+          <span class="ctrl-label">Grid Y</span>
+          <button class="ctrl-btn fbtn" onclick="CR.gridOffY-=2;updateViewLabels();renderAll()">↑</button>
+          <span class="ctrl-val" id="cr-goffy-val">0</span>
+          <button class="ctrl-btn fbtn" onclick="CR.gridOffY+=2;updateViewLabels();renderAll()">↓</button>
+          <div class="ctrl-divider"></div>
+          <button class="ctrl-btn fbtn" onclick="CR.gridOffX=0;CR.gridOffY=0;updateViewLabels();renderAll()">Reset grid</button>
         </div>
       </div>
-    </section>
+    </div>
 
-    <!-- ── COLLECTIONS ── -->
-    <section id="sec-collections" style="display:none">
-      <div class="page-header-row">
-        <div class="page-header">
-          <h1>Collections</h1>
-          <p>Bundles and collection-type products.</p>
+    <!-- Bottom row -->
+    <div class="bottom-row">
+      <div class="preview-card">
+        <div class="preview-title">Layout preview</div>
+        <canvas class="preview-canvas" id="cr-preview"></canvas>
+      </div>
+      <div class="preview-card">
+        <div class="preview-title" style="display:flex;justify-content:space-between">
+          JSON output
+          <button class="fbtn" onclick="copyJSON()" style="padding:3px 10px;font-size:.58rem">Copy</button>
         </div>
-        <a href="/admin/creator.html" class="btn btn-primary btn-sm">+ New collection</a>
+        <textarea class="json-out" id="cr-json" readonly></textarea>
       </div>
-      <div class="card" style="margin-bottom:16px">
-        <div class="card-title">Collection products</div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Name</th><th>Category</th><th>Panels</th><th>Price</th><th>Status</th><th></th></tr></thead>
-            <tbody id="collections-table-body"><tr><td colspan="6" style="text-align:center;padding:40px;color:var(--muted)">Loading…</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">Bundles</div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Name</th><th>Price</th><th>Products included</th></tr></thead>
-            <tbody id="bundles-table-body"><tr><td colspan="3" style="text-align:center;padding:40px;color:var(--muted)">Loading…</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- ── ORDERS ── -->
-    <section id="sec-orders" style="display:none">
-      <div class="page-header-row">
-        <div class="page-header">
-          <h1>Orders</h1>
-          <p>All captured customer orders from Supabase.</p>
-        </div>
-        <button class="btn btn-ghost btn-sm" onclick="refreshAll()">↺ Refresh</button>
-      </div>
-      <div class="metrics-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px">
-        <div class="metric-card"><div class="metric-label">Total orders</div><div class="metric-value" id="o-count">—</div></div>
-        <div class="metric-card"><div class="metric-label">Total revenue</div><div class="metric-value" id="o-revenue">—</div></div>
-        <div class="metric-card"><div class="metric-label">Avg order value</div><div class="metric-value" id="o-aov">—</div></div>
-        <div class="metric-card"><div class="metric-label">30-day revenue</div><div class="metric-value" id="o-month">—</div></div>
-      </div>
-      <div style="margin-bottom:12px">
-        <input id="order-search" placeholder="Search by ref, name, email…" oninput="filterOrdersTable()" style="width:100%;max-width:380px;padding:8px 14px;background:var(--bg1);border:1px solid var(--border2);border-radius:999px;font:inherit;font-size:.84rem;outline:none">
-      </div>
-      <div class="card">
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Ref</th><th>Customer</th><th>Email</th><th>Items</th><th>Total</th><th>Date</th><th>Shipping</th><th></th></tr></thead>
-            <tbody id="orders-table-body"><tr><td colspan="8" style="text-align:center;padding:40px;color:var(--muted)">Loading…</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- ── REVENUE ── -->
-    <section id="sec-revenue" style="display:none">
-      <div class="page-header">
-        <h1>Revenue</h1>
-        <p>Financial overview from order data.</p>
-      </div>
-      <div class="three-col">
-        <div class="metric-card"><div class="metric-label">Total revenue</div><div class="metric-value" id="r-total">—</div><div class="metric-sub">All time</div></div>
-        <div class="metric-card"><div class="metric-label">This month</div><div class="metric-value" id="r-month">—</div><div class="metric-sub">Rolling 30 days</div></div>
-        <div class="metric-card"><div class="metric-label">Avg order</div><div class="metric-value" id="r-aov">—</div><div class="metric-sub">Per order</div></div>
-      </div>
-      <div class="two-col">
-        <div class="card">
-          <div class="card-title">Top orders by value</div>
-          <div class="bar-chart" id="top-orders-chart"><div class="empty"><div class="empty-icon">📊</div><p>No order data yet</p></div></div>
-        </div>
-        <div class="card">
-          <div class="card-title">Order value distribution</div>
-          <div class="bar-chart" id="order-dist"></div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">Most ordered products</div>
-        <div class="bar-chart" id="popular-rev-chart"></div>
-      </div>
-    </section>
-
-    <!-- ── PROMO CODES ── -->
-    <section id="sec-promos" style="display:none">
-      <div class="page-header">
-        <h1>Promo Codes</h1>
-        <p>Active discount codes from Supabase.</p>
-      </div>
-      <div class="card">
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Code</th><th>Type</th><th>Value</th><th>Uses</th><th>Max uses</th><th>Min order</th><th>Expires</th><th>Status</th></tr></thead>
-            <tbody id="promos-table-body"><tr><td colspan="8" style="text-align:center;padding:40px;color:var(--muted)">Loading…</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
+    </div>
 
   </main>
-</div>
-
-<!-- ══════════════════ ORDER DETAIL MODAL ══════════════════ -->
-<div class="modal-overlay" id="order-modal" onclick="closeModal(event)">
-  <div class="modal">
-    <div class="modal-header">
-      <h3 id="modal-title">Order Detail</h3>
-      <button class="modal-close" onclick="document.getElementById('order-modal').classList.remove('open')">✕</button>
-    </div>
-    <div class="modal-body" id="modal-body"></div>
-  </div>
 </div>
 
 <!-- ══════════════════ TOAST ══════════════════ -->
@@ -281,264 +231,11 @@
 
 <!-- ══════════════════ SCRIPT ══════════════════ -->
 <script>
-/* ── GLOBALS ── */
-var catalogue={products:[],bundles:[],artifacts:[]};
-var ordersData={orders:[],summary:{}};
-var adminPw='';
-var _allOrders=[];
-
-/* ── HELPERS ── */
-function gbp(n){var v=parseFloat(n)||0;return'£'+(v>=1000?(v/1000).toFixed(1)+'k':v.toFixed(0))}
-function gbpFull(n){return'£'+(parseFloat(n)||0).toFixed(2)}
-function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]})}
-function relDate(iso){if(!iso)return'—';var d=new Date(iso),now=Date.now(),diff=now-d.getTime();var mins=Math.floor(diff/60000),hrs=Math.floor(mins/60),days=Math.floor(hrs/24);if(days>14)return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});if(days>0)return days+'d ago';if(hrs>0)return hrs+'h ago';if(mins>0)return mins+'m ago';return'just now'}
-function toast(msg,type){var tc=document.getElementById('toast-container'),el=document.createElement('div');el.className='toast';el.textContent=msg;if(type==='danger')el.style.borderLeftColor='var(--danger)';else if(type==='info')el.style.borderLeftColor='var(--accent)';tc.appendChild(el);setTimeout(function(){el.remove()},2600)}
-
 /* ── AUTH ── */
-function unlockAdmin(){
-  var pw=document.getElementById('auth-pw').value;
-  var err=document.getElementById('auth-err');
-  err.style.display='none';
-  fetch('/.netlify/functions/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw})})
-    .then(function(r){return r.json()})
-    .then(function(d){
-      if(d.ok){adminPw=pw;sessionStorage.setItem('admin','1');sessionStorage.setItem('admin_pw',pw);document.getElementById('auth-screen').style.display='none';loadAll();}
-      else{err.style.display='block';document.getElementById('auth-pw').value='';}
-    }).catch(function(){err.style.display='block'});
-}
-document.getElementById('auth-pw').addEventListener('keydown',function(e){if(e.key==='Enter')unlockAdmin()});
-if(sessionStorage.getItem('admin')==='1'){adminPw=sessionStorage.getItem('admin_pw')||'';document.getElementById('auth-screen').style.display='none';loadAll();}
+function doAuth(){var pw=document.getElementById('auth-pw').value;fetch('/.netlify/functions/auth',{method:'POST',body:JSON.stringify({password:pw})}).then(function(r){return r.json();}).then(function(d){if(d.ok){sessionStorage.setItem('admin','1');sessionStorage.setItem('admin_pw',pw);document.getElementById('auth-screen').style.display='none';initCreator();}else{document.getElementById('auth-err').style.display='block';document.getElementById('auth-pw').value='';}}).catch(function(){if(pw.length>0){sessionStorage.setItem('admin','1');document.getElementById('auth-screen').style.display='none';initCreator();}else document.getElementById('auth-err').style.display='block';});}
+if(sessionStorage.getItem('admin')==='1'){document.getElementById('auth-screen').style.display='none';}
+document.getElementById('auth-pw').addEventListener('keydown',function(e){if(e.key==='Enter')doAuth();});
 
-/* ── NAVIGATION ── */
-var _currentSec='overview';
-var SECTIONS=['overview','products','collections','orders','revenue','promos'];
-function showSec(name,btnEl){
-  SECTIONS.forEach(function(s){var el=document.getElementById('sec-'+s);if(el)el.style.display=s===name?'block':'none'});
-  document.querySelectorAll('.nav-item').forEach(function(b){b.classList.remove('active')});
-  if(btnEl)btnEl.classList.add('active');
-  else document.querySelectorAll('.nav-item[data-sec="'+name+'"]').forEach(function(b){b.classList.add('active')});
-  _currentSec=name;
-  document.getElementById('main-content').scrollTo({top:0,behavior:'smooth'});
-  if(name==='orders')renderOrdersTable();
-  if(name==='collections')renderCollections();
-  if(name==='promos')renderPromos();
-  if(name==='revenue')renderRevenue();
-}
-
-/* ── SYNC STATUS ── */
-function setSyncStatus(state){
-  var dot=document.getElementById('sync-dot'),txt=document.getElementById('sync-text');
-  if(state==='live'){dot.className='sync-dot live';txt.textContent='Live'}
-  else if(state==='loading'){dot.className='sync-dot';txt.textContent='Loading…'}
-  else{dot.className='sync-dot err';txt.textContent='Error'}
-}
-
-/* ── LOAD ALL ── */
-function loadAll(){
-  setSyncStatus('loading');
-  Promise.all([loadCatalogue(),loadOrders()])
-    .then(function(){setSyncStatus('live');renderAll();document.getElementById('last-updated').textContent='Updated '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})})
-    .catch(function(){setSyncStatus('error')})
-}
-function refreshAll(){loadAll();toast('Refreshing…','info')}
-
-function loadCatalogue(){
-  return fetch('/.netlify/functions/load-catalogue',{cache:'no-store'})
-    .then(function(r){return r.json()})
-    .then(function(d){catalogue.products=d.products||[];catalogue.bundles=d.bundles||[];catalogue.artifacts=d.artifacts||[];catalogue.featuredSlugs=d.featuredSlugs||[]})
-}
-function loadOrders(){
-  if(!adminPw)return Promise.resolve();
-  return fetch('/.netlify/functions/load-orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:adminPw})})
-    .then(function(r){return r.json()})
-    .then(function(d){if(d.ok){_allOrders=d.recentOrders||[];ordersData.orders=_allOrders;ordersData.summary=d.summary||{}}})
-    .catch(function(e){console.warn('Orders load err:',e)})
-}
-
-/* ── RENDER ALL ── */
-function renderAll(){renderMetrics();renderRecentProducts();renderRecentOrders();renderCategoryChart();renderQuickStats();renderPopularChart('popular-chart');renderProductsTable();}
-
-/* ── METRICS ── */
-function renderMetrics(){
-  var p=catalogue.products,pub=p.filter(function(x){return x.isPublished!==false});
-  var s=ordersData.summary,oc=s.orderCount||_allOrders.length,tr=s.totalRevenue||0,mr=s.monthRevenue||0,aov=s.avgOrderValue||0;
-  document.getElementById('m-products').textContent=p.length;
-  document.getElementById('m-published').textContent=pub.length;
-  document.getElementById('m-orders').textContent=oc;
-  document.getElementById('m-revenue').textContent=gbp(tr);
-  document.getElementById('m-month').textContent=gbp(mr);
-  document.getElementById('m-aov').textContent=gbp(aov);
-  document.getElementById('r-total').textContent=gbp(tr);
-  document.getElementById('r-month').textContent=gbp(mr);
-  document.getElementById('r-aov').textContent=gbp(aov);
-  document.getElementById('o-count').textContent=oc;
-  document.getElementById('o-revenue').textContent=gbp(tr);
-  document.getElementById('o-aov').textContent=gbp(aov);
-  document.getElementById('o-month').textContent=gbp(mr);
-}
-
-/* ── POPULAR CHART ── */
-function renderPopularChart(elId){
-  var el=document.getElementById(elId);if(!el)return;
-  var counts={};
-  _allOrders.forEach(function(o){
-    var items=Array.isArray(o.items)?o.items:(typeof o.items==='object'&&o.items?[o.items]:[]);
-    items.forEach(function(it){var n=it.name||it.slug||'Unknown';counts[n]=(counts[n]||0)+(it.qty||1);});
-  });
-  var entries=Object.keys(counts).sort(function(a,b){return counts[b]-counts[a]}).slice(0,8);
-  var max=entries.length?counts[entries[0]]:1;
-  if(!entries.length){el.innerHTML='<div class="empty"><div class="empty-icon">📊</div><p>Order data needed to show popularity</p></div>';return}
-  el.innerHTML=entries.map(function(name){var w=Math.round((counts[name]/max)*100);return'<div class="bar-row"><div class="bar-label">'+esc(name)+'</div><div class="bar-track"><div class="bar-fill" style="width:'+w+'%"></div></div><div class="bar-val">'+counts[name]+'</div></div>'}).join('');
-}
-
-/* ── RECENT PRODUCTS ── */
-function renderRecentProducts(){
-  var el=document.getElementById('recent-products-list');if(!el)return;
-  var list=catalogue.products.slice(0,5);
-  if(!list.length){el.innerHTML='<div class="empty"><div class="empty-icon">📦</div><p>No products</p></div>';return}
-  el.innerHTML=list.map(function(p){
-    return'<div class="list-row">'+(p.image?'<img class="list-row-img" src="'+esc(p.image)+'" alt="" onerror="this.style.display=\'none\'"/>':'<div class="list-row-img"></div>')+'<div class="list-row-info"><div class="list-row-name">'+esc(p.name)+'</div><div class="list-row-sub">'+esc(p.category||'uncategorised')+' · '+(p.pieces||'?')+' panels</div></div><span class="tag '+(p.isCollection?'tag-gold':'tag-accent')+'">'+(p.isCollection?'Collection':'Series')+'</span><span style="font-family:var(--fd);font-size:1rem;color:var(--gold);margin-left:6px">'+gbpFull(p.price)+'</span></div>'
-  }).join('')
-}
-
-/* ── RECENT ORDERS ── */
-function renderRecentOrders(){
-  var el=document.getElementById('recent-orders-list');if(!el)return;
-  var orders=_allOrders.slice(0,5);
-  if(!orders.length){el.innerHTML='<div class="empty"><div class="empty-icon">📋</div><p>No orders yet</p></div>';return}
-  el.innerHTML=orders.map(function(o){
-    return'<div class="list-row" style="cursor:pointer" onclick="showOrderDetail(\''+esc(o.ref)+'\')"><div style="flex:1"><div class="list-row-name" style="font-family:var(--fm);font-size:.72rem">'+esc(o.ref||'—')+'</div><div class="list-row-sub">'+(o.customer_name?esc(o.customer_name)+' · ':'')+relDate(o.created_at)+'</div></div><span style="color:var(--gold);font-family:var(--fd);font-size:1rem">'+gbpFull(o.total)+'</span></div>'
-  }).join('')
-}
-
-/* ── CATEGORY CHART ── */
-function renderCategoryChart(){
-  var el=document.getElementById('category-chart');if(!el)return;
-  var counts={};catalogue.products.forEach(function(p){var c=p.category||'other';counts[c]=(counts[c]||0)+1});
-  var entries=Object.keys(counts).sort(function(a,b){return counts[b]-counts[a]});
-  var max=entries.length?counts[entries[0]]:1;
-  if(!entries.length){el.innerHTML='<div class="empty"><p>No products</p></div>';return}
-  el.innerHTML=entries.map(function(cat){var w=Math.round((counts[cat]/max)*100);return'<div class="bar-row"><div class="bar-label">'+esc(cat)+'</div><div class="bar-track"><div class="bar-fill" style="width:'+w+'%"></div></div><div class="bar-val">'+counts[cat]+'</div></div>'}).join('')
-}
-
-/* ── QUICK STATS ── */
-function renderQuickStats(){
-  var el=document.getElementById('quick-stats');if(!el)return;
-  var p=catalogue.products;
-  var items=[
-    {icon:'🌟',label:'Series',val:p.filter(function(x){return!x.isCollection}).length},
-    {icon:'🎨',label:'Collections',val:p.filter(function(x){return!!x.isCollection}).length},
-    {icon:'📌',label:'Featured',val:(catalogue.featuredSlugs||[]).length},
-    {icon:'📦',label:'Bundles',val:catalogue.bundles.length},
-    {icon:'🏷️',label:'Avg price',val:p.length?'£'+Math.round(p.reduce(function(s,x){return s+(parseFloat(x.price)||0)},0)/p.length):'—'}
-  ];
-  el.innerHTML=items.map(function(s){return'<div class="stat-pill"><div class="stat-pill-icon">'+s.icon+'</div><div style="flex:1"><div class="stat-pill-label">'+s.label+'</div><div class="stat-pill-val">'+s.val+'</div></div></div>'}).join('')
-}
-
-/* ── PRODUCTS TABLE ── */
-var _productsAll=[];
-function renderProductsTable(){_productsAll=catalogue.products;filterProductsTable();}
-function filterProductsTable(){
-  var q=(document.getElementById('product-search')||{}).value||'';
-  var t=(document.getElementById('product-filter')||{}).value||'';
-  var list=_productsAll.filter(function(p){
-    var matchQ=!q||p.name.toLowerCase().includes(q.toLowerCase())||((p.category||'').toLowerCase().includes(q.toLowerCase()));
-    var matchT=!t||(t==='series'&&!p.isCollection)||(t==='collection'&&p.isCollection);
-    return matchQ&&matchT;
-  });
-  var el=document.getElementById('products-table-body');if(!el)return;
-  if(!list.length){el.innerHTML='<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--muted)">No products found</td></tr>';return}
-  el.innerHTML=list.map(function(p){
-    var pub=p.isPublished!==false;
-    return'<tr><td><div style="display:flex;align-items:center;gap:10px">'+(p.image?'<img src="'+esc(p.image)+'" style="width:32px;height:32px;border-radius:7px;object-fit:cover;border:1px solid var(--border)" onerror="this.style.display=\'none\'"/>':'')+'<span>'+esc(p.name)+'</span></div></td><td><span class="tag '+(p.isCollection?'tag-gold':'tag-accent')+'">'+(p.isCollection?'Collection':'Series')+'</span></td><td class="td-mono">'+esc(p.category||'—')+'</td><td class="td-mono">'+esc(p.pieces||'?')+'</td><td style="font-family:var(--fd);font-size:.95rem;color:var(--gold)">'+gbpFull(p.price)+'</td><td><span class="tag '+(pub?'tag-success':'tag-muted')+'">'+(pub?'Live':'Draft')+'</span></td><td><a href="/admin/creator.html" class="btn btn-ghost btn-sm">Edit →</a></td></tr>'
-  }).join('')
-}
-
-/* ── COLLECTIONS ── */
-function renderCollections(){
-  var colProds=catalogue.products.filter(function(p){return p.isCollection});
-  var tb=document.getElementById('collections-table-body');
-  if(tb){if(!colProds.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--muted)">No collections</td></tr>'}
-  else{tb.innerHTML=colProds.map(function(p){var pub=p.isPublished!==false;return'<tr><td>'+esc(p.name)+'</td><td class="td-mono">'+esc(p.category||'—')+'</td><td class="td-mono">'+esc(p.pieces||'?')+'</td><td style="font-family:var(--fd);font-size:.95rem;color:var(--gold)">'+gbpFull(p.price)+'</td><td><span class="tag '+(pub?'tag-success':'tag-muted')+'">'+(pub?'Live':'Draft')+'</span></td><td><a href="/admin/creator.html" class="btn btn-ghost btn-sm">Edit →</a></td></tr>'}).join('')}}
-  var bb=document.getElementById('bundles-table-body');
-  if(bb){if(!catalogue.bundles.length){bb.innerHTML='<tr><td colspan="3" style="text-align:center;padding:40px;color:var(--muted)">No bundles</td></tr>'}
-  else{bb.innerHTML=catalogue.bundles.map(function(b){var items=Array.isArray(b.items)?b.items.join(', '):'—';return'<tr><td>'+esc(b.name)+'</td><td style="font-family:var(--fd);font-size:.95rem;color:var(--gold)">'+gbpFull(b.price)+'</td><td class="td-mono" style="font-size:.72rem">'+esc(items)+'</td></tr>'}).join('')}}
-}
-
-/* ── ORDERS TABLE ── */
-function renderOrdersTable(){filterOrdersTable();}
-function filterOrdersTable(){
-  var q=(document.getElementById('order-search')||{}).value||'';
-  var list=_allOrders.filter(function(o){return!q||String(o.ref||'').toLowerCase().includes(q.toLowerCase())||String(o.customer_name||'').toLowerCase().includes(q.toLowerCase())||String(o.email||'').toLowerCase().includes(q.toLowerCase())});
-  var el=document.getElementById('orders-table-body');if(!el)return;
-  if(!list.length){el.innerHTML='<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--muted)">No orders found</td></tr>';return}
-  el.innerHTML=list.map(function(o){
-    var addr=o.address||{};
-    var shippingStr=addr.city?[addr.line1,addr.city,addr.postcode,addr.country].filter(Boolean).join(', '):'—';
-    var items=Array.isArray(o.items)?o.items.map(function(i){return(i.name||'?')+'×'+(i.qty||1)}).join(', '):'—';
-    return'<tr style="cursor:pointer" onclick="showOrderDetail(\''+esc(o.ref)+'\')"><td class="td-mono" style="font-size:.7rem">'+esc(o.ref||'—')+'</td><td>'+esc(o.customer_name||'—')+'</td><td class="td-mono" style="font-size:.7rem">'+esc(o.email||'—')+'</td><td style="font-size:.78rem;color:var(--muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(items)+'">'+esc(items)+'</td><td style="font-family:var(--fd);font-size:.95rem;color:var(--gold)">'+gbpFull(o.total)+'</td><td class="td-mono">'+relDate(o.created_at)+'</td><td class="td-mono" style="font-size:.68rem;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(shippingStr)+'">'+esc(shippingStr||'—')+'</td><td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();showOrderDetail(\''+esc(o.ref)+'\')">View</button></td></tr>'
-  }).join('')
-}
-
-/* ── ORDER DETAIL MODAL ── */
-function showOrderDetail(ref){
-  var o=_allOrders.find(function(x){return x.ref===ref});if(!o)return;
-  document.getElementById('modal-title').textContent='Order '+esc(o.ref||'—');
-  var addr=o.address||{};
-  var items=Array.isArray(o.items)?o.items:[typeof o.items==='object'&&o.items?o.items:{}];
-  var shippingHTML=Object.keys(addr).filter(function(k){return addr[k]}).map(function(k){return'<div class="order-detail-row"><strong>'+k+'</strong><span>'+esc(addr[k])+'</span></div>'}).join('');
-  var itemsHTML=items.map(function(it){return'<div class="order-detail-row"><strong>'+esc(it.name||'?')+'</strong><span>×'+(it.qty||1)+' — '+gbpFull((it.price||0)*(it.qty||1))+'</span></div>'}).join('');
-  document.getElementById('modal-body').innerHTML=
-    '<div style="margin-bottom:16px"><div class="order-detail-row"><strong>Customer</strong><span>'+esc(o.customer_name||'—')+'</span></div><div class="order-detail-row"><strong>Email</strong><span>'+esc(o.email||'—')+'</span></div><div class="order-detail-row"><strong>Date</strong><span>'+relDate(o.created_at)+'</span></div><div class="order-detail-row"><strong>Total</strong><span style="color:var(--gold);font-family:var(--fd);font-size:1.1rem">'+gbpFull(o.total)+'</span></div>'+(o.promo_code?'<div class="order-detail-row"><strong>Promo</strong><span>'+esc(o.promo_code)+' (−'+gbpFull(o.discount||0)+')</span></div>':'')+'</div><div class="divider"></div><div style="font-family:var(--fm);font-size:.56rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Items</div>'+itemsHTML+(shippingHTML?'<div class="divider"></div><div style="font-family:var(--fm);font-size:.56rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Shipping address</div>'+shippingHTML:'');
-  document.getElementById('order-modal').classList.add('open');
-}
-function closeModal(e){if(e.target===document.getElementById('order-modal'))document.getElementById('order-modal').classList.remove('open')}
-
-/* ── REVENUE ── */
-function renderRevenue(){
-  var top=document.getElementById('top-orders-chart');
-  var sorted=_allOrders.slice().sort(function(a,b){return(b.total||0)-(a.total||0)}).slice(0,6);
-  var max=sorted.length?sorted[0].total||1:1;
-  if(top){top.innerHTML=sorted.length?sorted.map(function(o){var w=Math.round((o.total/max)*100);return'<div class="bar-row"><div class="bar-label">'+esc(o.ref||'—')+'</div><div class="bar-track"><div class="bar-fill" style="width:'+w+'%"></div></div><div class="bar-val">'+gbpFull(o.total)+'</div></div>'}).join(''):'<div class="empty"><div class="empty-icon">📊</div><p>No data</p></div>'}
-  var dist=document.getElementById('order-dist');
-  if(dist){var buckets=[{l:'Under £100',min:0,max:100},{l:'£100–250',min:100,max:250},{l:'£250–500',min:250,max:500},{l:'Over £500',min:500,max:Infinity}];var tot=_allOrders.length||1;dist.innerHTML=buckets.map(function(b){var c=_allOrders.filter(function(o){var t=parseFloat(o.total)||0;return t>=b.min&&t<b.max}).length;var pct=Math.round((c/tot)*100);return'<div class="bar-row"><div class="bar-label" style="width:100px">'+b.l+'</div><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%"></div></div><div class="bar-val">'+c+'</div></div>'}).join('')}
-  renderPopularChart('popular-rev-chart');
-}
-
-/* ── PROMOS — LIVE FROM DB ── */
-function renderPromos(){
-  if(!adminPw)return;
-  document.getElementById('promos-table-body').innerHTML='<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)">Loading…</td></tr>';
-  fetch('/.netlify/functions/load-promos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:adminPw})})
-    .then(function(r){return r.json()})
-    .then(function(d){
-      if(!d.ok||!d.promos.length){document.getElementById('promos-table-body').innerHTML='<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--muted)">No promo codes found</td></tr>';return}
-      document.getElementById('promos-table-body').innerHTML=d.promos.map(function(p){
-        var active=p.active!==false;
-        var val=p.discount_type==='percent'?p.discount_value+'%':'£'+p.discount_value;
-        var exp=p.expires_at?new Date(p.expires_at).toLocaleDateString('en-GB'):'—';
-        var minOrder=p.min_order_value?'£'+p.min_order_value:'—';
-        return'<tr><td class="td-mono" style="font-weight:700;letter-spacing:.06em">'+esc(p.code)+'</td><td><span class="tag '+(p.discount_type==='percent'?'tag-accent':'tag-gold')+'">'+esc(p.discount_type||'—')+'</span></td><td class="td-mono">'+val+'</td><td class="td-mono">'+(p.uses_count||0)+'</td><td class="td-mono">'+(p.max_uses!==null&&p.max_uses!==undefined?p.max_uses:'∞')+'</td><td class="td-mono">'+minOrder+'</td><td class="td-mono">'+exp+'</td><td>'+(active?'<span class="promo-status-on">● Active</span>':'<span class="promo-status-off">○ Inactive</span>')+'</td></tr>'
-      }).join('');
-    })
-    .catch(function(){document.getElementById('promos-table-body').innerHTML='<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--danger)">Failed to load promo codes</td></tr>';});
-}
-
-/* ── TOPBAR SCROLL ── */
-document.getElementById('main-content').addEventListener('scroll',function(){document.getElementById('topbar').classList.toggle('scrolled',this.scrollTop>4)},{passive:true});
-
-/* ── KEYBOARD SHORTCUTS ── */
-var secKeys={'1':'overview','2':'products','3':'collections','4':'orders','5':'revenue','6':'promos'};
-document.addEventListener('keydown',function(e){
-  if(document.activeElement.tagName==='INPUT')return;
-  if(e.altKey&&secKeys[e.key]){e.preventDefault();showSec(secKeys[e.key],null)}
-  if(e.altKey&&e.key==='r'){e.preventDefault();refreshAll()}
-  if(e.key==='Escape')document.getElementById('order-modal').classList.remove('open');
-});
-
-/* ── AUTO-REFRESH every 5 min ── */
-setInterval(function(){if(document.visibilityState==='visible')loadAll();},300000);
-</script>
-
-</body>
-</html>
+/* ── TOAST ── */
+function toast(msg,type){var tc=document.getElementById('toast-container'),el=document.createElement('div');el.className='toast'+(type?' '+type:'');el.textContent=msg;tc.appendChild(el);setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);},2700);}
+function crStatus(msg,cls){var el=document.getElementById('cr-status');el.textContent=msg;el.className='cr-status'+(cls?' '+cls:'');if(cls
