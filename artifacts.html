@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Spacenova Artifacts — rare limited edition space photography pieces.">
+  <meta name="theme-color" content="#000000">
+  <title>Artifacts — SPACENOVA</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/Spacenovafavicon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+<nav id="main-nav">
+  <div class="nav-inner">
+    <a class="nav-logo" href="/"><img class="nav-logo-img" src="/spacenovalogocropped.png" alt="Spacenova"><div class="nav-logo-mark"></div></a>
+    <div class="nav-links">
+      <a class="nav-link" href="/">Home</a>
+      <a class="nav-link" href="/shop.html">Shop</a>
+      <a class="nav-link" href="/collections.html">Collections</a>
+      <a class="nav-link active" href="/artifacts.html">Artifacts</a>
+      <a class="nav-link" href="/about.html">About</a>
+      <div class="nav-more-wrap" id="nav-more-wrap">
+        <button class="nav-link nav-more-btn" id="nav-more-btn" aria-haspopup="true" aria-expanded="false">More <span class="nav-chevron">&#9662;</span></button>
+        <div class="nav-dropdown" id="nav-dropdown" role="menu">
+          <div class="ndd-section">Help</div>
+          <a class="ndd-item" href="/contact.html" role="menuitem">Contact Us</a>
+          <a class="ndd-item" href="/shipping.html" role="menuitem">Shipping</a>
+          <a class="ndd-item" href="/returns.html" role="menuitem">Returns</a>
+          <a class="ndd-item" href="/faq.html" role="menuitem">FAQ</a>
+          <div class="ndd-divider"></div>
+          <div class="ndd-section">Company</div>
+          <a class="ndd-item" href="/press.html" role="menuitem">Press</a>
+        </div>
+      </div>
+    </div>
+    <div class="nav-spacer"></div>
+    <button class="nav-basket-btn" id="basket-toggle-btn" aria-label="Open basket">
+      <svg class="basket-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+      <span class="basket-btn-label">Basket</span>
+      <span class="basket-badge" id="basket-badge"></span>
+    </button>
+    <button class="burger-btn" id="burger-btn" aria-label="Open menu" aria-expanded="false"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+<div class="mobile-backdrop" id="mobile-backdrop"></div>
+<div class="mobile-panel" id="mobile-panel" aria-hidden="true">
+  <div class="mp-head"><span class="mp-title">Menu</span><button class="mp-close" id="mp-close">&times;</button></div>
+  <div class="mp-body">
+    <div class="mp-section-label">Shop</div>
+    <a class="mp-item" href="/">Home</a>
+    <a class="mp-item" href="/shop.html">Shop</a>
+    <a class="mp-item" href="/collections.html">Collections</a>
+    <a class="mp-item mp-item-active" href="/artifacts.html">Artifacts</a>
+    <a class="mp-item" href="/about.html">About</a>
+    <div class="mp-divider"></div>
+    <div class="mp-section-label">Help</div>
+    <a class="mp-item" href="/contact.html">Contact Us</a>
+    <a class="mp-item" href="/shipping.html">Shipping</a>
+    <a class="mp-item" href="/returns.html">Returns</a>
+    <a class="mp-item" href="/faq.html">FAQ</a>
+    <div class="mp-divider"></div>
+    <div class="mp-section-label">Company</div>
+    <a class="mp-item" href="/press.html">Press</a>
+    <div class="mp-divider"></div>
+    <button class="mp-basket-row" id="mp-basket-btn">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+      View Basket <span class="mp-badge" id="mp-badge"></span>
+    </button>
+  </div>
+</div>
+
+<div class="inner-hero">
+  <div class="inner-hero-content">
+    <div class="section-eyebrow">Artifacts</div>
+    <h1>Rare &amp; Limited Editions</h1>
+    <p>One-of-a-kind pieces and strictly limited runs. Once they are gone, they are gone forever.</p>
+  </div>
+</div>
+
+<section class="section">
+  <div class="filter-bar">
+    <button class="filter-pill active" data-filter="all">All</button>
+    <button class="filter-pill" data-filter="limited">Limited Edition</button>
+    <button class="filter-pill" data-filter="signed">Signed Print</button>
+    <button class="filter-pill" data-filter="archival">Archival</button>
+  </div>
+  <div class="grid" id="artifacts-grid">
+    <div class="card skeleton-card"><div class="card-media-sk"></div><div class="card-body-sk"><div class="sk"></div><div class="sk sk-sm"></div></div></div>
+    <div class="card skeleton-card"><div class="card-media-sk"></div><div class="card-body-sk"><div class="sk"></div><div class="sk sk-sm"></div></div></div>
+    <div class="card skeleton-card"><div class="card-media-sk"></div><div class="card-body-sk"><div class="sk"></div><div class="sk sk-sm"></div></div></div>
+  </div>
+</section>
+
+<footer id="main-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><img class="footer-logo" src="/spacenovalogocropped.png" alt="Spacenova"><p>Bringing the universe's most breathtaking vistas into your home.</p></div>
+    <div class="footer-col"><h4>Shop</h4><a href="/shop.html">All Series</a><a href="/collections.html">Collections</a><a href="/artifacts.html">Artifacts</a></div>
+    <div class="footer-col"><h4>Help</h4><a href="/shipping.html">Shipping</a><a href="/returns.html">Returns</a><a href="/faq.html">FAQ</a><a href="/contact.html">Contact</a></div>
+    <div class="footer-col"><h4>Company</h4><a href="/about.html">About</a><a href="/press.html">Press</a></div>
+  </div>
+  <div class="footer-bottom"><span>&copy; 2026 Spacenova Ltd. All rights reserved.</span><span>Made for the cosmos</span></div>
+</footer>
+
+<div id="basket-overlay"></div>
+<div id="basket-drawer">
+  <div class="drawer-header"><h2>Your Basket</h2><button class="drawer-close" id="basket-close">&times;</button></div>
+  <div class="drawer-body" id="basket-body"></div>
+  <div class="drawer-footer" id="basket-footer" style="display:none">
+    <div class="promo-row"><input class="promo-input" id="promo-input" type="text" placeholder="Promo code"><button class="promo-btn" id="promo-apply-btn">Apply</button></div>
+    <div class="promo-applied" id="promo-applied" style="display:none"><span id="promo-applied-text"></span><button id="promo-remove-btn">Remove</button></div>
+    <p class="promo-error" id="promo-error" style="display:none">Invalid or expired code</p>
+    <div class="basket-summary">
+      <div class="bsum-row"><span>Subtotal</span><span id="basket-subtotal">&pound;0.00</span></div>
+      <div class="bsum-row" id="discount-row" style="display:none"><span>Discount</span><span id="basket-discount" class="discount-val">-&pound;0.00</span></div>
+      <div class="bsum-row"><span>Shipping</span><span id="basket-shipping">Calculated at checkout</span></div>
+      <div class="bsum-row bsum-total"><span>Total</span><strong id="basket-total">&pound;0.00</strong></div>
+    </div>
+    <p class="free-shipping-note" id="free-shipping-note"></p>
+    <a class="btn btn-primary btn-full" href="/checkout.html">Checkout</a>
+  </div>
+</div>
+<div id="toast-container"></div>
+<script src="/js/nav.js"></script>
+<script src="/js/basket.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  fetch('/.netlify/functions/load-catalogue')
+    .then(r => r.json())
+    .then(d => {
+      const products = (d.products || []).filter(p => p.isPublished !== false && p.type === 'artifact');
+      const grid = document.getElementById('artifacts-grid');
+      if (!grid) return;
+      if (!products.length) {
+        grid.innerHTML = '<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:40px 0">No artifacts available yet.</p>';
+        return;
+      }
+      grid.innerHTML = products.map(p => `
+        <a class="card card-link" href="/product.html?slug=${p.slug || p.id}">
+          <div class="card-media">${p.image ? `<img src="${p.image}" alt="${p.name}" loading="lazy">` : '<div class="card-media-placeholder"></div>'}<div class="badge-row"><span class="badge badge-gold">Artifact</span></div></div>
+          <div class="card-body"><h3>${p.name}</h3><p class="muted">${(p.description||'').substring(0,90)}${p.description&&p.description.length>90?'...':''}</p><div class="price">&pound;${parseFloat(p.price||0).toFixed(2)}</div></div>
+        </a>`).join('');
+      const pills = document.querySelectorAll('.filter-pill');
+      pills.forEach(pill => {
+        pill.addEventListener('click', function() {
+          pills.forEach(p => p.classList.remove('active'));
+          this.classList.add('active');
+        });
+      });
+    })
+    .catch(() => {
+      const grid = document.getElementById('artifacts-grid');
+      if (grid) grid.innerHTML = '<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:40px 0">Could not load artifacts.</p>';
+    });
+});
+</script>
+</body>
+</html>
