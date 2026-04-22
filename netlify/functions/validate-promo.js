@@ -25,7 +25,7 @@ exports.handler = async (event) => {
     const { data, error } = await supabase
       .from('promo_codes')
       .select('*')
-      .eq('code', code.toUpperCase().trim())
+      .ilike('code', code.trim())
       .eq('active', true)
       .single();
 
@@ -33,17 +33,14 @@ exports.handler = async (event) => {
       return { statusCode: 200, headers, body: JSON.stringify({ valid: false, error: 'Invalid or expired promo code' }) };
     }
 
-    // Check expiry
     if (data.expires_at && new Date(data.expires_at) < new Date()) {
       return { statusCode: 200, headers, body: JSON.stringify({ valid: false, error: 'This promo code has expired' }) };
     }
 
-    // Check usage limit
     if (data.max_uses !== null && data.uses_count >= data.max_uses) {
       return { statusCode: 200, headers, body: JSON.stringify({ valid: false, error: 'This promo code has reached its usage limit' }) };
     }
 
-    // Check minimum order value
     if (data.min_order_value && subtotal < data.min_order_value) {
       return {
         statusCode: 200,
@@ -55,7 +52,6 @@ exports.handler = async (event) => {
       };
     }
 
-    // Increment usage count
     await supabase
       .from('promo_codes')
       .update({ uses_count: (data.uses_count || 0) + 1 })
@@ -66,9 +62,11 @@ exports.handler = async (event) => {
       headers,
       body: JSON.stringify({
         valid: true,
-        code: data.code,
-        type: data.discount_type,      // 'percent' or 'fixed'
-        value: data.discount_value,    // e.g. 15 (for 15% or £15)
+        promo: {
+          code: data.code,
+          type: data.discount_type,
+          value: data.discount_value
+        },
         description: data.description
       })
     };
