@@ -405,3 +405,25 @@ body.drawer-open { overflow: hidden; }
   box-shadow: 0 4px 20px rgba(0,0,0,.18);
 }
 .toast.show { opacity: 1; transform: none; }
+
+
+#link-authentication-element,
+#shipping-address-element {
+  margin-bottom: 12px;
+}
+
+#shipping-address-element {
+  margin-bottom: 14px;
+}
+
+@media (max-width: 420px) {
+  .nav-inner {
+    padding: 0 max(10px, env(safe-area-inset-right));
+    gap: 8px;
+  }
+
+  .burger-btn {
+    margin-left: 2px;
+    margin-right: 2px;
+  }
+}

@@ -1,93 +1,127 @@
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+const FREE_SHIPPING_THRESHOLD = 150;
+const SHIPPING_OPTIONS = {
+  uk_standard: { label: 'UK Standard', amount: 4.99, freeThreshold: FREE_SHIPPING_THRESHOLD },
+  uk_express: { label: 'UK Express', amount: 9.99 },
+  eu_standard: { label: 'Europe Standard', amount: 12.99 },
+  us_ca_standard: { label: 'USA & Canada Standard', amount: 14.99 },
+  row_standard: { label: 'Rest of World Standard', amount: 17.99 }
+};
+
+function toPence(value) {
+  return Math.round(Number(value || 0) * 100);
+}
+
+function computeDiscount(subtotal, promo) {
+  if (!promo || !promo.type) return 0;
+  if (promo.type === 'percent') return subtotal * (Number(promo.value || 0) / 100);
+  if (promo.type === 'fixed') return Math.min(Number(promo.value || 0), subtotal);
+  return 0;
+}
 
 exports.handler = async (event) => {
-  if (event.httpMethod === "OPTIONS") {
+  if (event.httpMethod === 'OPTIONS') {
     return {
       statusCode: 200,
       headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Headers": "Content-Type",
-        "Access-Control-Allow-Methods": "POST, OPTIONS"
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS'
       },
-      body: ""
+      body: ''
     };
   }
 
-  if (event.httpMethod !== "POST") {
-    return { statusCode: 405, body: "Method Not Allowed" };
+  if (event.httpMethod !== 'POST') {
+    return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
   try {
-    const data = JSON.parse(event.body || "{}");
-    const { amount, currency = "gbp", items, customerEmail, delivery } = data;
+    const data = JSON.parse(event.body || '{}');
+    const items = Array.isArray(data.items) ? data.items : [];
+    const promo = data.promo || null;
+    const shippingMethod = SHIPPING_OPTIONS[data.shippingMethod] ? data.shippingMethod : 'uk_standard';
 
-    if (!amount || typeof amount !== "number" || amount < 50) {
+    if (!items.length) {
       return {
         statusCode: 400,
-        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-        body: JSON.stringify({ error: "Invalid amount — must be at least 50p" })
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        body: JSON.stringify({ error: 'Basket is empty' })
       };
     }
 
-    const itemSummary = Array.isArray(items)
-      ? items.map(i => `${i.name} ×${i.qty}`).join(", ").slice(0, 500)
-      : "Spacenova order";
+    const subtotal = items.reduce((sum, item) => {
+      const price = Number(item.price || 0);
+      const qty = Number(item.qty || 0);
+      return sum + price * qty;
+    }, 0);
 
-    // Build shipping details metadata if provided
-    const shippingMeta = delivery ? {
-      shipping_name: `${delivery.firstName || ""} ${delivery.lastName || ""}`.trim(),
-      shipping_address1: delivery.address1 || "",
-      shipping_address2: delivery.address2 || "",
-      shipping_city: delivery.city || "",
-      shipping_postcode: delivery.postcode || "",
-      shipping_country: delivery.country || "GB"
-    } : {};
+    const discount = computeDiscount(subtotal, promo);
+    const discountedSubtotal = Math.max(0, subtotal - discount);
 
-    const paymentIntentParams = {
-      amount: Math.round(amount),
-      currency,
-      // automatic_payment_methods enables Apple Pay, Google Pay, BACS, cards, etc.
-      automatic_payment_methods: { enabled: true },
-      metadata: {
-        items: itemSummary,
-        ...shippingMeta
-      }
+    const selectedShipping = SHIPPING_OPTIONS[shippingMethod];
+    const shippingCost = selectedShipping.freeThreshold && discountedSubtotal >= selectedShipping.freeThreshold
+      ? 0
+      : selectedShipping.amount;
+
+    const total = discountedSubtotal + shippingCost;
+    const amount = toPence(total);
+
+    if (!amount || amount < 50) {
+      return {
+        statusCode: 400,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        body: JSON.stringify({ error: 'Invalid order total' })
+      };
+    }
+
+    const compactItems = items
+      .map((item) => `${String(item.id || '').slice(0, 40)}::${Number(item.qty || 0)}::${Number(item.price || 0).toFixed(2)}::${String(item.name || '').replace(/[|:]/g, '').slice(0, 50)}`)
+      .join('|')
+      .slice(0, 500);
+
+    const metadata = {
+      items: compactItems,
+      subtotal: subtotal.toFixed(2),
+      discount: discount.toFixed(2),
+      shipping_cost: shippingCost.toFixed(2),
+      shipping_method: shippingMethod,
+      shipping_label: selectedShipping.label,
+      total: total.toFixed(2),
+      promo_code: promo && promo.code ? String(promo.code) : ''
     };
 
-    // Add shipping address to payment intent for Stripe records
-    if (delivery) {
-      paymentIntentParams.shipping = {
-        name: `${delivery.firstName || ""} ${delivery.lastName || ""}`.trim() || "Customer",
-        address: {
-          line1: delivery.address1 || "",
-          line2: delivery.address2 || null,
-          city: delivery.city || "",
-          postal_code: delivery.postcode || "",
-          country: delivery.country || "GB"
-        }
-      };
-    }
-
-    if (customerEmail) {
-      paymentIntentParams.receipt_email = customerEmail;
-    }
-
-    const paymentIntent = await stripe.paymentIntents.create(paymentIntentParams);
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount,
+      currency: 'gbp',
+      automatic_payment_methods: { enabled: true },
+      metadata
+    });
 
     return {
       statusCode: 200,
       headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*"
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
       },
-      body: JSON.stringify({ clientSecret: paymentIntent.client_secret })
+      body: JSON.stringify({
+        clientSecret: paymentIntent.client_secret,
+        totals: {
+          subtotal,
+          discount,
+          shipping: shippingCost,
+          total,
+          shippingMethod
+        }
+      })
     };
   } catch (err) {
-    console.error("create-payment-intent error:", err);
+    console.error('create-payment-intent error:', err);
     return {
       statusCode: 500,
-      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-      body: JSON.stringify({ error: err.message || "Failed to create payment intent" })
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      body: JSON.stringify({ error: err.message || 'Failed to create payment intent' })
     };
   }
 };

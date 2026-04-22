@@ -21,7 +21,6 @@
   <div class="nav-inner">
     <a class="nav-logo" href="/"><img class="nav-logo-img" src="/spacenovalogocropped.png" alt="Spacenova"><div class="nav-logo-mark"></div></a>
     <div class="nav-links">
-      <a class="nav-link" href="/">Home</a>
       <a class="nav-link" href="/shop.html">Shop</a>
       <a class="nav-link" href="/collections.html">Collections</a>
       <a class="nav-link" href="/artifacts.html">Artifacts</a>
@@ -36,11 +35,16 @@
   <div class="mp-head"><span class="mp-title">Menu</span><button class="mp-close" id="mp-close">&times;</button></div>
   <div class="mp-body">
     <div class="mp-section-label">Shop</div>
-    <a class="mp-item" href="/">Home</a>
     <a class="mp-item" href="/shop.html">Shop</a>
     <a class="mp-item" href="/collections.html">Collections</a>
     <a class="mp-item" href="/artifacts.html">Artifacts</a>
     <a class="mp-item" href="/about.html">About</a>
+    <div class="mp-divider"></div>
+    <div class="mp-section-label">Help</div>
+    <a class="mp-item" href="/contact.html">Contact Us</a>
+    <a class="mp-item" href="/shipping.html">Shipping</a>
+    <a class="mp-item" href="/returns.html">Returns</a>
+    <a class="mp-item" href="/faq.html">FAQ</a>
   </div>
 </div>
 <div class="checkout-page">
@@ -50,14 +54,20 @@
       <h1 class="checkout-title">Checkout</h1>
       <form id="payment-form" novalidate>
         <div class="co-section-label">Contact</div>
+        <div id="link-authentication-element"></div>
+        <div class="co-section-label">Shipping Method</div>
         <div class="form-group">
-          <label class="form-label" for="co-name">Full Name</label>
-          <input class="form-input" id="co-name" type="text" placeholder="Jane Smith" required autocomplete="name">
+          <label class="form-label" for="shipping-method">Delivery Service</label>
+          <select class="form-input" id="shipping-method" autocomplete="shipping shipping-method">
+            <option value="uk_standard">UK Standard (3–5 working days) — Free over £150, otherwise £4.99</option>
+            <option value="uk_express">UK Express (1–2 working days) — £9.99</option>
+            <option value="eu_standard">Europe Standard (5–10 working days) — £12.99</option>
+            <option value="us_ca_standard">USA &amp; Canada Standard (7–14 working days) — £14.99</option>
+            <option value="row_standard">Rest of World Standard (10–21 working days) — £17.99</option>
+          </select>
         </div>
-        <div class="form-group">
-          <label class="form-label" for="co-email">Email Address</label>
-          <input class="form-input" id="co-email" type="email" placeholder="jane@example.com" required autocomplete="email">
-        </div>
+        <div class="co-section-label">Shipping Address</div>
+        <div id="shipping-address-element"></div>
         <div class="co-section-label">Payment</div>
         <div id="payment-loader" class="payment-loader">Loading payment form&hellip;</div>
         <div id="payment-element"></div>

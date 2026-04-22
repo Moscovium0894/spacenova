@@ -960,3 +960,30 @@ body.panel-open { overflow: hidden; }
 .mp-title {
   letter-spacing: -.02em;
 }
+
+
+/* Checkout/nav compact fit for very small devices */
+@media (max-width: 420px) {
+  #main-nav {
+    padding-left: max(10px, env(safe-area-inset-left));
+    padding-right: max(10px, env(safe-area-inset-right));
+  }
+
+  .nav-inner {
+    gap: 8px;
+    padding-right: max(6px, env(safe-area-inset-right));
+  }
+
+  .burger-btn {
+    margin-right: 2px;
+    flex: 0 0 40px;
+  }
+
+  .nav-basket-btn {
+    padding: 8px 12px;
+  }
+
+  .basket-btn-label {
+    display: none;
+  }
+}

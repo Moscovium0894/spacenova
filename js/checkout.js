@@ -4,7 +4,10 @@
   var stripe;
   var elements;
   var paymentElement;
+  var shippingAddressElement;
+  var linkAuthElement;
   var clientSecret;
+  var customerEmail = '';
 
   var form = document.getElementById('payment-form');
   var submitBtn = document.getElementById('submit-btn');
@@ -17,8 +20,17 @@
   var summaryDiscountRow = document.getElementById('summary-discount-row');
   var summaryShipping = document.getElementById('summary-shipping');
   var summaryTotal = document.getElementById('summary-total');
+  var shippingMethodSelect = document.getElementById('shipping-method');
+  var loader = document.getElementById('payment-loader');
 
   var FREE_SHIPPING = 150;
+  var SHIPPING_OPTIONS = {
+    uk_standard: { label: 'UK Standard (3–5 working days)', amount: 4.99, freeThreshold: FREE_SHIPPING },
+    uk_express: { label: 'UK Express (1–2 working days)', amount: 9.99 },
+    eu_standard: { label: 'Europe Standard (5–10 working days)', amount: 12.99 },
+    us_ca_standard: { label: 'USA & Canada Standard (7–14 working days)', amount: 14.99 },
+    row_standard: { label: 'Rest of World Standard (10–21 working days)', amount: 17.99 }
+  };
 
   function fmt(n) { return '\u00a3' + parseFloat(n).toFixed(2); }
 
@@ -27,29 +39,37 @@
     catch(e) { return []; }
   }
 
-  function calcTotals(items, promo) {
-    var sub = items.reduce(function(s, i) { return s + i.price * i.qty; }, 0);
-    var disc = 0;
-    if (promo) {
-      if (promo.type === 'percent') disc = sub * (promo.value / 100);
-      else if (promo.type === 'fixed') disc = Math.min(promo.value, sub);
-    }
-    var ship = (sub - disc) >= FREE_SHIPPING ? 0 : 4.99;
-    return { sub: sub, disc: disc, ship: ship, total: sub - disc + ship };
+  function getAppliedPromo() {
+    try {
+      if (typeof window.getAppliedPromo === 'function') {
+        return window.getAppliedPromo();
+      }
+    } catch (e) {}
+    return null;
   }
 
-  async function init() {
-    var items = getBasketData();
-    if (!items.length) {
-      window.location.href = '/shop.html';
-      return;
-    }
+  function calcDiscount(sub, promo) {
+    if (!promo) return 0;
+    if (promo.type === 'percent') return sub * (promo.value / 100);
+    if (promo.type === 'fixed') return Math.min(promo.value, sub);
+    return 0;
+  }
 
-    var promo = null;
-    if (typeof window.getAppliedPromo === 'function') promo = window.getAppliedPromo();
-    var totals = calcTotals(items, promo);
+  function getShippingCost(discountedSubtotal, method) {
+    var selected = SHIPPING_OPTIONS[method] || SHIPPING_OPTIONS.uk_standard;
+    if (selected.freeThreshold && discountedSubtotal >= selected.freeThreshold) return 0;
+    return selected.amount;
+  }
 
-    // Render summary
+  function calcTotals(items, promo, method) {
+    var sub = items.reduce(function(s, i) { return s + i.price * i.qty; }, 0);
+    var disc = calcDiscount(sub, promo);
+    var discountedSubtotal = Math.max(0, sub - disc);
+    var ship = getShippingCost(discountedSubtotal, method);
+    return { sub: sub, disc: disc, ship: ship, total: discountedSubtotal + ship };
+  }
+
+  function renderSummary(items, totals) {
     if (orderSummary) {
       orderSummary.innerHTML = items.map(function(i) {
         return '<div class="co-item"><span class="co-item-name">' + i.name + ' &times;' + i.qty + '</span><span class="co-item-price">' + fmt(i.price * i.qty) + '</span></div>';
@@ -60,30 +80,110 @@
     if (summaryDiscount) summaryDiscount.textContent = '-' + fmt(totals.disc);
     if (summaryShipping) summaryShipping.textContent = totals.ship === 0 ? 'Free' : fmt(totals.ship);
     if (summaryTotal) summaryTotal.textContent = fmt(totals.total);
+  }
 
-    // Fetch Stripe key and create PaymentIntent
+  async function getPublishableKey() {
+    var keyRes = await fetch('/.netlify/functions/stripe-config');
+    var keyData = await keyRes.json();
+    if (!keyRes.ok || !keyData.publishableKey || typeof keyData.publishableKey !== 'string') {
+      throw new Error(keyData.error || 'Stripe publishable key is unavailable');
+    }
+    return keyData.publishableKey;
+  }
+
+  async function createPaymentIntent(items, promo, shippingMethod) {
+    var intentRes = await fetch('/.netlify/functions/create-payment-intent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        items: items,
+        promo: promo,
+        shippingMethod: shippingMethod
+      })
+    });
+    var intentData = await intentRes.json();
+    if (!intentRes.ok) throw new Error(intentData.error || 'Could not create payment intent');
+    return intentData;
+  }
+
+  async function mountElements() {
+    var items = getBasketData();
+    var promo = getAppliedPromo();
+    var shippingMethod = shippingMethodSelect ? shippingMethodSelect.value : 'uk_standard';
+    var totals = calcTotals(items, promo, shippingMethod);
+
+    renderSummary(items, totals);
+
+    var intentData = await createPaymentIntent(items, promo, shippingMethod);
+    clientSecret = intentData.clientSecret;
+
+    if (paymentElement) paymentElement.destroy();
+    if (shippingAddressElement) shippingAddressElement.destroy();
+    if (linkAuthElement) linkAuthElement.destroy();
+
+    elements = stripe.elements({
+      clientSecret: clientSecret,
+      appearance: {
+        theme: 'night',
+        variables: {
+          colorPrimary: '#c8a96e',
+          fontFamily: 'Syne, sans-serif',
+          borderRadius: '4px'
+        }
+      }
+    });
+
+    linkAuthElement = elements.create('linkAuthentication');
+    linkAuthElement.on('change', function(event) {
+      customerEmail = event && event.value ? (event.value.email || '') : '';
+    });
+    linkAuthElement.mount('#link-authentication-element');
+
+    shippingAddressElement = elements.create('address', {
+      mode: 'shipping',
+      allowedCountries: ['GB', 'US', 'CA', 'FR', 'DE', 'ES', 'IT', 'NL', 'IE', 'AU', 'NZ'],
+      fields: { phone: 'never' },
+      validation: { phone: { required: 'never' } }
+    });
+    shippingAddressElement.mount('#shipping-address-element');
+
+    paymentElement = elements.create('payment', {
+      layout: 'tabs',
+      wallets: { applePay: 'auto', googlePay: 'auto' }
+    });
+    paymentElement.mount('#payment-element');
+
+    if (loader) loader.style.display = 'none';
+  }
+
+  async function init() {
+    var items = getBasketData();
+    if (!items.length) {
+      window.location.href = '/shop.html';
+      return;
+    }
+
     try {
-      var keyRes = await fetch('/.netlify/functions/inject-stripe-key');
-      var keyData = await keyRes.json();
-      stripe = Stripe(keyData.publishableKey);
+      var key = await getPublishableKey();
+      stripe = Stripe(key);
 
-      var intentRes = await fetch('/.netlify/functions/create-payment-intent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: items, promoCode: promo ? promo.code : null })
-      });
-      var intentData = await intentRes.json();
-      if (!intentRes.ok) throw new Error(intentData.error || 'Could not create payment intent');
-      clientSecret = intentData.clientSecret;
+      await mountElements();
 
-      elements = stripe.elements({ clientSecret: clientSecret, appearance: { theme: 'night', variables: { colorPrimary: '#c8a96e', fontFamily: 'Syne, sans-serif', borderRadius: '4px' } } });
-      paymentElement = elements.create('payment');
-      paymentElement.mount('#payment-element');
-
-      var loader = document.getElementById('payment-loader');
-      if (loader) loader.style.display = 'none';
+      if (shippingMethodSelect) {
+        shippingMethodSelect.addEventListener('change', async function() {
+          try {
+            setLoading(true);
+            await mountElements();
+          } catch (err) {
+            if (errorMsg) { errorMsg.textContent = err.message; errorMsg.style.display = 'block'; }
+          } finally {
+            setLoading(false);
+          }
+        });
+      }
     } catch(err) {
       if (errorMsg) { errorMsg.textContent = err.message; errorMsg.style.display = 'block'; }
+      if (loader) loader.style.display = 'none';
     }
   }
 
@@ -94,19 +194,43 @@
       setLoading(true);
       if (errorMsg) errorMsg.style.display = 'none';
 
-      var name = document.getElementById('co-name') ? document.getElementById('co-name').value.trim() : '';
-      var email = document.getElementById('co-email') ? document.getElementById('co-email').value.trim() : '';
-
-      var result = await stripe.confirmPayment({
-        elements: elements,
-        confirmParams: {
-          return_url: window.location.origin + '/success.html',
-          payment_method_data: { billing_details: { name: name, email: email } }
+      try {
+        var addressResult = await shippingAddressElement.getValue();
+        if (!addressResult.complete) {
+          throw new Error('Please complete your shipping address.');
         }
-      });
 
-      if (result.error) {
-        if (errorMsg) { errorMsg.textContent = result.error.message; errorMsg.style.display = 'block'; }
+        var submitResult = await elements.submit();
+        if (submitResult.error) {
+          throw new Error(submitResult.error.message);
+        }
+
+        var shippingData = addressResult.value;
+
+        var result = await stripe.confirmPayment({
+          elements: elements,
+          confirmParams: {
+            return_url: window.location.origin + '/success.html',
+            receipt_email: customerEmail || undefined,
+            shipping: {
+              name: shippingData.name,
+              address: {
+                line1: shippingData.address.line1,
+                line2: shippingData.address.line2 || undefined,
+                city: shippingData.address.city,
+                state: shippingData.address.state || undefined,
+                postal_code: shippingData.address.postal_code,
+                country: shippingData.address.country
+              }
+            }
+          }
+        });
+
+        if (result.error) {
+          throw new Error(result.error.message);
+        }
+      } catch (err) {
+        if (errorMsg) { errorMsg.textContent = err.message; errorMsg.style.display = 'block'; }
         setLoading(false);
       }
     });
