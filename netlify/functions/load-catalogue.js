@@ -1,5 +1,4 @@
 const { createClient } = require('@supabase/supabase-js');
-
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -22,9 +21,13 @@ function normaliseProduct(p) {
     panelHint: p.panel_hint,
     image: p.image,
     isCollection: !!p.is_collection,
+    isPublished: p.is_published !== false,
     panelNames: Array.isArray(p.panel_names) ? p.panel_names : [],
     panelImages: Array.isArray(p.panel_images) ? p.panel_images : [],
-    panelMap: p.panel_map && typeof p.panel_map === 'object' ? p.panel_map : { positions: [], transforms: [] }
+    panelMap:
+      p.panel_map && typeof p.panel_map === 'object'
+        ? p.panel_map
+        : { positions: [], transforms: [] }
   };
 }
 
@@ -34,16 +37,16 @@ exports.handler = async (event) => {
   }
 
   try {
-    const [productsRes, bundlesRes, artifactsRes, wholesaleRes, featuredRes, configRes] = await Promise.all([
-      supabase.from('products').select('*').order('updated_at', { ascending: false }),
-      supabase.from('bundles').select('*').order('name', { ascending: true }),
-      supabase.from('artifacts').select('*').order('name', { ascending: true }),
-      supabase.from('wholesale_sources').select('*').order('name', { ascending: true }),
-      supabase.from('featured_slugs').select('slug').order('sort_order', { ascending: true }),
-      supabase.from('store_config').select('key,value')
-    ]);
+    const [productsRes, bundlesRes, artifactsRes, wholesaleRes, featuredRes] =
+      await Promise.all([
+        supabase.from('products').select('*').order('updated_at', { ascending: false }),
+        supabase.from('bundles').select('*').order('name', { ascending: true }),
+        supabase.from('artifacts').select('*').order('name', { ascending: true }),
+        supabase.from('wholesale_sources').select('*').order('name', { ascending: true }),
+        supabase.from('featured_slugs').select('slug').order('sort_order', { ascending: true })
+      ]);
 
-    const errors = [productsRes, bundlesRes, artifactsRes, wholesaleRes, featuredRes, configRes]
+    const errors = [productsRes, bundlesRes, artifactsRes, wholesaleRes, featuredRes]
       .map((res) => res && res.error)
       .filter(Boolean);
 
@@ -51,10 +54,7 @@ exports.handler = async (event) => {
       console.error('load-catalogue query errors:', errors);
       return {
         statusCode: 500,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        },
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
         body: JSON.stringify({ error: 'Failed to load catalogue' })
       };
     }
@@ -82,11 +82,6 @@ exports.handler = async (event) => {
     }));
     const featuredSlugs = (featuredRes.data || []).map((f) => f.slug).filter(Boolean);
 
-    const config = {};
-    (configRes.data || []).forEach((row) => {
-      config[row.key] = row.value;
-    });
-
     return {
       statusCode: 200,
       headers: {
@@ -94,23 +89,13 @@ exports.handler = async (event) => {
         'Access-Control-Allow-Origin': '*',
         'Cache-Control': 'no-store'
       },
-      body: JSON.stringify({
-        products,
-        bundles,
-        artifacts,
-        wholesaleSources,
-        featuredSlugs,
-        config
-      })
+      body: JSON.stringify({ products, bundles, artifacts, wholesaleSources, featuredSlugs })
     };
   } catch (err) {
     console.error('load-catalogue fatal error:', err);
     return {
       statusCode: 500,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      },
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
       body: JSON.stringify({ error: 'Failed to load catalogue' })
     };
   }
