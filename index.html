@@ -2,556 +2,234 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="description" content="Spacenova — Premium hexagonal space photography wall art. Museum-quality prints, magnetic panel systems.">
+  <meta name="theme-color" content="#000000">
   <title>SPACENOVA — The Universe on Your Wall</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/Spacenovafavicon.png">
+  <link rel="manifest" href="/site.webmanifest">
   <link rel="stylesheet" href="/css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<!-- ══════════════════ NAV ══════════════════ -->
-<nav id="main-nav">
-  <a class="nav-logo" href="#" data-nav="home">
-    <img class="nav-logo-img" src="/assets/logo.svg" alt="Spacenova" onerror="this.style.display='none'">
-    <div class="nav-logo-mark"></div>
-  </a>
-  <div class="nav-links">
-    <a class="nav-link active" href="#" data-nav="home">Home</a>
-    <a class="nav-link" href="#" data-nav="shop">Shop</a>
-    <a class="nav-link" href="#" data-nav="collections">Collections</a>
-    <a class="nav-link" href="#" data-nav="artifacts">Artifacts</a>
-    <a class="nav-link" href="#" data-nav="about">About</a>
-    <a class="nav-link" href="#" data-nav="contact">Contact</a>
+<!-- NAV -->
+<nav id="main-nav" class="nav-transparent">
+  <div class="nav-inner">
+    <a class="nav-logo" href="/">
+      <img class="nav-logo-img" src="/spacenovalogocropped.png" alt="Spacenova">
+      <div class="nav-logo-mark"></div>
+    </a>
+    <div class="nav-links">
+      <a class="nav-link active" href="/">Home</a>
+      <a class="nav-link" href="/shop.html">Shop</a>
+      <a class="nav-link" href="/collections.html">Collections</a>
+      <a class="nav-link" href="/artifacts.html">Artifacts</a>
+      <a class="nav-link" href="/about.html">About</a>
+      <div class="nav-more-wrap" id="nav-more-wrap">
+        <button class="nav-link nav-more-btn" id="nav-more-btn" aria-haspopup="true" aria-expanded="false">More <span class="nav-chevron">&#9662;</span></button>
+        <div class="nav-dropdown" id="nav-dropdown" role="menu">
+          <div class="ndd-section">Help</div>
+          <a class="ndd-item" href="/contact.html" role="menuitem">Contact Us</a>
+          <a class="ndd-item" href="/shipping.html" role="menuitem">Shipping</a>
+          <a class="ndd-item" href="/returns.html" role="menuitem">Returns</a>
+          <a class="ndd-item" href="/faq.html" role="menuitem">FAQ</a>
+          <div class="ndd-divider"></div>
+          <div class="ndd-section">Company</div>
+          <a class="ndd-item" href="/press.html" role="menuitem">Press</a>
+        </div>
+      </div>
+    </div>
+    <div class="nav-spacer"></div>
+    <button class="nav-basket-btn" id="basket-toggle-btn" aria-label="Open basket">
+      <svg class="basket-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+      <span class="basket-btn-label">Basket</span>
+      <span class="basket-badge" id="basket-badge"></span>
+    </button>
+    <button class="burger-btn" id="burger-btn" aria-label="Open menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
   </div>
-  <div class="nav-spacer"></div>
-  <button class="nav-basket-btn" id="basket-toggle-btn" aria-label="Open basket">
-    <svg class="basket-icon" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
-    Basket
-    <span class="basket-badge" id="basket-badge">0</span>
-  </button>
-  <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Menu">
-    <svg viewBox="0 0 18 18" fill="none" stroke-width="1.6" stroke-linecap="round">
-      <line x1="2" y1="4.5" x2="16" y2="4.5"/>
-      <line x1="2" y1="9" x2="16" y2="9"/>
-      <line x1="2" y1="13.5" x2="16" y2="13.5"/>
-    </svg>
-  </button>
 </nav>
 
-<!-- ── Mobile Menu ── -->
-<div class="mobile-menu-backdrop" id="mobile-backdrop"></div>
-<div class="mobile-menu-shell" id="mobile-menu">
-  <div class="mobile-menu">
-    <div class="mobile-menu-section">Navigate</div>
-    <a href="#" data-nav="home" class="mm-nav-link">
-      <span class="mm-row-inner"><span class="mm-icon">🏠</span><span class="mm-label">Home</span></span>
-      <span class="mm-arrow">›</span>
-    </a>
-    <a href="#" data-nav="shop" class="mm-nav-link">
-      <span class="mm-row-inner"><span class="mm-icon">🛍️</span><span class="mm-label">Shop</span></span>
-      <span class="mm-arrow">›</span>
-    </a>
-    <a href="#" data-nav="collections" class="mm-nav-link">
-      <span class="mm-row-inner"><span class="mm-icon">🎨</span><span class="mm-label">Collections</span></span>
-      <span class="mm-arrow">›</span>
-    </a>
-    <a href="#" data-nav="artifacts" class="mm-nav-link">
-      <span class="mm-row-inner"><span class="mm-icon">🪐</span><span class="mm-label">Artifacts</span></span>
-      <span class="mm-arrow">›</span>
-    </a>
-    <div class="mobile-menu-divider"></div>
-    <div class="mobile-menu-section">Info</div>
-    <a href="#" data-nav="about" class="mm-nav-link">
-      <span class="mm-row-inner"><span class="mm-icon">✦</span><span class="mm-label">About</span></span>
-      <span class="mm-arrow">›</span>
-    </a>
-    <a href="#" data-nav="contact" class="mm-nav-link">
-      <span class="mm-row-inner"><span class="mm-icon">✉</span><span class="mm-label">Contact</span></span>
-      <span class="mm-arrow">›</span>
-    </a>
-    <div class="mobile-menu-divider"></div>
-    <button class="mm-link" id="mm-basket-btn">
-      <span class="mm-row-inner"><span class="mm-icon">🛒</span><span class="mm-label">Basket</span></span>
-      <span class="mm-arrow">›</span>
+<!-- MOBILE PANEL -->
+<div class="mobile-backdrop" id="mobile-backdrop"></div>
+<div class="mobile-panel" id="mobile-panel" aria-hidden="true">
+  <div class="mp-head">
+    <span class="mp-title">Menu</span>
+    <button class="mp-close" id="mp-close" aria-label="Close menu">&times;</button>
+  </div>
+  <div class="mp-body">
+    <div class="mp-section-label">Shop</div>
+    <a class="mp-item" href="/">Home</a>
+    <a class="mp-item" href="/shop.html">Shop</a>
+    <a class="mp-item" href="/collections.html">Collections</a>
+    <a class="mp-item" href="/artifacts.html">Artifacts</a>
+    <a class="mp-item" href="/about.html">About</a>
+    <div class="mp-divider"></div>
+    <div class="mp-section-label">Help</div>
+    <a class="mp-item" href="/contact.html">Contact Us</a>
+    <a class="mp-item" href="/shipping.html">Shipping</a>
+    <a class="mp-item" href="/returns.html">Returns</a>
+    <a class="mp-item" href="/faq.html">FAQ</a>
+    <div class="mp-divider"></div>
+    <div class="mp-section-label">Company</div>
+    <a class="mp-item" href="/press.html">Press</a>
+    <div class="mp-divider"></div>
+    <button class="mp-basket-row" id="mp-basket-btn">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+      View Basket
+      <span class="mp-badge" id="mp-badge"></span>
     </button>
   </div>
 </div>
 
-<!-- ══════════════════ PAGES ══════════════════ -->
-
-<!-- HOME -->
-<div class="page active" data-page="home">
-
-  <!-- Hero -->
-  <section class="hero">
-    <div class="hero-bg">
-      <img class="hero-bg-img" src="/assets/hero-bg.jpg" alt="" aria-hidden="true">
-      <div class="hero-overlay"></div>
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg">
+    <img class="hero-bg-img" src="https://c02.purpledshub.com/uploads/sites/48/2016/03/27499657575_389c310eae_k.jpg?webp=1&w=1200" alt="Earth from space">
+    <div class="hero-overlay"></div>
+  </div>
+  <div class="hero-content">
+    <div class="hero-chip"><span class="hero-chip-dot"></span>Free UK shipping on orders over &pound;150</div>
+    <h1 class="afu">The <em>Universe</em><br>on Your Wall</h1>
+    <p class="hero-sub afu d1">Hexagonal magnetic panels featuring the finest deep-space photography. Arrange, rearrange, and frame the cosmos exactly as you imagine it.</p>
+    <div class="hero-actions afu d2">
+      <a class="btn btn-primary" href="/shop.html">Shop the Collection</a>
+      <a class="btn btn-ghost-white" href="/about.html">Our Story</a>
     </div>
-    <div class="hero-content">
-      <div class="hero-chip"><span class="hero-chip-dot"></span>Free UK shipping on orders over £150</div>
-      <h1 class="afu">The <em>Universe</em><br>on Your Wall</h1>
-      <p class="hero-sub afu d1">Hexagonal magnetic panels featuring the finest deep-space photography. Arrange, rearrange, and frame the cosmos exactly as you imagine it.</p>
-      <div class="hero-actions afu d2">
-        <button class="btn btn-primary" data-nav="shop">Shop the Collection</button>
-        <button class="btn btn-ghost" style="color:#fff;border-color:rgba(255,255,255,.35)" data-nav="about">Our Story</button>
-      </div>
-      <div class="hero-stats afu d3">
-        <div><div class="hero-stat-num" id="stat-products">—</div><div class="hero-stat-label">Series Available</div></div>
-        <div><div class="hero-stat-num">4.9★</div><div class="hero-stat-label">Customer Rating</div></div>
-        <div><div class="hero-stat-num">Free</div><div class="hero-stat-label">UK Shipping £150+</div></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Marquee -->
-  <div class="marquee-wrap">
-    <div class="marquee-track" id="marquee-track">
-      <span class="marquee-item">Deep Space Photography</span>
-      <span class="marquee-item">Hexagonal Magnetic Panels</span>
-      <span class="marquee-item">Museum-Quality Print</span>
-      <span class="marquee-item">Free UK Shipping</span>
-      <span class="marquee-item">Custom Arrangements</span>
-      <span class="marquee-item">Limited Edition Series</span>
-      <span class="marquee-item">Nebulae · Galaxies · Planets</span>
-      <span class="marquee-item">Deep Space Photography</span>
-      <span class="marquee-item">Hexagonal Magnetic Panels</span>
-      <span class="marquee-item">Museum-Quality Print</span>
-      <span class="marquee-item">Free UK Shipping</span>
-      <span class="marquee-item">Custom Arrangements</span>
-      <span class="marquee-item">Limited Edition Series</span>
-      <span class="marquee-item">Nebulae · Galaxies · Planets</span>
+    <div class="hero-stats afu d3">
+      <div class="hero-stat"><div class="hero-stat-num" id="stat-products">—</div><div class="hero-stat-label">Series Available</div></div>
+      <div class="hero-stat"><div class="hero-stat-num">4.9</div><div class="hero-stat-label">Customer Rating</div></div>
+      <div class="hero-stat"><div class="hero-stat-num">Free</div><div class="hero-stat-label">UK Shipping &pound;150+</div></div>
     </div>
   </div>
+</section>
 
-  <!-- Featured Spotlight -->
-  <div class="home-spotlight-section">
-    <div id="home-spotlight-wrap"><!-- injected by JS --></div>
-    <div class="home-spotlight-footer">
-      <button class="btn btn-ghost" data-nav="shop">Browse full catalogue →</button>
-    </div>
-  </div>
-
-  <!-- Featured Series -->
-  <div class="section">
-    <div class="section-head">
-      <div>
-        <div class="section-eyebrow">Featured Series</div>
-        <h2>Explore the Collection</h2>
-      </div>
-      <button class="btn btn-ghost btn-sm" data-nav="shop">View all →</button>
-    </div>
-    <div class="grid" id="home-featured-grid">
-      <div class="card"><div class="card-media" style="background:var(--surface)"></div><div class="card-body"><div class="skeleton" style="height:1.2rem;width:60%;margin-bottom:8px"></div><div class="skeleton" style="height:.8rem;width:40%"></div></div></div>
-      <div class="card"><div class="card-media" style="background:var(--surface)"></div><div class="card-body"><div class="skeleton" style="height:1.2rem;width:60%;margin-bottom:8px"></div><div class="skeleton" style="height:.8rem;width:40%"></div></div></div>
-      <div class="card"><div class="card-media" style="background:var(--surface)"></div><div class="card-body"><div class="skeleton" style="height:1.2rem;width:60%;margin-bottom:8px"></div><div class="skeleton" style="height:.8rem;width:40%"></div></div></div>
-    </div>
-  </div>
-
-  <!-- Testimonials -->
-  <div style="background:var(--bg1);padding:80px 0">
-    <div class="section" style="padding-top:0;padding-bottom:0">
-      <div class="section-head">
-        <div>
-          <div class="section-eyebrow">Reviews</div>
-          <h2>What Customers Say</h2>
-        </div>
-      </div>
-      <div class="testimonials">
-        <div class="testimonial"><div class="testimonial-stars">★★★★★</div><p class="testimonial-text">"The Andromeda series completely transformed my living room. The magnetic system makes rearranging effortless — my guests are always amazed."</p><div class="testimonial-author">— James H., London</div></div>
-        <div class="testimonial"><div class="testimonial-stars">★★★★★</div><p class="testimonial-text">"Exceptional print quality. The deep blacks and nebula colours are stunning in person. Worth every penny."</p><div class="testimonial-author">— Sarah M., Edinburgh</div></div>
-        <div class="testimonial"><div class="testimonial-stars">★★★★★</div><p class="testimonial-text">"Fast delivery, beautiful packaging, and the panels are even better than the photos suggest. Already planning my next order."</p><div class="testimonial-author">— Tom K., Manchester</div></div>
-      </div>
-    </div>
-  </div>
-
-</div><!-- /home -->
-
-<!-- SHOP -->
-<div class="page" data-page="shop">
-  <div class="section">
-    <div class="section-head">
-      <div>
-        <div class="section-eyebrow">Catalogue</div>
-        <h2>All Series</h2>
-      </div>
-    </div>
-    <div class="filter-bar">
-      <button class="filter-pill active" data-filter="all">All</button>
-      <button class="filter-pill" data-filter="series">Series</button>
-      <button class="filter-pill" data-filter="collection">Collections</button>
-      <div class="search-wrap">
-        <span class="search-icon">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        </span>
-        <input class="search-input" id="shop-search" type="text" placeholder="Search series…">
-      </div>
-    </div>
-    <div class="grid" id="shop-grid">
-      <div class="card"><div class="card-media" style="background:var(--surface)"></div><div class="card-body"><div class="skeleton" style="height:1.2rem;width:60%;margin-bottom:8px"></div><div class="skeleton" style="height:.8rem;width:40%"></div></div></div>
-      <div class="card"><div class="card-media" style="background:var(--surface)"></div><div class="card-body"><div class="skeleton" style="height:1.2rem;width:60%;margin-bottom:8px"></div><div class="skeleton" style="height:.8rem;width:40%"></div></div></div>
-      <div class="card"><div class="card-media" style="background:var(--surface)"></div><div class="card-body"><div class="skeleton" style="height:1.2rem;width:60%;margin-bottom:8px"></div><div class="skeleton" style="height:.8rem;width:40%"></div></div></div>
-    </div>
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <span class="marquee-item">Deep Space Photography</span>
+    <span class="marquee-item">Hexagonal Magnetic Panels</span>
+    <span class="marquee-item">Museum-Quality Print</span>
+    <span class="marquee-item">Free UK Shipping</span>
+    <span class="marquee-item">Custom Arrangements</span>
+    <span class="marquee-item">Limited Edition Series</span>
+    <span class="marquee-item">Nebulae &middot; Galaxies &middot; Planets</span>
+    <span class="marquee-item">Deep Space Photography</span>
+    <span class="marquee-item">Hexagonal Magnetic Panels</span>
+    <span class="marquee-item">Museum-Quality Print</span>
+    <span class="marquee-item">Free UK Shipping</span>
+    <span class="marquee-item">Custom Arrangements</span>
+    <span class="marquee-item">Limited Edition Series</span>
+    <span class="marquee-item">Nebulae &middot; Galaxies &middot; Planets</span>
   </div>
 </div>
 
-<!-- COLLECTIONS -->
-<div class="page" data-page="collections">
-  <div class="section">
-    <div class="section-head">
-      <div>
-        <div class="section-eyebrow">Collections &amp; Bundles</div>
-        <h2>Curated Sets</h2>
-      </div>
+<!-- FEATURED -->
+<section class="section">
+  <div class="section-head">
+    <div>
+      <div class="section-eyebrow">Featured Series</div>
+      <h2>Explore the Collection</h2>
     </div>
-    <div class="grid" id="collections-grid">
-      <div class="card"><div class="card-media" style="background:var(--surface)"></div><div class="card-body"><div class="skeleton" style="height:1.2rem;width:60%;margin-bottom:8px"></div><div class="skeleton" style="height:.8rem;width:40%"></div></div></div>
-    </div>
-    <div class="section-head" style="margin-top:60px">
-      <div>
-        <div class="section-eyebrow">Bundles</div>
-        <h2>Value Sets</h2>
-      </div>
-    </div>
-    <div class="grid" id="bundles-grid">
-      <div class="card"><div class="card-media" style="background:var(--surface)"></div><div class="card-body"><div class="skeleton" style="height:1.2rem;width:60%;margin-bottom:8px"></div><div class="skeleton" style="height:.8rem;width:40%"></div></div></div>
-    </div>
+    <a class="btn btn-ghost btn-sm" href="/shop.html">View all</a>
   </div>
-</div>
+  <div class="grid" id="home-grid">
+    <div class="card skeleton-card"><div class="card-media-sk"></div><div class="card-body-sk"><div class="sk"></div><div class="sk sk-sm"></div></div></div>
+    <div class="card skeleton-card"><div class="card-media-sk"></div><div class="card-body-sk"><div class="sk"></div><div class="sk sk-sm"></div></div></div>
+    <div class="card skeleton-card"><div class="card-media-sk"></div><div class="card-body-sk"><div class="sk"></div><div class="sk sk-sm"></div></div></div>
+  </div>
+</section>
 
-<!-- ARTIFACTS -->
-<div class="page" data-page="artifacts">
-  <div class="artifacts-hero">
-    <div class="section-eyebrow">Artifacts</div>
-    <h1 style="font-family:var(--fd);font-size:clamp(2.2rem,5vw,3.8rem);font-weight:300;letter-spacing:-.02em;line-height:1.08;margin-bottom:16px">Space Artifacts</h1>
-    <p style="color:var(--muted);font-size:.97rem;line-height:1.75;max-width:520px;margin:0 auto">Curated objects from the cosmos — meteorites, mission prints, and collector's pieces.</p>
+<!-- TESTIMONIALS -->
+<section class="section" style="padding-top:0">
+  <div class="section-head">
+    <div>
+      <div class="section-eyebrow">Reviews</div>
+      <h2>What Customers Say</h2>
+    </div>
   </div>
-  <div class="artifact-grid" id="artifacts-grid">
-    <div class="artifact-card"><div style="height:190px;background:var(--surface)"></div><div class="artifact-card-body"><div class="skeleton" style="height:1rem;width:60%;margin-bottom:6px"></div><div class="skeleton" style="height:.8rem;width:40%"></div></div></div>
+  <div class="testimonials-grid">
+    <div class="testimonial"><div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><p>"The Andromeda series completely transformed my living room. The magnetic system makes rearranging effortless."</p><div class="testimonial-author">— James H., London</div></div>
+    <div class="testimonial"><div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><p>"Exceptional print quality. The deep blacks and nebula colours are stunning in person. Worth every penny."</p><div class="testimonial-author">— Sarah M., Edinburgh</div></div>
+    <div class="testimonial"><div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><p>"Fast delivery, beautiful packaging, and the panels are even better than the photos suggest."</p><div class="testimonial-author">— Tom K., Manchester</div></div>
   </div>
-</div>
+</section>
 
-<!-- PRODUCT PAGE -->
-<div class="page" data-page="product">
-  <div class="product-wrap">
-    <nav class="breadcrumbs" id="breadcrumbs">
-      <a href="#" data-nav="shop">Shop</a>
-      <span>›</span>
-      <span id="breadcrumb-name">Product</span>
-    </nav>
-    <div class="product-hero">
-      <div class="product-media">
-        <img id="product-img" src="" alt="">
-      </div>
-      <div class="product-info">
-        <div id="product-type-tag"></div>
-        <h2 id="product-name"></h2>
-        <p class="product-tagline" id="product-tagline"></p>
-        <div class="product-price-row">
-          <span class="product-price-main" id="product-price"></span>
-          <span class="product-price-range" id="product-price-range"></span>
-        </div>
-        <div class="specs" id="product-specs"></div>
-        <div class="qty-control" id="qty-control">
-          <button class="qty-btn" id="qty-down">−</button>
-          <span class="qty-num" id="qty-num">1</span>
-          <button class="qty-btn" id="qty-up">+</button>
-        </div>
-        <div class="product-actions" style="margin-top:14px">
-          <button class="btn btn-primary" id="add-to-basket-btn">Add to Basket</button>
-          <button class="btn btn-ghost" id="wishlist-product-btn">♡ Save</button>
-        </div>
-        <p class="notice" id="product-notice"></p>
-        <p id="product-description" style="color:var(--muted);font-size:.9rem;line-height:1.75"></p>
-      </div>
-    </div>
-    <!-- Sticky add bar -->
-    <div class="sticky-add-bar" id="sticky-add-bar">
-      <span class="sticky-add-bar-name" id="sticky-name"></span>
-      <span class="sticky-add-bar-price" id="sticky-price"></span>
-      <button class="btn btn-primary btn-sm" id="sticky-add-btn">Add to Basket</button>
-    </div>
-  </div>
-</div>
-
-<!-- ABOUT -->
-<div class="page" data-page="about">
-  <div class="inner-page-hero">
-    <div class="section-eyebrow">Our Story</div>
-    <h1>Born from a love of the cosmos</h1>
-    <p>We believe the universe's most breathtaking vistas deserve a permanent place in your home — printed with precision, designed with obsession.</p>
-  </div>
-  <div class="content-block">
-    <div class="content-card">
-      <h3>The Mission</h3>
-      <p>Spacenova began with a simple idea: the Hubble Space Telescope had gifted humanity images of incomprehensible beauty, yet they existed only as JPEG files on NASA servers. We set out to change that — to translate cosmic photography into objects worthy of the spaces we live in.</p>
-    </div>
-    <div class="content-card">
-      <h3>The Technology</h3>
-      <p>Each panel uses a precision-cut hexagonal frame with an integrated magnetic rear. Panels connect to each other and to a hidden wall mounting system with no visible hardware. The prints themselves are produced on museum-grade archival stock with pigment inks rated for over 100 years.</p>
-    </div>
-    <div class="content-card">
-      <h3>The Photography</h3>
-      <p>Our imagery is sourced from the world's leading space observatories — NASA, ESA, and the Hubble Heritage Team — processed by our in-house team to achieve print-perfect colour fidelity while preserving every scientific detail captured in the original data.</p>
-    </div>
-  </div>
-</div>
-
-<!-- CONTACT -->
-<div class="page" data-page="contact">
-  <div class="inner-page-hero">
-    <div class="section-eyebrow">Get in Touch</div>
-    <h1>We'd love to hear from you</h1>
-    <p>Questions about an order, a custom commission, or just want to talk about space? We're here.</p>
-  </div>
-  <div class="content-block">
-    <div class="content-card">
-      <form class="contact-form" id="contact-form">
-        <input type="text" placeholder="Your name" id="contact-name" required>
-        <input type="email" placeholder="Email address" id="contact-email" required>
-        <select id="contact-subject">
-          <option value="">Select a subject…</option>
-          <option>Order enquiry</option>
-          <option>Product question</option>
-          <option>Custom commission</option>
-          <option>Press &amp; media</option>
-          <option>Other</option>
-        </select>
-        <textarea placeholder="Your message…" id="contact-message" required></textarea>
-        <button class="btn btn-primary" type="submit">Send message →</button>
-      </form>
-      <div class="contact-success" id="contact-success" style="display:none">
-        <div style="font-size:2rem;margin-bottom:12px">✓</div>
-        <h3 style="font-family:var(--fd);font-size:1.6rem;font-weight:300;margin-bottom:8px">Message sent!</h3>
-        <p style="color:var(--muted);font-size:.9rem">We'll get back to you within one business day.</p>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- SHIPPING -->
-<div class="page" data-page="shipping">
-  <div class="inner-page-hero">
-    <div class="section-eyebrow">Delivery</div>
-    <h1>Shipping &amp; Delivery</h1>
-    <p>Every Spacenova order is carefully packed and dispatched from our UK studio.</p>
-  </div>
-  <div class="content-block">
-    <div class="shipping-grid">
-      <div class="shipping-box"><div class="shipping-box-icon">📦</div><h4>Standard UK</h4><p>3–5 working days · Free on orders over £150, otherwise £4.99</p></div>
-      <div class="shipping-box"><div class="shipping-box-icon">⚡</div><h4>Express UK</h4><p>1–2 working days · £9.99</p></div>
-      <div class="shipping-box"><div class="shipping-box-icon">🌍</div><h4>Europe</h4><p>5–8 working days · £14.99</p></div>
-      <div class="shipping-box"><div class="shipping-box-icon">✈️</div><h4>International</h4><p>7–14 working days · £24.99</p></div>
-    </div>
-    <div class="content-card" style="margin-top:14px">
-      <h3>Packaging</h3>
-      <p>All orders are shipped in custom-designed double-walled boxes with foam inserts to protect each panel. Large orders are split across multiple boxes to ensure safe transit. We use fully recyclable packaging materials throughout.</p>
-    </div>
-  </div>
-</div>
-
-<!-- RETURNS -->
-<div class="page" data-page="returns">
-  <div class="inner-page-hero">
-    <div class="section-eyebrow">Returns</div>
-    <h1>Hassle-Free Returns</h1>
-    <p>Not 100% happy? We'll make it right. 30-day returns on all standard orders.</p>
-  </div>
-  <div class="content-block">
-    <div class="returns-steps">
-      <div class="returns-step"><div class="returns-step-num">1</div><div><h4>Contact us</h4><p>Email hello@spacenova.co.uk within 30 days of receiving your order. Include your order reference and a brief description of the issue.</p></div></div>
-      <div class="returns-step"><div class="returns-step-num">2</div><div><h4>We'll arrange collection</h4><p>We'll send you a pre-paid returns label. Simply repack the panels in the original packaging and drop off at any Evri collection point.</p></div></div>
-      <div class="returns-step"><div class="returns-step-num">3</div><div><h4>Refund issued</h4><p>Once we receive and inspect the return, we'll issue a full refund to your original payment method within 3–5 working days.</p></div></div>
-    </div>
-  </div>
-</div>
-
-<!-- FAQ -->
-<div class="page" data-page="faq">
-  <div class="inner-page-hero">
-    <div class="section-eyebrow">FAQ</div>
-    <h1>Frequently Asked Questions</h1>
-    <p>Everything you need to know about Spacenova panels and orders.</p>
-  </div>
-  <div class="content-block">
-    <div class="faq-item"><button class="faq-q">How do the panels attach to the wall? <span class="faq-chevron">▾</span></button><div class="faq-a"><div class="faq-a-inner">Each panel includes a magnetic wall mount that attaches with 3M Command strips — no drilling required. Panels then click magnetically onto the mount and to each other.</div></div></div>
-    <div class="faq-item"><button class="faq-q">Can I mix panels from different series? <span class="faq-chevron">▾</span></button><div class="faq-a"><div class="faq-a-inner">Panels only connect within their own series, as each set is designed as a single continuous image split across panels. However, different series can be displayed side by side on the wall.</div></div></div>
-    <div class="faq-item"><button class="faq-q">What sizes are the panels? <span class="faq-chevron">▾</span></button><div class="faq-a"><div class="faq-a-inner">Each hexagonal panel measures approximately 30cm across the flat sides. Exact dimensions vary slightly by series depending on the panel count configuration.</div></div></div>
-    <div class="faq-item"><button class="faq-q">Are the prints UV resistant? <span class="faq-chevron">▾</span></button><div class="faq-a"><div class="faq-a-inner">Yes — all prints use archival pigment inks on museum-grade stock rated for 100+ years. We recommend avoiding prolonged direct sunlight as with any fine art print.</div></div></div>
-    <div class="faq-item"><button class="faq-q">How long does delivery take? <span class="faq-chevron">▾</span></button><div class="faq-a"><div class="faq-a-inner">Standard UK delivery is 3–5 working days. Express 1–2 day options are also available at checkout. International shipping times vary by destination.</div></div></div>
-  </div>
-</div>
-
-<!-- PRESS -->
-<div class="page" data-page="press">
-  <div class="inner-page-hero">
-    <div class="section-eyebrow">Press &amp; Media</div>
-    <h1>Spacenova in the Press</h1>
-    <p>For media enquiries, high-resolution assets, and press releases, contact press@spacenova.co.uk</p>
-  </div>
-  <div class="content-block">
-    <div class="press-logos" id="press-logos">
-      <div class="press-logo-card">Wired</div>
-      <div class="press-logo-card">Dezeen</div>
-      <div class="press-logo-card">The Guardian</div>
-      <div class="press-logo-card">Forbes</div>
-      <div class="press-logo-card">Wallpaper*</div>
-      <div class="press-logo-card">Space.com</div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════ BASKET DRAWER ══════════════════ -->
-<div id="basket-overlay"></div>
-<div id="basket-drawer">
-  <div class="drawer-header">
-    <h2>Your Basket</h2>
-    <button class="drawer-close" id="basket-close">✕</button>
-  </div>
-  <div class="drawer-body" id="basket-body">
-    <div class="empty-basket">
-      <div class="empty-basket-icon">🛒</div>
-      <p style="color:var(--muted);font-size:.88rem">Your basket is empty</p>
-    </div>
-  </div>
-  <div class="drawer-footer" id="basket-footer" style="display:none">
-    <!-- Promo -->
-    <div class="promo-wrap">
-      <input class="promo-input" id="promo-input" type="text" placeholder="Promo code">
-      <button class="promo-apply-btn" id="promo-apply-btn">Apply</button>
-    </div>
-    <div class="promo-badge" id="promo-badge" style="display:none">
-      <span class="promo-badge-left">✓ <span id="promo-badge-text"></span></span>
-      <button class="promo-badge-remove" id="promo-remove-btn">✕</button>
-    </div>
-    <p class="promo-error" id="promo-error">Invalid or expired code</p>
-    <!-- Summary -->
-    <div class="basket-summary">
-      <div class="basket-summary-row"><span>Subtotal</span><span id="basket-subtotal">£0.00</span></div>
-      <div class="basket-summary-row" id="discount-row" style="display:none"><span>Discount</span><span id="basket-discount" style="color:var(--success)">−£0.00</span></div>
-      <div class="basket-summary-row"><span>Shipping</span><span id="basket-shipping">Calculated at checkout</span></div>
-      <div class="basket-summary-row total"><span>Total</span><strong id="basket-total">£0.00</strong></div>
-    </div>
-    <p class="shipping-note" id="shipping-note"></p>
-    <button class="btn btn-primary" style="width:100%;justify-content:center" id="checkout-btn">Checkout →</button>
-  </div>
-</div>
-
-<!-- ══════════════════ CHECKOUT DRAWER ══════════════════ -->
-<div id="checkout-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,.28);backdrop-filter:blur(8px);opacity:0;pointer-events:none;transition:opacity .3s;z-index:145"></div>
-<div id="checkout-drawer" style="position:fixed;top:0;right:0;width:min(100vw,480px);height:100dvh;background:rgba(255,255,255,.97);backdrop-filter:var(--blur);border-left:1px solid var(--border);transform:translateX(102%);transition:transform .36s cubic-bezier(.32,.72,0,1);z-index:150;display:flex;flex-direction:column;will-change:transform">
-  <div class="drawer-header">
-    <h2>Checkout</h2>
-    <button class="drawer-close" id="checkout-close">✕</button>
-  </div>
-  <div style="flex:1;overflow-y:auto;padding:18px 22px">
-    <div class="checkout-steps">
-      <div class="checkout-step active" id="step-tab-details">Details</div>
-      <div class="checkout-step" id="step-tab-shipping">Shipping</div>
-      <div class="checkout-step" id="step-tab-payment">Payment</div>
-    </div>
-
-    <!-- Step 1: Details -->
-    <div id="step-details">
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">First name</label><input class="form-input" id="co-fname" placeholder="James"></div>
-        <div class="form-group"><label class="form-label">Last name</label><input class="form-input" id="co-lname" placeholder="Smith"></div>
-      </div>
-      <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="co-email" type="email" placeholder="james@example.com"></div>
-      <div class="form-group"><label class="form-label">Phone (optional)</label><input class="form-input" id="co-phone" type="tel" placeholder="+44 7700 000000"></div>
-      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px" id="step-details-next">Continue to shipping →</button>
-    </div>
-
-    <!-- Step 2: Shipping -->
-    <div id="step-shipping" style="display:none">
-      <div class="form-group"><label class="form-label">Address line 1</label><input class="form-input" id="co-line1" placeholder="12 Cosmos Lane"></div>
-      <div class="form-group"><label class="form-label">Address line 2 (optional)</label><input class="form-input" id="co-line2"></div>
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">City</label><input class="form-input" id="co-city" placeholder="London"></div>
-        <div class="form-group"><label class="form-label">Postcode</label><input class="form-input" id="co-postcode" placeholder="EC1A 1BB"></div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Country</label>
-        <select class="form-input form-select" id="co-country">
-          <option value="GB">United Kingdom</option>
-          <option value="US">United States</option>
-          <option value="DE">Germany</option>
-          <option value="FR">France</option>
-          <option value="AU">Australia</option>
-          <option value="CA">Canada</option>
-          <option value="other">Other</option>
-        </select>
-      </div>
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <button class="btn btn-ghost" id="step-shipping-back">← Back</button>
-        <button class="btn btn-primary" style="flex:1;justify-content:center" id="step-shipping-next">Continue to payment →</button>
-      </div>
-    </div>
-
-    <!-- Step 3: Payment -->
-    <div id="step-payment" style="display:none">
-      <div class="stripe-secure-note">
-        <svg width="12" height="14" viewBox="0 0 12 14" fill="none"><rect x="1" y="6" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M3.5 6V4a2.5 2.5 0 015 0v2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
-        Secured by Stripe — we never store card details
-      </div>
-      <div id="stripe-payment-element"></div>
-      <p id="stripe-error"></p>
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <button class="btn btn-ghost" id="step-payment-back">← Back</button>
-        <button class="btn btn-primary" style="flex:1;justify-content:center" id="pay-btn">Pay now</button>
-      </div>
-      <div class="order-success" id="order-success" style="display:none">
-        <div class="order-success-icon">✓</div>
-        <h3>Order confirmed!</h3>
-        <p>Thank you for your order. You'll receive a confirmation email shortly.</p>
-        <div class="order-ref" id="order-ref-display"></div>
-      </div>
-    </div>
-  </div>
-  <div style="padding:14px 22px;border-top:1px solid var(--border);background:var(--bg1)">
-    <div class="basket-summary" id="checkout-summary"></div>
-  </div>
-</div>
-
-<!-- ══════════════════ FOOTER ══════════════════ -->
+<!-- FOOTER -->
 <footer id="main-footer">
   <div class="footer-inner">
     <div class="footer-brand">
-      <img class="footer-logo-img" src="/assets/logo.svg" alt="Spacenova" onerror="this.style.display='none'">
-      <p>Bringing the universe's most breathtaking vistas into your home — hexagonal magnetic panels, museum-quality prints.</p>
+      <img class="footer-logo" src="/spacenovalogocropped.png" alt="Spacenova">
+      <p>Bringing the universe's most breathtaking vistas into your home &mdash; hexagonal magnetic panels, museum-quality prints.</p>
     </div>
-    <div class="footer-col">
-      <h4>Shop</h4>
-      <a href="#" data-nav="shop">All Series</a>
-      <a href="#" data-nav="collections">Collections</a>
-      <a href="#" data-nav="artifacts">Artifacts</a>
-    </div>
-    <div class="footer-col">
-      <h4>Help</h4>
-      <a href="#" data-nav="shipping">Shipping</a>
-      <a href="#" data-nav="returns">Returns</a>
-      <a href="#" data-nav="faq">FAQ</a>
-      <a href="#" data-nav="contact">Contact</a>
-      <a href="#" data-nav="press">Press</a>
-    </div>
+    <div class="footer-col"><h4>Shop</h4><a href="/shop.html">All Series</a><a href="/collections.html">Collections</a><a href="/artifacts.html">Artifacts</a></div>
+    <div class="footer-col"><h4>Help</h4><a href="/shipping.html">Shipping</a><a href="/returns.html">Returns</a><a href="/faq.html">FAQ</a><a href="/contact.html">Contact</a></div>
+    <div class="footer-col"><h4>Company</h4><a href="/about.html">About</a><a href="/press.html">Press</a></div>
   </div>
-  <div class="footer-bottom">
-    <span>© 2026 Spacenova Ltd. All rights reserved.</span>
-    <span>Made with ♡ for the cosmos</span>
-  </div>
+  <div class="footer-bottom"><span>&copy; 2026 Spacenova Ltd. All rights reserved.</span><span>Made for the cosmos</span></div>
 </footer>
 
-<!-- ══════════════════ TOAST ══════════════════ -->
+<!-- BASKET DRAWER -->
+<div id="basket-overlay"></div>
+<div id="basket-drawer">
+  <div class="drawer-header"><h2>Your Basket</h2><button class="drawer-close" id="basket-close">&times;</button></div>
+  <div class="drawer-body" id="basket-body"></div>
+  <div class="drawer-footer" id="basket-footer" style="display:none">
+    <div class="promo-row"><input class="promo-input" id="promo-input" type="text" placeholder="Promo code"><button class="promo-btn" id="promo-apply-btn">Apply</button></div>
+    <div class="promo-applied" id="promo-applied" style="display:none"><span id="promo-applied-text"></span><button id="promo-remove-btn">Remove</button></div>
+    <p class="promo-error" id="promo-error" style="display:none">Invalid or expired code</p>
+    <div class="basket-summary">
+      <div class="bsum-row"><span>Subtotal</span><span id="basket-subtotal">£0.00</span></div>
+      <div class="bsum-row" id="discount-row" style="display:none"><span>Discount</span><span id="basket-discount" class="discount-val">-£0.00</span></div>
+      <div class="bsum-row"><span>Shipping</span><span id="basket-shipping">Calculated at checkout</span></div>
+      <div class="bsum-row bsum-total"><span>Total</span><strong id="basket-total">£0.00</strong></div>
+    </div>
+    <p class="free-shipping-note" id="free-shipping-note"></p>
+    <a class="btn btn-primary btn-full" href="/checkout.html" id="checkout-btn">Checkout</a>
+  </div>
+</div>
+
 <div id="toast-container"></div>
 
-<!-- ══════════════════ BACK TO TOP ══════════════════ -->
-<button id="back-to-top" aria-label="Back to top">↑</button>
-
-<!-- ══════════════════ SCRIPTS ══════════════════ -->
-<script src="https://js.stripe.com/v3/"></script>
-<script src="/js/main.js"></script>
-
+<script src="/js/nav.js"></script>
+<script src="/js/basket.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  fetch('/.netlify/functions/load-catalogue')
+    .then(r => r.json())
+    .then(d => {
+      const products = (d.products || []).filter(p => p.isPublished !== false).slice(0, 3);
+      const el = document.getElementById('stat-products');
+      if (el) el.textContent = (d.products || []).length || '—';
+      const grid = document.getElementById('home-grid');
+      if (!grid) return;
+      if (!products.length) {
+        grid.innerHTML = '<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:40px 0">No products available yet.</p>';
+        return;
+      }
+      grid.innerHTML = products.map(p => `
+        <a class="card card-link" href="/product.html?slug=${p.slug || p.id}">
+          <div class="card-media">
+            ${p.image ? `<img src="${p.image}" alt="${p.name}" loading="lazy">` : '<div class="card-media-placeholder"></div>'}
+            <div class="badge-row"><span class="badge badge-accent">${p.isCollection ? 'Collection' : 'Series'}</span></div>
+          </div>
+          <div class="card-body">
+            <h3>${p.name}</h3>
+            <p class="muted">${p.description ? p.description.substring(0, 90) + (p.description.length > 90 ? '...' : '') : ''}</p>
+            <div class="price">&pound;${parseFloat(p.price || 0).toFixed(2)}</div>
+          </div>
+        </a>`).join('');
+    })
+    .catch(() => {
+      const grid = document.getElementById('home-grid');
+      if (grid) grid.innerHTML = '<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:40px 0">Could not load products.</p>';
+    });
+});
+</script>
 </body>
 </html>
