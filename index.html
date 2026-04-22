@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
   <meta name="description" content="SPACENOVA — Magnetic hexagon wall art panels. Gallery-quality deep-space murals for your home."/>
   <title>SPACENOVA — The Universe on Your Wall</title>
-  <!-- Stripe.js — must load before any payment code -->
   <script src="https://js.stripe.com/v3/"></script>
   <link rel="stylesheet" href="css/style.css"/>
   <style>
@@ -20,6 +19,7 @@
     }
     img, video, canvas, svg { max-width: 100%; height: auto; }
 
+    /* ── NAV ── */
     #main-nav {
       position: sticky; top: 0; z-index: 1400;
       background: rgba(255,255,255,0.62);
@@ -30,50 +30,430 @@
       transition: background .28s ease, border-color .28s ease, box-shadow .28s ease;
     }
     #main-nav.nav-solid {
-      background: rgba(255,255,255,0.76);
-      border-bottom-color: rgba(255,255,255,0.44);
+      background: rgba(255,255,255,0.82);
+      border-bottom-color: rgba(0,0,0,0.08);
       box-shadow: 0 14px 38px rgba(0,0,0,0.11);
     }
-
     .footer-logo-img { display: block; width: 170px; max-width: 100%; height: auto; }
 
+    /* ── MOBILE MENU TOGGLE ── */
     .mobile-menu-toggle {
-      display: none; width: 36px; height: 36px;
-      background: none; border: none; border-radius: 0; box-shadow: none;
-      color: #111; align-items: center; justify-content: center;
-      cursor: pointer; padding: 0; flex-shrink: 0; transition: opacity .18s ease;
+      display: none;
+      width: 40px; height: 40px;
+      background: rgba(255,255,255,0.6);
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 12px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      color: #111;
+      align-items: center; justify-content: center;
+      cursor: pointer; padding: 0; flex-shrink: 0;
+      transition: background .18s, border-color .18s, transform .18s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
-    .mobile-menu-toggle:hover, .mobile-menu-toggle:focus-visible { opacity: 0.6; outline: none; }
-    .mobile-menu-toggle svg { width: 22px; height: 22px; stroke: #111; display: block; }
+    .mobile-menu-toggle:hover {
+      background: rgba(255,255,255,0.85);
+      border-color: rgba(0,0,0,0.14);
+      transform: scale(1.04);
+    }
+    .mobile-menu-toggle:active { transform: scale(0.96); }
+    .mobile-menu-toggle svg { width: 18px; height: 18px; stroke: #111; display: block; transition: opacity .15s; }
 
+    /* ── MOBILE MENU SHELL ── */
     .mobile-menu-shell {
-      display: none; position: absolute;
-      top: calc(100% - 2px); right: 16px;
-      width: min(320px, calc(100vw - 32px)); z-index: 1450;
+      display: none;
+      position: fixed;
+      top: 60px; right: 16px;
+      width: min(340px, calc(100vw - 32px));
+      z-index: 1450;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(-8px) scale(0.97);
+      transition: opacity .22s cubic-bezier(.22,1,.36,1), transform .22s cubic-bezier(.22,1,.36,1);
     }
-    .mobile-menu-shell.open { display: block; }
+    .mobile-menu-shell.open {
+      pointer-events: auto;
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    /* Frosted glass card */
     .mobile-menu {
-      display: block; width: 100%; border-radius: 18px;
-      background: rgba(255,255,255,0.86); border: 1px solid rgba(255,255,255,0.44);
-      box-shadow: 0 24px 60px rgba(0,0,0,0.14); padding: 12px;
-      backdrop-filter: blur(20px) saturate(160%);
-      -webkit-backdrop-filter: blur(20px) saturate(160%);
-      animation: mobileMenuIn .18s ease-out; overflow: hidden;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid rgba(255,255,255,0.6);
+      border-radius: 22px;
+      box-shadow:
+        0 32px 64px rgba(0,0,0,0.18),
+        0 8px 24px rgba(0,0,0,0.1),
+        inset 0 1px 0 rgba(255,255,255,0.9);
+      backdrop-filter: blur(40px) saturate(200%);
+      -webkit-backdrop-filter: blur(40px) saturate(200%);
+      padding: 10px;
+      overflow: hidden;
     }
-    .mobile-menu a {
-      display: flex; width: 100%; align-items: center; justify-content: space-between;
-      padding: 14px 16px; border-radius: 12px; color: #111; text-decoration: none;
-      background: transparent; border: 0; font: inherit; font-weight: 500;
-      cursor: pointer; transition: background .18s ease, transform .18s ease;
+
+    /* Section label inside menu */
+    .mobile-menu-section {
+      font-family: 'DM Mono', monospace;
+      font-size: .52rem;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: rgba(0,0,0,0.35);
+      padding: 10px 14px 4px;
     }
-    .mobile-menu a:hover, .mobile-menu a:focus-visible {
-      background: rgba(0,0,0,0.05); transform: translateX(2px); outline: none;
+
+    .mobile-menu a, .mobile-menu button.mm-link {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-radius: 14px;
+      color: #111;
+      text-decoration: none;
+      background: transparent;
+      border: 0;
+      font: inherit;
+      font-size: .88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s, transform .15s;
+      text-align: left;
     }
-    .mobile-menu a.active { background: rgba(0,0,0,0.07); border: 1px solid rgba(0,0,0,0.06); }
-    @keyframes mobileMenuIn {
-      from { opacity: 0; transform: translateY(-8px) scale(.98); }
-      to   { opacity: 1; transform: translateY(0) scale(1); }
+    .mobile-menu a:hover, .mobile-menu button.mm-link:hover {
+      background: rgba(0,0,0,0.05);
+      transform: translateX(2px);
     }
+    .mobile-menu a .mm-arrow, .mobile-menu button.mm-link .mm-arrow {
+      font-size: .75rem;
+      opacity: .35;
+      transition: opacity .15s, transform .15s;
+    }
+    .mobile-menu a:hover .mm-arrow, .mobile-menu button.mm-link:hover .mm-arrow {
+      opacity: .7;
+      transform: translateX(2px);
+    }
+    .mobile-menu-divider {
+      height: 1px;
+      background: rgba(0,0,0,0.07);
+      margin: 6px 10px;
+    }
+    .mm-icon {
+      width: 30px; height: 30px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .9rem;
+      margin-right: 10px;
+      flex-shrink: 0;
+    }
+    .mm-row-inner {
+      display: flex; align-items: center; flex: 1;
+    }
+    .mm-label { flex: 1; }
+
+    /* Menu backdrop */
+    .mobile-menu-backdrop {
+      display: none;
+      position: fixed; inset: 0;
+      z-index: 1440;
+      background: transparent;
+    }
+    .mobile-menu-backdrop.open { display: block; }
+
+    /* ── INNER PAGES ── */
+    .inner-page-hero {
+      padding: 72px 24px 56px;
+      max-width: 760px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .inner-page-hero h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.4rem, 5vw, 4rem);
+      font-weight: 300;
+      letter-spacing: -.02em;
+      line-height: 1.08;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+    .inner-page-hero p {
+      color: var(--muted);
+      font-size: .97rem;
+      line-height: 1.75;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    /* Content sections inside pages */
+    .content-block {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+    .content-card {
+      background: var(--bg1);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      margin-bottom: 16px;
+    }
+    .content-card h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem;
+      font-weight: 400;
+      margin-bottom: 10px;
+      color: var(--text);
+    }
+    .content-card p {
+      color: var(--muted);
+      font-size: .92rem;
+      line-height: 1.75;
+    }
+
+    /* FAQ accordion */
+    .faq-item {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      margin-bottom: 10px;
+      overflow: hidden;
+      background: var(--bg);
+      transition: border-color .2s;
+    }
+    .faq-item.open { border-color: var(--border2); }
+    .faq-q {
+      width: 100%;
+      background: transparent;
+      border: none;
+      text-align: left;
+      padding: 20px 24px;
+      font: inherit;
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      transition: background .15s;
+    }
+    .faq-q:hover { background: var(--bg1); }
+    .faq-chevron {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: var(--surface);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .7rem;
+      flex-shrink: 0;
+      transition: transform .25s cubic-bezier(.22,1,.36,1), background .2s;
+    }
+    .faq-item.open .faq-chevron {
+      transform: rotate(180deg);
+      background: var(--accent);
+      color: #fff;
+    }
+    .faq-a {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height .35s cubic-bezier(.22,1,.36,1);
+    }
+    .faq-a-inner {
+      padding: 0 24px 20px;
+      color: var(--muted);
+      font-size: .9rem;
+      line-height: 1.75;
+    }
+
+    /* Contact form */
+    .contact-form { display: flex; flex-direction: column; gap: 14px; }
+    .contact-form input,
+    .contact-form select,
+    .contact-form textarea {
+      width: 100%;
+      padding: 13px 16px;
+      background: var(--bg);
+      border: 1px solid var(--border2);
+      border-radius: 14px;
+      font: inherit;
+      font-size: .9rem;
+      color: var(--text);
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      resize: vertical;
+    }
+    .contact-form input:focus,
+    .contact-form select:focus,
+    .contact-form textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(212,120,15,.1);
+    }
+    .contact-form textarea { min-height: 120px; }
+    .contact-success {
+      text-align: center;
+      padding: 40px;
+      background: rgba(26,158,64,.04);
+      border: 1px solid rgba(26,158,64,.18);
+      border-radius: 20px;
+    }
+    .contact-success .cs-icon { font-size: 2.5rem; margin-bottom: 14px; }
+    .contact-success h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.6rem;
+      font-weight: 300;
+      margin-bottom: 8px;
+    }
+    .contact-success p { color: var(--muted); font-size: .9rem; }
+
+    /* Team / careers grid */
+    .careers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-top: 8px; }
+    .job-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 26px;
+      transition: border-color .2s, transform .22s, box-shadow .22s;
+      cursor: pointer;
+    }
+    .job-card:hover {
+      border-color: var(--border2);
+      transform: translateY(-3px);
+      box-shadow: 0 14px 40px rgba(0,0,0,.09);
+    }
+    .job-tag {
+      display: inline-flex;
+      font-family: 'DM Mono', monospace;
+      font-size: .56rem;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: rgba(212,120,15,.08);
+      color: var(--accent);
+      border: 1px solid rgba(212,120,15,.2);
+      margin-bottom: 12px;
+    }
+    .job-card h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.25rem;
+      font-weight: 400;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+    .job-card p { color: var(--muted); font-size: .86rem; line-height: 1.65; }
+    .job-card-footer {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: 'DM Mono', monospace;
+      font-size: .65rem;
+      color: var(--muted);
+      letter-spacing: .06em;
+    }
+
+    /* Press */
+    .press-logos {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 16px;
+      margin: 32px 0;
+    }
+    .press-logo-card {
+      background: var(--bg1);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+      color: var(--muted);
+      letter-spacing: .04em;
+      transition: border-color .2s, color .2s;
+    }
+    .press-logo-card:hover { border-color: var(--border2); color: var(--text2); }
+    .press-article {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 12px;
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      transition: border-color .2s, transform .2s;
+    }
+    .press-article:hover { border-color: var(--border2); transform: translateX(3px); }
+    .press-article-pub {
+      font-family: 'DM Mono', monospace;
+      font-size: .6rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+    .press-article h4 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.15rem;
+      font-weight: 400;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+    .press-article p { color: var(--muted); font-size: .86rem; line-height: 1.6; }
+    .press-date {
+      font-family: 'DM Mono', monospace;
+      font-size: .6rem;
+      color: var(--muted2);
+      flex-shrink: 0;
+      padding-top: 2px;
+    }
+
+    /* Shipping info boxes */
+    .shipping-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; margin: 24px 0; }
+    .shipping-box {
+      background: var(--bg1);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+      text-align: center;
+    }
+    .shipping-box-icon { font-size: 2rem; margin-bottom: 12px; }
+    .shipping-box h4 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+      font-weight: 400;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+    .shipping-box p { color: var(--muted); font-size: .84rem; line-height: 1.65; }
+
+    /* Returns steps */
+    .returns-steps { display: flex; flex-direction: column; gap: 12px; margin: 24px 0; }
+    .returns-step {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      padding: 20px 24px;
+      background: var(--bg1);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+    }
+    .returns-step-num {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--gold2));
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'DM Mono', monospace;
+      font-size: .78rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .returns-step h4 { font-size: .9rem; font-weight: 700; margin-bottom: 4px; color: var(--text); }
+    .returns-step p { color: var(--muted); font-size: .86rem; line-height: 1.6; }
 
     @media (max-width: 820px) {
       #main-nav { padding-top: calc(env(safe-area-inset-top, 0px) + 10px); }
@@ -108,9 +488,12 @@
       .footer-bottom { display: grid !important; grid-template-columns: 1fr; gap: 8px; text-align: left; }
       .page[data-page="checkout"] > div { padding-left: 18px !important; padding-right: 18px !important; }
       .page { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 32px); }
+      .inner-page-hero { padding: 48px 20px 36px; }
+      .content-block { padding: 0 16px 60px; }
+      .press-article { flex-direction: column; gap: 10px; }
     }
     @media (min-width: 821px) {
-      .mobile-menu-toggle, .mobile-menu-shell { display: none !important; }
+      .mobile-menu-toggle, .mobile-menu-shell, .mobile-menu-backdrop { display: none !important; }
       .nav-links { display: flex !important; }
     }
   </style>
@@ -119,17 +502,17 @@
 <body>
   <!-- ═══ NAV ═══ -->
   <nav id="main-nav" class="nav-transparent">
-    <a class="nav-logo" href="#home">
+    <a class="nav-logo" href="#home" onclick="navigate('home')">
       <img src="Spacenovalogocropped.png" alt="spacenova" class="nav-logo-img"
            onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
       <div class="nav-logo-mark" style="display:none"></div>
     </a>
     <div class="nav-links">
-      <a class="nav-link" href="#home" data-route="home">Home</a>
-      <a class="nav-link" href="#wall-art" data-route="wall-art">Wall Art</a>
-      <a class="nav-link" href="#artifacts" data-route="artifacts">Artifacts</a>
-      <a class="nav-link" href="#bundles" data-route="bundles">Bundles</a>
-      <a class="nav-link" href="#about" data-route="about">About</a>
+      <a class="nav-link" href="#home"      onclick="navigate('home')"      data-route="home">Home</a>
+      <a class="nav-link" href="#wall-art"  onclick="navigate('wall-art')"  data-route="wall-art">Wall Art</a>
+      <a class="nav-link" href="#artifacts" onclick="navigate('artifacts')" data-route="artifacts">Artifacts</a>
+      <a class="nav-link" href="#bundles"   onclick="navigate('bundles')"   data-route="bundles">Bundles</a>
+      <a class="nav-link" href="#about"     onclick="navigate('about')"     data-route="about">About</a>
     </div>
     <div class="nav-spacer"></div>
     <button class="nav-basket-btn" id="nav-basket-btn" onclick="openBasket()" type="button">
@@ -141,46 +524,83 @@
       Basket
       <span class="basket-badge" id="basket-badge">0</span>
     </button>
-    <button class="mobile-menu-toggle" id="mobile-menu-toggle" type="button" aria-label="Open menu" aria-expanded="false" onclick="toggleMobileMenu()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-        <line x1="3" y1="7" x2="21" y2="7"/>
-        <line x1="3" y1="12" x2="21" y2="12"/>
-        <line x1="3" y1="17" x2="21" y2="17"/>
+    <!-- Mobile menu button — frosted glass pill -->
+    <button class="mobile-menu-toggle" id="mobile-menu-toggle" type="button"
+            aria-label="Open menu" aria-expanded="false" onclick="toggleMobileMenu()">
+      <svg id="mm-hamburger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+        <line x1="4" y1="7"  x2="20" y2="7"/>
+        <line x1="4" y1="12" x2="20" y2="12"/>
+        <line x1="4" y1="17" x2="20" y2="17"/>
+      </svg>
+      <svg id="mm-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="display:none">
+        <line x1="5" y1="5" x2="19" y2="19"/>
+        <line x1="19" y1="5" x2="5" y2="19"/>
       </svg>
     </button>
-    <div class="mobile-menu-shell" id="mobile-menu-shell">
-      <div class="mobile-menu" id="mobile-menu">
-        <a href="#home" data-route="home" onclick="navigateAndClose('home')">Home <span>→</span></a>
-        <a href="#wall-art" data-route="wall-art" onclick="navigateAndClose('wall-art')">Wall Art <span>→</span></a>
-        <a href="#artifacts" data-route="artifacts" onclick="navigateAndClose('artifacts')">Artifacts <span>→</span></a>
-        <a href="#bundles" data-route="bundles" onclick="navigateAndClose('bundles')">Bundles <span>→</span></a>
-        <a href="#about" data-route="about" onclick="navigateAndClose('about')">About <span>→</span></a>
-      </div>
-    </div>
   </nav>
 
-  <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
-    <a class="mobile-nav-item active" href="#home" data-route="home" onclick="showPage('home');setActiveNav('home')">
-      <svg class="mobile-nav-icon" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      Home
-    </a>
-    <a class="mobile-nav-item" href="#wall-art" data-route="wall-art" onclick="showPage('wall-art');setActiveNav('wall-art')">
-      <svg class="mobile-nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-      Wall Art
-    </a>
-    <a class="mobile-nav-item" href="#artifacts" data-route="artifacts" onclick="showPage('artifacts');setActiveNav('artifacts')">
-      <svg class="mobile-nav-icon" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-      Artifacts
-    </a>
-    <a class="mobile-nav-item" href="#bundles" data-route="bundles" onclick="showPage('bundles');setActiveNav('bundles')">
-      <svg class="mobile-nav-icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
-      Bundles
-    </a>
-    <button class="mobile-nav-item" onclick="openBasket()" type="button">
-      <svg class="mobile-nav-icon" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
-      Basket
-    </button>
-  </nav>
+  <!-- Mobile backdrop (closes menu on tap outside) -->
+  <div class="mobile-menu-backdrop" id="mobile-menu-backdrop" onclick="closeMobileMenu()"></div>
+
+  <!-- Frosted glass dropdown menu -->
+  <div class="mobile-menu-shell" id="mobile-menu-shell">
+    <div class="mobile-menu">
+      <div class="mobile-menu-section">Shop</div>
+      <a href="#home"      onclick="navigateAndClose('home')">
+        <span class="mm-row-inner"><span class="mm-icon" style="background:rgba(0,0,0,.05)">🏠</span><span class="mm-label">Home</span></span>
+        <span class="mm-arrow">›</span>
+      </a>
+      <a href="#wall-art"  onclick="navigateAndClose('wall-art')">
+        <span class="mm-row-inner"><span class="mm-icon" style="background:rgba(212,120,15,.08)">🖼️</span><span class="mm-label">Wall Art</span></span>
+        <span class="mm-arrow">›</span>
+      </a>
+      <a href="#artifacts" onclick="navigateAndClose('artifacts')">
+        <span class="mm-row-inner"><span class="mm-icon" style="background:rgba(154,122,58,.08)">⭐</span><span class="mm-label">Artifacts</span></span>
+        <span class="mm-arrow">›</span>
+      </a>
+      <a href="#bundles"   onclick="navigateAndClose('bundles')">
+        <span class="mm-row-inner"><span class="mm-icon" style="background:rgba(10,132,255,.06)">📦</span><span class="mm-label">Bundles</span></span>
+        <span class="mm-arrow">›</span>
+      </a>
+      <div class="mobile-menu-divider"></div>
+      <div class="mobile-menu-section">Company</div>
+      <a href="#about"    onclick="navigateAndClose('about')">
+        <span class="mm-row-inner"><span class="mm-icon" style="background:rgba(0,0,0,.05)">🛸</span><span class="mm-label">About</span></span>
+        <span class="mm-arrow">›</span>
+      </a>
+      <a href="#press"    onclick="navigateAndClose('press')">
+        <span class="mm-row-inner"><span class="mm-icon" style="background:rgba(0,0,0,.05)">📰</span><span class="mm-label">Press</span></span>
+        <span class="mm-arrow">›</span>
+      </a>
+      <a href="#careers"  onclick="navigateAndClose('careers')">
+        <span class="mm-row-inner"><span class="mm-icon" style="background:rgba(0,0,0,.05)">💼</span><span class="mm-label">Careers</span></span>
+        <span class="mm-arrow">›</span>
+      </a>
+      <div class="mobile-menu-divider"></div>
+      <div class="mobile-menu-section">Support</div>
+      <a href="#shipping" onclick="navigateAndClose('shipping')">
+        <span class="mm-row-inner"><span class="mm-icon" style="background:rgba(48,209,88,.06)">🚚</span><span class="mm-label">Shipping</span></span>
+        <span class="mm-arrow">›</span>
+      </a>
+      <a href="#returns"  onclick="navigateAndClose('returns')">
+        <span class="mm-row-inner"><span class="mm-icon" style="background:rgba(48,209,88,.06)">↩️</span><span class="mm-label">Returns</span></span>
+        <span class="mm-arrow">›</span>
+      </a>
+      <a href="#faq"      onclick="navigateAndClose('faq')">
+        <span class="mm-row-inner"><span class="mm-icon" style="background:rgba(0,0,0,.05)">❓</span><span class="mm-label">FAQ</span></span>
+        <span class="mm-arrow">›</span>
+      </a>
+      <a href="#contact"  onclick="navigateAndClose('contact')">
+        <span class="mm-row-inner"><span class="mm-icon" style="background:rgba(0,0,0,.05)">✉️</span><span class="mm-label">Contact</span></span>
+        <span class="mm-arrow">›</span>
+      </a>
+      <div class="mobile-menu-divider"></div>
+      <button class="mm-link" onclick="openBasket();closeMobileMenu()">
+        <span class="mm-row-inner"><span class="mm-icon" style="background:rgba(0,0,0,.06)">🛒</span><span class="mm-label">Basket</span></span>
+        <span class="basket-badge" id="basket-badge-mobile" style="position:static;background:var(--accent);color:#fff;border-radius:999px;padding:2px 7px;font-size:.6rem;font-weight:800;opacity:0;transition:opacity .2s">0</span>
+      </button>
+    </div>
+  </div>
 
   <div id="toast-container"></div>
   <button id="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Back to top">↑</button>
@@ -195,7 +615,11 @@
     <div class="drawer-footer" id="basket-footer"></div>
   </div>
 
-  <!-- ═══ PAGES ═══ -->
+  <!-- ════════════════════════════════════════
+       PAGES
+  ════════════════════════════════════════ -->
+
+  <!-- HOME -->
   <div class="page active" data-page="home">
     <div class="hero" style="position:relative;background-image:url('https://images.unsplash.com/photo-1446776877081-d282a0f896e2?auto=format&fit=crop&w=2000&q=90');background-size:cover;background-position:center;background-repeat:no-repeat;">
       <div style="position:absolute;inset:0;z-index:1;background:linear-gradient(to bottom,rgba(0,0,0,0.22) 0%,rgba(0,0,0,0.42) 42%,rgba(0,0,0,0.78) 82%,rgba(0,0,0,0.94) 100%);"></div>
@@ -206,8 +630,8 @@
         <h1 class="afu d1" style="color:#fff;">The universe,<br/><em>on your wall.</em></h1>
         <p class="hero-sub afu d2" style="color:rgba(255,255,255,0.84);">Magnetic hexagon panels that transform your space into a continuous deep-space mural. Gallery quality. Precision aligned.</p>
         <div class="hero-actions afu d3">
-          <a class="btn btn-gold" href="#wall-art" onclick="showPage('wall-art');setActiveNav('wall-art')">Shop Wall Art</a>
-          <a class="btn btn-ghost" href="#about" onclick="showPage('about');setActiveNav('about')" style="color:#fff;border-color:rgba(255,255,255,0.35);background:rgba(255,255,255,0.06);">Our craft</a>
+          <a class="btn btn-gold" href="#wall-art" onclick="navigate('wall-art')">Shop Wall Art</a>
+          <a class="btn btn-ghost" href="#about" onclick="navigate('about')" style="color:#fff;border-color:rgba(255,255,255,0.35);background:rgba(255,255,255,0.06);">Our craft</a>
         </div>
         <div class="hero-stats afu d4">
           <div class="hero-stat"><div class="hero-stat-num">12</div><div class="hero-stat-label">Series</div></div>
@@ -231,7 +655,7 @@
         <p style="color:var(--muted);font-size:.88rem;">Loading collections…</p>
       </div>
       <div class="home-spotlight-footer">
-        <a class="btn btn-ghost btn-sm" href="#wall-art" data-route="wall-art" onclick="showPage('wall-art');setActiveNav('wall-art')">View all wall art →</a>
+        <a class="btn btn-ghost btn-sm" href="#wall-art" onclick="navigate('wall-art')">View all wall art →</a>
       </div>
     </section>
 
@@ -264,6 +688,7 @@
     </section>
   </div>
 
+  <!-- WALL ART -->
   <div class="page" data-page="wall-art">
     <section class="section">
       <div class="section-head">
@@ -277,6 +702,7 @@
     </section>
   </div>
 
+  <!-- ARTIFACTS -->
   <div class="page" data-page="artifacts">
     <div class="artifacts-hero">
       <p class="section-eyebrow">Collector's edition</p>
@@ -286,6 +712,7 @@
     <div class="artifact-grid" id="artifacts-grid"></div>
   </div>
 
+  <!-- BUNDLES -->
   <div class="page" data-page="bundles">
     <section class="section">
       <div class="section-head">
@@ -298,6 +725,7 @@
     </section>
   </div>
 
+  <!-- ABOUT -->
   <div class="page" data-page="about">
     <section class="section">
       <div class="section-head">
@@ -331,43 +759,347 @@
     </section>
   </div>
 
+  <!-- PRESS -->
+  <div class="page" data-page="press">
+    <div class="inner-page-hero">
+      <p class="section-eyebrow">In the news</p>
+      <h1>Press & Media</h1>
+      <p>We love when the cosmos inspires conversation. Find our press kit, media assets, and coverage below.</p>
+    </div>
+    <div class="content-block">
+      <div class="press-logos">
+        <div class="press-logo-card">Wired</div>
+        <div class="press-logo-card">Dezeen</div>
+        <div class="press-logo-card">Wallpaper*</div>
+        <div class="press-logo-card">It's Nice That</div>
+        <div class="press-logo-card">Monocle</div>
+        <div class="press-logo-card">Frame Mag</div>
+      </div>
+
+      <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:300;margin-bottom:20px;color:var(--text)">Recent coverage</h3>
+
+      <div class="press-article">
+        <div style="flex:1">
+          <div class="press-article-pub">Dezeen</div>
+          <h4>"The startup turning astrophotography into magnetic wall art"</h4>
+          <p>Spacenova's modular hexagonal panels offer a new way to bring the cosmos indoors — and they snap together with satisfying precision.</p>
+        </div>
+        <div class="press-date">Mar 2025</div>
+      </div>
+      <div class="press-article">
+        <div style="flex:1">
+          <div class="press-article-pub">Wallpaper*</div>
+          <h4>"10 Objects That Define Interior Space Right Now"</h4>
+          <p>The Andromeda Galaxy series from Spacenova makes our shortlist of the most arresting wall installations of the year.</p>
+        </div>
+        <div class="press-date">Jan 2025</div>
+      </div>
+      <div class="press-article">
+        <div style="flex:1">
+          <div class="press-article-pub">It's Nice That</div>
+          <h4>"Printing the universe at 2,000 dots per inch"</h4>
+          <p>A deep dive into how Spacenova sources NASA imagery, processes it through a proprietary colour pipeline, and prints on gallery aluminium.</p>
+        </div>
+        <div class="press-date">Nov 2024</div>
+      </div>
+
+      <div class="content-card" style="margin-top:32px;text-align:center">
+        <h3>Press enquiries</h3>
+        <p style="margin-bottom:20px">For interview requests, product samples, or high-resolution imagery, please reach our press team directly.</p>
+        <a class="btn btn-primary" href="#contact" onclick="navigate('contact')">Contact press team →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAREERS -->
+  <div class="page" data-page="careers">
+    <div class="inner-page-hero">
+      <p class="section-eyebrow">Join the mission</p>
+      <h1>Careers at Spacenova</h1>
+      <p>We're a small, ambitious team building something the universe deserves. If you care about craft, we want to hear from you.</p>
+    </div>
+    <div class="content-block">
+      <div class="content-card" style="background:linear-gradient(135deg,rgba(212,120,15,.05),rgba(154,122,58,.04));border-color:rgba(212,120,15,.2);margin-bottom:32px;text-align:center">
+        <h3 style="margin-bottom:8px">Remote-first, UK-based</h3>
+        <p>We work async across time zones but gather in London quarterly. Competitive salary, equity, and a panel set of your choice on day one.</p>
+      </div>
+
+      <div class="careers-grid">
+        <div class="job-card">
+          <div class="job-tag">Design</div>
+          <h3>Senior Product Designer</h3>
+          <p>Own the end-to-end customer experience, from product discovery to unboxing. Deep care for typography and spatial reasoning required.</p>
+          <div class="job-card-footer">
+            <span>Remote · Full-time</span>
+            <a class="btn btn-ghost btn-sm" href="#contact" onclick="navigate('contact')">Apply →</a>
+          </div>
+        </div>
+        <div class="job-card">
+          <div class="job-tag">Engineering</div>
+          <h3>Frontend Engineer</h3>
+          <p>Build and refine our storefront and creator tools. Vanilla JS and CSS mastery a must; we move fast and ship often.</p>
+          <div class="job-card-footer">
+            <span>Remote · Full-time</span>
+            <a class="btn btn-ghost btn-sm" href="#contact" onclick="navigate('contact')">Apply →</a>
+          </div>
+        </div>
+        <div class="job-card">
+          <div class="job-tag">Operations</div>
+          <h3>Fulfilment & Logistics Lead</h3>
+          <p>Own our supply chain from print partner to doorstep. Experience with premium DTC fulfilment preferred.</p>
+          <div class="job-card-footer">
+            <span>London · Full-time</span>
+            <a class="btn btn-ghost btn-sm" href="#contact" onclick="navigate('contact')">Apply →</a>
+          </div>
+        </div>
+        <div class="job-card">
+          <div class="job-tag">Marketing</div>
+          <h3>Growth & Content Strategist</h3>
+          <p>Grow our audience of space enthusiasts, interior designers, and collectors through editorial content and community.</p>
+          <div class="job-card-footer">
+            <span>Remote · Full-time</span>
+            <a class="btn btn-ghost btn-sm" href="#contact" onclick="navigate('contact')">Apply →</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="content-card" style="margin-top:24px;text-align:center">
+        <h3>Don't see your role?</h3>
+        <p style="margin-bottom:20px">We always welcome speculative applications from extraordinary people. Send us your work and a note on why the cosmos matters to you.</p>
+        <a class="btn btn-ghost" href="#contact" onclick="navigate('contact')">Get in touch →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- SHIPPING -->
+  <div class="page" data-page="shipping">
+    <div class="inner-page-hero">
+      <p class="section-eyebrow">Delivery information</p>
+      <h1>Shipping</h1>
+      <p>Every Spacenova order is hand-checked and packed with care before it leaves our UK facility.</p>
+    </div>
+    <div class="content-block">
+      <div class="shipping-grid">
+        <div class="shipping-box">
+          <div class="shipping-box-icon">🇬🇧</div>
+          <h4>UK Standard</h4>
+          <p>Free on all orders. Tracked delivery in 3–5 working days via Royal Mail Tracked 48.</p>
+        </div>
+        <div class="shipping-box">
+          <div class="shipping-box-icon">⚡</div>
+          <h4>UK Express</h4>
+          <p>£9.95. Next working day if ordered before 1 pm. Tracked and signed for.</p>
+        </div>
+        <div class="shipping-box">
+          <div class="shipping-box-icon">🌍</div>
+          <h4>Europe</h4>
+          <p>£14.95 flat rate. 5–8 working days via DHL Economy. Fully tracked.</p>
+        </div>
+        <div class="shipping-box">
+          <div class="shipping-box-icon">✈️</div>
+          <h4>International</h4>
+          <p>£19.95 flat rate. 7–14 working days. Includes US, Canada, Australia, and more.</p>
+        </div>
+      </div>
+
+      <div class="content-card">
+        <h3>Made to order</h3>
+        <p>All Spacenova panels are printed fresh for each order — we don't hold stock. Please allow <strong>5–7 working days</strong> production time before despatch. You'll receive a despatch email with tracking the moment your order ships.</p>
+      </div>
+
+      <div class="content-card">
+        <h3>Packaging</h3>
+        <p>Panels are individually wrapped in archival tissue, layered in bespoke foam insets, and shipped in rigid double-walled cardboard. The outer box is unbranded for security. All materials are recyclable.</p>
+      </div>
+
+      <div class="content-card">
+        <h3>Customs & duties</h3>
+        <p>International orders may be subject to local import duties and taxes. These are the responsibility of the buyer and are not included in our shipping rates. We declare accurate values on all customs forms.</p>
+      </div>
+
+      <div style="text-align:center;margin-top:32px">
+        <p style="color:var(--muted);font-size:.9rem;margin-bottom:16px">Questions about your order?</p>
+        <a class="btn btn-primary" href="#contact" onclick="navigate('contact')">Contact support →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- RETURNS -->
+  <div class="page" data-page="returns">
+    <div class="inner-page-hero">
+      <p class="section-eyebrow">Peace of mind</p>
+      <h1>Returns & Exchanges</h1>
+      <p>We want you to love what's on your wall. If anything isn't right, we'll make it right — no fuss.</p>
+    </div>
+    <div class="content-block">
+      <div class="content-card" style="background:rgba(26,158,64,.03);border-color:rgba(26,158,64,.18);text-align:center;margin-bottom:32px">
+        <h3 style="color:var(--success)">30-day happiness guarantee</h3>
+        <p>If you're not completely satisfied, return your order within 30 days of delivery for a full refund — including the original shipping cost.</p>
+      </div>
+
+      <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:300;margin-bottom:16px;color:var(--text)">How to start a return</h3>
+      <div class="returns-steps">
+        <div class="returns-step">
+          <div class="returns-step-num">1</div>
+          <div>
+            <h4>Contact us</h4>
+            <p>Email <strong>returns@spacenova.co.uk</strong> with your order reference and reason. We'll respond within 1 working day with a prepaid return label.</p>
+          </div>
+        </div>
+        <div class="returns-step">
+          <div class="returns-step-num">2</div>
+          <div>
+            <h4>Repack carefully</h4>
+            <p>Use the original packaging where possible. Panels should be wrapped individually. If you've discarded packaging, use equivalent rigid protection.</p>
+          </div>
+        </div>
+        <div class="returns-step">
+          <div class="returns-step-num">3</div>
+          <div>
+            <h4>Drop off or arrange collection</h4>
+            <p>Drop at any Royal Mail post office using the prepaid label, or request a free home collection for orders over £100.</p>
+          </div>
+        </div>
+        <div class="returns-step">
+          <div class="returns-step-num">4</div>
+          <div>
+            <h4>Refund processed</h4>
+            <p>Once received and inspected (usually within 2 working days), your refund is issued to the original payment method within 3–5 business days.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="content-card" style="margin-top:8px">
+        <h3>Damaged or faulty items</h3>
+        <p>If a panel arrives damaged, please photograph it within 48 hours and email us. We'll despatch a replacement immediately at no cost — no need to return the damaged item.</p>
+      </div>
+
+      <div class="content-card">
+        <h3>Bespoke & custom orders</h3>
+        <p>Custom-configured panel sets cannot be returned unless faulty, as they are made specifically for you. We'll always show a digital proof for approval before production.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAQ -->
+  <div class="page" data-page="faq">
+    <div class="inner-page-hero">
+      <p class="section-eyebrow">Got questions?</p>
+      <h1>Frequently Asked</h1>
+      <p>Everything you need to know about our panels, ordering, and installation.</p>
+    </div>
+    <div class="content-block">
+      <div id="faq-list"></div>
+      <div style="text-align:center;margin-top:40px">
+        <p style="color:var(--muted);font-size:.9rem;margin-bottom:16px">Still have a question?</p>
+        <a class="btn btn-primary" href="#contact" onclick="navigate('contact')">Ask us directly →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTACT -->
+  <div class="page" data-page="contact">
+    <div class="inner-page-hero">
+      <p class="section-eyebrow">We'd love to hear from you</p>
+      <h1>Get in touch</h1>
+      <p>Whether it's a question about an order, a press enquiry, or just sharing your wall — drop us a line.</p>
+    </div>
+    <div class="content-block" style="max-width:680px">
+      <div id="contact-form-wrap">
+        <div class="content-card" style="padding:36px">
+          <div class="contact-form" id="contact-form">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+              <div>
+                <label style="font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px">First name</label>
+                <input id="cf-first" type="text" placeholder="Jane" autocomplete="given-name"/>
+              </div>
+              <div>
+                <label style="font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px">Last name</label>
+                <input id="cf-last" type="text" placeholder="Smith" autocomplete="family-name"/>
+              </div>
+            </div>
+            <div>
+              <label style="font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px">Email</label>
+              <input id="cf-email" type="email" placeholder="you@example.com" autocomplete="email"/>
+            </div>
+            <div>
+              <label style="font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px">Subject</label>
+              <select id="cf-subject">
+                <option value="">Select a topic…</option>
+                <option value="order">Order enquiry</option>
+                <option value="returns">Returns & refunds</option>
+                <option value="shipping">Shipping question</option>
+                <option value="press">Press & media</option>
+                <option value="wholesale">Wholesale / trade</option>
+                <option value="careers">Careers</option>
+                <option value="other">Something else</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px">Message</label>
+              <textarea id="cf-message" placeholder="Tell us what's on your mind…" rows="5"></textarea>
+            </div>
+            <div id="cf-error" style="color:var(--danger);font-size:.82rem;display:none"></div>
+            <button class="btn btn-primary" style="width:100%" onclick="submitContact()">Send message →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact details -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
+        <div class="content-card" style="text-align:center">
+          <div style="font-size:1.6rem;margin-bottom:10px">✉️</div>
+          <h3 style="font-size:1rem;margin-bottom:4px">Email</h3>
+          <p style="font-size:.84rem">hello@spacenova.co.uk</p>
+        </div>
+        <div class="content-card" style="text-align:center">
+          <div style="font-size:1.6rem;margin-bottom:10px">🕐</div>
+          <h3 style="font-size:1rem;margin-bottom:4px">Response time</h3>
+          <p style="font-size:.84rem">Within 1 working day, Mon–Fri</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRODUCT DETAIL -->
   <div class="page" data-page="product">
     <div class="product-wrap" id="product-detail-wrap"></div>
   </div>
 
-  <!-- ═══ CHECKOUT PAGE ═══ -->
+  <!-- CHECKOUT -->
   <div class="page" data-page="checkout">
     <div style="max-width:560px;margin:0 auto;padding:56px 24px 100px;">
       <div id="checkout-inner"></div>
     </div>
   </div>
 
+  <!-- ═══ FOOTER ═══ -->
   <footer>
     <div class="footer-inner">
       <div class="footer-brand">
-        <a href="#home" onclick="showPage('home');setActiveNav('home')" style="display:inline-block;">
+        <a href="#home" onclick="navigate('home')" style="display:inline-block;">
           <img src="Spacenovalogocropped.png" alt="SPACENOVA logo" class="footer-logo-img" onerror="this.style.display='none'"/>
         </a>
         <p>Magnetic hexagon wall art panels. The universe, exactly as you imagine it.</p>
       </div>
       <div class="footer-col">
         <h4>Shop</h4>
-        <a href="#wall-art" onclick="showPage('wall-art');setActiveNav('wall-art')">Wall Art</a>
-        <a href="#artifacts" onclick="showPage('artifacts');setActiveNav('artifacts')">Artifacts</a>
-        <a href="#bundles" onclick="showPage('bundles');setActiveNav('bundles')">Bundles</a>
+        <a href="#wall-art"  onclick="navigate('wall-art')">Wall Art</a>
+        <a href="#artifacts" onclick="navigate('artifacts')">Artifacts</a>
+        <a href="#bundles"   onclick="navigate('bundles')">Bundles</a>
       </div>
       <div class="footer-col">
         <h4>Company</h4>
-        <a href="#about" onclick="showPage('about');setActiveNav('about')">About</a>
-        <a href="#">Press</a>
-        <a href="#">Careers</a>
+        <a href="#about"   onclick="navigate('about')">About</a>
+        <a href="#press"   onclick="navigate('press')">Press</a>
+        <a href="#careers" onclick="navigate('careers')">Careers</a>
       </div>
       <div class="footer-col">
         <h4>Support</h4>
-        <a href="#">Shipping</a>
-        <a href="#">Returns</a>
-        <a href="#">FAQ</a>
-        <a href="#">Contact</a>
+        <a href="#shipping" onclick="navigate('shipping')">Shipping</a>
+        <a href="#returns"  onclick="navigate('returns')">Returns</a>
+        <a href="#faq"      onclick="navigate('faq')">FAQ</a>
+        <a href="#contact"  onclick="navigate('contact')">Contact</a>
       </div>
     </div>
     <div class="footer-bottom">
@@ -377,18 +1109,7 @@
   </footer>
 
   <script>
-    // ══════════════════════════════════════════════
-    // CONFIG — Stripe publishable key injected here
-    // Set STRIPE_PUBLISHABLE_KEY in Netlify env vars;
-    // this script tag is replaced server-side or
-    // read from a meta tag. For client-side SPAs on
-    // Netlify, the safest approach is to embed it
-    // directly (it is a publishable key — safe to expose).
-    // ══════════════════════════════════════════════
     window.SPACENOVA_STRIPE_PK = '%%STRIPE_PUBLISHABLE_KEY%%';
-    // Fallback: if the placeholder wasn't replaced (local dev),
-    // you can hardcode your test key here temporarily:
-    // window.SPACENOVA_STRIPE_PK = 'pk_test_YOUR_KEY_HERE';
 
     // ══════════════════════════════════════════════
     // GLOBALS
@@ -399,15 +1120,20 @@
     var featuredSlugs = [];
     var basket = [];
 
+    // All valid page names
+    var ALL_PAGES = ['home','wall-art','artifacts','bundles','about',
+                     'press','careers','shipping','returns','faq','contact',
+                     'product','checkout'];
+
     // ══════════════════════════════════════════════
     // CATALOGUE LOAD
     // ══════════════════════════════════════════════
     fetch('/.netlify/functions/load-catalogue')
       .then(function(r){ return r.json(); })
       .then(function(data){
-        products = data.products || [];
-        bundles = data.bundles || [];
-        artifacts = data.artifacts || [];
+        products      = data.products      || [];
+        bundles       = data.bundles       || [];
+        artifacts     = data.artifacts     || [];
         featuredSlugs = data.featuredSlugs || [];
         renderFeatured();
         renderWallArt();
@@ -433,6 +1159,102 @@
       t.textContent = msg;
       c.appendChild(t);
       setTimeout(function(){ t.remove(); }, 2600);
+    }
+
+    // ══════════════════════════════════════════════
+    // NAVIGATION
+    // ══════════════════════════════════════════════
+    function showPage(name){
+      document.querySelectorAll('.page').forEach(function(p){
+        p.classList.remove('active');
+        p.style.display = 'none';
+        p.style.opacity = '0';
+        p.style.transform = 'translateY(12px)';
+      });
+      var page = document.querySelector('[data-page="' + name + '"]');
+      if (!page) return;
+      page.style.display = 'block';
+      requestAnimationFrame(function(){
+        page.classList.add('active');
+        page.style.animation = 'pageFadeIn .42s cubic-bezier(.22,1,.36,1) forwards';
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      updateNavBackground();
+    }
+
+    function setActiveNav(route){
+      document.querySelectorAll('.nav-link, .mobile-menu a, .mobile-menu button.mm-link').forEach(function(el){
+        el.classList.toggle('active', (el.dataset.route || '') === route);
+      });
+    }
+
+    // Central navigate — updates hash, shows page, sets nav
+    function navigate(page){
+      location.hash = '#' + page;
+      showPage(page);
+      setActiveNav(page);
+    }
+
+    function navigateAndClose(page){
+      closeMobileMenu();
+      navigate(page);
+    }
+
+    function router(){
+      var hash = location.hash.replace('#', '');
+      if (!hash) hash = 'home';
+      closeMobileMenu();
+      if (hash.indexOf('product/') === 0){
+        var slug = hash.replace('product/', '');
+        renderProduct(slug);
+        showPage('product');
+        setActiveNav('');
+        return;
+      }
+      if (ALL_PAGES.indexOf(hash) > -1){
+        showPage(hash);
+        setActiveNav(hash);
+        // Lazy init for static pages
+        if (hash === 'faq')     renderFAQ();
+      } else {
+        showPage('home');
+        setActiveNav('home');
+      }
+    }
+
+    // ══════════════════════════════════════════════
+    // MOBILE MENU
+    // ══════════════════════════════════════════════
+    var _menuOpen = false;
+
+    function toggleMobileMenu(){
+      if (_menuOpen) closeMobileMenu(); else openMobileMenu();
+    }
+
+    function openMobileMenu(){
+      _menuOpen = true;
+      document.getElementById('mobile-menu-shell').style.display = 'block';
+      // Force reflow for transition
+      document.getElementById('mobile-menu-shell').getBoundingClientRect();
+      document.getElementById('mobile-menu-shell').classList.add('open');
+      document.getElementById('mobile-menu-backdrop').classList.add('open');
+      document.getElementById('mobile-menu-toggle').setAttribute('aria-expanded', 'true');
+      document.getElementById('mm-hamburger').style.display = 'none';
+      document.getElementById('mm-close').style.display = 'block';
+    }
+
+    function closeMobileMenu(){
+      if (!_menuOpen) return;
+      _menuOpen = false;
+      document.getElementById('mobile-menu-shell').classList.remove('open');
+      document.getElementById('mobile-menu-backdrop').classList.remove('open');
+      document.getElementById('mobile-menu-toggle').setAttribute('aria-expanded', 'false');
+      document.getElementById('mm-hamburger').style.display = 'block';
+      document.getElementById('mm-close').style.display = 'none';
+      // Hide after transition
+      setTimeout(function(){
+        if (!_menuOpen) document.getElementById('mobile-menu-shell').style.display = 'none';
+      }, 250);
     }
 
     // ══════════════════════════════════════════════
@@ -465,10 +1287,14 @@
     }
 
     function updateBasketBadge(){
-      var badge = document.getElementById('basket-badge');
       var total = basket.reduce(function(s, i){ return s + i.qty; }, 0);
-      badge.textContent = total;
-      badge.classList.toggle('visible', total > 0);
+      ['basket-badge','basket-badge-mobile'].forEach(function(id){
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = total;
+        if (id === 'basket-badge') el.classList.toggle('visible', total > 0);
+        else el.style.opacity = total > 0 ? '1' : '0';
+      });
     }
 
     function openBasket(){
@@ -491,101 +1317,49 @@
         return;
       }
       body.innerHTML = basket.map(function(item){
-        return '<div class="basket-item">' +
-          '<img class="basket-item-img" src="' + item.image + '" alt="' + item.name + '" onerror="this.style.display=\'none\'"/>' +
-          '<div><div class="basket-item-name">' + item.name + '</div>' +
-          '<div class="basket-item-price">' + gbp(item.price) + ' each</div>' +
-          '<div class="basket-item-qty">' +
-            '<button class="biq-btn" onclick="updateBasketQty(\'' + item.slug + '\',-1)">−</button>' +
-            '<span class="biq-num">' + item.qty + '</span>' +
-            '<button class="biq-btn" onclick="updateBasketQty(\'' + item.slug + '\',1)">+</button>' +
-          '</div></div>' +
-          '<button class="basket-item-remove" onclick="removeFromBasket(\'' + item.slug + '\')" title="Remove">✕</button>' +
-        '</div>';
+        return '<div class="basket-item">'
+          + '<img class="basket-item-img" src="' + item.image + '" alt="' + item.name + '" onerror="this.style.display=\'none\'"/>'
+          + '<div><div class="basket-item-name">' + item.name + '</div>'
+          + '<div class="basket-item-price">' + gbp(item.price) + ' each</div>'
+          + '<div class="basket-item-qty">'
+            + '<button class="biq-btn" onclick="updateBasketQty(\'' + item.slug + '\',-1)">−</button>'
+            + '<span class="biq-num">' + item.qty + '</span>'
+            + '<button class="biq-btn" onclick="updateBasketQty(\'' + item.slug + '\',1)">+</button>'
+          + '</div></div>'
+          + '<button class="basket-item-remove" onclick="removeFromBasket(\'' + item.slug + '\')" title="Remove">✕</button>'
+          + '</div>';
       }).join('');
       var subtotal = basket.reduce(function(s, i){ return s + i.price * i.qty; }, 0);
       footer.innerHTML =
-        '<div class="basket-summary">' +
-          '<div class="basket-summary-row"><span>Subtotal</span><strong>' + gbp(subtotal) + '</strong></div>' +
-          '<div class="basket-summary-row"><span>Shipping</span><span style="color:var(--success)">Free</span></div>' +
-          '<div class="basket-summary-row total"><span>Total</span><strong>' + gbp(subtotal) + '</strong></div>' +
-        '</div>' +
-        '<p class="shipping-note">Free UK shipping on all orders</p>' +
-        '<button class="btn btn-primary" style="width:100%;" onclick="goToCheckout()">Proceed to Checkout →</button>';
+        '<div class="basket-summary">'
+          + '<div class="basket-summary-row"><span>Subtotal</span><strong>' + gbp(subtotal) + '</strong></div>'
+          + '<div class="basket-summary-row"><span>Shipping</span><span style="color:var(--success)">Free</span></div>'
+          + '<div class="basket-summary-row total"><span>Total</span><strong>' + gbp(subtotal) + '</strong></div>'
+        + '</div>'
+        + '<p class="shipping-note">Free UK shipping on all orders</p>'
+        + '<button class="btn btn-primary" style="width:100%;" onclick="goToCheckout()">Proceed to Checkout →</button>';
     }
 
     function goToCheckout(){
       closeBasket();
       _checkoutStep = 'delivery';
-      _stripe = null;
-      _elements = null;
-      _clientSecret = null;
-      showPage('checkout');
-      setActiveNav('');
+      _stripe = null; _elements = null; _clientSecret = null;
+      navigate('checkout');
       renderCheckout();
     }
 
     // ══════════════════════════════════════════════
-    // NAV & ROUTING
+    // NAV BACKGROUND
     // ══════════════════════════════════════════════
-    function toggleMobileMenu(){
-      var shell = document.getElementById('mobile-menu-shell');
-      var btn = document.getElementById('mobile-menu-toggle');
-      if (!shell || !btn) return;
-      var isOpen = shell.classList.toggle('open');
-      btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-    }
-    function closeMobileMenu(){
-      var shell = document.getElementById('mobile-menu-shell');
-      var btn = document.getElementById('mobile-menu-toggle');
-      if (!shell || !btn) return;
-      shell.classList.remove('open');
-      btn.setAttribute('aria-expanded', 'false');
-    }
-    function navigateAndClose(page){
-      closeMobileMenu(); showPage(page); setActiveNav(page);
-    }
     function updateNavBackground(){
       var nav = document.getElementById('main-nav');
       if (!nav) return;
       if (window.scrollY > 12) nav.classList.add('nav-solid');
       else nav.classList.remove('nav-solid');
     }
-    function showPage(name){
-      document.querySelectorAll('.page').forEach(function(p){
-        p.classList.remove('active'); p.style.display='none';
-        p.style.opacity='0'; p.style.transform='translateY(12px)';
-      });
-      var page = document.querySelector('[data-page="' + name + '"]');
-      if (!page) return;
-      page.style.display = 'block';
-      requestAnimationFrame(function(){
-        page.classList.add('active');
-        page.style.animation = 'pageFadeIn .45s cubic-bezier(.22,1,.36,1) forwards';
-      });
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      updateNavBackground();
-    }
-    function setActiveNav(route){
-      document.querySelectorAll('.nav-link, .mobile-nav-item, .mobile-menu a').forEach(function(el){
-        el.classList.toggle('active', (el.dataset.route || '') === route);
-      });
-    }
-    function router(){
-      var hash = location.hash.replace('#', '');
-      if (!hash) hash = 'home';
-      closeMobileMenu();
-      if (hash.indexOf('product/') === 0){
-        renderProduct(hash.replace('product/', ''));
-        showPage('product'); return;
-      }
-      var validPages = ['home','wall-art','artifacts','bundles','about','checkout'];
-      if (validPages.indexOf(hash) > -1){ showPage(hash); setActiveNav(hash); }
-      else { showPage('home'); setActiveNav('home'); }
-    }
 
     // ══════════════════════════════════════════════
-    // RENDER FUNCTIONS
+    // RENDER — SHOP PAGES
     // ══════════════════════════════════════════════
     function renderFeatured(){
       var wrap = document.getElementById('featured-spotlight-wrap');
@@ -599,19 +1373,19 @@
       if (!featured.length){ wrap.innerHTML = '<p style="color:var(--muted);font-size:.88rem;">No products found.</p>'; return; }
       var main = featured[0];
       var rest = featured.slice(1, 4);
-      var html = '<a class="spl-card" href="#product/' + main.slug + '" onclick="event.preventDefault();location.hash=\'#product/' + main.slug + '\';router();">' +
-        '<img class="spl-card-img" src="' + (main.image||'') + '" alt="' + main.name + '" loading="eager"/>' +
-        '<div class="spl-card-overlay"><div class="spl-card-eyebrow">Featured series</div>' +
-        '<div class="spl-card-name">' + main.name + '</div>' +
-        '<div class="spl-card-sub">' + (main.category||'') + (main.pieces?' · '+main.pieces+' panels':'') + (main.price?' · '+gbp(main.price):'') + '</div></div></a>';
+      var html = '<a class="spl-card" href="#product/' + main.slug + '" onclick="event.preventDefault();navigate(\'product/' + main.slug + '\')">'
+        + '<img class="spl-card-img" src="' + (main.image||'') + '" alt="' + main.name + '" loading="eager"/>'
+        + '<div class="spl-card-overlay"><div class="spl-card-eyebrow">Featured series</div>'
+        + '<div class="spl-card-name">' + main.name + '</div>'
+        + '<div class="spl-card-sub">' + (main.category||'') + (main.pieces?' · '+main.pieces+' panels':'') + (main.price?' · '+gbp(main.price):'') + '</div></div></a>';
       if (rest.length){
         html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-top:16px;">';
         rest.forEach(function(p){
-          html += '<a class="spl-card" href="#product/' + p.slug + '" onclick="event.preventDefault();location.hash=\'#product/' + p.slug + '\';router();" style="min-height:220px;border-radius:16px;">' +
-            '<img class="spl-card-img" src="' + (p.image||'') + '" alt="' + p.name + '" loading="lazy"/>' +
-            '<div class="spl-card-overlay"><div class="spl-card-eyebrow">Series</div>' +
-            '<div class="spl-card-name" style="font-size:1rem;">' + p.name + '</div>' +
-            '<div class="spl-card-sub">' + (p.category||'') + (p.pieces?' · '+p.pieces+' panels':'') + (p.price?' · '+gbp(p.price):'') + '</div></div></a>';
+          html += '<a class="spl-card" href="#product/' + p.slug + '" onclick="event.preventDefault();navigate(\'product/' + p.slug + '\')" style="min-height:220px;border-radius:16px;">'
+            + '<img class="spl-card-img" src="' + (p.image||'') + '" alt="' + p.name + '" loading="lazy"/>'
+            + '<div class="spl-card-overlay"><div class="spl-card-eyebrow">Series</div>'
+            + '<div class="spl-card-name" style="font-size:1rem;">' + p.name + '</div>'
+            + '<div class="spl-card-sub">' + (p.category||'') + (p.pieces?' · '+p.pieces+' panels':'') + (p.price?' · '+gbp(p.price):'') + '</div></div></a>';
         });
         html += '</div>';
       }
@@ -622,17 +1396,17 @@
       var grid = document.getElementById('wall-art-grid');
       if (!grid) return;
       grid.innerHTML = products.map(function(p){
-        return '<div class="card">' +
-          '<div class="card-media"><img src="' + (p.image||'') + '" alt="' + p.name + '" loading="lazy"/>' +
-          '<div class="badge-row"><span class="badge">' + (p.category||'') + '</span>' +
-          (p.pieces ? '<span class="badge badge-accent">' + p.pieces + ' panels</span>' : '') + '</div></div>' +
-          '<div class="card-body"><h3>' + p.name + '</h3>' +
-          '<p class="muted">' + (p.short||'') + '</p>' +
-          '<div class="price">' + gbp(p.price) + '</div>' +
-          '<div class="card-actions">' +
-            '<button class="btn btn-primary btn-sm" onclick="addToBasket(\'' + p.slug + '\')">Add to Basket</button>' +
-            '<a class="btn btn-ghost btn-sm" href="#product/' + p.slug + '" onclick="location.hash=\'#product/' + p.slug + '\';router();">View</a>' +
-          '</div></div></div>';
+        return '<div class="card">'
+          + '<div class="card-media"><img src="' + (p.image||'') + '" alt="' + p.name + '" loading="lazy"/>'
+          + '<div class="badge-row"><span class="badge">' + (p.category||'') + '</span>'
+          + (p.pieces ? '<span class="badge badge-accent">' + p.pieces + ' panels</span>' : '') + '</div></div>'
+          + '<div class="card-body"><h3>' + p.name + '</h3>'
+          + '<p class="muted">' + (p.short||'') + '</p>'
+          + '<div class="price">' + gbp(p.price) + '</div>'
+          + '<div class="card-actions">'
+            + '<button class="btn btn-primary btn-sm" onclick="addToBasket(\'' + p.slug + '\')">Add to Basket</button>'
+            + '<a class="btn btn-ghost btn-sm" href="#product/' + p.slug + '" onclick="navigate(\'product/' + p.slug + '\')">View</a>'
+          + '</div></div></div>';
       }).join('');
     }
 
@@ -640,14 +1414,14 @@
       var grid = document.getElementById('bundles-grid');
       if (!grid) return;
       grid.innerHTML = bundles.map(function(b){
-        return '<div class="card bundle-card">' +
-          '<div class="card-media"><img src="' + (b.image||'') + '" alt="' + b.name + '" loading="lazy"/></div>' +
-          '<div class="bundle-card-inner"><h3 style="font-family:var(--fd);font-size:1.3rem;font-weight:400;margin-bottom:6px;">' + b.name + '</h3>' +
-          '<p class="muted">' + (b.text||'') + '</p><div class="price">' + gbp(b.price) + '</div></div>' +
-          '<div class="bundle-includes">' + (b.items||[]).map(function(inc){ return '<span>' + (typeof inc==='string'?inc:(inc.name||'')) + '</span>'; }).join('') + '</div>' +
-          '<div class="card-actions" style="padding:16px 24px;border-top:1px solid var(--border);margin:0;">' +
-            '<button class="btn btn-primary btn-sm" onclick="addToBasket(\'' + b.slug + '\')">Add Bundle to Basket</button>' +
-          '</div></div>';
+        return '<div class="card bundle-card">'
+          + '<div class="card-media"><img src="' + (b.image||'') + '" alt="' + b.name + '" loading="lazy"/></div>'
+          + '<div class="bundle-card-inner"><h3 style="font-family:var(--fd);font-size:1.3rem;font-weight:400;margin-bottom:6px;">' + b.name + '</h3>'
+          + '<p class="muted">' + (b.text||'') + '</p><div class="price">' + gbp(b.price) + '</div></div>'
+          + '<div class="bundle-includes">' + (b.items||[]).map(function(inc){ return '<span>' + (typeof inc==='string'?inc:(inc.name||'')) + '</span>'; }).join('') + '</div>'
+          + '<div class="card-actions" style="padding:16px 24px;border-top:1px solid var(--border);margin:0;">'
+            + '<button class="btn btn-primary btn-sm" onclick="addToBasket(\'' + b.slug + '\')">Add Bundle to Basket</button>'
+          + '</div></div>';
       }).join('');
     }
 
@@ -655,15 +1429,15 @@
       var grid = document.getElementById('artifacts-grid');
       if (!grid) return;
       grid.innerHTML = artifacts.map(function(a){
-        return '<div class="artifact-card">' +
-          '<img class="artifact-card-img" src="' + (a.image||'') + '" alt="' + a.name + '" loading="lazy"/>' +
-          '<div class="artifact-card-body">' +
-            '<span class="artifact-tag">' + (a.category||'') + '</span>' +
-            '<h3>' + a.name + '</h3>' +
-            '<p>' + (a.desc||a.description||'') + '</p>' +
-            '<div class="artifact-price">' + gbp(a.price) + '</div>' +
-            '<button class="btn btn-primary btn-sm" onclick="addToBasket(\'' + (a.slug||a.name) + '\')">Add to Basket</button>' +
-          '</div></div>';
+        return '<div class="artifact-card">'
+          + '<img class="artifact-card-img" src="' + (a.image||'') + '" alt="' + a.name + '" loading="lazy"/>'
+          + '<div class="artifact-card-body">'
+            + '<span class="artifact-tag">' + (a.category||'') + '</span>'
+            + '<h3>' + a.name + '</h3>'
+            + '<p>' + (a.desc||a.description||'') + '</p>'
+            + '<div class="artifact-price">' + gbp(a.price) + '</div>'
+            + '<button class="btn btn-primary btn-sm" onclick="addToBasket(\'' + (a.slug||a.name) + '\')">Add to Basket</button>'
+          + '</div></div>';
       }).join('');
     }
 
@@ -672,33 +1446,102 @@
       var wrap = document.getElementById('product-detail-wrap');
       if (!p || !wrap) return;
       wrap.innerHTML =
-        '<div class="breadcrumbs"><a href="#home" onclick="showPage(\'home\');setActiveNav(\'home\')">Home</a><span>›</span>' +
-        '<a href="#wall-art" onclick="showPage(\'wall-art\');setActiveNav(\'wall-art\')">Wall Art</a><span>›</span><span>' + p.name + '</span></div>' +
-        '<div class="product-hero">' +
-          '<div class="product-media"><img src="' + (p.image||'') + '" alt="' + p.name + '"/></div>' +
-          '<div class="product-info">' +
-            '<h2>' + p.name + '</h2>' +
-            '<p class="product-tagline">' + (p.short||'') + '</p>' +
-            '<div class="product-price-row">' +
-              '<span class="product-price-main">' + gbp(p.price) + '</span>' +
-              (p.pieces ? '<span class="product-price-range">' + p.pieces + '-panel set</span>' : '') +
-            '</div>' +
-            '<p style="color:var(--muted);font-size:.93rem;line-height:1.8;margin-bottom:24px;">' + (p.description||'') + '</p>' +
-            '<div class="specs">' +
-              '<div class="spec"><span>Category</span><strong>' + (p.category||'—') + '</strong></div>' +
-              '<div class="spec"><span>Panels</span><strong>' + (p.pieces||'—') + '</strong></div>' +
-              '<div class="spec"><span>Material</span><strong>' + (p.material||'Aluminium print') + '</strong></div>' +
-              '<div class="spec"><span>Alignment</span><strong>Magnetic</strong></div>' +
-            '</div>' +
-            '<div class="product-actions">' +
-              '<button class="btn btn-gold" onclick="addToBasket(\'' + p.slug + '\')">Add to Basket — ' + gbp(p.price) + '</button>' +
-              '<button class="btn btn-ghost" onclick="addToBasket(\'' + p.slug + '\');goToCheckout()">Buy now →</button>' +
-            '</div>' +
-            '<div class="notice">Made to order — allow 5–7 working days. Free tracked UK delivery included.</div>' +
-          '</div>' +
-        '</div>';
+        '<div class="breadcrumbs"><a href="#home" onclick="navigate(\'home\')">Home</a><span>›</span>'
+        + '<a href="#wall-art" onclick="navigate(\'wall-art\')">Wall Art</a><span>›</span><span>' + p.name + '</span></div>'
+        + '<div class="product-hero">'
+          + '<div class="product-media"><img src="' + (p.image||'') + '" alt="' + p.name + '"/></div>'
+          + '<div class="product-info">'
+            + '<h2>' + p.name + '</h2>'
+            + '<p class="product-tagline">' + (p.short||'') + '</p>'
+            + '<div class="product-price-row">'
+              + '<span class="product-price-main">' + gbp(p.price) + '</span>'
+              + (p.pieces ? '<span class="product-price-range">' + p.pieces + '-panel set</span>' : '')
+            + '</div>'
+            + '<p style="color:var(--muted);font-size:.93rem;line-height:1.8;margin-bottom:24px;">' + (p.description||'') + '</p>'
+            + '<div class="specs">'
+              + '<div class="spec"><span>Category</span><strong>' + (p.category||'—') + '</strong></div>'
+              + '<div class="spec"><span>Panels</span><strong>' + (p.pieces||'—') + '</strong></div>'
+              + '<div class="spec"><span>Material</span><strong>' + (p.material||'Aluminium print') + '</strong></div>'
+              + '<div class="spec"><span>Alignment</span><strong>Magnetic</strong></div>'
+            + '</div>'
+            + '<div class="product-actions">'
+              + '<button class="btn btn-gold" onclick="addToBasket(\'' + p.slug + '\')">Add to Basket — ' + gbp(p.price) + '</button>'
+              + '<button class="btn btn-ghost" onclick="addToBasket(\'' + p.slug + '\');goToCheckout()">Buy now →</button>'
+            + '</div>'
+            + '<div class="notice">Made to order — allow 5–7 working days. Free tracked UK delivery included.</div>'
+          + '</div>'
+        + '</div>';
     }
 
+    // ══════════════════════════════════════════════
+    // RENDER — FAQ
+    // ══════════════════════════════════════════════
+    var faqData = [
+      { q: 'What sizes are the panels?', a: 'Each hexagonal panel measures 30 cm across the flat edge (34.6 cm tip to tip). Sets are available in 3, 4, 5, 6, 7, 8, and 9-panel configurations.' },
+      { q: 'How do the magnets work?', a: 'Rare-earth neodymium magnets are recessed into all six edges of every panel. Adjacent panels snap together automatically — you just position them on the wall and the magnets align them to within ±0.2 mm.' },
+      { q: 'Can I rearrange panels once on the wall?', a: 'Yes. Panels mount via a concealed adhesive backing strip (included) that bonds to the wall but releases cleanly. You can lift and reposition each panel as many times as you like without damaging paint or plaster.' },
+      { q: 'What surfaces do the panels work on?', a: 'Smooth painted plaster, plasterboard, tile, glass, metal, and most laminate surfaces. We don\'t recommend textured or heavily porous surfaces (exposed brick, rough stone) as the adhesive backing won\'t bond reliably.' },
+      { q: 'Are the images licensed?', a: 'Yes. All imagery is either original photography commissioned by Spacenova or licensed directly from NASA and ESA under their open-use scientific data agreements. Every image is colour-graded and prepared in-house.' },
+      { q: 'What is the print quality?', a: 'We print at 2,400 dpi on 3 mm aluminium composite panels using UV-cured inks. The surface is anti-glare matte-laminated, giving deep blacks and vivid highlights without hotspots under room lighting.' },
+      { q: 'Do panels work with existing frames or rails?', a: 'Series panels are designed to connect exclusively to other panels in the same series via the magnetic edge system. They don\'t require or interface with external frames or picture rails.' },
+      { q: 'How do I clean the panels?', a: 'Wipe with a barely damp microfibre cloth. Avoid abrasive cleaners, solvents, or anything that might scratch the matte laminate. The surface is fingerprint-resistant under normal handling.' },
+      { q: 'Can I order a custom configuration?', a: 'Yes — email us with your wall dimensions and preferred imagery and we\'ll produce a digital layout proof before production. Custom orders carry a small design fee and extended lead time of 10–14 working days.' },
+      { q: 'Do you ship internationally?', a: 'We ship to over 40 countries. See our Shipping page for rates and lead times by region. International orders may attract local import duties payable by the buyer.' },
+    ];
+
+    var _faqRendered = false;
+    function renderFAQ(){
+      if (_faqRendered) return;
+      _faqRendered = true;
+      var list = document.getElementById('faq-list');
+      if (!list) return;
+      list.innerHTML = faqData.map(function(item, i){
+        return '<div class="faq-item" id="faq-' + i + '">'
+          + '<button class="faq-q" onclick="toggleFAQ(' + i + ')">'
+            + '<span>' + item.q + '</span>'
+            + '<span class="faq-chevron">▾</span>'
+          + '</button>'
+          + '<div class="faq-a" id="faq-a-' + i + '">'
+            + '<div class="faq-a-inner">' + item.a + '</div>'
+          + '</div>'
+        + '</div>';
+      }).join('');
+    }
+
+    function toggleFAQ(i){
+      var item = document.getElementById('faq-' + i);
+      var answer = document.getElementById('faq-a-' + i);
+      var isOpen = item.classList.toggle('open');
+      answer.style.maxHeight = isOpen ? answer.scrollHeight + 'px' : '0';
+    }
+
+    // ══════════════════════════════════════════════
+    // CONTACT FORM SUBMIT
+    // ══════════════════════════════════════════════
+    function submitContact(){
+      var first   = (document.getElementById('cf-first').value   || '').trim();
+      var last    = (document.getElementById('cf-last').value    || '').trim();
+      var email   = (document.getElementById('cf-email').value   || '').trim();
+      var subject = (document.getElementById('cf-subject').value || '').trim();
+      var message = (document.getElementById('cf-message').value || '').trim();
+      var errEl   = document.getElementById('cf-error');
+      errEl.style.display = 'none';
+      if (!first || !last){ errEl.textContent = 'Please enter your full name.'; errEl.style.display = 'block'; return; }
+      if (!email || email.indexOf('@') < 1){ errEl.textContent = 'Please enter a valid email.'; errEl.style.display = 'block'; return; }
+      if (!subject){ errEl.textContent = 'Please select a subject.'; errEl.style.display = 'block'; return; }
+      if (!message){ errEl.textContent = 'Please write a message.'; errEl.style.display = 'block'; return; }
+      // In production this would POST to a serverless function
+      document.getElementById('contact-form-wrap').innerHTML =
+        '<div class="contact-success">'
+          + '<div class="cs-icon">✉️</div>'
+          + '<h3>Message sent!</h3>'
+          + '<p>Thanks ' + first + ', we\'ll be in touch within one working day.</p>'
+        + '</div>';
+    }
+
+    // ══════════════════════════════════════════════
+    // MARQUEE
+    // ══════════════════════════════════════════════
     function initMarquee(){
       var items = ['Gallery aluminium print','Magnetic alignment','Free UK shipping','Made to order','CNC precision cut','Gallery quality','Easy installation','Rearrange anytime'];
       var track = document.getElementById('marquee-track');
@@ -714,7 +1557,7 @@
     var _elements = null;
     var _paymentElement = null;
     var _clientSecret = null;
-    var _checkoutStep = 'delivery'; // 'delivery' | 'payment' | 'success'
+    var _checkoutStep = 'delivery';
     var _deliveryData = {};
     var _promoData = null;
     var _promoChecking = false;
@@ -722,10 +1565,7 @@
     function getStripe(){
       if (!_stripe){
         var pk = (window.SPACENOVA_STRIPE_PK || '').trim();
-        if (!pk || pk === '%%STRIPE_PUBLISHABLE_KEY%%' || pk.indexOf('pk_') !== 0){
-          console.error('Stripe publishable key not configured. Set STRIPE_PUBLISHABLE_KEY in Netlify env vars and ensure your build replaces %%STRIPE_PUBLISHABLE_KEY%%.');
-          return null;
-        }
+        if (!pk || pk === '%%STRIPE_PUBLISHABLE_KEY%%' || pk.indexOf('pk_') !== 0) return null;
         _stripe = Stripe(pk);
       }
       return _stripe;
@@ -744,106 +1584,98 @@
     function renderCheckout(){
       var el = document.getElementById('checkout-inner');
       if (!el) return;
-
       if (!basket.length){
-        el.innerHTML = '<div style="text-align:center;padding:64px 0;">' +
-          '<p style="color:var(--muted);font-size:.95rem;">Your basket is empty.</p>' +
-          '<a class="btn btn-ghost" href="#wall-art" onclick="showPage(\'wall-art\');setActiveNav(\'wall-art\')" style="margin-top:20px;display:inline-flex;">Browse Wall Art →</a>' +
-          '</div>';
+        el.innerHTML = '<div style="text-align:center;padding:64px 0;">'
+          + '<p style="color:var(--muted);font-size:.95rem;">Your basket is empty.</p>'
+          + '<a class="btn btn-ghost" href="#wall-art" onclick="navigate(\'wall-art\')" style="margin-top:20px;display:inline-flex;">Browse Wall Art →</a>'
+          + '</div>';
         return;
       }
-
       if (_checkoutStep === 'success'){ renderCheckoutSuccess(); return; }
-
       var calc = calcBasket();
       var stepDeliveryClass = _checkoutStep === 'delivery' ? 'active' : 'done';
-      var stepPaymentClass = _checkoutStep === 'payment' ? 'active' : '';
+      var stepPaymentClass  = _checkoutStep === 'payment'  ? 'active' : '';
 
       var html =
-        '<div class="checkout-steps">' +
-          '<div class="checkout-step ' + stepDeliveryClass + '">1 · Delivery</div>' +
-          '<div class="checkout-step ' + stepPaymentClass + '">2 · Payment</div>' +
-          '<div class="checkout-step">3 · Confirm</div>' +
-        '</div>' +
+        '<div class="checkout-steps">'
+          + '<div class="checkout-step ' + stepDeliveryClass + '">1 · Delivery</div>'
+          + '<div class="checkout-step ' + stepPaymentClass + '">2 · Payment</div>'
+          + '<div class="checkout-step">3 · Confirm</div>'
+        + '</div>'
+        + '<div style="background:var(--bg1);border:1px solid var(--border2);border-radius:var(--rs);padding:16px;margin-bottom:20px;">'
+          + '<div style="font-family:var(--fm);font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Order summary</div>'
+          + basket.map(function(item){
+              return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:.88rem;">'
+                + '<span>' + item.name + ' <span style="color:var(--muted)">×' + item.qty + '</span></span>'
+                + '<span style="font-family:var(--fd);font-size:1rem;color:var(--gold);">' + gbp(item.price * item.qty) + '</span>'
+              + '</div>';
+            }).join('')
+          + '<div style="display:flex;justify-content:space-between;padding:8px 0 4px;font-size:.88rem;"><span style="color:var(--muted)">Subtotal</span><span>' + gbp(calc.subtotal) + '</span></div>'
+          + (_promoData && _promoData.valid ? '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:.88rem;color:var(--success);"><span>Promo (' + _promoData.code + ')</span><span>−' + gbp(calc.discount) + '</span></div>' : '')
+          + '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:.88rem;"><span style="color:var(--muted)">Shipping</span><span style="color:var(--success)">Free</span></div>'
+          + '<div style="display:flex;justify-content:space-between;padding:10px 0 0;border-top:1px solid var(--border2);margin-top:6px;">'
+            + '<strong style="font-size:.9rem;">Total</strong>'
+            + '<strong style="font-family:var(--fd);font-size:1.4rem;color:var(--gold);">' + gbp(calc.total) + '</strong>'
+          + '</div>'
+        + '</div>';
 
-        // Order summary
-        '<div style="background:var(--bg1);border:1px solid var(--border2);border-radius:var(--rs);padding:16px;margin-bottom:20px;">' +
-          '<div style="font-family:var(--fm);font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Order summary</div>' +
-          basket.map(function(item){
-            return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:.88rem;">' +
-              '<span>' + item.name + ' <span style="color:var(--muted)">×' + item.qty + '</span></span>' +
-              '<span style="font-family:var(--fd);font-size:1rem;color:var(--gold);">' + gbp(item.price * item.qty) + '</span>' +
-            '</div>';
-          }).join('') +
-          '<div style="display:flex;justify-content:space-between;padding:8px 0 4px;font-size:.88rem;"><span style="color:var(--muted)">Subtotal</span><span>' + gbp(calc.subtotal) + '</span></div>' +
-          (_promoData && _promoData.valid ? '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:.88rem;color:var(--success);"><span>Promo (' + _promoData.code + ')</span><span>−' + gbp(calc.discount) + '</span></div>' : '') +
-          '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:.88rem;"><span style="color:var(--muted)">Shipping</span><span style="color:var(--success)">Free</span></div>' +
-          '<div style="display:flex;justify-content:space-between;padding:10px 0 0;border-top:1px solid var(--border2);margin-top:6px;">' +
-            '<strong style="font-size:.9rem;">Total</strong>' +
-            '<strong style="font-family:var(--fd);font-size:1.4rem;color:var(--gold);">' + gbp(calc.total) + '</strong>' +
-          '</div>' +
-        '</div>';
-
-      // Promo code (delivery step only)
       if (_checkoutStep === 'delivery'){
         html +=
-          '<div class="promo-wrap">' +
-            '<input class="promo-input" id="promo-input" placeholder="Promo code" value="' + (_promoData && _promoData.code ? _promoData.code : '') + '"/>' +
-            '<button class="promo-apply-btn" id="promo-apply-btn" onclick="applyPromo()">Apply</button>' +
-          '</div>' +
-          '<div class="promo-error" id="promo-error"></div>' +
-          '<div class="promo-checking" id="promo-checking" style="display:none;">Checking…</div>' +
-          (_promoData && _promoData.valid ?
-            '<div class="promo-badge"><div class="promo-badge-left">✓ ' + (_promoData.description || _promoData.code + ' applied') + '</div><button class="promo-badge-remove" onclick="removePromo()">✕</button></div>'
-          : '') +
-          renderDeliveryForm();
+          '<div class="promo-wrap">'
+            + '<input class="promo-input" id="promo-input" placeholder="Promo code" value="' + (_promoData && _promoData.code ? _promoData.code : '') + '"/>'
+            + '<button class="promo-apply-btn" id="promo-apply-btn" onclick="applyPromo()">Apply</button>'
+          + '</div>'
+          + '<div class="promo-error" id="promo-error"></div>'
+          + '<div class="promo-checking" id="promo-checking" style="display:none;">Checking…</div>'
+          + (_promoData && _promoData.valid ?
+              '<div class="promo-badge"><div class="promo-badge-left">✓ ' + (_promoData.description || _promoData.code + ' applied') + '</div><button class="promo-badge-remove" onclick="removePromo()">✕</button></div>'
+            : '')
+          + renderDeliveryForm();
       } else {
         html += renderPaymentForm(calc);
       }
 
       el.innerHTML = html;
-
-      // Mount Stripe after DOM is ready
       if (_checkoutStep === 'payment') initStripeElements();
     }
 
     function renderDeliveryForm(){
       var d = _deliveryData;
-      return '<div class="form-group"><div class="form-label">Email</div><input class="form-input" id="f-email" type="email" placeholder="you@example.com" value="' + (d.email||'') + '" autocomplete="email"/></div>' +
-        '<div class="form-row">' +
-          '<div class="form-group"><div class="form-label">First name</div><input class="form-input" id="f-first" placeholder="Jane" value="' + (d.firstName||'') + '" autocomplete="given-name"/></div>' +
-          '<div class="form-group"><div class="form-label">Last name</div><input class="form-input" id="f-last" placeholder="Smith" value="' + (d.lastName||'') + '" autocomplete="family-name"/></div>' +
-        '</div>' +
-        '<div class="form-group"><div class="form-label">Address line 1</div><input class="form-input" id="f-addr1" placeholder="12 Cosmos Lane" value="' + (d.address1||'') + '" autocomplete="address-line1"/></div>' +
-        '<div class="form-group"><div class="form-label">Address line 2 (optional)</div><input class="form-input" id="f-addr2" placeholder="Flat 2" value="' + (d.address2||'') + '" autocomplete="address-line2"/></div>' +
-        '<div class="form-row">' +
-          '<div class="form-group"><div class="form-label">City</div><input class="form-input" id="f-city" placeholder="London" value="' + (d.city||'') + '" autocomplete="address-level2"/></div>' +
-          '<div class="form-group"><div class="form-label">Postcode</div><input class="form-input" id="f-postcode" placeholder="EC1A 1BB" value="' + (d.postcode||'') + '" autocomplete="postal-code"/></div>' +
-        '</div>' +
-        '<div class="form-group"><div class="form-label">Country</div>' +
-          '<select class="form-input form-select" id="f-country" autocomplete="country">' +
-            '<option value="GB"' + ((!d.country||d.country==='GB')?' selected':'') + '>United Kingdom</option>' +
-            '<option value="US"' + (d.country==='US'?' selected':'') + '>United States</option>' +
-            '<option value="IE"' + (d.country==='IE'?' selected':'') + '>Ireland</option>' +
-            '<option value="DE"' + (d.country==='DE'?' selected':'') + '>Germany</option>' +
-            '<option value="FR"' + (d.country==='FR'?' selected':'') + '>France</option>' +
-            '<option value="AU"' + (d.country==='AU'?' selected':'') + '>Australia</option>' +
-            '<option value="CA"' + (d.country==='CA'?' selected':'') + '>Canada</option>' +
-          '</select>' +
-        '</div>' +
-        '<div id="delivery-err" style="color:var(--danger);font-size:.82rem;margin-bottom:12px;display:none;"></div>' +
-        '<button class="btn btn-primary" style="width:100%;margin-top:4px;" onclick="proceedToPayment()">Continue to payment →</button>';
+      return '<div class="form-group"><div class="form-label">Email</div><input class="form-input" id="f-email" type="email" placeholder="you@example.com" value="' + (d.email||'') + '" autocomplete="email"/></div>'
+        + '<div class="form-row">'
+          + '<div class="form-group"><div class="form-label">First name</div><input class="form-input" id="f-first" placeholder="Jane" value="' + (d.firstName||'') + '" autocomplete="given-name"/></div>'
+          + '<div class="form-group"><div class="form-label">Last name</div><input class="form-input" id="f-last" placeholder="Smith" value="' + (d.lastName||'') + '" autocomplete="family-name"/></div>'
+        + '</div>'
+        + '<div class="form-group"><div class="form-label">Address line 1</div><input class="form-input" id="f-addr1" placeholder="12 Cosmos Lane" value="' + (d.address1||'') + '" autocomplete="address-line1"/></div>'
+        + '<div class="form-group"><div class="form-label">Address line 2 (optional)</div><input class="form-input" id="f-addr2" placeholder="Flat 2" value="' + (d.address2||'') + '" autocomplete="address-line2"/></div>'
+        + '<div class="form-row">'
+          + '<div class="form-group"><div class="form-label">City</div><input class="form-input" id="f-city" placeholder="London" value="' + (d.city||'') + '" autocomplete="address-level2"/></div>'
+          + '<div class="form-group"><div class="form-label">Postcode</div><input class="form-input" id="f-postcode" placeholder="EC1A 1BB" value="' + (d.postcode||'') + '" autocomplete="postal-code"/></div>'
+        + '</div>'
+        + '<div class="form-group"><div class="form-label">Country</div>'
+          + '<select class="form-input form-select" id="f-country" autocomplete="country">'
+            + '<option value="GB"' + ((!d.country||d.country==='GB')?' selected':'') + '>United Kingdom</option>'
+            + '<option value="US"' + (d.country==='US'?' selected':'') + '>United States</option>'
+            + '<option value="IE"' + (d.country==='IE'?' selected':'') + '>Ireland</option>'
+            + '<option value="DE"' + (d.country==='DE'?' selected':'') + '>Germany</option>'
+            + '<option value="FR"' + (d.country==='FR'?' selected':'') + '>France</option>'
+            + '<option value="AU"' + (d.country==='AU'?' selected':'') + '>Australia</option>'
+            + '<option value="CA"' + (d.country==='CA'?' selected':'') + '>Canada</option>'
+          + '</select>'
+        + '</div>'
+        + '<div id="delivery-err" style="color:var(--danger);font-size:.82rem;margin-bottom:12px;display:none;"></div>'
+        + '<button class="btn btn-primary" style="width:100%;margin-top:4px;" onclick="proceedToPayment()">Continue to payment →</button>';
     }
 
     function renderPaymentForm(calc){
-      return '<div id="stripe-payment-element" style="margin-bottom:12px;"></div>' +
-        '<div id="stripe-error" style="color:var(--danger);font-size:.82rem;margin-bottom:12px;min-height:1.4em;"></div>' +
-        '<div class="stripe-secure-note">' +
-          '<svg width="12" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>' +
-          'Secured by Stripe · 256-bit SSL encryption' +
-        '</div>' +
-        '<button class="btn btn-gold" style="width:100%;margin-bottom:10px;" id="pay-btn" onclick="submitPayment()">Pay ' + gbp(calc.total) + '</button>' +
-        '<button class="btn btn-ghost" style="width:100%;" onclick="goBackToDelivery()">← Edit delivery details</button>';
+      return '<div id="stripe-payment-element" style="margin-bottom:12px;"></div>'
+        + '<div id="stripe-error" style="color:var(--danger);font-size:.82rem;margin-bottom:12px;min-height:1.4em;"></div>'
+        + '<div class="stripe-secure-note">'
+          + '<svg width="12" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>'
+          + 'Secured by Stripe · 256-bit SSL encryption'
+        + '</div>'
+        + '<button class="btn btn-gold" style="width:100%;margin-bottom:10px;" id="pay-btn" onclick="submitPayment()">Pay ' + gbp(calc.total) + '</button>'
+        + '<button class="btn btn-ghost" style="width:100%;" onclick="goBackToDelivery()">← Edit delivery details</button>';
     }
 
     function renderCheckoutSuccess(){
@@ -851,13 +1683,13 @@
       var el = document.getElementById('checkout-inner');
       if (!el) return;
       el.innerHTML =
-        '<div class="order-success">' +
-          '<div class="order-success-icon">✓</div>' +
-          '<h3>Order confirmed!</h3>' +
-          '<p>Thank you for your order. You\'ll receive confirmation at <strong>' + (_deliveryData.email||'your email') + '</strong>.<br>Allow 5–7 working days for delivery.</p>' +
-          '<div class="order-ref">' + ref + '</div>' +
-          '<a class="btn btn-ghost" href="#home" onclick="showPage(\'home\');setActiveNav(\'home\')" style="margin-top:28px;display:inline-flex;">← Back to store</a>' +
-        '</div>';
+        '<div class="order-success">'
+          + '<div class="order-success-icon">✓</div>'
+          + '<h3>Order confirmed!</h3>'
+          + '<p>Thank you for your order. You\'ll receive confirmation at <strong>' + (_deliveryData.email||'your email') + '</strong>.<br>Allow 5–7 working days for delivery.</p>'
+          + '<div class="order-ref">' + ref + '</div>'
+          + '<a class="btn btn-ghost" href="#home" onclick="navigate(\'home\')" style="margin-top:28px;display:inline-flex;">← Back to store</a>'
+        + '</div>';
       basket = [];
       updateBasketBadge();
     }
@@ -881,13 +1713,8 @@
       .then(function(r){ return r.json(); })
       .then(function(d){
         _promoChecking = false;
-        if (d.valid){
-          _promoData = d;
-          showToast('Promo code applied!');
-        } else {
-          _promoData = null;
-          if (errEl){ errEl.textContent = d.error || 'Invalid promo code'; errEl.style.display = 'block'; }
-        }
+        if (d.valid){ _promoData = d; showToast('Promo code applied!'); }
+        else { _promoData = null; if (errEl){ errEl.textContent = d.error || 'Invalid promo code'; errEl.style.display = 'block'; } }
         renderCheckout();
       })
       .catch(function(){
@@ -898,10 +1725,7 @@
       });
     }
 
-    function removePromo(){
-      _promoData = null;
-      renderCheckout();
-    }
+    function removePromo(){ _promoData = null; renderCheckout(); }
 
     function proceedToPayment(){
       var email    = (document.getElementById('f-email').value    || '').trim();
@@ -913,20 +1737,10 @@
       var postcode = (document.getElementById('f-postcode').value || '').trim();
       var country  = (document.getElementById('f-country').value  || 'GB');
       var errEl    = document.getElementById('delivery-err');
-
-      if (!email || email.indexOf('@') < 1){
-        errEl.textContent = 'Please enter a valid email address.'; errEl.style.display = 'block'; return;
-      }
-      if (!first || !last){
-        errEl.textContent = 'Please enter your full name.'; errEl.style.display = 'block'; return;
-      }
-      if (!addr1){
-        errEl.textContent = 'Please enter your street address.'; errEl.style.display = 'block'; return;
-      }
-      if (!city || !postcode){
-        errEl.textContent = 'Please enter your city and postcode.'; errEl.style.display = 'block'; return;
-      }
-
+      if (!email || email.indexOf('@') < 1){ errEl.textContent = 'Please enter a valid email address.'; errEl.style.display = 'block'; return; }
+      if (!first || !last){ errEl.textContent = 'Please enter your full name.'; errEl.style.display = 'block'; return; }
+      if (!addr1){ errEl.textContent = 'Please enter your street address.'; errEl.style.display = 'block'; return; }
+      if (!city || !postcode){ errEl.textContent = 'Please enter your city and postcode.'; errEl.style.display = 'block'; return; }
       _deliveryData = { email: email, firstName: first, lastName: last, address1: addr1, address2: addr2, city: city, postcode: postcode, country: country };
       _checkoutStep = 'payment';
       renderCheckout();
@@ -934,116 +1748,54 @@
 
     function goBackToDelivery(){
       _checkoutStep = 'delivery';
-      _stripe = null;
-      _elements = null;
-      _paymentElement = null;
-      _clientSecret = null;
+      _stripe = null; _elements = null; _paymentElement = null; _clientSecret = null;
       renderCheckout();
     }
 
     function initStripeElements(){
       var s = getStripe();
-      if (!s){
-        var errEl = document.getElementById('stripe-error');
-        if (errEl) errEl.textContent = 'Payment system not available. Please contact support.';
-        return;
-      }
+      if (!s){ var e = document.getElementById('stripe-error'); if (e) e.textContent = 'Payment system not available.'; return; }
       var calc = calcBasket();
       var amountPence = Math.round(calc.total * 100);
-      if (amountPence < 50){
-        var errEl = document.getElementById('stripe-error');
-        if (errEl) errEl.textContent = 'Order total is too low to process.';
-        return;
-      }
-
+      if (amountPence < 50){ var e = document.getElementById('stripe-error'); if (e) e.textContent = 'Order total is too low to process.'; return; }
       fetch('/.netlify/functions/create-payment-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount: amountPence,
-          currency: 'gbp',
-          items: basket.map(function(i){ return { name: i.name, qty: i.qty }; }),
-          customerEmail: _deliveryData.email
-        })
+        body: JSON.stringify({ amount: amountPence, currency: 'gbp', items: basket.map(function(i){ return { name: i.name, qty: i.qty }; }), customerEmail: _deliveryData.email })
       })
       .then(function(r){ return r.json(); })
       .then(function(d){
         if (d.error) throw new Error(d.error);
         _clientSecret = d.clientSecret;
-
         _elements = s.elements({
           clientSecret: _clientSecret,
           appearance: {
             theme: 'stripe',
-            variables: {
-              colorPrimary: '#d4780f',
-              colorBackground: '#f8f8f8',
-              colorText: '#0a0a0a',
-              colorDanger: '#d93025',
-              fontFamily: '"Syne", system-ui, sans-serif',
-              borderRadius: '12px',
-              spacingUnit: '5px'
-            },
-            rules: {
-              '.Input': { border: '1px solid rgba(0,0,0,0.12)', boxShadow: 'none' },
-              '.Input:focus': { border: '1px solid #d4780f', boxShadow: '0 0 0 3px rgba(212,120,15,0.1)' }
-            }
+            variables: { colorPrimary: '#d4780f', colorBackground: '#f8f8f8', colorText: '#0a0a0a', colorDanger: '#d93025', fontFamily: '"Syne", system-ui, sans-serif', borderRadius: '12px', spacingUnit: '5px' },
+            rules: { '.Input': { border: '1px solid rgba(0,0,0,0.12)', boxShadow: 'none' }, '.Input:focus': { border: '1px solid #d4780f', boxShadow: '0 0 0 3px rgba(212,120,15,0.1)' } }
           }
         });
-
-        _paymentElement = _elements.create('payment', {
-          layout: { type: 'tabs', defaultCollapsed: false },
-          fields: {
-            billingDetails: {
-              name: 'never',
-              email: 'never',
-              address: 'never'
-            }
-          }
-        });
-
+        _paymentElement = _elements.create('payment', { layout: { type: 'tabs', defaultCollapsed: false }, fields: { billingDetails: { name: 'never', email: 'never', address: 'never' } } });
         var mountEl = document.getElementById('stripe-payment-element');
         if (mountEl) _paymentElement.mount(mountEl);
       })
-      .catch(function(err){
-        console.error('Payment intent error:', err);
-        var errEl = document.getElementById('stripe-error');
-        if (errEl) errEl.textContent = err.message || 'Could not initialise payment. Please refresh and try again.';
-      });
+      .catch(function(err){ var e = document.getElementById('stripe-error'); if (e) e.textContent = err.message || 'Could not initialise payment.'; });
     }
 
     function submitPayment(){
-      if (!_stripe || !_elements || !_clientSecret){
-        var errEl = document.getElementById('stripe-error');
-        if (errEl) errEl.textContent = 'Payment not ready yet. Please wait a moment.';
-        return;
-      }
+      if (!_stripe || !_elements || !_clientSecret){ var e = document.getElementById('stripe-error'); if (e) e.textContent = 'Payment not ready yet.'; return; }
       var payBtn = document.getElementById('pay-btn');
       var errEl  = document.getElementById('stripe-error');
       if (payBtn){ payBtn.disabled = true; payBtn.innerHTML = '<span class="spin"></span> Processing…'; }
       if (errEl) errEl.textContent = '';
-
       var calc = calcBasket();
-
       _stripe.confirmPayment({
         elements: _elements,
         confirmParams: {
           return_url: window.location.origin + '/success.html',
-          payment_method_data: {
-            billing_details: {
-              name: _deliveryData.firstName + ' ' + _deliveryData.lastName,
-              email: _deliveryData.email,
-              address: {
-                line1: _deliveryData.address1,
-                line2: _deliveryData.address2 || null,
-                city: _deliveryData.city,
-                postal_code: _deliveryData.postcode,
-                country: _deliveryData.country
-              }
-            }
-          }
+          payment_method_data: { billing_details: { name: _deliveryData.firstName + ' ' + _deliveryData.lastName, email: _deliveryData.email, address: { line1: _deliveryData.address1, line2: _deliveryData.address2 || null, city: _deliveryData.city, postal_code: _deliveryData.postcode, country: _deliveryData.country } } }
         },
-        redirect: 'if_required'  // only redirect for methods that need it (e.g. 3DS)
+        redirect: 'if_required'
       })
       .then(function(result){
         if (result.error){
@@ -1051,31 +1803,16 @@
           if (payBtn){ payBtn.disabled = false; payBtn.textContent = 'Pay ' + gbp(calc.total); }
           return;
         }
-
-        // Payment confirmed — save order record (fire-and-forget, non-blocking)
         var ref = 'SN-' + Date.now().toString(36).toUpperCase();
         fetch('/.netlify/functions/save-order', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            ref: ref,
-            items: basket.map(function(i){ return { slug: i.slug, name: i.name, qty: i.qty, price: i.price }; }),
-            delivery: _deliveryData,
-            total: calc.total,
-            promo_code: _promoData ? _promoData.code : null,
-            discount: calc.discount,
-            createdAt: new Date().toISOString()
-          })
-        }).catch(function(e){ console.warn('Order save error (non-critical):', e); });
-
+          body: JSON.stringify({ ref: ref, items: basket.map(function(i){ return { slug: i.slug, name: i.name, qty: i.qty, price: i.price }; }), delivery: _deliveryData, total: calc.total, promo_code: _promoData ? _promoData.code : null, discount: calc.discount, createdAt: new Date().toISOString() })
+        }).catch(function(e){ console.warn('Order save error:', e); });
         _checkoutStep = 'success';
         renderCheckout();
       })
-      .catch(function(err){
-        console.error('confirmPayment error:', err);
-        if (errEl) errEl.textContent = 'An unexpected error occurred. Please try again.';
-        if (payBtn){ payBtn.disabled = false; payBtn.textContent = 'Pay ' + gbp(calc.total); }
-      });
+      .catch(function(err){ if (errEl) errEl.textContent = 'An unexpected error occurred.'; if (payBtn){ payBtn.disabled = false; payBtn.textContent = 'Pay ' + gbp(calc.total); } });
     }
 
     // ══════════════════════════════════════════════
@@ -1084,8 +1821,8 @@
     document.addEventListener('click', function(e){
       var shell = document.getElementById('mobile-menu-shell');
       var btn   = document.getElementById('mobile-menu-toggle');
-      if (!shell || !btn) return;
-      if (!shell.contains(e.target) && !btn.contains(e.target)) closeMobileMenu();
+      if (!_menuOpen) return;
+      if (shell && !shell.contains(e.target) && btn && !btn.contains(e.target)) closeMobileMenu();
     });
 
     document.addEventListener('keydown', function(e){
@@ -1102,6 +1839,8 @@
     window.addEventListener('resize', function(){ closeMobileMenu(); updateNavBackground(); });
 
     document.addEventListener('DOMContentLoaded', function(){
+      // Init mobile menu as hidden
+      document.getElementById('mobile-menu-shell').style.display = 'none';
       initMarquee();
       updateBasketBadge();
       updateNavBackground();
