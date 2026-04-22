@@ -5,11 +5,9 @@
   var FREE_SHIPPING_THRESHOLD = 150;
   var PROMO_FUNCTION = '/.netlify/functions/validate-promo';
 
-  // STATE
   var basket = loadBasket();
   var appliedPromo = null;
 
-  // DOM
   var overlay = document.getElementById('basket-overlay');
   var drawer = document.getElementById('basket-drawer');
   var closeBtn = document.getElementById('basket-close');
@@ -30,7 +28,6 @@
   var promoError = document.getElementById('promo-error');
   var freeShippingNote = document.getElementById('free-shipping-note');
 
-  // PUBLIC
   window.openBasketDrawer = openDrawer;
   window.addToBasket = addItem;
   window.getBasket = function() { return basket; };
@@ -157,10 +154,9 @@
     }
   }
 
-  // PROMO
   if (promoApplyBtn) {
     promoApplyBtn.addEventListener('click', async function() {
-      var code = promoInput ? promoInput.value.trim() : '';
+      var code = promoInput ? promoInput.value.toUpperCase().trim() : '';
       if (!code) return;
       promoApplyBtn.disabled = true;
       if (promoError) promoError.style.display = 'none';
@@ -174,7 +170,7 @@
         if (!res.ok || !data.valid) throw new Error(data.error || 'Invalid code');
         appliedPromo = data.promo;
         if (promoApplied) promoApplied.style.display = '';
-        if (promoAppliedText) promoAppliedText.textContent = code.toUpperCase() + ' \u2014 ' + (appliedPromo.type === 'percent' ? appliedPromo.value + '% off' : '\u00a3' + appliedPromo.value + ' off');
+        if (promoAppliedText) promoAppliedText.textContent = code + ' \u2014 ' + (appliedPromo.type === 'percent' ? appliedPromo.value + '% off' : '\u00a3' + appliedPromo.value + ' off');
         if (promoInput) promoInput.style.display = 'none';
         if (promoApplyBtn) promoApplyBtn.style.display = 'none';
         render();
@@ -195,7 +191,6 @@
     });
   }
 
-  // TOAST
   window.showToast = function(msg) {
     var container = document.getElementById('toast-container');
     if (!container) return;
