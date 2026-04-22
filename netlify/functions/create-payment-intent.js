@@ -19,7 +19,7 @@ exports.handler = async (event) => {
 
   try {
     const data = JSON.parse(event.body || "{}");
-    const { amount, currency = "gbp", items, customerEmail } = data;
+    const { amount, currency = "gbp", items, customerEmail, delivery } = data;
 
     if (!amount || typeof amount !== "number" || amount < 50) {
       return {
@@ -29,19 +29,44 @@ exports.handler = async (event) => {
       };
     }
 
-    // Build line-item description for Stripe metadata
     const itemSummary = Array.isArray(items)
-      ? items.map(i => `${i.name} x${i.qty}`).join(", ").slice(0, 500)
+      ? items.map(i => `${i.name} ×${i.qty}`).join(", ").slice(0, 500)
       : "Spacenova order";
+
+    // Build shipping details metadata if provided
+    const shippingMeta = delivery ? {
+      shipping_name: `${delivery.firstName || ""} ${delivery.lastName || ""}`.trim(),
+      shipping_address1: delivery.address1 || "",
+      shipping_address2: delivery.address2 || "",
+      shipping_city: delivery.city || "",
+      shipping_postcode: delivery.postcode || "",
+      shipping_country: delivery.country || "GB"
+    } : {};
 
     const paymentIntentParams = {
       amount: Math.round(amount),
       currency,
+      // automatic_payment_methods enables Apple Pay, Google Pay, BACS, cards, etc.
       automatic_payment_methods: { enabled: true },
       metadata: {
-        items: itemSummary
+        items: itemSummary,
+        ...shippingMeta
       }
     };
+
+    // Add shipping address to payment intent for Stripe records
+    if (delivery) {
+      paymentIntentParams.shipping = {
+        name: `${delivery.firstName || ""} ${delivery.lastName || ""}`.trim() || "Customer",
+        address: {
+          line1: delivery.address1 || "",
+          line2: delivery.address2 || null,
+          city: delivery.city || "",
+          postal_code: delivery.postcode || "",
+          country: delivery.country || "GB"
+        }
+      };
+    }
 
     if (customerEmail) {
       paymentIntentParams.receipt_email = customerEmail;
