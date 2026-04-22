@@ -10,13 +10,12 @@
   <link rel="apple-touch-icon" href="/Spacenovafavicon.png">
   <link rel="manifest" href="/site.webmanifest">
   <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/checkout-layout.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-
-<!-- NAV -->
 <nav id="main-nav" class="nav-transparent">
   <div class="nav-inner">
     <a class="nav-logo" href="/">
@@ -54,8 +53,6 @@
     </button>
   </div>
 </nav>
-
-<!-- MOBILE PANEL -->
 <div class="mobile-backdrop" id="mobile-backdrop"></div>
 <div class="mobile-panel" id="mobile-panel" aria-hidden="true">
   <div class="mp-head">
@@ -86,8 +83,6 @@
     </button>
   </div>
 </div>
-
-<!-- HERO -->
 <section class="hero">
   <div class="hero-bg">
     <img class="hero-bg-img" src="https://c02.purpledshub.com/uploads/sites/48/2016/03/27499657575_389c310eae_k.jpg?webp=1&w=1200" alt="Earth from space">
@@ -108,8 +103,6 @@
     </div>
   </div>
 </section>
-
-<!-- MARQUEE -->
 <div class="marquee-wrap">
   <div class="marquee-track">
     <span class="marquee-item">Deep Space Photography</span>
@@ -128,8 +121,6 @@
     <span class="marquee-item">Nebulae &middot; Galaxies &middot; Planets</span>
   </div>
 </div>
-
-<!-- FEATURED -->
 <section class="section">
   <div class="section-head">
     <div>
@@ -144,8 +135,6 @@
     <div class="card skeleton-card"><div class="card-media-sk"></div><div class="card-body-sk"><div class="sk"></div><div class="sk sk-sm"></div></div></div>
   </div>
 </section>
-
-<!-- TESTIMONIALS -->
 <section class="section" style="padding-top:0">
   <div class="section-head">
     <div>
@@ -159,8 +148,6 @@
     <div class="testimonial"><div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><p>"Fast delivery, beautiful packaging, and the panels are even better than the photos suggest."</p><div class="testimonial-author">— Tom K., Manchester</div></div>
   </div>
 </section>
-
-<!-- FOOTER -->
 <footer id="main-footer">
   <div class="footer-inner">
     <div class="footer-brand">
@@ -173,8 +160,6 @@
   </div>
   <div class="footer-bottom"><span>&copy; 2026 Spacenova Ltd. All rights reserved.</span><span>Made for the cosmos</span></div>
 </footer>
-
-<!-- BASKET DRAWER -->
 <div id="basket-overlay"></div>
 <div id="basket-drawer">
   <div class="drawer-header"><h2>Your Basket</h2><button class="drawer-close" id="basket-close">&times;</button></div>
@@ -184,20 +169,18 @@
     <div class="promo-applied" id="promo-applied" style="display:none"><span id="promo-applied-text"></span><button id="promo-remove-btn">Remove</button></div>
     <p class="promo-error" id="promo-error" style="display:none">Invalid or expired code</p>
     <div class="basket-summary">
-      <div class="bsum-row"><span>Subtotal</span><span id="basket-subtotal">£0.00</span></div>
-      <div class="bsum-row" id="discount-row" style="display:none"><span>Discount</span><span id="basket-discount" class="discount-val">-£0.00</span></div>
+      <div class="bsum-row"><span>Subtotal</span><span id="basket-subtotal">&pound;0.00</span></div>
+      <div class="bsum-row" id="discount-row" style="display:none"><span>Discount</span><span id="basket-discount" class="discount-val">-&pound;0.00</span></div>
       <div class="bsum-row"><span>Shipping</span><span id="basket-shipping">Calculated at checkout</span></div>
-      <div class="bsum-row bsum-total"><span>Total</span><strong id="basket-total">£0.00</strong></div>
+      <div class="bsum-row bsum-total"><span>Total</span><strong id="basket-total">&pound;0.00</strong></div>
     </div>
     <p class="free-shipping-note" id="free-shipping-note"></p>
     <a class="btn btn-primary btn-full" href="/checkout.html" id="checkout-btn">Checkout</a>
   </div>
 </div>
-
 <div id="toast-container"></div>
-
-<script src="/js/nav.js"></script>
 <script src="/js/basket.js"></script>
+<script src="/js/nav.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   fetch('/.netlify/functions/load-catalogue')
@@ -208,10 +191,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (el) el.textContent = (d.products || []).length || '—';
       const grid = document.getElementById('home-grid');
       if (!grid) return;
-      if (!products.length) {
-        grid.innerHTML = '<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:40px 0">No products available yet.</p>';
-        return;
-      }
+      if (!products.length) { grid.innerHTML = '<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:40px 0">No products available yet.</p>'; return; }
       grid.innerHTML = products.map(p => `
         <a class="card card-link" href="/product.html?slug=${p.slug || p.id}">
           <div class="card-media">
@@ -225,10 +205,7 @@ document.addEventListener('DOMContentLoaded', function() {
           </div>
         </a>`).join('');
     })
-    .catch(() => {
-      const grid = document.getElementById('home-grid');
-      if (grid) grid.innerHTML = '<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:40px 0">Could not load products.</p>';
-    });
+    .catch(() => { const grid = document.getElementById('home-grid'); if (grid) grid.innerHTML = '<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:40px 0">Could not load products.</p>'; });
 });
 </script>
 </body>

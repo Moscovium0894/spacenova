@@ -10,12 +10,12 @@
   <link rel="apple-touch-icon" href="/Spacenovafavicon.png">
   <link rel="manifest" href="/site.webmanifest">
   <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/checkout-layout.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
 </head>
 <body class="page-inner">
-<!-- NAV -->
 <nav id="main-nav">
   <div class="nav-inner">
     <a class="nav-logo" href="/"><img class="nav-logo-img" src="/spacenovalogocropped.png" alt="Spacenova"><div class="nav-logo-mark"></div></a>
@@ -45,7 +45,7 @@
       <span class="basket-btn-label">Basket</span>
       <span class="basket-badge" id="basket-badge"></span>
     </button>
-    <button class="burger-btn" id="burger-btn" aria-label="Open menu"><span></span><span></span><span></span></button>
+    <button class="burger-btn" id="burger-btn" aria-label="Open menu" aria-expanded="false"><span></span><span></span><span></span></button>
   </div>
 </nav>
 <div class="mobile-backdrop" id="mobile-backdrop"></div>
@@ -71,7 +71,6 @@
     <button class="mp-basket-row" id="mp-basket-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>View Basket<span class="mp-badge" id="mp-badge"></span></button>
   </div>
 </div>
-
 <main class="page-main">
   <div class="inner-hero">
     <div class="section-eyebrow">All Products</div>
@@ -92,7 +91,6 @@
     </div>
   </div>
 </main>
-
 <footer id="main-footer">
   <div class="footer-inner">
     <div class="footer-brand"><img class="footer-logo" src="/spacenovalogocropped.png" alt="Spacenova"><p>Museum-quality hexagonal space photography panels for your home.</p></div>
@@ -102,7 +100,6 @@
   </div>
   <div class="footer-bottom"><span>&copy; 2026 Spacenova Ltd.</span><span>Made for the cosmos</span></div>
 </footer>
-
 <div id="basket-overlay"></div>
 <div id="basket-drawer">
   <div class="drawer-header"><h2>Your Basket</h2><button class="drawer-close" id="basket-close">&times;</button></div>
@@ -112,18 +109,18 @@
     <div class="promo-applied" id="promo-applied" style="display:none"><span id="promo-applied-text"></span><button id="promo-remove-btn">Remove</button></div>
     <p class="promo-error" id="promo-error" style="display:none">Invalid or expired code</p>
     <div class="basket-summary">
-      <div class="bsum-row"><span>Subtotal</span><span id="basket-subtotal">£0.00</span></div>
-      <div class="bsum-row" id="discount-row" style="display:none"><span>Discount</span><span id="basket-discount" class="discount-val">-£0.00</span></div>
-      <div class="bsum-row"><span>Shipping</span><span>Calculated at checkout</span></div>
-      <div class="bsum-row bsum-total"><span>Total</span><strong id="basket-total">£0.00</strong></div>
+      <div class="bsum-row"><span>Subtotal</span><span id="basket-subtotal">&pound;0.00</span></div>
+      <div class="bsum-row" id="discount-row" style="display:none"><span>Discount</span><span id="basket-discount" class="discount-val">-&pound;0.00</span></div>
+      <div class="bsum-row"><span>Shipping</span><span id="basket-shipping">Calculated at checkout</span></div>
+      <div class="bsum-row bsum-total"><span>Total</span><strong id="basket-total">&pound;0.00</strong></div>
     </div>
+    <p class="free-shipping-note" id="free-shipping-note"></p>
     <a class="btn btn-primary btn-full" href="/checkout.html">Checkout</a>
   </div>
 </div>
 <div id="toast-container"></div>
-
-<script src="/js/nav.js"></script>
 <script src="/js/basket.js"></script>
+<script src="/js/nav.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   let allProducts = [];
@@ -134,7 +131,6 @@ document.addEventListener('DOMContentLoaded', function() {
       renderGrid(allProducts);
     })
     .catch(() => { document.getElementById('shop-grid').innerHTML = '<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:40px 0">Could not load products.</p>'; });
-
   function renderGrid(products) {
     const grid = document.getElementById('shop-grid');
     if (!products.length) { grid.innerHTML = '<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:40px 0">No products found.</p>'; return; }
@@ -144,7 +140,6 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="card-body"><h3>${p.name}</h3><p class="muted">${(p.description || '').substring(0, 80)}${(p.description || '').length > 80 ? '...' : ''}</p><div class="price">&pound;${parseFloat(p.price || 0).toFixed(2)}</div></div>
       </a>`).join('');
   }
-
   document.getElementById('filter-bar').addEventListener('click', function(e) {
     const pill = e.target.closest('.filter-pill');
     if (!pill) return;

@@ -10,6 +10,7 @@
   <link rel="apple-touch-icon" href="/Spacenovafavicon.png">
   <link rel="manifest" href="/site.webmanifest">
   <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/checkout-layout.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
@@ -41,7 +42,6 @@
     <a class="mp-item" href="/about.html">About</a>
   </div>
 </div>
-
 <div class="success-page">
   <div class="success-inner">
     <div class="success-orbit">
@@ -59,11 +59,7 @@
     <p class="success-note">Questions? <a href="/contact.html">Contact us</a> and quote your order reference.</p>
   </div>
 </div>
-
-<script>
-  // Clear basket on success
-  try { localStorage.removeItem('sn_basket'); } catch(e) {}
-</script>
+<script>try { localStorage.removeItem('sn_basket'); } catch(e) {}</script>
 <script src="/js/nav.js"></script>
 </body>
 </html>
