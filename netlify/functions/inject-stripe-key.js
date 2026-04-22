@@ -4,9 +4,12 @@
  * Run during Netlify build to replace %%STRIPE_PUBLISHABLE_KEY%%
  * placeholder in index.html with the actual env var value.
  *
- * Add to netlify.toml:
- *   [build]
- *     command = "node inject-stripe-key.js"
+ * Located at: netlify/functions/inject-stripe-key.js
+ * Run via netlify.toml: node netlify/functions/inject-stripe-key.js
+ *
+ * Netlify runs build commands from the repo root, so __dirname will be
+ * <repo-root>/netlify/functions — we resolve index.html relative to
+ * process.cwd() (repo root) instead.
  */
 
 const fs = require('fs');
@@ -24,14 +27,21 @@ if (!pk.startsWith('pk_')) {
   process.exit(1);
 }
 
-const filePath = path.join(__dirname, 'index.html');
+// process.cwd() is the repo root when Netlify runs the build command
+const filePath = path.join(process.cwd(), 'index.html');
+
+if (!fs.existsSync(filePath)) {
+  console.error('[inject-stripe-key] ERROR: index.html not found at ' + filePath);
+  process.exit(1);
+}
+
 let html = fs.readFileSync(filePath, 'utf8');
 
 const placeholder = '%%STRIPE_PUBLISHABLE_KEY%%';
 if (!html.includes(placeholder)) {
-  console.warn('[inject-stripe-key] Warning: placeholder not found in index.html — already injected?');
+  console.warn('[inject-stripe-key] Warning: placeholder not found in index.html — already injected or placeholder missing?');
 } else {
-  html = html.replace(new RegExp(placeholder, 'g'), pk);
+  html = html.replace(new RegExp(placeholder.replace(/[%]/g, '\\%'), 'g'), pk);
   fs.writeFileSync(filePath, html, 'utf8');
   console.log('[inject-stripe-key] ✓ Stripe publishable key injected into index.html');
 }
