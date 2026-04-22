@@ -25,11 +25,11 @@
 
   var FREE_SHIPPING = 150;
   var SHIPPING_OPTIONS = {
-    uk_standard: { label: 'UK Standard (3–5 working days)', amount: 4.99, freeThreshold: FREE_SHIPPING },
-    uk_express: { label: 'UK Express (1–2 working days)', amount: 9.99 },
-    eu_standard: { label: 'Europe Standard (5–10 working days)', amount: 12.99 },
-    us_ca_standard: { label: 'USA & Canada Standard (7–14 working days)', amount: 14.99 },
-    row_standard: { label: 'Rest of World Standard (10–21 working days)', amount: 17.99 }
+    uk_standard: { label: 'UK Standard (3\u20135 working days)', amount: 4.99, freeThreshold: FREE_SHIPPING },
+    uk_express: { label: 'UK Express (1\u20132 working days)', amount: 9.99 },
+    eu_standard: { label: 'Europe Standard (5\u201310 working days)', amount: 12.99 },
+    us_ca_standard: { label: 'USA & Canada Standard (7\u201314 working days)', amount: 14.99 },
+    row_standard: { label: 'Rest of World Standard (10\u201321 working days)', amount: 17.99 }
   };
 
   function fmt(n) { return '\u00a3' + parseFloat(n).toFixed(2); }
@@ -139,11 +139,11 @@
     });
     linkAuthElement.mount('#link-authentication-element');
 
+    // Fix: remove validation.phone entirely when fields.phone is 'never'
     shippingAddressElement = elements.create('address', {
       mode: 'shipping',
       allowedCountries: ['GB', 'US', 'CA', 'FR', 'DE', 'ES', 'IT', 'NL', 'IE', 'AU', 'NZ'],
-      fields: { phone: 'never' },
-      validation: { phone: { required: 'never' } }
+      fields: { phone: 'never' }
     });
     shippingAddressElement.mount('#shipping-address-element');
 
@@ -206,6 +206,45 @@
         }
 
         var shippingData = addressResult.value;
+        var shippingMethod = shippingMethodSelect ? shippingMethodSelect.value : 'uk_standard';
+
+        // Snapshot checkout state into localStorage so success.html can reconstruct the order
+        var items = getBasketData();
+        var promo = getAppliedPromo();
+        var totals = calcTotals(items, promo, shippingMethod);
+        var orderRef = 'SN-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7).toUpperCase();
+
+        var pendingOrder = {
+          ref: orderRef,
+          items: items,
+          delivery: {
+            firstName: (shippingData.name || '').split(' ')[0] || '',
+            lastName: (shippingData.name || '').split(' ').slice(1).join(' ') || '',
+            address1: shippingData.address.line1 || '',
+            address2: shippingData.address.line2 || '',
+            city: shippingData.address.city || '',
+            postcode: shippingData.address.postal_code || '',
+            country: shippingData.address.country || '',
+            email: customerEmail || ''
+          },
+          customer_name: shippingData.name || '',
+          email: customerEmail || '',
+          address: {
+            line1: shippingData.address.line1 || '',
+            line2: shippingData.address.line2 || '',
+            city: shippingData.address.city || '',
+            postcode: shippingData.address.postal_code || '',
+            country: shippingData.address.country || ''
+          },
+          total: totals.total,
+          promo_code: promo ? (promo.code || null) : null,
+          discount: totals.disc,
+          shipping_type: shippingMethod,
+          created_at: new Date().toISOString()
+        };
+
+        // Persist order snapshot — success.html will read and save this
+        try { localStorage.setItem('sn_pending_order', JSON.stringify(pendingOrder)); } catch(e) {}
 
         var result = await stripe.confirmPayment({
           elements: elements,

@@ -54,7 +54,7 @@
     </div>
     <div class="success-check">&#10003;</div>
     <h1 class="success-title">Order Confirmed</h1>
-    <p class="success-sub">Thank you for your order. You’ll receive a confirmation email shortly with tracking details once your print is dispatched.</p>
+    <p class="success-sub">Thank you for your order. You'll receive a confirmation email shortly with tracking details once your print is dispatched.</p>
     <div class="success-divider"></div>
     <div class="success-actions">
       <a class="btn btn-primary" href="/shop.html">Continue Shopping</a>
@@ -63,7 +63,52 @@
     <p class="success-note">Questions? <a href="/contact.html">Contact us</a> and quote your order reference.</p>
   </div>
 </div>
-<script>try { localStorage.removeItem('sn_basket'); } catch(e) {}</script>
+<script>
+(function() {
+  'use strict';
+
+  // Read the order snapshot written by checkout.js before Stripe redirect
+  var pending;
+  try { pending = JSON.parse(localStorage.getItem('sn_pending_order')); } catch(e) {}
+
+  if (!pending || !pending.ref) {
+    // No order data — just clear basket and show the page normally
+    try { localStorage.removeItem('sn_basket'); } catch(e) {}
+    return;
+  }
+
+  // Guard against duplicate saves on page refresh
+  // The server enforces uniqueness on ref (23505), but this avoids a redundant network call
+  var savedRef = sessionStorage.getItem('sn_order_saved');
+  if (savedRef === pending.ref) {
+    // Already saved this session — clear basket only
+    try { localStorage.removeItem('sn_basket'); } catch(e) {}
+    return;
+  }
+
+  fetch('/.netlify/functions/save-order', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(pending)
+  })
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    if (data.ok) {
+      // Mark as saved for this browser session to prevent refresh duplicates
+      try { sessionStorage.setItem('sn_order_saved', pending.ref); } catch(e) {}
+      // Safe to clear basket and pending snapshot now
+      try { localStorage.removeItem('sn_basket'); } catch(e) {}
+      try { localStorage.removeItem('sn_pending_order'); } catch(e) {}
+    } else {
+      console.warn('save-order returned error:', data.error);
+    }
+  })
+  .catch(function(err) {
+    // Non-fatal — order data stays in localStorage so a retry is possible
+    console.warn('save-order network error:', err);
+  });
+})();
+</script>
 <script src="/js/nav.js"></script>
 </body>
 </html>
