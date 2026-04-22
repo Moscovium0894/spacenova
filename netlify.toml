@@ -1,6 +1,5 @@
 [build]
-  command = "node inject-stripe-key.js"
-  functions = "netlify/functions"
+  command = "node netlify/functions/inject-stripe-key.js"
 
 [build.environment]
   SECRETS_SCAN_OMIT_KEYS = "STRIPE_PUBLISHABLE_KEY"
