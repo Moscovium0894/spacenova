@@ -969,3 +969,75 @@ body.panel-open { overflow: hidden; }
   }
   .basket-btn-label { display: none; }
 }
+/* ══════════════════════════════════════════
+   SHOP CARD — wall image crossfade
+   ══════════════════════════════════════════ */
+
+/* When a card has a wall image, stack both absolutely inside the media box */
+.card-media.card-has-wall {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Both images fill the box */
+.card-media.card-has-wall .card-img-main,
+.card-media.card-has-wall .card-img-wall {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  will-change: opacity, transform;
+}
+
+/* Main image: visible by default, scales on hover */
+.card-media.card-has-wall .card-img-main {
+  opacity: 1;
+  transform: scale(1);
+  transition:
+    opacity .55s cubic-bezier(.22,1,.36,1),
+    transform .7s cubic-bezier(.22,1,.36,1);
+  z-index: 1;
+}
+
+/* Wall image: hidden by default, sits below */
+.card-media.card-has-wall .card-img-wall {
+  opacity: 0;
+  transform: scale(1.04);
+  transition:
+    opacity .55s cubic-bezier(.22,1,.36,1),
+    transform .7s cubic-bezier(.22,1,.36,1);
+  z-index: 2;
+}
+
+/* On hover: fade in wall image, scale main out slightly */
+@media (hover: hover) {
+  .card:hover .card-media.card-has-wall .card-img-main {
+    opacity: 0;
+    transform: scale(1.03);
+  }
+  .card:hover .card-media.card-has-wall .card-img-wall {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Badge row always sits on top of both images */
+.card-media.card-has-wall .badge-row {
+  position: relative;
+  z-index: 3;
+}
+
+/* Cards without a wall image keep the original single-image scale behaviour */
+.card-media:not(.card-has-wall) img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform .7s cubic-bezier(.22,1,.36,1);
+}
+@media (hover: hover) {
+  .card:hover .card-media:not(.card-has-wall) img {
+    transform: scale(1.06);
+  }
+}
