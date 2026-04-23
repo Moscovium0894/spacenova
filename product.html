@@ -20,26 +20,20 @@
       overflow: hidden;
       border: 1px solid var(--border);
       background: var(--bg1);
-      /* Establish a stacking context so ::after overlays work */
       isolation: isolate;
     }
-
-    /* Swipeable track — one row of slides */
     .pg-track {
       display: flex;
-      /* Crucial for iOS: allow horizontal touch-pan without blocking vertical page scroll */
       touch-action: pan-y pinch-zoom;
       -webkit-overflow-scrolling: touch;
       overflow-x: scroll;
       scroll-snap-type: x mandatory;
       scrollbar-width: none;
       -ms-overflow-style: none;
-      /* Prevent content paint bugs on Safari */
       -webkit-transform: translateZ(0);
       transform: translateZ(0);
     }
     .pg-track::-webkit-scrollbar { display: none; }
-
     .pg-slide {
       flex: 0 0 100%;
       scroll-snap-align: start;
@@ -52,12 +46,9 @@
       height: 100%;
       object-fit: cover;
       display: block;
-      /* Prevent Safari from treating drag as a link drag */
       -webkit-user-drag: none;
       user-select: none;
     }
-
-    /* Wall-hint overlay on first slide */
     .wall-hint {
       position: absolute;
       bottom: 12px;
@@ -77,10 +68,7 @@
       opacity: 0;
       transition: opacity .3s;
     }
-    /* Show wall hint on hover (desktop) */
     .pg-wrap:hover .wall-hint { opacity: 1; }
-
-    /* Arrow navigation — desktop only */
     .pg-arrow {
       position: absolute;
       top: 50%;
@@ -108,10 +96,7 @@
     .pg-arrow svg { width: 16px; height: 16px; stroke: #111; }
     .pg-arrow-prev { left: 12px; }
     .pg-arrow-next { right: 12px; }
-    /* Single-image — hide arrows */
     .pg-wrap.single .pg-arrow { display: none; }
-
-    /* Dot indicators */
     .pg-dots {
       display: flex;
       gap: 6px;
@@ -129,13 +114,8 @@
       transition: background .2s, transform .2s;
       -webkit-tap-highlight-color: transparent;
     }
-    .pg-dot.active {
-      background: var(--accent);
-      transform: scale(1.4);
-    }
+    .pg-dot.active { background: var(--accent); transform: scale(1.4); }
     .pg-wrap.single .pg-dots { display: none; }
-
-    /* Thumbnails */
     .pg-thumbs {
       display: flex;
       gap: 8px;
@@ -156,17 +136,14 @@
       transition: border-color .18s, opacity .18s;
       opacity: .55;
       -webkit-tap-highlight-color: transparent;
+      background: none;
+      padding: 0;
     }
     .pg-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .pg-thumb.active { border-color: var(--accent); opacity: 1; }
-    .pg-wrap.single + .pg-thumbs { display: none; }
+    .pg-wrap.single ~ .pg-thumbs { display: none; }
 
-    /* ══ HEX TILE SELECTOR ══
-       Correct flat-top hexagon tessellation.
-       Cell: width W, height H = W * (2/√3) ≈ W * 1.1547
-       For W=54px: H≈62px, horiz-step=W (cells touch side-to-side),
-       vert-step = H * 0.75 (rows interlock), row-offset = W/2.
-    */
+    /* ══ HEX TILE SELECTOR ══ */
     .hex-selector {
       background: var(--bg1);
       border: 1px solid var(--border);
@@ -185,8 +162,6 @@
       justify-content: space-between;
       align-items: center;
     }
-
-    /* Outer container — overflow:auto so it scrolls on narrow mobile without wrapping */
     .hex-grid-wrap {
       overflow-x: auto;
       overflow-y: hidden;
@@ -196,36 +171,19 @@
       margin-bottom: 18px;
     }
     .hex-grid-wrap::-webkit-scrollbar { display: none; }
-
-    /* Inner container — intrinsic size, flex column, centered */
     .hex-grid-inner {
       display: inline-flex;
       flex-direction: column;
       align-items: flex-start;
       gap: 0;
     }
-
-    .hex-row {
-      display: flex;
-      /* No gap — geometry is controlled by margins on cells */
-    }
-    /* Odd rows offset by half cell width for tessellation */
-    .hex-row.offset {
-      /* Exactly half of (cell-width + 2*cell-margin) = (54 + 4) / 2 = 29px */
-      margin-left: 29px;
-    }
-
+    .hex-row { display: flex; }
+    .hex-row.offset { margin-left: 29px; }
     .hex-cell {
-      /* pointy-top hexagon: width W, height H where H = W * (√3/2) * 2 = W*√3 */
-      /* Using W=54, H=62 — aspect ratio ≈ 1.148 */
       width: 54px;
       height: 62px;
-      /* Flat-top clip: polygon matches width=54 height=62 */
       clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-      /* Horizontal margin = 1px each side, net gap = 2px between cells */
       margin: 1px;
-      /* Vertical overlap to tessellate: rows must overlap by H*0.25 = 15.5px */
-      /* We pull rows up with a negative bottom margin */
       margin-bottom: -15px;
       cursor: pointer;
       background: rgba(0,0,0,.08);
@@ -237,21 +195,9 @@
       flex-shrink: 0;
       -webkit-tap-highlight-color: transparent;
     }
-    /* Last row in each grid — don't pull up the element below */
     .hex-row:last-child .hex-cell { margin-bottom: 1px; }
-
-    .hex-cell img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-      pointer-events: none;
-    }
-    .hex-cell.selected {
-      filter: brightness(1.08);
-      transform: scale(1.06);
-      box-shadow: 0 0 0 3px var(--accent);
-    }
+    .hex-cell img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+    .hex-cell.selected { filter: brightness(1.08); transform: scale(1.06); box-shadow: 0 0 0 3px var(--accent); }
     .hex-cell.selected::after {
       content: '✓';
       position: absolute;
@@ -267,7 +213,6 @@
     .hex-cell:not(.selected) { filter: brightness(0.72) saturate(0.6); }
     .hex-cell:hover { filter: brightness(0.9) saturate(0.85); transform: scale(1.04); }
     .hex-cell.selected:hover { filter: brightness(1.1); }
-
     .hex-selector-footer {
       display: flex;
       align-items: center;
@@ -275,18 +220,8 @@
       flex-wrap: wrap;
       gap: 12px;
     }
-    .hex-price-row {
-      font-family: var(--fd);
-      font-size: 1.6rem;
-      color: var(--gold);
-      font-weight: 300;
-    }
-    .hex-price-sub {
-      font-family: var(--fm);
-      font-size: .62rem;
-      color: var(--muted);
-      margin-top: 2px;
-    }
+    .hex-price-row { font-family: var(--fd); font-size: 1.6rem; color: var(--gold); font-weight: 300; }
+    .hex-price-sub { font-family: var(--fm); font-size: .62rem; color: var(--muted); margin-top: 2px; }
     .hex-select-all {
       font-family: var(--fm);
       font-size: .62rem;
@@ -303,7 +238,6 @@
     }
     .hex-select-all:hover { background: rgba(212,120,15,.07); }
     .hex-count { font-family: var(--fm); font-size: .7rem; color: var(--muted); }
-
     .panel-label {
       font-family: var(--fm);
       font-size: .44rem;
@@ -318,20 +252,15 @@
       text-shadow: 0 1px 3px rgba(0,0,0,.7);
       pointer-events: none;
     }
-
-    /* Mobile refinements */
     @media (max-width: 600px) {
-      .hex-cell {
-        width: 46px;
-        height: 53px;
-        margin-bottom: -13px;
-      }
+      .hex-cell { width: 46px; height: 53px; margin-bottom: -13px; }
       .hex-row.offset { margin-left: 24px; }
       .hex-row:last-child .hex-cell { margin-bottom: 1px; }
     }
   </style>
 </head>
 <body class="page-inner">
+
 <nav id="main-nav">
   <div class="nav-inner">
     <a class="nav-logo" href="/"><img class="nav-logo-img" src="/spacenovalogocropped.png" alt="Spacenova"><div class="nav-logo-mark"></div></a>
@@ -339,30 +268,106 @@
       <a class="nav-link" href="/shop.html">Shop</a>
       <a class="nav-link" href="/artifacts.html">Artifacts</a>
       <a class="nav-link" href="/about.html">About</a>
-      <div class="nav-more-wrap" id="nav-more-wrap"><button class="nav-link nav-more-btn" id="nav-more-btn" aria-haspopup="true" aria-expanded="false">More <span class="nav-chevron">&#9662;</span></button><div class="nav-dropdown" id="nav-dropdown" role="menu"><div class="ndd-section">Help</div><a class="ndd-item" href="/contact.html">Contact Us</a><a class="ndd-item" href="/shipping.html">Shipping</a><a class="ndd-item" href="/returns.html">Returns</a><a class="ndd-item" href="/faq.html">FAQ</a><div class="ndd-divider"></div><div class="ndd-section">Company</div><a class="ndd-item" href="/press.html">Press</a></div></div>
+      <div class="nav-more-wrap" id="nav-more-wrap">
+        <button class="nav-link nav-more-btn" id="nav-more-btn" aria-haspopup="true" aria-expanded="false">More <span class="nav-chevron">&#9662;</span></button>
+        <div class="nav-dropdown" id="nav-dropdown" role="menu">
+          <div class="ndd-section">Help</div>
+          <a class="ndd-item" href="/contact.html">Contact Us</a>
+          <a class="ndd-item" href="/shipping.html">Shipping</a>
+          <a class="ndd-item" href="/returns.html">Returns</a>
+          <a class="ndd-item" href="/faq.html">FAQ</a>
+          <div class="ndd-divider"></div>
+          <div class="ndd-section">Company</div>
+          <a class="ndd-item" href="/press.html">Press</a>
+        </div>
+      </div>
     </div>
     <div class="nav-spacer"></div>
-    <button class="nav-basket-btn" id="basket-toggle-btn" aria-label="Open basket"><svg class="basket-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg><span class="basket-btn-label">Basket</span><span class="basket-badge" id="basket-badge"></span></button>
+    <button class="nav-basket-btn" id="basket-toggle-btn" aria-label="Open basket">
+      <svg class="basket-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <path d="M16 10a4 4 0 01-8 0"/>
+      </svg>
+      <span class="basket-btn-label">Basket</span>
+      <span class="basket-badge" id="basket-badge"></span>
+    </button>
     <button class="burger-btn" id="burger-btn" aria-label="Open menu"><span></span><span></span><span></span></button>
   </div>
 </nav>
+
 <div class="mobile-backdrop" id="mobile-backdrop"></div>
+<div class="mobile-panel" id="mobile-panel" aria-hidden="true">
+  <div class="mp-head"><span class="mp-title">Menu</span><button class="mp-close" id="mp-close">&times;</button></div>
+  <div class="mp-body">
+    <div class="mp-section-label">Shop</div>
+    <a class="mp-item" href="/shop.html">Shop</a>
+    <a class="mp-item" href="/artifacts.html">Artifacts</a>
+    <a class="mp-item" href="/about.html">About</a>
+    <div class="mp-divider"></div>
+    <div class="mp-section-label">Help</div>
+    <a class="mp-item" href="/contact.html">Contact Us</a>
+    <a class="mp-item" href="/shipping.html">Shipping</a>
+    <a class="mp-item" href="/returns.html">Returns</a>
+    <a class="mp-item" href="/faq.html">FAQ</a>
+    <div class="mp-divider"></div>
+    <div class="mp-section-label">Company</div>
+    <a class="mp-item" href="/press.html">Press</a>
+    <div class="mp-divider"></div>
+    <button class="mp-basket-row" id="mp-basket-btn">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <path d="M16 10a4 4 0 01-8 0"/>
+      </svg>
+      View Basket
+      <span class="mp-badge" id="mp-badge"></span>
+    </button>
+  </div>
+</div>
 
 <main class="page-main" id="product-main">
   <div class="section" style="padding-top:40px">
-    <div class="breadcrumbs" id="breadcrumbs"><a href="/">Home</a> <span>/</span> <a href="/shop.html">Shop</a> <span>/</span> <span id="bc-name">Loading...</span></div>
+    <div class="breadcrumbs" id="breadcrumbs">
+      <a href="/">Home</a> <span>/</span> <a href="/shop.html">Shop</a> <span>/</span> <span id="bc-name">Loading...</span>
+    </div>
     <div id="product-content"></div>
   </div>
 </main>
 
-<footer id="main-footer"><div class="footer-inner"><div class="footer-brand"><img class="footer-logo" src="/spacenovalogocropped.png" alt="Spacenova"><p>Museum-quality hexagonal space photography panels.</p></div><div class="footer-col"><h4>Shop</h4><a href="/shop.html">All Series</a><a href="/artifacts.html">Artifacts</a></div><div class="footer-col"><h4>Help</h4><a href="/shipping.html">Shipping</a><a href="/returns.html">Returns</a><a href="/faq.html">FAQ</a><a href="/contact.html">Contact</a></div><div class="footer-col"><h4>Company</h4><a href="/about.html">About</a><a href="/press.html">Press</a></div></div><div class="footer-bottom"><span>&copy; 2026 Spacenova Ltd.</span><span>Made for the cosmos</span></div></footer>
+<footer id="main-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><img class="footer-logo" src="/spacenovalogocropped.png" alt="Spacenova"><p>Museum-quality hexagonal space photography panels.</p></div>
+    <div class="footer-col"><h4>Shop</h4><a href="/shop.html">All Series</a><a href="/artifacts.html">Artifacts</a></div>
+    <div class="footer-col"><h4>Help</h4><a href="/shipping.html">Shipping</a><a href="/returns.html">Returns</a><a href="/faq.html">FAQ</a><a href="/contact.html">Contact</a></div>
+    <div class="footer-col"><h4>Company</h4><a href="/about.html">About</a><a href="/press.html">Press</a></div>
+  </div>
+  <div class="footer-bottom"><span>&copy; 2026 Spacenova Ltd.</span><span>Made for the cosmos</span></div>
+</footer>
+
 <div id="basket-overlay"></div>
-<div id="basket-drawer"><div class="drawer-header"><h2>Your Basket</h2><button class="drawer-close" id="basket-close">&times;</button></div><div class="drawer-body" id="basket-body"></div><div class="drawer-footer" id="basket-footer" style="display:none"><div class="promo-row"><input class="promo-input" id="promo-input" type="text" placeholder="Promo code"><button class="promo-btn" id="promo-apply-btn">Apply</button></div><div class="promo-applied" id="promo-applied" style="display:none"><span id="promo-applied-text"></span><button id="promo-remove-btn">Remove</button></div><p class="promo-error" id="promo-error" style="display:none">Invalid or expired code</p><div class="basket-summary"><div class="bsum-row"><span>Subtotal</span><span id="basket-subtotal">£0.00</span></div><div class="bsum-row" id="discount-row" style="display:none"><span>Discount</span><span id="basket-discount" class="discount-val">-£0.00</span></div><div class="bsum-row"><span>Shipping</span><span>Calculated at checkout</span></div><div class="bsum-row bsum-total"><span>Total</span><strong id="basket-total">£0.00</strong></div></div><a class="btn btn-primary btn-full" href="/checkout.html">Checkout</a></div></div>
+<div id="basket-drawer">
+  <div class="drawer-header"><h2>Your Basket</h2><button class="drawer-close" id="basket-close">&times;</button></div>
+  <div class="drawer-body" id="basket-body"></div>
+  <div class="drawer-footer" id="basket-footer" style="display:none">
+    <div class="promo-row"><input class="promo-input" id="promo-input" type="text" placeholder="Promo code"><button class="promo-btn" id="promo-apply-btn">Apply</button></div>
+    <div class="promo-applied" id="promo-applied" style="display:none"><span id="promo-applied-text"></span><button id="promo-remove-btn">Remove</button></div>
+    <p class="promo-error" id="promo-error" style="display:none">Invalid or expired code</p>
+    <div class="basket-summary">
+      <div class="bsum-row"><span>Subtotal</span><span id="basket-subtotal">&pound;0.00</span></div>
+      <div class="bsum-row" id="discount-row" style="display:none"><span>Discount</span><span id="basket-discount" class="discount-val">-&pound;0.00</span></div>
+      <div class="bsum-row"><span>Shipping</span><span>Calculated at checkout</span></div>
+      <div class="bsum-row bsum-total"><span>Total</span><strong id="basket-total">&pound;0.00</strong></div>
+    </div>
+    <a class="btn btn-primary btn-full" href="/checkout.html">Checkout</a>
+  </div>
+</div>
+
 <div id="toast-container"></div>
 <script src="/js/nav.js"></script>
 <script src="/js/basket.js"></script>
 <script>
-(function(){
+(function() {
   var PANEL_PRICE = 34.99;
 
   document.addEventListener('DOMContentLoaded', function() {
@@ -386,33 +391,32 @@
         document.getElementById('bc-name').textContent = p.name;
 
         var totalPanels = parseInt(p.pieces) || 0;
-        var wallImage = p.wallImage || null;
+        var wallImage   = p.wallImage || null;
         var panelImages = Array.isArray(p.panelImages) ? p.panelImages : [];
-        var panelMap = p.panelMap || {};
-        var positions = Array.isArray(panelMap.positions) ? panelMap.positions : [];
+        var panelMap    = p.panelMap || {};
+        var positions   = Array.isArray(panelMap.positions) ? panelMap.positions : [];
 
-        // Build gallery images: main image first, wallImage second, then any extras
         var galleryImages = [];
-        if (p.image) galleryImages.push({ src: p.image, alt: p.name });
-        if (wallImage) galleryImages.push({ src: wallImage, alt: p.name + ' on wall' });
-
-        var galleryHtml = buildGalleryHtml(galleryImages);
+        if (p.image)   galleryImages.push({ src: p.image,    alt: p.name });
+        if (wallImage) galleryImages.push({ src: wallImage,  alt: p.name + ' on wall' });
 
         document.getElementById('product-content').innerHTML =
           '<div class="product-hero">' +
             '<div class="product-media">' +
-              galleryHtml +
+              buildGalleryHtml(galleryImages) +
               '<div id="hex-selector-mount"></div>' +
             '</div>' +
             '<div class="product-info">' +
-              '<span class="badge badge-accent" style="margin-bottom:14px;display:inline-block">' + (p.isBundle ? 'Bundle' : p.isCollection ? 'Collection' : 'Series') + '</span>' +
-              '<h2>' + p.name + '</h2>' +
+              '<span class="badge badge-accent" style="margin-bottom:14px;display:inline-block">' +
+                (p.isBundle ? 'Bundle' : p.isCollection ? 'Collection' : 'Series') +
+              '</span>' +
+              '<h2>' + (p.name || '') + '</h2>' +
               '<p class="product-tagline">' + (p.short || '') + '</p>' +
               '<div class="product-price-row">' +
                 '<span class="product-price-main" id="dynamic-price">&pound;' + parseFloat(p.price || 0).toFixed(2) + '</span>' +
                 (p.priceLabel ? '<span class="product-price-range">' + p.priceLabel + '</span>' : '') +
               '</div>' +
-              '<p id="panel-price-hint" style="color:var(--muted);font-family:var(--fm);font-size:.68rem;letter-spacing:.06em;margin-bottom:16px">' +
+              '<p style="color:var(--muted);font-family:var(--fm);font-size:.68rem;letter-spacing:.06em;margin-bottom:16px">' +
                 '&pound;' + PANEL_PRICE.toFixed(2) + ' per panel &mdash; select your arrangement below' +
               '</p>' +
               '<p style="color:var(--muted);font-size:.9rem;margin-bottom:24px;line-height:1.75">' + (p.description || '') + '</p>' +
@@ -425,21 +429,16 @@
             '</div>' +
           '</div>';
 
-        // Boot gallery controller
         initGallery(galleryImages);
+        buildHexSelector(p, positions, panelImages, totalPanels);
 
-        // Hex selector
-        buildHexSelector(p, positions, panelImages, totalPanels, wallImage);
-
-        // Add to basket
         document.getElementById('add-to-basket-btn').addEventListener('click', function() {
           var count = (window._selectedPanels ? window._selectedPanels.size : 0) || totalPanels;
-          var price = count * PANEL_PRICE;
           if (window.addToBasket) {
             window.addToBasket({
               id: p.slug + '-' + count + 'p',
               name: p.name + ' (' + count + ' panel' + (count !== 1 ? 's' : '') + ')',
-              price: price,
+              price: count * PANEL_PRICE,
               image: p.image || '',
               quantity: 1
             });
@@ -451,11 +450,18 @@
       });
   });
 
-  /* ── Gallery HTML builder ── */
+  /* ── Gallery HTML ── */
   function buildGalleryHtml(images) {
-    if (!images.length) return '<div class="pg-wrap single" id="pg-wrap"><div class="pg-track" id="pg-track"><div class="pg-slide"><div class="card-media-placeholder" style="aspect-ratio:4/3"></div></div></div></div>';
+    if (!images.length) {
+      return '<div class="pg-wrap single" id="pg-wrap">' +
+        '<div class="pg-track" id="pg-track">' +
+          '<div class="pg-slide"><div class="card-media-placeholder" style="aspect-ratio:4/3"></div></div>' +
+        '</div>' +
+      '</div>';
+    }
 
     var isSingle = images.length === 1;
+
     var slides = images.map(function(img, i) {
       return '<div class="pg-slide">' +
         '<img src="' + img.src + '" alt="' + (img.alt || '').replace(/"/g, '&quot;') + '"' +
@@ -488,11 +494,14 @@
         }).join('') +
       '</div>';
 
-    return '<div class="pg-wrap' + (isSingle ? ' single' : '') + '" id="pg-wrap">' +
-      '<div class="pg-track" id="pg-track">' + slides + '</div>' +
-      arrows +
-      dots +
-    '</div>' + thumbs;
+    return (
+      '<div class="pg-wrap' + (isSingle ? ' single' : '') + '" id="pg-wrap">' +
+        '<div class="pg-track" id="pg-track">' + slides + '</div>' +
+        arrows +
+        dots +
+      '</div>' +
+      thumbs
+    );
   }
 
   /* ── Gallery controller ── */
@@ -503,10 +512,10 @@
     var total   = images.length;
     var current = 0;
 
-    function goTo(idx, animate) {
+    function goTo(idx) {
       idx = Math.max(0, Math.min(total - 1, idx));
       current = idx;
-      track.scrollTo({ left: idx * track.clientWidth, behavior: animate === false ? 'instant' : 'smooth' });
+      track.scrollTo({ left: idx * track.clientWidth, behavior: 'smooth' });
       syncUI(idx);
     }
 
@@ -519,7 +528,7 @@
       });
     }
 
-    // Drive UI from scroll position (covers touch swipe + arrow clicks)
+    // Sync dots/thumbs when user swipes
     var scrollTimer;
     track.addEventListener('scroll', function() {
       clearTimeout(scrollTimer);
@@ -530,13 +539,11 @@
       }, 80);
     }, { passive: true });
 
-    // Arrow buttons
     var prevBtn = document.getElementById('pg-prev');
     var nextBtn = document.getElementById('pg-next');
     if (prevBtn) prevBtn.addEventListener('click', function() { goTo(current - 1); });
     if (nextBtn) nextBtn.addEventListener('click', function() { goTo(current + 1); });
 
-    // Dot + thumbnail clicks
     document.querySelectorAll('.pg-dot').forEach(function(d) {
       d.addEventListener('click', function() { goTo(parseInt(d.dataset.idx)); });
     });
@@ -544,92 +551,37 @@
       t.addEventListener('click', function() { goTo(parseInt(t.dataset.idx)); });
     });
 
-    // ── Desktop hover crossfade to wall image (slide index 1) ──
-    // Only fires on devices that support hover (not touch screens)
-    // Wall image is always slide index 1 when present
+    // Desktop hover: slide to wall image on enter, back on leave
     var wrap = document.getElementById('pg-wrap');
-    var hoverTimer, leaveTimer;
-    var isHoverSuppressed = false; // suppressed after user manually navigates
+    var hoverTimer, leaveTimer, hoverSuppressed = false;
 
     if (wrap && total >= 2 && window.matchMedia('(hover: hover)').matches) {
       wrap.addEventListener('mouseenter', function() {
-        // Only auto-crossfade if user is still on slide 0
-        if (current !== 0 || isHoverSuppressed) return;
+        if (current !== 0 || hoverSuppressed) return;
         clearTimeout(leaveTimer);
-        hoverTimer = setTimeout(function() {
-          goTo(1);
-        }, 180); // slight delay so quick mouse-overs don't flicker
+        hoverTimer = setTimeout(function() { goTo(1); }, 180);
       });
 
       wrap.addEventListener('mouseleave', function() {
         clearTimeout(hoverTimer);
         leaveTimer = setTimeout(function() {
-          // Return to slide 0 only if we auto-advanced (not if user manually navigated)
-          if (current === 1 && !isHoverSuppressed) {
-            goTo(0);
-          }
-          isHoverSuppressed = false;
+          if (current === 1 && !hoverSuppressed) goTo(0);
+          hoverSuppressed = false;
         }, 120);
       });
 
-      // If user manually clicks an arrow / dot / thumb, don't auto-return on mouseleave
-      if (prevBtn) prevBtn.addEventListener('click', function() { isHoverSuppressed = true; });
-      if (nextBtn) nextBtn.addEventListener('click', function() { isHoverSuppressed = true; });
+      // Manual navigation disables auto-return for that hover session
+      [prevBtn, nextBtn].forEach(function(btn) {
+        if (btn) btn.addEventListener('click', function() { hoverSuppressed = true; });
+      });
       document.querySelectorAll('.pg-dot, .pg-thumb').forEach(function(el) {
-        el.addEventListener('click', function() { isHoverSuppressed = true; });
+        el.addEventListener('click', function() { hoverSuppressed = true; });
       });
     }
   }
 
-    function goTo(idx) {
-      idx = Math.max(0, Math.min(total - 1, idx));
-      current = idx;
-      // Use scrollLeft — works with scroll-snap and native iOS momentum
-      track.scrollTo({ left: idx * track.clientWidth, behavior: 'smooth' });
-      syncUI(idx);
-    }
-
-    function syncUI(idx) {
-      // Dots
-      document.querySelectorAll('.pg-dot').forEach(function(d) {
-        d.classList.toggle('active', parseInt(d.dataset.idx) === idx);
-      });
-      // Thumbs
-      document.querySelectorAll('.pg-thumb').forEach(function(t) {
-        t.classList.toggle('active', parseInt(t.dataset.idx) === idx);
-      });
-    }
-
-    // Sync on scroll (covers both touch swipe and arrow-driven scroll)
-    var scrollTimer;
-    track.addEventListener('scroll', function() {
-      clearTimeout(scrollTimer);
-      scrollTimer = setTimeout(function() {
-        var idx = Math.round(track.scrollLeft / track.clientWidth);
-        current = idx;
-        syncUI(idx);
-      }, 80);
-    }, { passive: true });
-
-    // Arrow buttons
-    var prevBtn = document.getElementById('pg-prev');
-    var nextBtn = document.getElementById('pg-next');
-    if (prevBtn) prevBtn.addEventListener('click', function() { goTo(current - 1); });
-    if (nextBtn) nextBtn.addEventListener('click', function() { goTo(current + 1); });
-
-    // Dot buttons
-    document.querySelectorAll('.pg-dot').forEach(function(d) {
-      d.addEventListener('click', function() { goTo(parseInt(d.dataset.idx)); });
-    });
-
-    // Thumb buttons
-    document.querySelectorAll('.pg-thumb').forEach(function(t) {
-      t.addEventListener('click', function() { goTo(parseInt(t.dataset.idx)); });
-    });
-  }
-
-  /* ── Hex Tile Selector ── */
-  function buildHexSelector(p, positions, panelImages, totalPanels, wallImage) {
+  /* ── Hex selector ── */
+  function buildHexSelector(p, positions, panelImages, totalPanels) {
     var mount = document.getElementById('hex-selector-mount');
     if (!mount || !totalPanels) return;
 
@@ -638,16 +590,23 @@
     for (var i = 0; i < totalPanels; i++) selected.add(i);
     window._selectedPanels = selected;
 
+    function updatePrice() {
+      var count = selected.size;
+      var el = document.getElementById('dynamic-price');
+      if (el) el.textContent = '\u00a3' + (count * PANEL_PRICE).toFixed(2);
+      var btn = document.getElementById('add-to-basket-btn');
+      if (btn) btn.textContent = count > 0
+        ? 'Add ' + count + ' Panel' + (count !== 1 ? 's' : '') + ' to Basket'
+        : 'Select Panels';
+    }
+
     function render() {
       var count = selected.size;
-      var price = count * PANEL_PRICE;
 
-      // Group positions by row
       var rows = {};
       gridPositions.forEach(function(pos, idx) {
-        var r = pos.row;
-        if (!rows[r]) rows[r] = [];
-        rows[r].push({ row: pos.row, col: pos.col, idx: idx });
+        if (!rows[pos.row]) rows[pos.row] = [];
+        rows[pos.row].push({ row: pos.row, col: pos.col, idx: idx });
       });
       var rowKeys = Object.keys(rows).map(Number).sort(function(a, b) { return a - b; });
 
@@ -655,11 +614,10 @@
         var cells = rows[rowKey].slice().sort(function(a, b) { return a.col - b.col; });
         var isOffset = rowKey % 2 !== 0;
         var cellsHtml = cells.map(function(cell) {
-          var img = panelImages[cell.idx] || '';
+          var img  = panelImages[cell.idx] || '';
           var name = (p.panelNames && p.panelNames[cell.idx]) || ('Panel ' + (cell.idx + 1));
-          var sel = selected.has(cell.idx);
-          var bgStyle = img ? 'style="background-image:url(\'' + img + '\');background-size:cover;background-position:center"' : '';
-          return '<button class="hex-cell' + (sel ? ' selected' : '') + '" data-idx="' + cell.idx + '" title="' + name + '" ' + bgStyle + '>' +
+          var sel  = selected.has(cell.idx);
+          return '<button class="hex-cell' + (sel ? ' selected' : '') + '" data-idx="' + cell.idx + '" title="' + name.replace(/"/g, '') + '">' +
             (img ? '<img src="' + img + '" alt="' + name.replace(/"/g, '') + '">' : '') +
             '<span class="panel-label">' + (cell.idx + 1) + '</span>' +
           '</button>';
@@ -676,7 +634,7 @@
           '<div class="hex-grid-wrap"><div class="hex-grid-inner" id="hex-grid">' + rowsHtml + '</div></div>' +
           '<div class="hex-selector-footer">' +
             '<div>' +
-              '<div class="hex-price-row" id="hex-price">&pound;' + price.toFixed(2) + '</div>' +
+              '<div class="hex-price-row">&pound;' + (count * PANEL_PRICE).toFixed(2) + '</div>' +
               '<div class="hex-price-sub">' + count + ' panel' + (count !== 1 ? 's' : '') + ' &times; &pound;34.99 each</div>' +
             '</div>' +
             '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
@@ -686,66 +644,41 @@
           '</div>' +
         '</div>';
 
-      // Cell click events
       mount.querySelectorAll('.hex-cell').forEach(function(btn) {
         btn.addEventListener('click', function() {
           var idx = parseInt(btn.dataset.idx);
-          if (selected.has(idx)) selected.delete(idx);
-          else selected.add(idx);
+          if (selected.has(idx)) selected.delete(idx); else selected.add(idx);
           window._selectedPanels = selected;
           render();
-          updateBasketPrice();
+          updatePrice();
         });
       });
-
       mount.querySelector('#sel-all').addEventListener('click', function() {
         for (var i = 0; i < totalPanels; i++) selected.add(i);
-        window._selectedPanels = selected;
-        render();
-        updateBasketPrice();
+        window._selectedPanels = selected; render(); updatePrice();
       });
       mount.querySelector('#sel-none').addEventListener('click', function() {
         selected.clear();
-        window._selectedPanels = selected;
-        render();
-        updateBasketPrice();
+        window._selectedPanels = selected; render(); updatePrice();
       });
 
-      updateBasketPrice();
-    }
-
-    function updateBasketPrice() {
-      var count = selected.size || 0;
-      var price = count * PANEL_PRICE;
-      var priceEl = document.getElementById('dynamic-price');
-      if (priceEl) priceEl.textContent = '\u00a3' + price.toFixed(2);
-      var btn = document.getElementById('add-to-basket-btn');
-      if (btn) btn.textContent = count > 0
-        ? 'Add ' + count + ' Panel' + (count !== 1 ? 's' : '') + ' to Basket'
-        : 'Select Panels';
+      updatePrice();
     }
 
     render();
   }
 
-  /* ── Auto layout for products without explicit positions ── */
   function autoLayout(n) {
-    // Create a compact honeycomb layout
-    // Work out a sensible column count so the grid is roughly square
     var cols = Math.max(2, Math.ceil(Math.sqrt(n)));
-    var positions = [];
-    var placed = 0;
-    var row = 0;
+    var positions = [], placed = 0, row = 0;
     while (placed < n) {
       var rowCols = Math.min(cols, n - placed);
-      for (var c = 0; c < rowCols; c++) {
-        positions.push({ row: row, col: c });
-        placed++;
-      }
+      for (var c = 0; c < rowCols; c++) { positions.push({ row: row, col: c }); placed++; }
       row++;
     }
     return positions;
   }
+
 })();
 </script>
 </body>
