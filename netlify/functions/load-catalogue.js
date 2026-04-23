@@ -20,6 +20,7 @@ function normaliseProduct(p) {
     pieces: p.pieces,
     panelHint: p.panel_hint,
     image: p.image,
+    wallImage: p.wall_image || null,   // ← NEW
     isCollection: !!p.is_collection,
     isPublished: p.is_published !== false,
     panelNames: Array.isArray(p.panel_names) ? p.panel_names : [],
