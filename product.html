@@ -13,70 +13,270 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
   <style>
-    /* ── PRODUCT MEDIA with hover swap ── */
-    .product-media-wrap{position:relative;border-radius:var(--r);overflow:hidden;border:1px solid var(--border);}
-    .product-media-wrap img{width:100%;display:block;transition:opacity .45s ease;}
-    .product-media-wrap .img-hover{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .45s ease;}
-    .product-media-wrap:hover .img-main{opacity:0;}
-    .product-media-wrap:hover .img-hover{opacity:1;}
-    .product-media-wrap.no-hover-img:hover .img-main{opacity:1;}
+    /* ══ PRODUCT GALLERY ══ */
+    .pg-wrap {
+      position: relative;
+      border-radius: var(--r);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: var(--bg1);
+      isolation: isolate;
+    }
 
-    /* ── WALL HINT ── */
-    .wall-hint{
-      position:absolute;bottom:12px;left:12px;
-      background:rgba(255,255,255,.88);backdrop-filter:blur(12px);
-      border:1px solid rgba(255,255,255,.6);border-radius:10px;
-      padding:5px 12px;font-family:var(--fm);font-size:.58rem;letter-spacing:.1em;
-      text-transform:uppercase;color:rgba(0,0,0,.5);pointer-events:none;
-      opacity:0;transition:opacity .3s;
+    /* Swipeable track */
+    .pg-track {
+      display: flex;
+      touch-action: pan-y pinch-zoom;   /* iOS: allow horizontal swipe without blocking vertical page scroll */
+      -webkit-overflow-scrolling: touch;
+      overflow-x: scroll;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      -webkit-transform: translateZ(0); /* Safari compositing fix */
+      transform: translateZ(0);
     }
-    .product-media-wrap:hover .wall-hint{opacity:1;}
+    .pg-track::-webkit-scrollbar { display: none; }
 
-    /* ── HEX TILE SELECTOR ── */
-    .hex-selector{
-      background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);
-      padding:22px;margin-top:24px;
+    .pg-slide {
+      flex: 0 0 100%;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      position: relative;
+      aspect-ratio: 4/3;
     }
-    .hex-selector-title{
-      font-family:var(--fm);font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;
-      color:var(--muted);margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;
+    .pg-slide img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      -webkit-user-drag: none;
+      user-select: none;
     }
-    .hex-grid-wrap{display:flex;flex-direction:column;align-items:center;gap:0;margin-bottom:18px;}
-    .hex-row{display:flex;gap:0;margin-bottom:-6px;}
-    .hex-row.offset{margin-left:28px;}
-    .hex-cell{
-      width:52px;height:58px;
-      clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
-      margin:2px;cursor:pointer;
-      background:rgba(0,0,0,.08);
-      border:0;padding:0;
-      transition:transform .18s,filter .18s;
-      position:relative;overflow:hidden;
-      flex-shrink:0;
-    }
-    .hex-cell img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;}
-    .hex-cell.selected{filter:brightness(1.08);transform:scale(1.06);box-shadow:0 0 0 3px var(--accent);}
-    .hex-cell.selected::after{
-      content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-      font-size:.75rem;color:#fff;background:rgba(212,120,15,.45);font-weight:800;
-    }
-    .hex-cell:not(.selected){filter:brightness(0.72) saturate(0.6);}
-    .hex-cell:hover{filter:brightness(0.9) saturate(0.85);transform:scale(1.04);}
-    .hex-cell.selected:hover{filter:brightness(1.1);}
 
-    .hex-selector-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
-    .hex-price-row{font-family:var(--fd);font-size:1.6rem;color:var(--gold);font-weight:300;}
-    .hex-price-sub{font-family:var(--fm);font-size:.62rem;color:var(--muted);margin-top:2px;}
-    .hex-select-all{font-family:var(--fm);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;
-      color:var(--accent);background:none;border:1px solid rgba(212,120,15,.3);border-radius:999px;
-      padding:5px 13px;cursor:pointer;transition:background .15s;}
-    .hex-select-all:hover{background:rgba(212,120,15,.07);}
-    .hex-count{font-family:var(--fm);font-size:.7rem;color:var(--muted);}
+    /* Wall hint on second slide */
+    .wall-hint {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      background: rgba(255,255,255,.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,.6);
+      border-radius: 10px;
+      padding: 5px 12px;
+      font-family: var(--fm);
+      font-size: .58rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: rgba(0,0,0,.5);
+      pointer-events: none;
+    }
 
-    .panel-label{
-      font-family:var(--fm);font-size:.5rem;letter-spacing:.08em;text-transform:uppercase;
-      color:#fff;position:absolute;bottom:4px;left:50%;transform:translateX(-50%);
-      white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,.7);pointer-events:none;
+    /* Arrow navigation — desktop only (opacity 0 by default, reveal on hover) */
+    .pg-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 10;
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.55);
+      background: rgba(255,255,255,.82);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 4px 20px rgba(0,0,0,.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity .2s, transform .2s ease, background .15s;
+      pointer-events: none;
+    }
+    .pg-wrap:hover .pg-arrow { opacity: 1; pointer-events: auto; }
+    .pg-arrow:hover { background: rgba(255,255,255,.97); }
+    .pg-arrow:active { transform: translateY(-50%) scale(.94); }
+    .pg-arrow svg { width: 16px; height: 16px; stroke: #111; }
+    .pg-arrow-prev { left: 12px; }
+    .pg-arrow-next { right: 12px; }
+    .pg-wrap.single .pg-arrow { display: none; }
+
+    /* Dot indicators */
+    .pg-dots {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+      padding: 10px 0 4px;
+    }
+    .pg-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 999px;
+      background: var(--border2);
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      transition: background .2s, transform .2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .pg-dot.active { background: var(--accent); transform: scale(1.4); }
+    .pg-wrap.single .pg-dots { display: none; }
+
+    /* Thumbnails */
+    .pg-thumbs {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      padding-bottom: 2px;
+    }
+    .pg-thumbs::-webkit-scrollbar { display: none; }
+    .pg-thumb {
+      flex: 0 0 60px;
+      height: 60px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: border-color .18s, opacity .18s;
+      opacity: .55;
+      -webkit-tap-highlight-color: transparent;
+      background: none;
+      padding: 0;
+    }
+    .pg-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .pg-thumb.active { border-color: var(--accent); opacity: 1; }
+    .pg-wrap.single ~ .pg-thumbs { display: none; }
+
+    /* ══ HEX TILE SELECTOR ══
+       Pointy-top hexagons, correct tessellation geometry.
+       Cell W=54px, H=62px.
+       Vertical row overlap = H * 0.25 = 15.5 → margin-bottom: -15px
+       Row offset = (W + 2*margin) / 2 = (54+2) / 2 = 28px → use 29px
+    */
+    .hex-selector {
+      background: var(--bg1);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 22px;
+      margin-top: 24px;
+    }
+    .hex-selector-title {
+      font-family: var(--fm);
+      font-size: .6rem;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    /* Outer: scrollable on narrow screens, no wrap */
+    .hex-grid-wrap {
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      padding-bottom: 8px;
+      margin-bottom: 18px;
+    }
+    .hex-grid-wrap::-webkit-scrollbar { display: none; }
+    /* Inner: intrinsic width, column layout */
+    .hex-grid-inner {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .hex-row { display: flex; }
+    /* Odd rows offset by half cell-width for honeycomb tessellation */
+    .hex-row.offset { margin-left: 29px; }
+
+    .hex-cell {
+      width: 54px;
+      height: 62px;
+      clip-path: polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+      margin: 1px;
+      margin-bottom: -15px; /* row overlap: H*0.25 = 15.5 */
+      cursor: pointer;
+      background: rgba(0,0,0,.08);
+      border: 0;
+      padding: 0;
+      transition: transform .18s, filter .18s;
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    /* Last row — don't pull subsequent content up */
+    .hex-row:last-child .hex-cell { margin-bottom: 1px; }
+
+    .hex-cell img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+    .hex-cell.selected { filter: brightness(1.08); transform: scale(1.06); box-shadow: 0 0 0 3px var(--accent); }
+    .hex-cell.selected::after {
+      content: '✓';
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .75rem;
+      color: #fff;
+      background: rgba(212,120,15,.45);
+      font-weight: 800;
+    }
+    .hex-cell:not(.selected) { filter: brightness(0.72) saturate(0.6); }
+    .hex-cell:hover { filter: brightness(0.9) saturate(0.85); transform: scale(1.04); }
+    .hex-cell.selected:hover { filter: brightness(1.1); }
+
+    .hex-selector-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .hex-price-row { font-family: var(--fd); font-size: 1.6rem; color: var(--gold); font-weight: 300; }
+    .hex-price-sub { font-family: var(--fm); font-size: .62rem; color: var(--muted); margin-top: 2px; }
+    .hex-select-all {
+      font-family: var(--fm);
+      font-size: .62rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: none;
+      border: 1px solid rgba(212,120,15,.3);
+      border-radius: 999px;
+      padding: 5px 13px;
+      cursor: pointer;
+      transition: background .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .hex-select-all:hover { background: rgba(212,120,15,.07); }
+    .hex-count { font-family: var(--fm); font-size: .7rem; color: var(--muted); }
+    .panel-label {
+      font-family: var(--fm);
+      font-size: .44rem;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: #fff;
+      position: absolute;
+      bottom: 5px;
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      text-shadow: 0 1px 3px rgba(0,0,0,.7);
+      pointer-events: none;
+    }
+
+    /* Mobile: scale cells down */
+    @media (max-width: 600px) {
+      .hex-cell { width: 46px; height: 53px; margin-bottom: -13px; }
+      .hex-row.offset { margin-left: 24px; }
+      .hex-row:last-child .hex-cell { margin-bottom: 1px; }
     }
   </style>
 </head>
@@ -114,71 +314,74 @@
 <script src="/js/basket.js"></script>
 <script>
 (function(){
-  const PANEL_PRICE = 34.99;
+  var PANEL_PRICE = 34.99;
 
   document.addEventListener('DOMContentLoaded', function() {
-    const params = new URLSearchParams(window.location.search);
-    const slug = params.get('slug') || params.get('id');
-    if (!slug) { document.getElementById('product-content').innerHTML = '<p style="color:var(--muted)">Product not found.</p>'; return; }
+    var params = new URLSearchParams(window.location.search);
+    var slug = params.get('slug') || params.get('id');
+    if (!slug) {
+      document.getElementById('product-content').innerHTML = '<p style="color:var(--muted)">Product not found.</p>';
+      return;
+    }
 
     fetch('/.netlify/functions/load-catalogue')
-      .then(r => r.json())
-      .then(d => {
-        const p = (d.products || []).find(x => x.slug === slug || x.id === slug);
-        if (!p) { document.getElementById('product-content').innerHTML = '<p style="color:var(--muted)">Product not found.</p>'; return; }
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        var p = (d.products || []).find(function(x) { return x.slug === slug || x.id === slug; });
+        if (!p) {
+          document.getElementById('product-content').innerHTML = '<p style="color:var(--muted)">Product not found.</p>';
+          return;
+        }
 
         document.title = p.name + ' — SPACENOVA';
         document.getElementById('bc-name').textContent = p.name;
 
-        const totalPanels = parseInt(p.pieces) || 0;
-        const wallImage = p.wallImage || null; // from normalised catalogue
-        const panelImages = Array.isArray(p.panelImages) ? p.panelImages : [];
-        const panelMap = p.panelMap || {};
-        const positions = Array.isArray(panelMap.positions) ? panelMap.positions : [];
+        var totalPanels = parseInt(p.pieces) || 0;
+        var wallImage   = p.wallImage || null;
+        var panelImages = Array.isArray(p.panelImages) ? p.panelImages : [];
+        var panelMap    = p.panelMap || {};
+        var positions   = Array.isArray(panelMap.positions) ? panelMap.positions : [];
 
-        // ── Build product HTML ──
-        document.getElementById('product-content').innerHTML = `
-          <div class="product-hero">
-            <div class="product-media">
-              <div class="product-media-wrap${wallImage ? '' : ' no-hover-img'}" id="media-wrap">
-                ${p.image ? `<img class="img-main" src="${p.image}" alt="${p.name}" id="img-main">` : '<div class="card-media-placeholder" style="height:400px"></div>'}
-                ${wallImage ? `<img class="img-hover" src="${wallImage}" alt="${p.name} on wall" id="img-hover">` : ''}
-                ${wallImage ? '<div class="wall-hint">Hover to see on wall</div>' : ''}
-              </div>
-              <div id="hex-selector-mount"></div>
-            </div>
-            <div class="product-info">
-              <span class="badge badge-accent" style="margin-bottom:14px;display:inline-block">${p.isBundle?'Bundle':p.isCollection?'Collection':'Series'}</span>
-              <h2>${p.name}</h2>
-              <p class="product-tagline">${p.short || ''}</p>
-              <div class="product-price-row">
-                <span class="product-price-main" id="dynamic-price">&pound;${parseFloat(p.price||0).toFixed(2)}</span>
-                ${p.priceLabel ? `<span class="product-price-range">${p.priceLabel}</span>` : ''}
-              </div>
-              <p id="panel-price-hint" style="color:var(--muted);font-family:var(--fm);font-size:.68rem;letter-spacing:.06em;margin-bottom:16px">
-                £${PANEL_PRICE.toFixed(2)} per panel — select your arrangement below
-              </p>
-              <p style="color:var(--muted);font-size:.9rem;margin-bottom:24px;line-height:1.75">${p.description || ''}</p>
-              <div class="product-actions">
-                <button class="btn btn-primary" id="add-to-basket-btn">Add to Basket</button>
-                <a class="btn btn-ghost" href="/checkout.html">Buy Now</a>
-              </div>
-              <div class="notice" style="margin-top:20px">Free UK shipping on orders over &pound;150. Dispatched within 2&ndash;3 business days.</div>
-              ${p.note ? `<p style="color:var(--muted);font-size:.83rem;margin-top:14px;line-height:1.7">${p.note}</p>` : ''}
-            </div>
-          </div>`;
+        // Gallery: main image first, wall preview second
+        var galleryImages = [];
+        if (p.image)    galleryImages.push({ src: p.image,     alt: p.name });
+        if (wallImage)  galleryImages.push({ src: wallImage,   alt: p.name + ' on wall' });
 
-        // ── Hex Tile Selector ──
+        document.getElementById('product-content').innerHTML =
+          '<div class="product-hero">' +
+            '<div class="product-media">' +
+              buildGalleryHtml(galleryImages) +
+              '<div id="hex-selector-mount"></div>' +
+            '</div>' +
+            '<div class="product-info">' +
+              '<span class="badge badge-accent" style="margin-bottom:14px;display:inline-block">' +
+                (p.isBundle ? 'Bundle' : p.isCollection ? 'Collection' : 'Series') +
+              '</span>' +
+              '<h2>' + p.name + '</h2>' +
+              '<p class="product-tagline">' + (p.short || '') + '</p>' +
+              '<div class="product-price-row">' +
+                '<span class="product-price-main" id="dynamic-price">&pound;' + parseFloat(p.price || 0).toFixed(2) + '</span>' +
+                (p.priceLabel ? '<span class="product-price-range">' + p.priceLabel + '</span>' : '') +
+              '</div>' +
+              '<p id="panel-price-hint" style="color:var(--muted);font-family:var(--fm);font-size:.68rem;letter-spacing:.06em;margin-bottom:16px">' +
+                '&pound;' + PANEL_PRICE.toFixed(2) + ' per panel &mdash; select your arrangement below' +
+              '</p>' +
+              '<p style="color:var(--muted);font-size:.9rem;margin-bottom:24px;line-height:1.75">' + (p.description || '') + '</p>' +
+              '<div class="product-actions">' +
+                '<button class="btn btn-primary" id="add-to-basket-btn">Add to Basket</button>' +
+                '<a class="btn btn-ghost" href="/checkout.html">Buy Now</a>' +
+              '</div>' +
+              '<div class="notice" style="margin-top:20px">Free UK shipping on orders over &pound;150. Dispatched within 2&ndash;3 business days.</div>' +
+              (p.note ? '<p style="color:var(--muted);font-size:.83rem;margin-top:14px;line-height:1.7">' + p.note + '</p>' : '') +
+            '</div>' +
+          '</div>';
+
+        initGallery(galleryImages);
         buildHexSelector(p, positions, panelImages, totalPanels, wallImage);
 
-        // ── Add to basket ──
-        let selectedPanels = new Set();
-        // Pre-select all panels
-        for (let i = 0; i < totalPanels; i++) selectedPanels.add(i);
-
         document.getElementById('add-to-basket-btn').addEventListener('click', function() {
-          const count = selectedPanels.size || totalPanels;
-          const price = count * PANEL_PRICE;
+          var count = (window._selectedPanels ? window._selectedPanels.size : 0) || totalPanels;
+          var price = count * PANEL_PRICE;
           if (window.addToBasket) {
             window.addToBasket({
               id: p.slug + '-' + count + 'p',
@@ -189,143 +392,209 @@
             });
           }
         });
-
-        // Make selected panels available to the hex selector
-        window._selectedPanels = selectedPanels;
       })
-      .catch(() => { document.getElementById('product-content').innerHTML = '<p style="color:var(--muted)">Could not load product.</p>'; });
+      .catch(function() {
+        document.getElementById('product-content').innerHTML = '<p style="color:var(--muted)">Could not load product.</p>';
+      });
   });
 
-  function buildHexSelector(p, positions, panelImages, totalPanels, wallImage) {
-    const mount = document.getElementById('hex-selector-mount');
-    if (!mount || !totalPanels) return;
-
-    // Determine grid layout from positions or fallback
-    let gridPositions = positions;
-    if (!gridPositions.length) {
-      // Auto-generate a sensible hex layout
-      gridPositions = autoLayout(totalPanels);
+  /* ── Gallery HTML ── */
+  function buildGalleryHtml(images) {
+    if (!images.length) {
+      return '<div class="pg-wrap single" id="pg-wrap">' +
+        '<div class="pg-track" id="pg-track">' +
+          '<div class="pg-slide"><div class="card-media-placeholder" style="aspect-ratio:4/3"></div></div>' +
+        '</div>' +
+      '</div>';
     }
 
-    // Track selection
-    const selected = new Set();
-    for (let i = 0; i < totalPanels; i++) selected.add(i); // all selected by default
+    var isSingle = images.length === 1;
+
+    var slides = images.map(function(img, i) {
+      return '<div class="pg-slide">' +
+        '<img src="' + img.src + '" alt="' + (img.alt || '').replace(/"/g, '&quot;') + '"' +
+        (i === 0 ? '' : ' loading="lazy"') + '>' +
+        (i === 1 ? '<div class="wall-hint">Wall preview</div>' : '') +
+      '</div>';
+    }).join('');
+
+    var arrows = isSingle ? '' :
+      '<button class="pg-arrow pg-arrow-prev" id="pg-prev" aria-label="Previous image">' +
+        '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 3L5 8l5 5"/></svg>' +
+      '</button>' +
+      '<button class="pg-arrow pg-arrow-next" id="pg-next" aria-label="Next image">' +
+        '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3l5 5-5 5"/></svg>' +
+      '</button>';
+
+    var dots = isSingle ? '' :
+      '<div class="pg-dots" id="pg-dots">' +
+        images.map(function(_, i) {
+          return '<button class="pg-dot' + (i === 0 ? ' active' : '') + '" data-idx="' + i + '" aria-label="Image ' + (i+1) + '"></button>';
+        }).join('') +
+      '</div>';
+
+    var thumbs = isSingle ? '' :
+      '<div class="pg-thumbs" id="pg-thumbs">' +
+        images.map(function(img, i) {
+          return '<button class="pg-thumb' + (i === 0 ? ' active' : '') + '" data-idx="' + i + '" aria-label="View image ' + (i+1) + '">' +
+            '<img src="' + img.src + '" alt="" loading="lazy">' +
+          '</button>';
+        }).join('') +
+      '</div>';
+
+    return (
+      '<div class="pg-wrap' + (isSingle ? ' single' : '') + '" id="pg-wrap">' +
+        '<div class="pg-track" id="pg-track">' + slides + '</div>' +
+        arrows + dots +
+      '</div>' + thumbs
+    );
+  }
+
+  /* ── Gallery controller ── */
+  function initGallery(images) {
+    var track = document.getElementById('pg-track');
+    if (!track || images.length <= 1) return;
+
+    var total   = images.length;
+    var current = 0;
+
+    function goTo(idx) {
+      idx = Math.max(0, Math.min(total - 1, idx));
+      current = idx;
+      track.scrollTo({ left: idx * track.clientWidth, behavior: 'smooth' });
+      syncUI(idx);
+    }
+
+    function syncUI(idx) {
+      document.querySelectorAll('.pg-dot').forEach(function(d) {
+        d.classList.toggle('active', parseInt(d.dataset.idx) === idx);
+      });
+      document.querySelectorAll('.pg-thumb').forEach(function(t) {
+        t.classList.toggle('active', parseInt(t.dataset.idx) === idx);
+      });
+    }
+
+    // Drive UI from scroll position (covers touch swipe + arrow clicks)
+    var scrollTimer;
+    track.addEventListener('scroll', function() {
+      clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(function() {
+        var idx = Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
+        current = idx;
+        syncUI(idx);
+      }, 80);
+    }, { passive: true });
+
+    var prevBtn = document.getElementById('pg-prev');
+    var nextBtn = document.getElementById('pg-next');
+    if (prevBtn) prevBtn.addEventListener('click', function() { goTo(current - 1); });
+    if (nextBtn) nextBtn.addEventListener('click', function() { goTo(current + 1); });
+
+    document.querySelectorAll('.pg-dot').forEach(function(d) {
+      d.addEventListener('click', function() { goTo(parseInt(d.dataset.idx)); });
+    });
+    document.querySelectorAll('.pg-thumb').forEach(function(t) {
+      t.addEventListener('click', function() { goTo(parseInt(t.dataset.idx)); });
+    });
+  }
+
+  /* ── Hex selector ── */
+  function buildHexSelector(p, positions, panelImages, totalPanels, wallImage) {
+    var mount = document.getElementById('hex-selector-mount');
+    if (!mount || !totalPanels) return;
+
+    var gridPositions = positions.length ? positions : autoLayout(totalPanels);
+    var selected = new Set();
+    for (var i = 0; i < totalPanels; i++) selected.add(i);
+    window._selectedPanels = selected;
 
     function render() {
-      const count = selected.size;
-      const price = count * 34.99;
+      var count = selected.size;
+      var price = count * PANEL_PRICE;
 
-      // Group by row
-      const rows = {};
-      gridPositions.forEach((pos, idx) => {
-        const r = pos.row;
+      var rows = {};
+      gridPositions.forEach(function(pos, idx) {
+        var r = pos.row;
         if (!rows[r]) rows[r] = [];
-        rows[r].push({ ...pos, idx });
+        rows[r].push({ row: pos.row, col: pos.col, idx: idx });
       });
-      const rowKeys = Object.keys(rows).map(Number).sort((a,b) => a-b);
+      var rowKeys = Object.keys(rows).map(Number).sort(function(a, b) { return a - b; });
 
-      const rowsHtml = rowKeys.map(rowKey => {
-        const cells = rows[rowKey].sort((a,b) => a.col - b.col);
-        // Determine offset: odd rows get offset class
-        const isOffset = rowKey % 2 !== 0;
-        const cellsHtml = cells.map(cell => {
-          const img = panelImages[cell.idx] || '';
-          const name = (p.panelNames && p.panelNames[cell.idx]) || ('Panel ' + (cell.idx + 1));
-          const sel = selected.has(cell.idx);
-          return `<button class="hex-cell${sel ? ' selected' : ''}" data-idx="${cell.idx}" title="${name}"
-            ${img ? `style="background-image:url('${img}');background-size:cover;background-position:center"` : ''}>
-            ${img ? `<img src="${img}" alt="${name}">` : ''}
-            <span class="panel-label">${cell.idx + 1}</span>
-          </button>`;
+      var rowsHtml = rowKeys.map(function(rowKey) {
+        var cells = rows[rowKey].slice().sort(function(a, b) { return a.col - b.col; });
+        var isOffset = rowKey % 2 !== 0;
+        var cellsHtml = cells.map(function(cell) {
+          var img  = panelImages[cell.idx] || '';
+          var name = (p.panelNames && p.panelNames[cell.idx]) || ('Panel ' + (cell.idx + 1));
+          var sel  = selected.has(cell.idx);
+          var bg   = img ? ' style="background-image:url(\'' + img + '\');background-size:cover;background-position:center"' : '';
+          return '<button class="hex-cell' + (sel ? ' selected' : '') + '" data-idx="' + cell.idx + '" title="' + name.replace(/"/g, '') + '"' + bg + '>' +
+            (img ? '<img src="' + img + '" alt="' + name.replace(/"/g, '') + '">' : '') +
+            '<span class="panel-label">' + (cell.idx + 1) + '</span>' +
+          '</button>';
         }).join('');
-        return `<div class="hex-row${isOffset ? ' offset' : ''}">${cellsHtml}</div>`;
+        return '<div class="hex-row' + (isOffset ? ' offset' : '') + '">' + cellsHtml + '</div>';
       }).join('');
 
-      mount.innerHTML = `
-        <div class="hex-selector">
-          <div class="hex-selector-title">
-            <span>Select your panels</span>
-            <span class="hex-count">${count} of ${totalPanels} selected</span>
-          </div>
-          <div class="hex-grid-wrap" id="hex-grid">${rowsHtml}</div>
-          <div class="hex-selector-footer">
-            <div>
-              <div class="hex-price-row" id="hex-price">&pound;${price.toFixed(2)}</div>
-              <div class="hex-price-sub">${count} panel${count !== 1 ? 's' : ''} × £34.99 each</div>
-            </div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <button class="hex-select-all" id="sel-all">Select all</button>
-              <button class="hex-select-all" id="sel-none" style="color:var(--muted);border-color:var(--border2)">Clear</button>
-            </div>
-          </div>
-        </div>`;
+      mount.innerHTML =
+        '<div class="hex-selector">' +
+          '<div class="hex-selector-title">' +
+            '<span>Select your panels</span>' +
+            '<span class="hex-count">' + count + ' of ' + totalPanels + ' selected</span>' +
+          '</div>' +
+          '<div class="hex-grid-wrap"><div class="hex-grid-inner" id="hex-grid">' + rowsHtml + '</div></div>' +
+          '<div class="hex-selector-footer">' +
+            '<div>' +
+              '<div class="hex-price-row">&pound;' + price.toFixed(2) + '</div>' +
+              '<div class="hex-price-sub">' + count + ' panel' + (count !== 1 ? 's' : '') + ' &times; &pound;34.99 each</div>' +
+            '</div>' +
+            '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+              '<button class="hex-select-all" id="sel-all">Select all</button>' +
+              '<button class="hex-select-all" id="sel-none" style="color:var(--muted);border-color:var(--border2)">Clear</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
 
-      // Events
-      mount.querySelectorAll('.hex-cell').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const idx = parseInt(btn.dataset.idx);
+      mount.querySelectorAll('.hex-cell').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var idx = parseInt(btn.dataset.idx);
           if (selected.has(idx)) selected.delete(idx);
           else selected.add(idx);
           window._selectedPanels = selected;
           render();
-          updateBasketPrice();
+          updatePrice();
         });
-
-        // Wall hover preview
-        if (wallImage) {
-          btn.addEventListener('mouseenter', () => showWall());
-          btn.addEventListener('mouseleave', () => hideWall());
-        }
       });
-
-      mount.querySelector('#sel-all').addEventListener('click', () => {
-        for (let i = 0; i < totalPanels; i++) selected.add(i);
-        window._selectedPanels = selected;
-        render(); updateBasketPrice();
+      mount.querySelector('#sel-all').addEventListener('click', function() {
+        for (var i = 0; i < totalPanels; i++) selected.add(i);
+        window._selectedPanels = selected; render(); updatePrice();
       });
-      mount.querySelector('#sel-none').addEventListener('click', () => {
+      mount.querySelector('#sel-none').addEventListener('click', function() {
         selected.clear();
-        window._selectedPanels = selected;
-        render(); updateBasketPrice();
+        window._selectedPanels = selected; render(); updatePrice();
       });
-
-      updateBasketPrice();
+      updatePrice();
     }
 
-    function updateBasketPrice() {
-      const count = selected.size || 0;
-      const price = count * 34.99;
-      const priceEl = document.getElementById('dynamic-price');
-      if (priceEl) priceEl.textContent = '£' + price.toFixed(2);
-      // Update the add-to-basket button label
-      const btn = document.getElementById('add-to-basket-btn');
-      if (btn) btn.textContent = count > 0 ? 'Add ' + count + ' Panel' + (count !== 1 ? 's' : '') + ' to Basket' : 'Select Panels';
-    }
-
-    function showWall() {
-      const wrap = document.getElementById('media-wrap');
-      if (wrap) wrap.classList.add('force-hover');
-    }
-    function hideWall() {
-      const wrap = document.getElementById('media-wrap');
-      if (wrap) wrap.classList.remove('force-hover');
+    function updatePrice() {
+      var count = selected.size;
+      var el = document.getElementById('dynamic-price');
+      if (el) el.textContent = '\u00a3' + (count * PANEL_PRICE).toFixed(2);
+      var btn = document.getElementById('add-to-basket-btn');
+      if (btn) btn.textContent = count > 0
+        ? 'Add ' + count + ' Panel' + (count !== 1 ? 's' : '') + ' to Basket'
+        : 'Select Panels';
     }
 
     render();
   }
 
   function autoLayout(n) {
-    // Generate a compact hexagonal arrangement
-    const positions = [];
-    const cols = Math.ceil(Math.sqrt(n));
-    let placed = 0;
-    let row = 0;
+    var cols = Math.max(2, Math.ceil(Math.sqrt(n)));
+    var positions = [], placed = 0, row = 0;
     while (placed < n) {
-      const rowCols = Math.min(cols, n - placed);
-      for (let c = 0; c < rowCols; c++) {
-        positions.push({ row, col: c });
-        placed++;
-      }
+      var rowCols = Math.min(cols, n - placed);
+      for (var c = 0; c < rowCols; c++) { positions.push({ row: row, col: c }); placed++; }
       row++;
     }
     return positions;
