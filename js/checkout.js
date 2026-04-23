@@ -5,6 +5,7 @@
   var elements;
   var shippingAddressElement;
   var linkAuthElement;
+  var linkAuthEmail = '';
 
   var form       = document.getElementById('payment-form');
   var submitBtn  = document.getElementById('submit-btn');
@@ -183,6 +184,9 @@
     if (linkAuthElement)        { linkAuthElement.destroy();        linkAuthElement = null; }
     if (shippingAddressElement) { shippingAddressElement.destroy(); shippingAddressElement = null; }
 
+    /* Reset captured email whenever elements are remounted */
+    linkAuthEmail = '';
+
     elements = stripe.elements({
       clientSecret: piData.clientSecret,
       appearance:   stripeAppearance,
@@ -193,6 +197,13 @@
     if (linkEl) {
       linkAuthElement = elements.create('linkAuthentication');
       linkAuthElement.mount('#link-authentication-element');
+
+      /* Capture email via change event — getValue() is not supported on this element */
+      linkAuthElement.on('change', function(e) {
+        if (e && e.value && e.value.email) {
+          linkAuthEmail = e.value.email;
+        }
+      });
     }
 
     var addrEl = document.getElementById('shipping-address-element');
@@ -257,21 +268,25 @@
           var submitResult = await elements.submit();
           if (submitResult.error) throw new Error(submitResult.error.message);
 
+          var confirmParams = {
+            return_url: window.location.origin + '/success.html',
+          };
+
+          if (shippingAddressElement) {
+            var addrVal = await shippingAddressElement.getValue();
+            confirmParams.shipping = addrVal.value;
+          }
+
+          /* Use the email captured from the change event, not getValue() */
+          if (linkAuthEmail) {
+            confirmParams.payment_method_data = {
+              billing_details: { email: linkAuthEmail },
+            };
+          }
+
           var result = await stripe.confirmPayment({
-            elements: elements,
-            confirmParams: {
-              return_url: window.location.origin + '/success.html',
-              shipping: shippingAddressElement
-                ? (await shippingAddressElement.getValue()).value
-                : undefined,
-              payment_method_data: {
-                billing_details: {
-                  email: linkAuthElement
-                    ? (await linkAuthElement.getValue()).value.email
-                    : undefined,
-                },
-              },
-            },
+            elements:      elements,
+            confirmParams: confirmParams,
           });
 
           if (result.error) throw new Error(result.error.message);
