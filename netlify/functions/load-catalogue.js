@@ -33,7 +33,7 @@ function normaliseProduct(p) {
   };
 }
 
-// Normalise artifact rows so the frontend always sees consistent fields
+// Normalise an artifact row so it has consistent fields the frontend can use
 function normaliseArtifact(a) {
   return {
     slug: a.slug || null,
@@ -41,6 +41,7 @@ function normaliseArtifact(a) {
     name: a.name || '',
     category: a.category || '',
     price: a.price || 0,
+    // Support both 'desc' and 'description' column names
     desc: a.desc || a.description || '',
     description: a.desc || a.description || '',
     image: a.image || null,
@@ -85,6 +86,7 @@ exports.handler = async (event) => {
       items: Array.isArray(b.items) ? b.items : [],
       text: b.text
     }));
+    // Normalise artifacts so slug, description, isPublished are always present
     const artifacts = (artifactsRes.data || []).map(normaliseArtifact);
     const wholesaleSources = (wholesaleRes.data || []).map((w) => ({
       name: w.name,
