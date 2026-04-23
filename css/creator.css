@@ -364,8 +364,7 @@ img { display: block; max-width: 100%; }
   position: relative; overflow: hidden; flex-shrink: 0;
   box-shadow: 0 4px 16px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.18);
 }
-.panels-hex-layer .hex-row:last-child .hex-cell-composite { margin-bottom: 1.5px; }
-.panels-overlay-label {
+.panels-hex-layer .hex-row:last-child .hex-cell-composite { margin-bottom: 1.5px; }.panels-overlay-label {
   position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
   font-family: var(--fm); font-size: .54rem; letter-spacing: .14em; text-transform: uppercase;
   color: rgba(255,255,255,.55); white-space: nowrap; pointer-events: none;
