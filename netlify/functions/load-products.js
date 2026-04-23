@@ -1,5 +1,4 @@
 const { createClient } = require('@supabase/supabase-js');
-
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -9,7 +8,6 @@ exports.handler = async (event) => {
   if (event.httpMethod && event.httpMethod !== 'GET') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
-
   try {
     const { data, error } = await supabase
       .from('products')
@@ -26,24 +24,27 @@ exports.handler = async (event) => {
     }
 
     const products = (data || []).map((p) => ({
-      slug: p.slug,
-      name: p.name,
-      category: p.category,
-      price: p.price,
-      priceLabel: p.price_label,
-      short: p.short,
+      slug:        p.slug,
+      name:        p.name,
+      category:    p.category,
+      price:       p.price,
+      priceLabel:  p.price_label,
+      short:       p.short,
       description: p.description,
-      note: p.note,
-      accent: p.accent,
-      size: p.size,
-      material: p.material,
-      pieces: p.pieces,
-      panelHint: p.panel_hint,
-      image: p.image,
-      isCollection: p.is_collection,
-      panelNames: p.panel_names || [],
+      note:        p.note,
+      accent:      p.accent,
+      size:        p.size,
+      material:    p.material,
+      pieces:      p.pieces,
+      panelHint:   p.panel_hint,
+      image:       p.image,
+      wallImage:   p.wall_image   || null,   // ← was missing
+      isCollection: !!p.is_collection,
+      isBundle:    !!p.is_bundle,             // ← was missing
+      isPublished: p.is_published !== false,  // ← was missing
+      panelNames:  p.panel_names  || [],
       panelImages: p.panel_images || [],
-      panelMap: p.panel_map || { positions: [], transforms: [] }
+      panelMap:    p.panel_map    || { positions: [], transforms: [] }
     }));
 
     return {
