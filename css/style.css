@@ -308,13 +308,70 @@ button { font-family: inherit; }
 .card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; transition: transform .32s cubic-bezier(.22,1,.36,1), border-color .3s, box-shadow .3s; }
 .card:hover { transform: translateY(-4px) scale(1.002); border-color: var(--border2); box-shadow: 0 20px 60px rgba(0,0,0,.09), 0 0 0 1px rgba(0,0,0,.05); }
 
-.card-media { position: relative; aspect-ratio: 16/10; overflow: hidden; background: var(--surface); }
-.card-media img { width: 100%; height: 100%; object-fit: cover; transition: transform .7s cubic-bezier(.22,1,.36,1); }
-.card:hover .card-media img { transform: scale(1.06); }
+.card-media {
+  position: relative;
+  overflow: visible;
+  border-radius: var(--r) var(--r) 0 0;
+}
 
-.badge-row { position: absolute; bottom: 12px; left: 12px; display: flex; gap: 6px; flex-wrap: wrap; }
-.badge { background: rgba(255,255,255,.92); backdrop-filter: var(--blur-sm); border: 1px solid rgba(0,0,0,.1); color: var(--text2); font-family: var(--fm); font-size: .58rem; letter-spacing: .08em; padding: 4px 10px; border-radius: 999px; }
-.badge-accent { border-color: rgba(212,120,15,.35); color: var(--accent); background: rgba(255,255,255,.94); }
+.card-media > img,
+.card-media > .card-media-placeholder {
+  overflow: hidden;
+  border-radius: var(--r) var(--r) 0 0;
+  display: block;
+  width: 100%;
+  aspect-ratio: 4/3;
+  object-fit: cover;
+}
+
+.badge-row {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  z-index: 2;
+  /* Stop it ever creeping into the card text area below */
+  max-width: calc(100% - 20px);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-family: var(--fm);
+  font-size: .55rem;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  line-height: 1;
+  position: relative;
+  z-index: 2;
+}
+
+.badge-accent {
+  background: rgba(212,120,15,.92);
+  color: #fff;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.badge-gold {
+  background: rgba(180,140,0,.88);
+  color: #fff;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.badge-muted {
+  background: rgba(255,255,255,.82);
+  color: rgba(0,0,0,.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
 
 .card-wishlist { position: absolute; top: 12px; right: 12px; width: 32px; height: 32px; background: rgba(255,255,255,.92); backdrop-filter: var(--blur-sm); border: 1px solid rgba(0,0,0,.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all .2s; color: var(--muted); font-size: .85rem; -webkit-tap-highlight-color: transparent; }
 .card-wishlist:hover { color: var(--danger); border-color: var(--danger); }
@@ -927,7 +984,7 @@ body.panel-open { overflow: hidden; }
   .card:hover .card-media.card-has-wall .card-img-main { opacity: 0; transform: scale(1.04); }
   .card:hover .card-media.card-has-wall .card-img-wall { opacity: 1; transform: scale(1); }
 }
-.card-media.card-has-wall .badge-row { position: relative; z-index: 3; }
+.card-media.card-has-wall  { position: relative; z-index: 3; }
 .card-media:not(.card-has-wall) img {
   width: 100%; height: 100%; object-fit: cover;
   transition: transform .7s cubic-bezier(.22,1,.36,1);
