@@ -2,465 +2,913 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>spacenova — Creator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Spacenova — Creator</title>
   <link rel="stylesheet" href="/css/creator.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=DM+Mono:wght@400&family=Syne:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-
-<!-- ══════════════════ AUTH ══════════════════ -->
-<div class="auth-screen" id="auth-screen">
-  <div class="auth-box">
-    <div style="font-size:2rem;margin-bottom:16px">🛸</div>
-    <h2>Creator Access</h2>
-    <p>Enter your team password to access the Spacenova Creator.</p>
-    <label class="inp-label">Password</label>
-    <input class="inp" type="password" id="auth-pw" placeholder="Team password">
-    <p class="auth-err" id="auth-err">Incorrect password. Please try again.</p>
-    <button class="btn btn-accent" style="width:100%;margin-top:12px" onclick="doAuth()">Enter Creator →</button>
-    <div style="margin-top:16px"><a href="/" class="topbar-back">← Back to store</a></div>
+  <div class="auth-screen" id="auth-screen">
+    <div class="auth-card">
+      <div class="auth-mark">✦</div>
+      <h1>Creator Access</h1>
+      <p>Enter the team password to open the catalogue editor.</p>
+      <label class="field-label" for="auth-pw">Password</label>
+      <input id="auth-pw" class="field" type="password" placeholder="Team password" autocomplete="current-password">
+      <p class="auth-error" id="auth-err">Incorrect password.</p>
+      <button class="btn btn-primary btn-block" id="auth-btn">Enter creator</button>
+      <a class="subtle-link auth-back" href="/">Back to store</a>
+    </div>
   </div>
-</div>
 
-<!-- ══════════════════ TOPBAR ══════════════════ -->
-<header class="topbar">
-  <div class="topbar-logo">
-    <img src="/assets/logo.svg" alt="spacenova" onerror="this.style.display='none'">
-  </div>
-  <div class="topbar-sep"></div>
-  <span class="topbar-title">Creator</span>
-  <div class="topbar-spacer"></div>
-  <span class="cr-status" id="cr-status">Ready</span>
-  <a href="/admin/index.html" class="topbar-back">← Dashboard</a>
-  <a href="/" class="topbar-back">← Store</a>
-</header>
-
-<!-- ══════════════════ LAYOUT ══════════════════ -->
-<div class="layout">
-
-  <!-- ══ SIDEBAR ══ -->
-  <aside class="sidebar">
-
-    <!-- Product selector -->
-    <div class="card">
-      <div class="sec-title"><span class="sec-icon">📂</span> Product</div>
-      <label class="inp-label">Load existing product</label>
-      <select class="sel" id="cr-product-sel" onchange="loadProduct(this.value)"></select>
-      <div class="row" style="margin-top:6px">
-        <button class="btn" onclick="newProject(false)">+ New Series</button>
-        <button class="btn" onclick="newProject(true)">+ New Collection</button>
+  <header class="topbar">
+    <div class="topbar-brand">
+      <div class="brand-badge">SN</div>
+      <div>
+        <div class="topbar-kicker">Admin</div>
+        <div class="topbar-title">Product Creator</div>
       </div>
-      <button class="btn btn-danger" style="width:100%;margin-top:8px" onclick="deleteProduct()">Delete product</button>
     </div>
 
-    <!-- Details -->
-    <div class="card">
-      <div class="sec-title"><span class="sec-icon">✏️</span> Details</div>
-      <label class="inp-label">Name</label>
-      <input id="cr-name" class="inp" placeholder="Saturn Rings Arc">
-      <label class="inp-label">URL slug</label>
-      <input id="cr-slug" class="inp" placeholder="saturn-rings-arc">
-      <label class="inp-label">Category</label>
-      <input id="cr-cat" class="inp" placeholder="planets, nebula, galaxy, earth, lunar…">
-      <div class="row">
+    <div class="topbar-status">
+      <span class="status-dot" id="status-dot"></span>
+      <span id="status-text">Ready</span>
+    </div>
+
+    <div class="topbar-actions">
+      <a class="btn btn-ghost btn-sm" href="/admin/index.html">Dashboard</a>
+      <a class="btn btn-ghost btn-sm" href="/">Store</a>
+      <button class="btn btn-ghost btn-sm mobile-preview-toggle" id="preview-toggle" type="button">Preview</button>
+    </div>
+  </header>
+
+  <main class="creator-shell">
+    <aside class="editor-rail">
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Catalogue</p>
+            <h2>Load product</h2>
+          </div>
+        </div>
+
+        <label class="field-label" for="product-select">Existing product</label>
+        <select id="product-select" class="field field-select"></select>
+
+        <div class="inline-actions">
+          <button class="btn btn-primary" id="new-series-btn" type="button">New series</button>
+          <button class="btn btn-ghost" id="new-collection-btn" type="button">New collection</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Details</p>
+            <h2>Core product fields</h2>
+          </div>
+        </div>
+
+        <label class="field-label" for="f-name">Name</label>
+        <input id="f-name" class="field" type="text" placeholder="Saturn Rings Arc">
+
+        <label class="field-label" for="f-slug">Slug</label>
+        <input id="f-slug" class="field" type="text" placeholder="saturn-rings-arc">
+
+        <div class="field-grid two">
+          <div>
+            <label class="field-label" for="f-category">Category</label>
+            <input id="f-category" class="field" type="text" placeholder="planetary">
+          </div>
+          <div>
+            <label class="field-label" for="f-accent">Accent / mood</label>
+            <input id="f-accent" class="field" type="text" placeholder="Warm gold">
+          </div>
+        </div>
+
+        <div class="field-grid two">
+          <div>
+            <label class="field-label" for="f-price">Full set price</label>
+            <input id="f-price" class="field" type="number" step="0.01" placeholder="229">
+          </div>
+          <div>
+            <label class="field-label" for="f-price-label">Price label</label>
+            <input id="f-price-label" class="field" type="text" placeholder="£189–£249">
+          </div>
+        </div>
+
+        <div class="field-grid two">
+          <div>
+            <label class="field-label" for="f-size">Display size</label>
+            <input id="f-size" class="field" type="text" placeholder="Large panoramic">
+          </div>
+          <div>
+            <label class="field-label" for="f-material">Material</label>
+            <input id="f-material" class="field" type="text" placeholder="Aluminium composite">
+          </div>
+        </div>
+
+        <label class="field-label" for="f-short">Short line</label>
+        <input id="f-short" class="field" type="text" placeholder="A premium hexagonal panel set">
+
+        <label class="field-label" for="f-description">Description</label>
+        <textarea id="f-description" class="field textarea" placeholder="Write the full product description..."></textarea>
+
+        <label class="field-label" for="f-note">Note</label>
+        <textarea id="f-note" class="field textarea" placeholder="Optional production note, edition note, or material note..."></textarea>
+
+        <div class="toggle-grid">
+          <label class="toggle-row">
+            <input id="f-is-collection" type="checkbox">
+            <span>Collection</span>
+          </label>
+          <label class="toggle-row">
+            <input id="f-is-bundle" type="checkbox">
+            <span>Bundle</span>
+          </label>
+          <label class="toggle-row">
+            <input id="f-is-published" type="checkbox" checked>
+            <span>Published</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Imagery</p>
+            <h2>Main and wall previews</h2>
+          </div>
+        </div>
+
+        <label class="field-label" for="f-image">Main image URL</label>
+        <input id="f-image" class="field" type="url" placeholder="https://...">
+
+        <label class="field-label" for="f-wall-image">Wall image URL</label>
+        <input id="f-wall-image" class="field" type="url" placeholder="https://...">
+
+        <label class="field-label" for="f-panel-hint">Panel hint</label>
+        <input id="f-panel-hint" class="field" type="text" placeholder="Use the arrangement editor below">
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Panels</p>
+            <h2>Arrangement editor</h2>
+          </div>
+          <button class="btn btn-ghost btn-sm" id="rebuild-panels-btn" type="button">Rebuild</button>
+        </div>
+
+        <div class="field-grid two">
+          <div>
+            <label class="field-label" for="f-pieces">Panels</label>
+            <input id="f-pieces" class="field" type="number" min="1" max="24" value="6">
+          </div>
+          <div>
+            <label class="field-label" for="layout-preset">Layout preset</label>
+            <select id="layout-preset" class="field field-select">
+              <option value="auto">Auto</option>
+              <option value="line">Line</option>
+              <option value="arc">Arc</option>
+              <option value="cluster">Cluster</option>
+              <option value="honeycomb">Honeycomb</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="panel-editor-toolbar">
+          <button class="btn btn-ghost btn-sm" id="auto-layout-btn" type="button">Auto layout</button>
+          <button class="btn btn-ghost btn-sm" id="sort-layout-btn" type="button">Tidy rows</button>
+        </div>
+
+        <div class="panel-list-head">
+          <span>Panel</span>
+          <span>Name</span>
+          <span>Image URL</span>
+          <span>Row</span>
+          <span>Col</span>
+        </div>
+        <div id="panel-list" class="panel-list"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Actions</p>
+            <h2>Save product</h2>
+          </div>
+        </div>
+
+        <div class="inline-actions">
+          <button class="btn btn-primary" id="save-btn" type="button">Save</button>
+          <button class="btn btn-ghost" id="sync-btn" type="button">Sync</button>
+        </div>
+      </section>
+    </aside>
+
+    <section class="preview-stage" id="preview-stage">
+      <div class="preview-header">
         <div>
-          <label class="inp-label">Full set price (£)</label>
-          <input id="cr-price" class="num" type="number" placeholder="229">
+          <p class="eyebrow">Live preview</p>
+          <h2 id="preview-title">Untitled product</h2>
         </div>
-        <div>
-          <label class="inp-label">Price range label</label>
-          <input id="cr-prange" class="inp" placeholder="£189–£249">
-        </div>
-      </div>
-      <label class="inp-label">Colour mood</label>
-      <input id="cr-accent" class="inp" placeholder="Deep space / blue">
-      <label class="inp-label">Display size</label>
-      <input id="cr-size" class="inp" placeholder="Large panoramic">
-      <label class="inp-label">Material</label>
-      <input id="cr-mat" class="inp" placeholder="Matte-black magnetic frame">
-      <label class="inp-label">Short description</label>
-      <textarea id="cr-short" class="textarea"></textarea>
-      <label class="inp-label">Full description</label>
-      <textarea id="cr-desc" class="textarea"></textarea>
-      <label class="inp-label">Display note</label>
-      <input id="cr-note" class="inp" placeholder="Panels connect only within this series.">
-    </div>
-
-    <!-- Type & Panels -->
-    <div class="card">
-      <div class="sec-title"><span class="sec-icon">🔖</span> Type &amp; Panels</div>
-      <div class="type-toggle">
-        <button class="type-btn active" id="cr-mode-series" onclick="setMode('series')">Series</button>
-        <button class="type-btn collection" id="cr-mode-col" onclick="setMode('collection')">Collection</button>
-      </div>
-      <label class="inp-label">Panel count (1–9)</label>
-      <input id="cr-panel-count" class="num" type="number" min="1" max="9" step="1" value="6" oninput="ensurePanels();renderAll();">
-      <p class="help" style="margin-top:6px">Series: one large image split across all panels. Collection: each panel is its own individual artwork.</p>
-    </div>
-
-    <!-- Images -->
-    <div class="card">
-      <div class="sec-title"><span class="sec-icon">🖼️</span> Images</div>
-      <label class="inp-label">Main image</label>
-      <input id="cr-main-file" type="file" accept="image/*" hidden>
-      <div class="row">
-        <button class="btn" onclick="document.getElementById('cr-main-file').click()">📁 Choose file</button>
-      </div>
-      <label class="inp-label" style="margin-top:8px">Panel images</label>
-      <input id="cr-panel-files" type="file" accept="image/*" multiple hidden>
-      <button class="btn" onclick="document.getElementById('cr-panel-files').click()">📁 Choose files</button>
-
-      <label class="inp-label" style="margin-top:8px">Main image URL</label>
-      <input id="cr-main-url" class="inp" placeholder="https://…"
-        oninput="CR.mainImage=this.value.trim();updateMainPreview();renderAll();"
-        style="margin-bottom:4px">
-      <div id="cr-main-preview" class="img-strip"></div>
-
-      <!-- ★ NEW — Wall image URL -->
-      <label class="inp-label" style="margin-top:10px">
-        Wall image URL
-        <span style="opacity:.4;font-size:.56rem;text-transform:none;letter-spacing:0">
-          — shown on product page hover
-        </span>
-      </label>
-      <input id="cr-wall-url" class="inp" placeholder="https://… (optional)"
-        oninput="CR.wallImage=this.value.trim();"
-        style="margin-bottom:4px">
-
-      <p class="help" style="margin-top:6px">Website save automatically creates a lighter display image. PNG export keeps full resolution.</p>
-    </div>
-
-    <!-- Panel spinner -->
-    <div class="card">
-      <div class="sec-title"><span class="sec-icon">🔢</span> Panels</div>
-      <div class="spinner-shell">
-        <div class="spinner-title">Magnetic panel spinner · scroll reactive</div>
-        <div class="panel-spin-wrap" id="panel-spinner-wrap">
-          <div class="panel-spin-bar" id="panel-spin-bar"></div>
-        </div>
-      </div>
-      <div class="panel-list" id="cr-panel-list"></div>
-    </div>
-
-    <!-- ★ NEW — Hex Tile Live Preview -->
-    <div class="card" id="hex-preview-card">
-      <div class="sec-title"><span class="sec-icon">🔷</span> Live Tile Preview</div>
-      <div class="hpv-grid-wrap" id="hpv-grid-wrap">
-        <div class="hpv-wall-bg" id="hpv-wall-bg"></div>
-        <div class="hpv-empty-msg" id="hpv-empty-msg">Add panels to see preview</div>
-      </div>
-      <div class="hpv-footer">
-        <div>
-          <div class="hpv-panel-count" id="hpv-count">0 panels</div>
-          <div class="hpv-price-tag" id="hpv-price">£0.00</div>
-        </div>
-        <button class="hpv-wall-toggle" id="hpv-wall-btn" onclick="toggleHPVWall(this)">
-          Show on wall
-        </button>
-      </div>
-    </div>
-
-    <!-- Save & Export -->
-    <div class="card">
-      <div class="sec-title"><span class="sec-icon">💾</span> Save &amp; Export</div>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <button class="btn btn-accent" onclick="saveProduct()">Save current product</button>
-        <button class="btn btn-gold" onclick="saveAllToDB()">Update entire store catalogue</button>
-        <button class="btn" onclick="exportAEF()">Export .aef file</button>
-        <button class="btn" onclick="exportPanelImages()">Export panel images (PNG)</button>
-        <label class="btn">Load .aef file<input id="cr-load-aef" type="file" accept=".aef,.json" hidden onchange="handleAEFLoad(event)"></label>
-      </div>
-    </div>
-
-  </aside>
-
-  <!-- ══ MAIN COLUMN ══ -->
-  <main class="main-col">
-
-    <!-- Stage card -->
-    <div class="stage-card">
-
-      <!-- Toolbar row 1 -->
-      <div class="toolbar" id="toolbar-1">
-        <div class="toolbar-group">
-          <button class="fbtn" id="cr-undo" onclick="undoHistory()" disabled>Undo</button>
-          <button class="fbtn" id="cr-redo" onclick="redoHistory()" disabled>Redo</button>
-          <button class="fbtn" onclick="resetLayout()">Reset layout</button>
-          <button class="fbtn" id="snap-btn" onclick="toggleSnap()">Snap: On</button>
-          <button class="fbtn" onclick="fitToView()">Fit</button>
-        </div>
-        <div class="toolbar-group">
-          <span class="toolbar-label">Composition zoom:</span>
-          <button class="fbtn" onclick="adjustZoom(-0.05)">−</button>
-          <span class="ctrl-val" id="cr-zoom-label">100%</span>
-          <button class="fbtn" onclick="adjustZoom(0.05)">+</button>
-          <button class="fbtn" onclick="CR.viewZoom=1;updateViewLabels();renderAll()">↺</button>
-        </div>
-        <div class="toolbar-group">
-          <span class="toolbar-label">Universal scale:</span>
-          <button class="fbtn" onclick="adjustScale(-0.05)">−</button>
-          <span class="ctrl-val" id="cr-scale-label">100%</span>
-          <button class="fbtn" onclick="adjustScale(0.05)">+</button>
-          <button class="fbtn" onclick="CR.universalScale=1;updateViewLabels();renderAll()">↺</button>
-        </div>
-        <div class="toolbar-group">
-          <span class="toolbar-label">Rotation:</span>
-          <button class="fbtn" onclick="adjustRotation(-15)">↺</button>
-          <span class="ctrl-val" id="cr-rot-label">0°</span>
-          <button class="fbtn" onclick="adjustRotation(15)">↻</button>
-          <button class="fbtn" onclick="CR.universalRotation=0;updateViewLabels();renderAll()">↺0</button>
-        </div>
-        <div class="toolbar-group">
-          <span class="toolbar-label">Image pan:</span>
-          <button class="fbtn" onclick="CR.imgPanX=0;CR.imgPanY=0;renderAll()">Reset</button>
+        <div class="preview-switches">
+          <button class="chip is-active" data-view="main" type="button">Main</button>
+          <button class="chip" data-view="wall" type="button">Wall</button>
+          <button class="chip" data-view="panels" type="button">Panels</button>
         </div>
       </div>
 
-      <p class="help" style="padding:0 0 10px;color:var(--muted)">Drag hexagons · Shift+click multi-select · Alt+drag image · Ctrl/Cmd+Z undo</p>
-
-      <!-- Stage + controls -->
-      <div class="stage-wrap">
-        <div class="stage" id="cr-stage">
-          <canvas id="cr-bg-canvas"></canvas>
-          <svg id="cr-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div class="preview-grid">
+        <div class="preview-card media-card">
+          <div class="preview-media-wrap">
+            <img id="preview-main-image" class="preview-media is-visible" alt="">
+            <img id="preview-wall-image" class="preview-media" alt="">
+            <div id="preview-media-empty" class="preview-empty">Add a main or wall image to preview the product.</div>
+          </div>
         </div>
-        <div class="stage-controls">
-          <span class="ctrl-label">Grid X</span>
-          <button class="ctrl-btn fbtn" onclick="CR.gridOffX-=2;updateViewLabels();renderAll()">←</button>
-          <span class="ctrl-val" id="cr-goffx-val">0</span>
-          <button class="ctrl-btn fbtn" onclick="CR.gridOffX+=2;updateViewLabels();renderAll()">→</button>
-          <div class="ctrl-divider"></div>
-          <span class="ctrl-label">Grid Y</span>
-          <button class="ctrl-btn fbtn" onclick="CR.gridOffY-=2;updateViewLabels();renderAll()">↑</button>
-          <span class="ctrl-val" id="cr-goffy-val">0</span>
-          <button class="ctrl-btn fbtn" onclick="CR.gridOffY+=2;updateViewLabels();renderAll()">↓</button>
-          <div class="ctrl-divider"></div>
-          <button class="ctrl-btn fbtn" onclick="CR.gridOffX=0;CR.gridOffY=0;updateViewLabels();renderAll()">Reset grid</button>
+
+        <div class="preview-card meta-card">
+          <span class="preview-badge" id="preview-badge">Series</span>
+          <h3 id="preview-name">Untitled product</h3>
+          <p id="preview-short" class="preview-short">Add a short product line.</p>
+          <div class="preview-price-row">
+            <span id="preview-price">£0.00</span>
+            <span id="preview-price-label"></span>
+          </div>
+          <p id="preview-description" class="preview-description">Your description will appear here.</p>
+        </div>
+
+        <div class="preview-card arrangement-card">
+          <div class="arrangement-head">
+            <div>
+              <p class="eyebrow">Arrangement</p>
+              <h3>Hex panel layout</h3>
+            </div>
+            <span class="arrangement-count" id="arrangement-count">0 panels</span>
+          </div>
+          <div class="arrangement-wrap">
+            <div id="hex-preview" class="hex-preview"></div>
+          </div>
         </div>
       </div>
-    </div>
-
-    <!-- Bottom row -->
-    <div class="bottom-row">
-      <div class="preview-card">
-        <div class="preview-title">Layout preview</div>
-        <canvas class="preview-canvas" id="cr-preview"></canvas>
-      </div>
-      <div class="preview-card">
-        <div class="preview-title" style="display:flex;justify-content:space-between">
-          JSON output
-          <button class="fbtn" onclick="copyJSON()" style="padding:3px 10px;font-size:.58rem">Copy</button>
-        </div>
-        <textarea class="json-out" id="cr-json" readonly></textarea>
-      </div>
-    </div>
-
+    </section>
   </main>
-</div>
 
-<!-- ══════════════════ TOAST ══════════════════ -->
-<div id="toast-container"></div>
+  <script>
+    (function () {
+      var state = {
+        products: [],
+        currentId: null,
+        panelNames: [],
+        panelImages: [],
+        panelPositions: [],
+        activeView: 'main'
+      };
 
-<!-- ══════════════════ ORIGINAL CREATOR SCRIPT ══════════════════ -->
-<script>
-/* ── AUTH ── */
-function doAuth(){var pw=document.getElementById('auth-pw').value;fetch('/.netlify/functions/auth',{method:'POST',body:JSON.stringify({password:pw})}).then(function(r){return r.json();}).then(function(d){if(d.ok){sessionStorage.setItem('admin','1');sessionStorage.setItem('admin_pw',pw);document.getElementById('auth-screen').style.display='none';initCreator();}else{document.getElementById('auth-err').style.display='block';document.getElementById('auth-pw').value='';}}).catch(function(){if(pw.length>0){sessionStorage.setItem('admin','1');document.getElementById('auth-screen').style.display='none';initCreator();}else document.getElementById('auth-err').style.display='block';});}
-if(sessionStorage.getItem('admin')==='1'){document.getElementById('auth-screen').style.display='none';}
-document.getElementById('auth-pw').addEventListener('keydown',function(e){if(e.key==='Enter')doAuth();});
+      var els = {};
 
-/* ── TOAST ── */
-function toast(msg,type){var tc=document.getElementById('toast-container'),el=document.createElement('div');el.className='toast'+(type?' '+type:'');el.textContent=msg;tc.appendChild(el);setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);},2700);}
-function crStatus(msg,cls){var el=document.getElementById('cr-status');el.textContent=msg;el.className='cr-status'+(cls?' '+cls:'');}
+      document.addEventListener('DOMContentLoaded', function () {
+        cacheEls();
+        bindAuth();
+        bindUI();
 
-/* ────────────────────────────────────────────────────────────────────
-   NOTE: The rest of the original creator JS (initCreator, renderAll,
-   loadProduct, saveProduct, etc.) lives in whatever external script
-   file your project already uses (e.g. /js/creator.js).
-   This file only adds the auth stub and toast helpers above, plus the
-   hex preview block below — the full creator engine is unchanged.
-   ──────────────────────────────────────────────────────────────────── */
-</script>
-
-<!-- Your existing creator engine script — keep this line as-is -->
-<!-- <script src="/js/creator-engine.js"></script> -->
-
-<!-- ══════════════════ HEX TILE PREVIEW SCRIPT ══════════════════ -->
-<script>
-(function(){
-  var PANEL_PRICE = 34.99;
-  var wallOn = false;
-
-  /* Toggle the CSS wall-background on the preview grid */
-  window.toggleHPVWall = function(btn) {
-    wallOn = !wallOn;
-    btn.classList.toggle('active', wallOn);
-    var wrap = document.getElementById('hpv-grid-wrap');
-    if (wrap) wrap.classList.toggle('show-wall', wallOn);
-  };
-
-  /* ── Main render function ─────────────────────────────────────────
-     Called after every renderAll() so the preview always stays in
-     sync with the canvas without any extra button presses.           */
-  window.renderHexPreview = function() {
-    var wrap      = document.getElementById('hpv-grid-wrap');
-    var countEl   = document.getElementById('hpv-count');
-    var priceEl   = document.getElementById('hpv-price');
-    var emptyEl   = document.getElementById('hpv-empty-msg');
-    if (!wrap || typeof CR === 'undefined') return;
-
-    var panels = CR.panels || [];
-    var n = panels.length;
-
-    if (countEl) countEl.textContent = n + ' panel' + (n !== 1 ? 's' : '');
-    if (priceEl) priceEl.textContent = '£' + (n * PANEL_PRICE).toFixed(2);
-
-    /* Remove previous hex rows (leave the wall-bg div and empty-msg alone) */
-    wrap.querySelectorAll('.hpv-row').forEach(function(r){ r.remove(); });
-
-    if (!n) {
-      if (emptyEl) emptyEl.style.display = '';
-      return;
-    }
-    if (emptyEl) emptyEl.style.display = 'none';
-
-    /* ── Build positions ── */
-    var positions = [];
-    var pm = CR.panelMap;
-    if (pm && Array.isArray(pm.positions) && pm.positions.length === n) {
-      positions = pm.positions;
-    } else {
-      positions = autoLayout(n);
-    }
-
-    /* Group positions by row number */
-    var rows = {};
-    positions.forEach(function(pos, idx) {
-      var r = pos.row;
-      if (!rows[r]) rows[r] = [];
-      rows[r].push({ col: pos.col, idx: idx });
-    });
-    var rowKeys = Object.keys(rows).map(Number).sort(function(a,b){ return a - b; });
-
-    /* ── Render one DOM row per row key ── */
-    rowKeys.forEach(function(rowKey) {
-      var cells = rows[rowKey].sort(function(a,b){ return a.col - b.col; });
-      var rowEl = document.createElement('div');
-      rowEl.className = 'hpv-row' + (rowKey % 2 !== 0 ? ' offset' : '');
-
-      cells.forEach(function(cell) {
-        var panel    = panels[cell.idx] || {};
-        /* Per-panel image takes priority; fall back to a slice of the main image */
-        var imgSrc   = panel.image
-                    || (Array.isArray(CR.panelImages) ? (CR.panelImages[cell.idx] || '') : '')
-                    || '';
-        var mainSrc  = CR.mainImage || '';
-
-        var hexEl = document.createElement('div');
-        hexEl.className = 'hpv-hex' + (imgSrc || mainSrc ? ' has-img' : '');
-        hexEl.title     = 'Panel ' + (cell.idx + 1);
-
-        if (imgSrc) {
-          var img = document.createElement('img');
-          img.src = imgSrc;
-          img.alt = 'Panel ' + (cell.idx + 1);
-          hexEl.appendChild(img);
-        } else if (mainSrc) {
-          /* Slice the main image at an approximate crop position */
-          var img = document.createElement('img');
-          img.src = mainSrc;
-          img.alt = 'Panel ' + (cell.idx + 1);
-          img.style.objectPosition = slicePosition(cell.idx, n);
-          hexEl.appendChild(img);
+        if (sessionStorage.getItem('admin') === '1') {
+          hideAuth();
+          initCreator();
         }
-
-        /* Small panel number label */
-        var numEl = document.createElement('span');
-        numEl.className   = 'hpv-hex-num';
-        numEl.textContent = cell.idx + 1;
-        hexEl.appendChild(numEl);
-
-        rowEl.appendChild(hexEl);
       });
 
-      wrap.appendChild(rowEl);
-    });
+      function cacheEls() {
+        els.authScreen = document.getElementById('auth-screen');
+        els.authPw = document.getElementById('auth-pw');
+        els.authErr = document.getElementById('auth-err');
+        els.authBtn = document.getElementById('auth-btn');
+        els.statusText = document.getElementById('status-text');
+        els.statusDot = document.getElementById('status-dot');
+        els.productSelect = document.getElementById('product-select');
+        els.previewStage = document.getElementById('preview-stage');
 
-    /* Keep the wall-toggle state */
-    wrap.classList.toggle('show-wall', wallOn);
-  };
+        els.fields = {
+          name: document.getElementById('f-name'),
+          slug: document.getElementById('f-slug'),
+          category: document.getElementById('f-category'),
+          accent: document.getElementById('f-accent'),
+          price: document.getElementById('f-price'),
+          priceLabel: document.getElementById('f-price-label'),
+          size: document.getElementById('f-size'),
+          material: document.getElementById('f-material'),
+          short: document.getElementById('f-short'),
+          description: document.getElementById('f-description'),
+          note: document.getElementById('f-note'),
+          isCollection: document.getElementById('f-is-collection'),
+          isBundle: document.getElementById('f-is-bundle'),
+          isPublished: document.getElementById('f-is-published'),
+          image: document.getElementById('f-image'),
+          wallImage: document.getElementById('f-wall-image'),
+          panelHint: document.getElementById('f-panel-hint'),
+          pieces: document.getElementById('f-pieces'),
+          layoutPreset: document.getElementById('layout-preset')
+        };
 
-  /* ── Auto-layout: compact rectangular grid ── */
-  function autoLayout(n) {
-    var positions = [];
-    var cols  = Math.ceil(Math.sqrt(n));
-    var placed = 0, row = 0;
-    while (placed < n) {
-      var rowCols = Math.min(cols, n - placed);
-      for (var c = 0; c < rowCols; c++) {
-        positions.push({ row: row, col: c });
-        placed++;
+        els.panelList = document.getElementById('panel-list');
+
+        els.preview = {
+          title: document.getElementById('preview-title'),
+          badge: document.getElementById('preview-badge'),
+          name: document.getElementById('preview-name'),
+          short: document.getElementById('preview-short'),
+          price: document.getElementById('preview-price'),
+          priceLabel: document.getElementById('preview-price-label'),
+          description: document.getElementById('preview-description'),
+          mainImage: document.getElementById('preview-main-image'),
+          wallImage: document.getElementById('preview-wall-image'),
+          mediaEmpty: document.getElementById('preview-media-empty'),
+          arrangementCount: document.getElementById('arrangement-count'),
+          hexPreview: document.getElementById('hex-preview')
+        };
       }
-      row++;
-    }
-    return positions;
-  }
 
-  /* ── Rough per-panel crop offset when using the main image ── */
-  function slicePosition(idx, total) {
-    if (total <= 1) return 'center center';
-    var cols = Math.ceil(Math.sqrt(total));
-    var col  = idx % cols;
-    var row  = Math.floor(idx / cols);
-    var rows = Math.ceil(total / cols);
-    var xPct = cols > 1 ? Math.round((col / (cols - 1)) * 100) : 50;
-    var yPct = rows > 1 ? Math.round((row / (rows - 1)) * 100) : 50;
-    return xPct + '% ' + yPct + '%';
-  }
+      function bindAuth() {
+        els.authBtn.addEventListener('click', doAuth);
+        els.authPw.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter') doAuth();
+        });
+      }
 
-  /* ── Patch renderAll() once the creator engine has loaded ────────────
-     We wait for renderAll to exist, then wrap it so our preview fires
-     automatically after every canvas redraw.                          */
-  var _hookInterval = setInterval(function() {
-    if (typeof window.renderAll === 'function' && !window._hpvHooked) {
-      window._hpvHooked = true;
+      function bindUI() {
+        els.productSelect.addEventListener('change', function () {
+          loadProduct(this.value);
+        });
 
-      var _orig = window.renderAll;
-      window.renderAll = function() {
-        _orig.apply(this, arguments);
-        try { window.renderHexPreview(); } catch(e) { console.warn('hpv:', e); }
-      };
-      clearInterval(_hookInterval);
-      /* Trigger an initial render in case the creator is already loaded */
-      setTimeout(function(){ try { window.renderHexPreview(); } catch(e){} }, 400);
-    }
-  }, 150);
+        document.getElementById('new-series-btn').addEventListener('click', function () {
+          createBlank(false);
+        });
 
-  /* ── Patch loadProduct() to sync the wall-image URL field ──────────
-     When you select an existing product from the dropdown, the wall
-     image URL field updates to match what's stored in CR.              */
-  var _loadHookInterval = setInterval(function() {
-    if (typeof window.loadProduct === 'function' && !window._wallLoadHooked) {
-      window._wallLoadHooked = true;
+        document.getElementById('new-collection-btn').addEventListener('click', function () {
+          createBlank(true);
+        });
 
-      var _origLoad = window.loadProduct;
-      window.loadProduct = function(slug) {
-        _origLoad.apply(this, arguments);
-        setTimeout(function() {
-          var wallField = document.getElementById('cr-wall-url');
-          if (wallField && typeof CR !== 'undefined') {
-            wallField.value = CR.wallImage || '';
+        document.getElementById('rebuild-panels-btn').addEventListener('click', rebuildPanelEditors);
+        document.getElementById('auto-layout-btn').addEventListener('click', applyPresetLayout);
+        document.getElementById('sort-layout-btn').addEventListener('click', tidyPositions);
+
+        document.getElementById('save-btn').addEventListener('click', saveProduct);
+        document.getElementById('sync-btn').addEventListener('click', syncProduct);
+        document.getElementById('preview-toggle').addEventListener('click', function () {
+          els.previewStage.classList.toggle('is-open');
+        });
+
+        Array.prototype.forEach.call(document.querySelectorAll('.chip[data-view]'), function (btn) {
+          btn.addEventListener('click', function () {
+            Array.prototype.forEach.call(document.querySelectorAll('.chip[data-view]'), function (b) {
+              b.classList.remove('is-active');
+            });
+            btn.classList.add('is-active');
+            state.activeView = btn.getAttribute('data-view');
+            renderPreview();
+          });
+        });
+
+        Object.keys(els.fields).forEach(function (key) {
+          var el = els.fields[key];
+          var evt = (el.type === 'checkbox' || el.tagName === 'SELECT') ? 'change' : 'input';
+          el.addEventListener(evt, function () {
+            if (key === 'pieces') ensurePanelArrays();
+            if (key === 'layoutPreset') applyPresetLayout();
+            if (key === 'name' && !els.fields.slug.dataset.touched) {
+              els.fields.slug.value = slugify(els.fields.name.value);
+            }
+            renderPreview();
+          });
+        });
+
+        els.fields.slug.addEventListener('input', function () {
+          els.fields.slug.dataset.touched = '1';
+        });
+      }
+
+      function doAuth() {
+        var pw = els.authPw.value.trim();
+        if (!pw) {
+          els.authErr.style.display = 'block';
+          return;
+        }
+
+        fetch('/.netlify/functions/auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: pw })
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (d && d.ok) {
+            sessionStorage.setItem('admin', '1');
+            sessionStorage.setItem('admin_pw', pw);
+            hideAuth();
+            initCreator();
+          } else {
+            els.authErr.style.display = 'block';
+            els.authPw.value = '';
           }
-          try { window.renderHexPreview(); } catch(e) {}
-        }, 500);
-      };
-      clearInterval(_loadHookInterval);
-    }
-  }, 150);
+        })
+        .catch(function () {
+          els.authErr.style.display = 'block';
+        });
+      }
 
-})();
-</script>
+      function hideAuth() {
+        els.authScreen.style.display = 'none';
+      }
 
+      function initCreator() {
+        setStatus('Loading products…', 'loading');
+        fetch('/.netlify/functions/load-products', { cache: 'no-store' })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            state.products = Array.isArray(data) ? data : (data.products || []);
+            populateSelect();
+            if (state.products.length) {
+              loadProduct(state.products[0].slug || state.products[0].id || '');
+            } else {
+              createBlank(false);
+            }
+            setStatus('Ready', 'ready');
+          })
+          .catch(function () {
+            createBlank(false);
+            setStatus('Could not load products', 'error');
+          });
+      }
+
+      function populateSelect() {
+        els.productSelect.innerHTML = '';
+        if (!state.products.length) {
+          var empty = document.createElement('option');
+          empty.value = '';
+          empty.textContent = 'No saved products';
+          els.productSelect.appendChild(empty);
+          return;
+        }
+
+        var placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = 'Select a product…';
+        els.productSelect.appendChild(placeholder);
+
+        state.products.forEach(function (product) {
+          var option = document.createElement('option');
+          option.value = product.slug || product.id || '';
+          option.textContent = product.name || product.slug || 'Untitled';
+          els.productSelect.appendChild(option);
+        });
+      }
+
+      function loadProduct(id) {
+        if (!id) return;
+        var product = state.products.find(function (p) {
+          return (p.slug || p.id) === id;
+        });
+        if (!product) return;
+
+        state.currentId = id;
+        els.productSelect.value = id;
+
+        els.fields.name.value = product.name || '';
+        els.fields.slug.value = product.slug || '';
+        els.fields.slug.dataset.touched = '1';
+        els.fields.category.value = product.category || '';
+        els.fields.accent.value = product.accent || '';
+        els.fields.price.value = product.price || '';
+        els.fields.priceLabel.value = product.priceLabel || '';
+        els.fields.size.value = product.size || '';
+        els.fields.material.value = product.material || '';
+        els.fields.short.value = product.short || '';
+        els.fields.description.value = product.description || '';
+        els.fields.note.value = product.note || '';
+        els.fields.isCollection.checked = !!product.isCollection;
+        els.fields.isBundle.checked = !!product.isBundle;
+        els.fields.isPublished.checked = product.isPublished !== false;
+        els.fields.image.value = product.image || '';
+        els.fields.wallImage.value = product.wallImage || '';
+        els.fields.panelHint.value = product.panelHint || '';
+        els.fields.pieces.value = parseInt(product.pieces, 10) || 1;
+
+        state.panelNames = Array.isArray(product.panelNames) ? product.panelNames.slice() : [];
+        state.panelImages = Array.isArray(product.panelImages) ? product.panelImages.slice() : [];
+        state.panelPositions = product.panelMap && Array.isArray(product.panelMap.positions)
+          ? product.panelMap.positions.map(function (p) { return { row: p.row, col: p.col }; })
+          : [];
+
+        ensurePanelArrays();
+        rebuildPanelEditors();
+        renderPreview();
+        setStatus('Loaded ' + (product.name || 'product'), 'ready');
+      }
+
+      function createBlank(isCollection) {
+        state.currentId = null;
+        els.productSelect.value = '';
+        els.fields.slug.dataset.touched = '';
+
+        els.fields.name.value = '';
+        els.fields.slug.value = '';
+        els.fields.category.value = '';
+        els.fields.accent.value = '';
+        els.fields.price.value = '';
+        els.fields.priceLabel.value = '';
+        els.fields.size.value = '';
+        els.fields.material.value = '';
+        els.fields.short.value = '';
+        els.fields.description.value = '';
+        els.fields.note.value = '';
+        els.fields.isCollection.checked = !!isCollection;
+        els.fields.isBundle.checked = false;
+        els.fields.isPublished.checked = true;
+        els.fields.image.value = '';
+        els.fields.wallImage.value = '';
+        els.fields.panelHint.value = '';
+        els.fields.pieces.value = 6;
+        els.fields.layoutPreset.value = 'auto';
+
+        state.panelNames = [];
+        state.panelImages = [];
+        state.panelPositions = [];
+        ensurePanelArrays();
+        applyPresetLayout();
+        rebuildPanelEditors();
+        renderPreview();
+        setStatus('New draft', 'ready');
+      }
+
+      function ensurePanelArrays() {
+        var count = Math.max(1, parseInt(els.fields.pieces.value, 10) || 1);
+
+        while (state.panelNames.length < count) state.panelNames.push('');
+        while (state.panelImages.length < count) state.panelImages.push('');
+        while (state.panelPositions.length < count) state.panelPositions.push({ row: 0, col: state.panelPositions.length });
+
+        state.panelNames = state.panelNames.slice(0, count);
+        state.panelImages = state.panelImages.slice(0, count);
+        state.panelPositions = state.panelPositions.slice(0, count);
+      }
+
+      function rebuildPanelEditors() {
+        ensurePanelArrays();
+        els.panelList.innerHTML = '';
+
+        state.panelPositions.forEach(function (pos, index) {
+          var row = document.createElement('div');
+          row.className = 'panel-row';
+
+          row.innerHTML =
+            '<div class="panel-index">' + (index + 1) + '</div>' +
+            '<input class="field panel-name" type="text" placeholder="Panel name">' +
+            '<input class="field panel-image" type="url" placeholder="https://...">' +
+            '<input class="field panel-num" type="number" step="1">' +
+            '<input class="field panel-num" type="number" step="1">';
+
+          var nameInput = row.children[1];
+          var imageInput = row.children[2];
+          var rowInput = row.children[3];
+          var colInput = row.children[4];
+
+          nameInput.value = state.panelNames[index] || '';
+          imageInput.value = state.panelImages[index] || '';
+          rowInput.value = pos.row;
+          colInput.value = pos.col;
+
+          nameInput.addEventListener('input', function () {
+            state.panelNames[index] = nameInput.value;
+            renderPreview();
+          });
+
+          imageInput.addEventListener('input', function () {
+            state.panelImages[index] = imageInput.value;
+            renderPreview();
+          });
+
+          rowInput.addEventListener('input', function () {
+            state.panelPositions[index].row = parseInt(rowInput.value, 10) || 0;
+            renderPreview();
+          });
+
+          colInput.addEventListener('input', function () {
+            state.panelPositions[index].col = parseInt(colInput.value, 10) || 0;
+            renderPreview();
+          });
+
+          els.panelList.appendChild(row);
+        });
+
+        renderPreview();
+      }
+
+      function applyPresetLayout() {
+        ensurePanelArrays();
+        var count = state.panelPositions.length;
+        var preset = els.fields.layoutPreset.value || 'auto';
+        var positions = [];
+
+        if (preset === 'line') {
+          for (var i = 0; i < count; i++) positions.push({ row: 0, col: i });
+        } else if (preset === 'arc') {
+          for (var j = 0; j < count; j++) {
+            var row = (j === 0 || j === count - 1) ? 1 : 0;
+            positions.push({ row: row, col: j });
+          }
+        } else if (preset === 'cluster') {
+          var cluster = [
+            { row: 0, col: 1 },
+            { row: 1, col: 0 },
+            { row: 1, col: 1 },
+            { row: 1, col: 2 },
+            { row: 2, col: 0 },
+            { row: 2, col: 1 },
+            { row: 2, col: 2 },
+            { row: 2, col: 3 },
+            { row: 3, col: 1 },
+            { row: 3, col: 2 }
+          ];
+          for (var c = 0; c < count; c++) positions.push(cluster[c] || { row: Math.floor(c / 3), col: c % 3 });
+        } else if (preset === 'honeycomb') {
+          var honey = [
+            { row: 0, col: 1 },
+            { row: 1, col: 0 },
+            { row: 1, col: 1 },
+            { row: 1, col: 2 },
+            { row: 2, col: 0 },
+            { row: 2, col: 1 },
+            { row: 2, col: 2 },
+            { row: 2, col: 3 },
+            { row: 3, col: 1 },
+            { row: 3, col: 2 },
+            { row: 4, col: 1 },
+            { row: 4, col: 2 }
+          ];
+          for (var h = 0; h < count; h++) positions.push(honey[h] || { row: Math.floor(h / 4), col: h % 4 });
+        } else {
+          positions = autoLayout(count);
+        }
+
+        state.panelPositions = positions;
+        rebuildPanelEditors();
+      }
+
+      function tidyPositions() {
+        var sorted = state.panelPositions
+          .map(function (p, idx) {
+            return { row: parseInt(p.row, 10) || 0, col: parseInt(p.col, 10) || 0, idx: idx };
+          })
+          .sort(function (a, b) {
+            if (a.row !== b.row) return a.row - b.row;
+            return a.col - b.col;
+          });
+
+        var newNames = [];
+        var newImages = [];
+        var newPositions = [];
+
+        sorted.forEach(function (item) {
+          newNames.push(state.panelNames[item.idx] || '');
+          newImages.push(state.panelImages[item.idx] || '');
+          newPositions.push({ row: item.row, col: item.col });
+        });
+
+        state.panelNames = newNames;
+        state.panelImages = newImages;
+        state.panelPositions = newPositions;
+        rebuildPanelEditors();
+      }
+
+      function renderPreview() {
+        var name = els.fields.name.value.trim() || 'Untitled product';
+        var isCollection = els.fields.isCollection.checked;
+        var isBundle = els.fields.isBundle.checked;
+        var image = els.fields.image.value.trim();
+        var wallImage = els.fields.wallImage.value.trim();
+        var shortLine = els.fields.short.value.trim() || 'Add a short product line.';
+        var description = els.fields.description.value.trim() || 'Your description will appear here.';
+        var price = parseFloat(els.fields.price.value || 0);
+        var count = Math.max(1, parseInt(els.fields.pieces.value, 10) || 1);
+
+        els.preview.title.textContent = name;
+        els.preview.name.textContent = name;
+        els.preview.badge.textContent = isBundle ? 'Bundle' : (isCollection ? 'Collection' : 'Series');
+        els.preview.short.textContent = shortLine;
+        els.preview.description.textContent = description;
+        els.preview.price.textContent = '£' + price.toFixed(2);
+        els.preview.priceLabel.textContent = els.fields.priceLabel.value ? ' ' + els.fields.priceLabel.value : '';
+
+        els.preview.mainImage.src = image || '';
+        els.preview.wallImage.src = wallImage || '';
+        els.preview.mainImage.alt = name;
+        els.preview.wallImage.alt = name + ' on wall';
+
+        var hasAnyImage = !!(image || wallImage);
+        els.preview.mediaEmpty.style.display = hasAnyImage ? 'none' : 'flex';
+
+        els.preview.mainImage.classList.toggle('is-visible', state.activeView === 'main' && !!image);
+        els.preview.wallImage.classList.toggle('is-visible', state.activeView === 'wall' && !!wallImage);
+
+        if (state.activeView === 'main' && !image && wallImage) {
+          els.preview.wallImage.classList.add('is-visible');
+        }
+        if (state.activeView === 'wall' && !wallImage && image) {
+          els.preview.mainImage.classList.add('is-visible');
+        }
+        if (state.activeView === 'panels') {
+          els.preview.mainImage.classList.remove('is-visible');
+          els.preview.wallImage.classList.remove('is-visible');
+          if (image) els.preview.mainImage.classList.add('is-visible');
+        }
+
+        els.preview.arrangementCount.textContent = count + ' panel' + (count === 1 ? '' : 's');
+        renderHexPreview();
+      }
+
+      function renderHexPreview() {
+        ensurePanelArrays();
+        var wrap = els.preview.hexPreview;
+        wrap.innerHTML = '';
+
+        var grouped = {};
+        state.panelPositions.forEach(function (pos, index) {
+          var row = parseInt(pos.row, 10) || 0;
+          if (!grouped[row]) grouped[row] = [];
+          grouped[row].push({
+            idx: index,
+            row: row,
+            col: parseInt(pos.col, 10) || 0
+          });
+        });
+
+        var rowKeys = Object.keys(grouped).map(Number).sort(function (a, b) { return a - b; });
+
+        rowKeys.forEach(function (rowKey) {
+          var rowEl = document.createElement('div');
+          rowEl.className = 'hex-row' + (rowKey % 2 !== 0 ? ' offset' : '');
+
+          grouped[rowKey]
+            .sort(function (a, b) { return a.col - b.col; })
+            .forEach(function (cell) {
+              var hex = document.createElement('div');
+              hex.className = 'hex-cell-preview';
+
+              var imgSrc = state.panelImages[cell.idx] || els.fields.image.value.trim();
+              if (imgSrc) {
+                var img = document.createElement('img');
+                img.src = imgSrc;
+                img.alt = state.panelNames[cell.idx] || ('Panel ' + (cell.idx + 1));
+                img.style.objectPosition = fallbackObjectPosition(cell.idx, state.panelPositions.length);
+                hex.appendChild(img);
+              }
+
+              var label = document.createElement('span');
+              label.className = 'hex-label-preview';
+              label.textContent = cell.idx + 1;
+              hex.appendChild(label);
+
+              rowEl.appendChild(hex);
+            });
+
+          wrap.appendChild(rowEl);
+        });
+      }
+
+      function fallbackObjectPosition(index, total) {
+        if (total <= 1) return '50% 50%';
+        var cols = Math.ceil(Math.sqrt(total));
+        var col = index % cols;
+        var row = Math.floor(index / cols);
+        var rows = Math.ceil(total / cols);
+        var x = cols > 1 ? Math.round((col / (cols - 1)) * 100) : 50;
+        var y = rows > 1 ? Math.round((row / (rows - 1)) * 100) : 50;
+        return x + '% ' + y + '%';
+      }
+
+      function autoLayout(count) {
+        var positions = [];
+        var cols = Math.max(2, Math.ceil(Math.sqrt(count)));
+        var placed = 0;
+        var row = 0;
+        while (placed < count) {
+          var rowCols = Math.min(cols, count - placed);
+          for (var c = 0; c < rowCols; c++) {
+            positions.push({ row: row, col: c });
+            placed++;
+          }
+          row++;
+        }
+        return positions;
+      }
+
+      function buildPayload() {
+        ensurePanelArrays();
+
+        return {
+          slug: els.fields.slug.value.trim() || slugify(els.fields.name.value),
+          name: els.fields.name.value.trim(),
+          category: els.fields.category.value.trim(),
+          price: parseFloat(els.fields.price.value || 0),
+          price_label: els.fields.priceLabel.value.trim(),
+          short: els.fields.short.value.trim(),
+          description: els.fields.description.value.trim(),
+          note: els.fields.note.value.trim(),
+          accent: els.fields.accent.value.trim(),
+          size: els.fields.size.value.trim(),
+          material: els.fields.material.value.trim(),
+          pieces: Math.max(1, parseInt(els.fields.pieces.value, 10) || 1),
+          panel_hint: els.fields.panelHint.value.trim(),
+          image: els.fields.image.value.trim(),
+          wall_image: els.fields.wallImage.value.trim(),
+          is_collection: els.fields.isCollection.checked,
+          is_bundle: els.fields.isBundle.checked,
+          is_published: els.fields.isPublished.checked,
+          panel_names: state.panelNames.slice(),
+          panel_images: state.panelImages.slice(),
+          panel_map: {
+            positions: state.panelPositions.map(function (p) {
+              return {
+                row: parseInt(p.row, 10) || 0,
+                col: parseInt(p.col, 10) || 0
+              };
+            }),
+            transforms: []
+          }
+        };
+      }
+
+      function saveProduct() {
+        var payload = buildPayload();
+        if (!payload.name || !payload.slug) {
+          setStatus('Name and slug are required', 'error');
+          return;
+        }
+
+        setStatus('Saving…', 'saving');
+        fetch('/.netlify/functions/save-product', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-password': sessionStorage.getItem('admin_pw') || ''
+          },
+          body: JSON.stringify(payload)
+        })
+        .then(function (r) { return r.json(); })
+        .then(function () {
+          setStatus('Saved', 'success');
+          return fetch('/.netlify/functions/load-products', { cache: 'no-store' });
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          state.products = Array.isArray(data) ? data : (data.products || []);
+          populateSelect();
+          loadProduct(payload.slug);
+        })
+        .catch(function () {
+          setStatus('Save failed', 'error');
+        });
+      }
+
+      function syncProduct() {
+        var payload = buildPayload();
+        setStatus('Syncing…', 'saving');
+
+        fetch('/.netlify/functions/sync-product', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-password': sessionStorage.getItem('admin_pw') || ''
+          },
+          body: JSON.stringify(payload)
+        })
+        .then(function (r) { return r.json(); })
+        .then(function () {
+          setStatus('Synced', 'success');
+        })
+        .catch(function () {
+          setStatus('Sync failed', 'error');
+        });
+      }
+
+      function slugify(value) {
+        return (value || '')
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '');
+      }
+
+      function setStatus(text, mode) {
+        els.statusText.textContent = text;
+        els.statusDot.className = 'status-dot';
+        if (mode) els.statusDot.classList.add('is-' + mode);
+      }
+    })();
+  </script>
 </body>
 </html>
