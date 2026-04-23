@@ -1,1 +1,217 @@
-<!-- patched -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Contact Spacenova — get in touch with our team.">
+  <meta name="theme-color" content="#000000">
+  <title>Contact Us — SPACENOVA</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/Spacenovafavicon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+<nav id="main-nav">
+  <div class="nav-inner">
+    <a class="nav-logo" href="/"><img class="nav-logo-img" src="/spacenovalogocropped.png" alt="Spacenova"><div class="nav-logo-mark"></div></a>
+    <div class="nav-links">
+      <a class="nav-link" href="/shop.html">Shop</a>
+      <a class="nav-link" href="/collections.html">Collections</a>
+      <a class="nav-link" href="/artifacts.html">Artifacts</a>
+      <a class="nav-link" href="/about.html">About</a>
+      <div class="nav-more-wrap" id="nav-more-wrap">
+        <button class="nav-link nav-more-btn" id="nav-more-btn" aria-haspopup="true" aria-expanded="false">More <span class="nav-chevron">&#9662;</span></button>
+        <div class="nav-dropdown" id="nav-dropdown" role="menu">
+          <div class="ndd-section">Help</div>
+          <a class="ndd-item ndd-item-active" href="/contact.html" role="menuitem">Contact Us</a>
+          <a class="ndd-item" href="/shipping.html" role="menuitem">Shipping</a>
+          <a class="ndd-item" href="/returns.html" role="menuitem">Returns</a>
+          <a class="ndd-item" href="/faq.html" role="menuitem">FAQ</a>
+          <div class="ndd-divider"></div>
+          <div class="ndd-section">Company</div>
+          <a class="ndd-item" href="/press.html" role="menuitem">Press</a>
+        </div>
+      </div>
+    </div>
+    <div class="nav-spacer"></div>
+    <button class="nav-basket-btn" id="basket-toggle-btn" aria-label="Open basket">
+      <svg class="basket-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+      <span class="basket-btn-label">Basket</span>
+      <span class="basket-badge" id="basket-badge"></span>
+    </button>
+    <button class="burger-btn" id="burger-btn" aria-label="Open menu" aria-expanded="false"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+<div class="mobile-backdrop" id="mobile-backdrop"></div>
+<div class="mobile-panel" id="mobile-panel" aria-hidden="true">
+  <div class="mp-head"><span class="mp-title">Menu</span><button class="mp-close" id="mp-close">&times;</button></div>
+  <div class="mp-body">
+    <div class="mp-section-label">Shop</div>
+    <a class="mp-item" href="/shop.html">Shop</a>
+    <a class="mp-item" href="/collections.html">Collections</a>
+    <a class="mp-item" href="/artifacts.html">Artifacts</a>
+    <a class="mp-item" href="/about.html">About</a>
+    <div class="mp-divider"></div>
+    <div class="mp-section-label">Help</div>
+    <a class="mp-item mp-item-active" href="/contact.html">Contact Us</a>
+    <a class="mp-item" href="/shipping.html">Shipping</a>
+    <a class="mp-item" href="/returns.html">Returns</a>
+    <a class="mp-item" href="/faq.html">FAQ</a>
+    <div class="mp-divider"></div>
+    <div class="mp-section-label">Company</div>
+    <a class="mp-item" href="/press.html">Press</a>
+    <div class="mp-divider"></div>
+    <button class="mp-basket-row" id="mp-basket-btn">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+      View Basket <span class="mp-badge" id="mp-badge"></span>
+    </button>
+  </div>
+</div>
+
+<div class="inner-hero">
+  <div class="inner-hero-content">
+    <div class="section-eyebrow">Get In Touch</div>
+    <h1>Contact Us</h1>
+    <p>Have a question about an order, a product, or anything else? We typically respond within one business day.</p>
+  </div>
+</div>
+
+<section class="section" style="padding-top:0">
+  <div class="contact-layout">
+    <div class="contact-form-wrap">
+      <form id="contact-form" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="cf-name">Full Name</label>
+          <input class="form-input" id="cf-name" type="text" placeholder="Jane Smith" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="cf-email">Email Address</label>
+          <input class="form-input" id="cf-email" type="email" placeholder="jane@example.com" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="cf-subject">Subject</label>
+          <select class="form-input form-select" id="cf-subject" required>
+            <option value="">Select a topic</option>
+            <option value="order">Order Query</option>
+            <option value="product">Product Question</option>
+            <option value="returns">Returns &amp; Refunds</option>
+            <option value="shipping">Shipping</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="cf-order">Order Number (optional)</label>
+          <input class="form-input" id="cf-order" type="text" placeholder="SN-XXXXXXXX">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="cf-message">Message</label>
+          <textarea class="form-input" id="cf-message" rows="6" placeholder="Tell us how we can help..." required></textarea>
+        </div>
+        <p class="form-error" id="cf-error" style="display:none"></p>
+        <button class="btn btn-primary btn-full" type="submit" id="cf-submit">Send Message</button>
+      </form>
+      <div class="contact-success" id="contact-success" style="display:none">
+        <div class="contact-success-icon">&#10003;</div>
+        <h3>Message sent</h3>
+        <p>Thank you for reaching out. We will be in touch within one business day.</p>
+      </div>
+    </div>
+    <div class="contact-info">
+      <div class="contact-info-card">
+        <div class="cic-label">Email</div>
+        <div class="cic-value">hello@spacenova.co.uk</div>
+      </div>
+      <div class="contact-info-card">
+        <div class="cic-label">Response Time</div>
+        <div class="cic-value">Within 1 business day</div>
+      </div>
+      <div class="contact-info-card">
+        <div class="cic-label">Hours</div>
+        <div class="cic-value">Mon &ndash; Fri, 9am &ndash; 5pm GMT</div>
+      </div>
+      <div class="contact-info-card">
+        <div class="cic-label">Based In</div>
+        <div class="cic-value">United Kingdom</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer id="main-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><img class="footer-logo" src="/spacenovalogocropped.png" alt="Spacenova"><p>Bringing the universe's most breathtaking vistas into your home.</p></div>
+    <div class="footer-col"><h4>Shop</h4><a href="/shop.html">All Series</a><a href="/collections.html">Collections</a><a href="/artifacts.html">Artifacts</a></div>
+    <div class="footer-col"><h4>Help</h4><a href="/shipping.html">Shipping</a><a href="/returns.html">Returns</a><a href="/faq.html">FAQ</a><a href="/contact.html">Contact</a></div>
+    <div class="footer-col"><h4>Company</h4><a href="/about.html">About</a><a href="/press.html">Press</a></div>
+  </div>
+  <div class="footer-bottom"><span>&copy; 2026 Spacenova Ltd. All rights reserved.</span><span>Made for the cosmos</span></div>
+</footer>
+
+<div id="basket-overlay"></div>
+<div id="basket-drawer">
+  <div class="drawer-header"><h2>Your Basket</h2><button class="drawer-close" id="basket-close">&times;</button></div>
+  <div class="drawer-body" id="basket-body"></div>
+  <div class="drawer-footer" id="basket-footer" style="display:none">
+    <div class="promo-row"><input class="promo-input" id="promo-input" type="text" placeholder="Promo code"><button class="promo-btn" id="promo-apply-btn">Apply</button></div>
+    <div class="promo-applied" id="promo-applied" style="display:none"><span id="promo-applied-text"></span><button id="promo-remove-btn">Remove</button></div>
+    <p class="promo-error" id="promo-error" style="display:none">Invalid or expired code</p>
+    <div class="basket-summary">
+      <div class="bsum-row"><span>Subtotal</span><span id="basket-subtotal">&pound;0.00</span></div>
+      <div class="bsum-row" id="discount-row" style="display:none"><span>Discount</span><span id="basket-discount" class="discount-val">-&pound;0.00</span></div>
+      <div class="bsum-row"><span>Shipping</span><span id="basket-shipping">Calculated at checkout</span></div>
+      <div class="bsum-row bsum-total"><span>Total</span><strong id="basket-total">&pound;0.00</strong></div>
+    </div>
+    <p class="free-shipping-note" id="free-shipping-note"></p>
+    <a class="btn btn-primary btn-full" href="/checkout.html">Checkout</a>
+  </div>
+</div>
+<div id="toast-container"></div>
+<script src="/js/nav.js"></script>
+<script src="/js/basket.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('contact-form');
+  const success = document.getElementById('contact-success');
+  const errorEl = document.getElementById('cf-error');
+  const submitBtn = document.getElementById('cf-submit');
+  if (!form) return;
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    errorEl.style.display = 'none';
+    const name = document.getElementById('cf-name').value.trim();
+    const email = document.getElementById('cf-email').value.trim();
+    const subject = document.getElementById('cf-subject').value;
+    const order = document.getElementById('cf-order').value.trim();
+    const message = document.getElementById('cf-message').value.trim();
+    if (!name || !email || !subject || !message) {
+      errorEl.textContent = 'Please fill in all required fields.';
+      errorEl.style.display = 'block';
+      return;
+    }
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending...';
+    try {
+      const res = await fetch('/.netlify/functions/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, subject, order, message })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to send');
+      form.style.display = 'none';
+      success.style.display = 'block';
+    } catch (err) {
+      errorEl.textContent = err.message || 'Something went wrong. Please try again.';
+      errorEl.style.display = 'block';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Send Message';
+    }
+  });
+});
+</script>
+</body>
+</html>
