@@ -6,47 +6,44 @@ const supabase = createClient(
 
 function normaliseProduct(p) {
   return {
-    slug: p.slug,
-    name: p.name,
-    category: p.category,
-    price: p.price,
-    priceLabel: p.price_label,
-    short: p.short,
+    slug:        p.slug,
+    name:        p.name,
+    category:    p.category,
+    price:       p.price,
+    priceLabel:  p.price_label,
+    short:       p.short,
     description: p.description,
-    note: p.note,
-    accent: p.accent,
-    size: p.size,
-    material: p.material,
-    pieces: p.pieces,
-    panelHint: p.panel_hint,
-    image: p.image,
-    wallImage: p.wall_image || null,
+    note:        p.note,
+    accent:      p.accent,
+    size:        p.size,
+    material:    p.material,
+    pieces:      p.pieces,
+    panelHint:   p.panel_hint,
+    image:       p.image,
+    wallImage:   p.wall_image    || null,
     isCollection: !!p.is_collection,
-    isBundle: !!p.is_bundle,
+    isBundle:    !!p.is_bundle,
     isPublished: p.is_published !== false,
-    panelNames: Array.isArray(p.panel_names) ? p.panel_names : [],
-    panelImages: Array.isArray(p.panel_images) ? p.panel_images : [],
-    panelMap:
-      p.panel_map && typeof p.panel_map === 'object'
-        ? p.panel_map
-        : { positions: [], transforms: [] }
+    panelNames:  p.panel_names   || [],
+    panelImages: p.panel_images  || [],
+    panelMap:    (p.panel_map && typeof p.panel_map === 'object')
+                   ? p.panel_map
+                   : { positions: [], transforms: [] }
   };
 }
 
-// Normalise an artifact row so it has consistent fields the frontend can use
 function normaliseArtifact(a) {
   return {
-    slug: a.slug || null,
-    id: a.id || null,
-    name: a.name || '',
-    category: a.category || '',
-    price: a.price || 0,
-    // Support both 'desc' and 'description' column names
-    desc: a.desc || a.description || '',
-    description: a.desc || a.description || '',
-    image: a.image || null,
+    slug:        a.slug  || null,
+    id:          a.id    || null,
+    name:        a.name  || '',
+    category:    a.category || '',
+    price:       a.price || 0,
+    desc:        a.desc  || a.description || '',
+    description: a.desc  || a.description || '',
+    image:       a.image || null,
     isPublished: a.is_published !== false,
-    isArtifact: true
+    isArtifact:  true
   };
 }
 
@@ -54,47 +51,17 @@ exports.handler = async (event) => {
   if (event.httpMethod !== 'GET') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
-
   try {
-    const [productsRes, bundlesRes, artifactsRes, wholesaleRes, featuredRes] =
-      await Promise.all([
-        supabase.from('products').select('*').order('updated_at', { ascending: false }),
-        supabase.from('bundles').select('*').order('name', { ascending: true }),
-        supabase.from('artifacts').select('*').order('name', { ascending: true }),
-        supabase.from('wholesale_sources').select('*').order('name', { ascending: true }),
-        supabase.from('featured_slugs').select('slug').order('sort_order', { ascending: true })
-      ]);
+    const [productsRes, artifactsRes] = await Promise.all([
+      supabase.from('products').select('*').order('created_at', { ascending: false }),
+      supabase.from('artifacts').select('*').order('name', { ascending: true })
+    ]);
 
-    const errors = [productsRes, bundlesRes, artifactsRes, wholesaleRes, featuredRes]
-      .map((res) => res && res.error)
-      .filter(Boolean);
-
-    if (errors.length) {
-      console.error('load-catalogue query errors:', errors);
-      return {
-        statusCode: 500,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-        body: JSON.stringify({ error: 'Failed to load catalogue' })
-      };
-    }
-
-    const products = (productsRes.data || []).map(normaliseProduct);
-    const bundles = (bundlesRes.data || []).map((b) => ({
-      slug: b.slug,
-      name: b.name,
-      price: b.price,
-      items: Array.isArray(b.items) ? b.items : [],
-      text: b.text
-    }));
-    // Normalise artifacts so slug, description, isPublished are always present
-    const artifacts = (artifactsRes.data || []).map(normaliseArtifact);
-    const wholesaleSources = (wholesaleRes.data || []).map((w) => ({
-      name: w.name,
-      url: w.url,
-      desc: w.desc,
-      best: w.best
-    }));
-    const featuredSlugs = (featuredRes.data || []).map((f) => f.slug).filter(Boolean);
+    // artifacts table might not exist yet — treat that as empty, not an error
+    const products  = (productsRes.data  || []).map(normaliseProduct);
+    const artifacts = artifactsRes.error
+      ? []
+      : (artifactsRes.data || []).map(normaliseArtifact);
 
     return {
       statusCode: 200,
@@ -103,7 +70,7 @@ exports.handler = async (event) => {
         'Access-Control-Allow-Origin': '*',
         'Cache-Control': 'no-store'
       },
-      body: JSON.stringify({ products, bundles, artifacts, wholesaleSources, featuredSlugs })
+      body: JSON.stringify({ products, artifacts })
     };
   } catch (err) {
     console.error('load-catalogue fatal error:', err);
