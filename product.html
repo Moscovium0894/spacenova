@@ -500,8 +500,86 @@
     var track = document.getElementById('pg-track');
     if (!track || images.length <= 1) return;
 
-    var total = images.length;
+    var total   = images.length;
     var current = 0;
+
+    function goTo(idx, animate) {
+      idx = Math.max(0, Math.min(total - 1, idx));
+      current = idx;
+      track.scrollTo({ left: idx * track.clientWidth, behavior: animate === false ? 'instant' : 'smooth' });
+      syncUI(idx);
+    }
+
+    function syncUI(idx) {
+      document.querySelectorAll('.pg-dot').forEach(function(d) {
+        d.classList.toggle('active', parseInt(d.dataset.idx) === idx);
+      });
+      document.querySelectorAll('.pg-thumb').forEach(function(t) {
+        t.classList.toggle('active', parseInt(t.dataset.idx) === idx);
+      });
+    }
+
+    // Drive UI from scroll position (covers touch swipe + arrow clicks)
+    var scrollTimer;
+    track.addEventListener('scroll', function() {
+      clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(function() {
+        var idx = Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
+        current = idx;
+        syncUI(idx);
+      }, 80);
+    }, { passive: true });
+
+    // Arrow buttons
+    var prevBtn = document.getElementById('pg-prev');
+    var nextBtn = document.getElementById('pg-next');
+    if (prevBtn) prevBtn.addEventListener('click', function() { goTo(current - 1); });
+    if (nextBtn) nextBtn.addEventListener('click', function() { goTo(current + 1); });
+
+    // Dot + thumbnail clicks
+    document.querySelectorAll('.pg-dot').forEach(function(d) {
+      d.addEventListener('click', function() { goTo(parseInt(d.dataset.idx)); });
+    });
+    document.querySelectorAll('.pg-thumb').forEach(function(t) {
+      t.addEventListener('click', function() { goTo(parseInt(t.dataset.idx)); });
+    });
+
+    // ── Desktop hover crossfade to wall image (slide index 1) ──
+    // Only fires on devices that support hover (not touch screens)
+    // Wall image is always slide index 1 when present
+    var wrap = document.getElementById('pg-wrap');
+    var hoverTimer, leaveTimer;
+    var isHoverSuppressed = false; // suppressed after user manually navigates
+
+    if (wrap && total >= 2 && window.matchMedia('(hover: hover)').matches) {
+      wrap.addEventListener('mouseenter', function() {
+        // Only auto-crossfade if user is still on slide 0
+        if (current !== 0 || isHoverSuppressed) return;
+        clearTimeout(leaveTimer);
+        hoverTimer = setTimeout(function() {
+          goTo(1);
+        }, 180); // slight delay so quick mouse-overs don't flicker
+      });
+
+      wrap.addEventListener('mouseleave', function() {
+        clearTimeout(hoverTimer);
+        leaveTimer = setTimeout(function() {
+          // Return to slide 0 only if we auto-advanced (not if user manually navigated)
+          if (current === 1 && !isHoverSuppressed) {
+            goTo(0);
+          }
+          isHoverSuppressed = false;
+        }, 120);
+      });
+
+      // If user manually clicks an arrow / dot / thumb, don't auto-return on mouseleave
+      if (prevBtn) prevBtn.addEventListener('click', function() { isHoverSuppressed = true; });
+      if (nextBtn) nextBtn.addEventListener('click', function() { isHoverSuppressed = true; });
+      document.querySelectorAll('.pg-dot, .pg-thumb').forEach(function(el) {
+        el.addEventListener('click', function() { isHoverSuppressed = true; });
+      });
+    }
+  }
 
     function goTo(idx) {
       idx = Math.max(0, Math.min(total - 1, idx));
