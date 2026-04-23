@@ -10,905 +10,917 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=DM+Mono:wght@400&family=Syne:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="auth-screen" id="auth-screen">
-    <div class="auth-card">
-      <div class="auth-mark">✦</div>
-      <h1>Creator Access</h1>
-      <p>Enter the team password to open the catalogue editor.</p>
-      <label class="field-label" for="auth-pw">Password</label>
-      <input id="auth-pw" class="field" type="password" placeholder="Team password" autocomplete="current-password">
-      <p class="auth-error" id="auth-err">Incorrect password.</p>
-      <button class="btn btn-primary btn-block" id="auth-btn">Enter creator</button>
-      <a class="subtle-link auth-back" href="/">Back to store</a>
+
+<!-- ═══════════════════════════════════════
+     AUTH SCREEN
+═══════════════════════════════════════ -->
+<div class="auth-screen" id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-mark">✦</div>
+    <h1>Creator Access</h1>
+    <p>Enter the team password to open the catalogue editor.</p>
+    <label class="field-label" for="auth-pw">Password</label>
+    <input id="auth-pw" class="field" type="password" placeholder="Team password" autocomplete="current-password">
+    <p class="auth-error" id="auth-err">Incorrect password.</p>
+    <button class="btn btn-primary btn-block" id="auth-btn">Enter creator</button>
+    <a class="subtle-link auth-back" href="/">Back to store</a>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     TOP BAR
+═══════════════════════════════════════ -->
+<header class="topbar">
+  <div class="topbar-brand">
+    <div class="brand-badge">SN</div>
+    <div>
+      <p class="topbar-kicker">Admin</p>
+      <div class="topbar-title">Product Creator</div>
     </div>
   </div>
+  <div class="topbar-status">
+    <span class="status-dot" id="status-dot"></span>
+    <span id="status-text">Ready</span>
+  </div>
+  <div class="topbar-actions">
+    <a class="btn btn-ghost btn-sm" href="/admin/index.html">Dashboard</a>
+    <a class="btn btn-ghost btn-sm" href="/">Store</a>
+    <button class="btn btn-ghost btn-sm" id="preview-toggle" type="button">Preview</button>
+  </div>
+</header>
 
-  <header class="topbar">
-    <div class="topbar-brand">
-      <div class="brand-badge">SN</div>
-      <div>
-        <div class="topbar-kicker">Admin</div>
-        <div class="topbar-title">Product Creator</div>
+<!-- ═══════════════════════════════════════
+     MAIN SHELL
+═══════════════════════════════════════ -->
+<main class="creator-shell">
+
+  <!-- ── LEFT RAIL ── -->
+  <aside class="editor-rail">
+
+    <!-- Load / New -->
+    <section class="panel">
+      <div class="panel-head">
+        <div><p class="eyebrow">Catalogue</p><h2>Load product</h2></div>
       </div>
-    </div>
-
-    <div class="topbar-status">
-      <span class="status-dot" id="status-dot"></span>
-      <span id="status-text">Ready</span>
-    </div>
-
-    <div class="topbar-actions">
-      <a class="btn btn-ghost btn-sm" href="/admin/index.html">Dashboard</a>
-      <a class="btn btn-ghost btn-sm" href="/">Store</a>
-      <button class="btn btn-ghost btn-sm mobile-preview-toggle" id="preview-toggle" type="button">Preview</button>
-    </div>
-  </header>
-
-  <main class="creator-shell">
-    <aside class="editor-rail">
-      <section class="panel">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow">Catalogue</p>
-            <h2>Load product</h2>
-          </div>
-        </div>
-
-        <label class="field-label" for="product-select">Existing product</label>
-        <select id="product-select" class="field field-select"></select>
-
-        <div class="inline-actions">
-          <button class="btn btn-primary" id="new-series-btn" type="button">New series</button>
-          <button class="btn btn-ghost" id="new-collection-btn" type="button">New collection</button>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow">Details</p>
-            <h2>Core product fields</h2>
-          </div>
-        </div>
-
-        <label class="field-label" for="f-name">Name</label>
-        <input id="f-name" class="field" type="text" placeholder="Saturn Rings Arc">
-
-        <label class="field-label" for="f-slug">Slug</label>
-        <input id="f-slug" class="field" type="text" placeholder="saturn-rings-arc">
-
-        <div class="field-grid two">
-          <div>
-            <label class="field-label" for="f-category">Category</label>
-            <input id="f-category" class="field" type="text" placeholder="planetary">
-          </div>
-          <div>
-            <label class="field-label" for="f-accent">Accent / mood</label>
-            <input id="f-accent" class="field" type="text" placeholder="Warm gold">
-          </div>
-        </div>
-
-        <div class="field-grid two">
-          <div>
-            <label class="field-label" for="f-price">Full set price</label>
-            <input id="f-price" class="field" type="number" step="0.01" placeholder="229">
-          </div>
-          <div>
-            <label class="field-label" for="f-price-label">Price label</label>
-            <input id="f-price-label" class="field" type="text" placeholder="£189–£249">
-          </div>
-        </div>
-
-        <div class="field-grid two">
-          <div>
-            <label class="field-label" for="f-size">Display size</label>
-            <input id="f-size" class="field" type="text" placeholder="Large panoramic">
-          </div>
-          <div>
-            <label class="field-label" for="f-material">Material</label>
-            <input id="f-material" class="field" type="text" placeholder="Aluminium composite">
-          </div>
-        </div>
-
-        <label class="field-label" for="f-short">Short line</label>
-        <input id="f-short" class="field" type="text" placeholder="A premium hexagonal panel set">
-
-        <label class="field-label" for="f-description">Description</label>
-        <textarea id="f-description" class="field textarea" placeholder="Write the full product description..."></textarea>
-
-        <label class="field-label" for="f-note">Note</label>
-        <textarea id="f-note" class="field textarea" placeholder="Optional production note, edition note, or material note..."></textarea>
-
-        <div class="toggle-grid">
-          <label class="toggle-row">
-            <input id="f-is-collection" type="checkbox">
-            <span>Collection</span>
-          </label>
-          <label class="toggle-row">
-            <input id="f-is-bundle" type="checkbox">
-            <span>Bundle</span>
-          </label>
-          <label class="toggle-row">
-            <input id="f-is-published" type="checkbox" checked>
-            <span>Published</span>
-          </label>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow">Imagery</p>
-            <h2>Main and wall previews</h2>
-          </div>
-        </div>
-
-        <label class="field-label" for="f-image">Main image URL</label>
-        <input id="f-image" class="field" type="url" placeholder="https://...">
-
-        <label class="field-label" for="f-wall-image">Wall image URL</label>
-        <input id="f-wall-image" class="field" type="url" placeholder="https://...">
-
-        <label class="field-label" for="f-panel-hint">Panel hint</label>
-        <input id="f-panel-hint" class="field" type="text" placeholder="Use the arrangement editor below">
-      </section>
-
-      <section class="panel">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow">Panels</p>
-            <h2>Arrangement editor</h2>
-          </div>
-          <button class="btn btn-ghost btn-sm" id="rebuild-panels-btn" type="button">Rebuild</button>
-        </div>
-
-        <div class="field-grid two">
-          <div>
-            <label class="field-label" for="f-pieces">Panels</label>
-            <input id="f-pieces" class="field" type="number" min="1" max="24" value="6">
-          </div>
-          <div>
-            <label class="field-label" for="layout-preset">Layout preset</label>
-            <select id="layout-preset" class="field field-select">
-              <option value="auto">Auto</option>
-              <option value="line">Line</option>
-              <option value="arc">Arc</option>
-              <option value="cluster">Cluster</option>
-              <option value="honeycomb">Honeycomb</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="panel-editor-toolbar">
-          <button class="btn btn-ghost btn-sm" id="auto-layout-btn" type="button">Auto layout</button>
-          <button class="btn btn-ghost btn-sm" id="sort-layout-btn" type="button">Tidy rows</button>
-        </div>
-
-        <div class="panel-list-head">
-          <span>Panel</span>
-          <span>Name</span>
-          <span>Image URL</span>
-          <span>Row</span>
-          <span>Col</span>
-        </div>
-        <div id="panel-list" class="panel-list"></div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow">Actions</p>
-            <h2>Save product</h2>
-          </div>
-        </div>
-
-        <div class="inline-actions">
-          <button class="btn btn-primary" id="save-btn" type="button">Save</button>
-          <button class="btn btn-ghost" id="sync-btn" type="button">Sync</button>
-        </div>
-      </section>
-    </aside>
-
-    <section class="preview-stage" id="preview-stage">
-      <div class="preview-header">
-        <div>
-          <p class="eyebrow">Live preview</p>
-          <h2 id="preview-title">Untitled product</h2>
-        </div>
-        <div class="preview-switches">
-          <button class="chip is-active" data-view="main" type="button">Main</button>
-          <button class="chip" data-view="wall" type="button">Wall</button>
-          <button class="chip" data-view="panels" type="button">Panels</button>
-        </div>
-      </div>
-
-      <div class="preview-grid">
-        <div class="preview-card media-card">
-          <div class="preview-media-wrap">
-            <img id="preview-main-image" class="preview-media is-visible" alt="">
-            <img id="preview-wall-image" class="preview-media" alt="">
-            <div id="preview-media-empty" class="preview-empty">Add a main or wall image to preview the product.</div>
-          </div>
-        </div>
-
-        <div class="preview-card meta-card">
-          <span class="preview-badge" id="preview-badge">Series</span>
-          <h3 id="preview-name">Untitled product</h3>
-          <p id="preview-short" class="preview-short">Add a short product line.</p>
-          <div class="preview-price-row">
-            <span id="preview-price">£0.00</span>
-            <span id="preview-price-label"></span>
-          </div>
-          <p id="preview-description" class="preview-description">Your description will appear here.</p>
-        </div>
-
-        <div class="preview-card arrangement-card">
-          <div class="arrangement-head">
-            <div>
-              <p class="eyebrow">Arrangement</p>
-              <h3>Hex panel layout</h3>
-            </div>
-            <span class="arrangement-count" id="arrangement-count">0 panels</span>
-          </div>
-          <div class="arrangement-wrap">
-            <div id="hex-preview" class="hex-preview"></div>
-          </div>
-        </div>
+      <label class="field-label" for="product-select">Existing product</label>
+      <select id="product-select" class="field field-select">
+        <option value="">Loading products…</option>
+      </select>
+      <div class="inline-actions">
+        <button class="btn btn-primary" id="new-series-btn" type="button">New series</button>
+        <button class="btn btn-ghost" id="new-collection-btn" type="button">New collection</button>
       </div>
     </section>
-  </main>
 
-  <script>
-    (function () {
-      var state = {
-        products: [],
-        currentId: null,
-        panelNames: [],
-        panelImages: [],
-        panelPositions: [],
-        activeView: 'main'
-      };
+    <!-- Details -->
+    <section class="panel">
+      <div class="panel-head">
+        <div><p class="eyebrow">Details</p><h2>Core fields</h2></div>
+      </div>
+      <label class="field-label" for="f-name">Name</label>
+      <input id="f-name" class="field" type="text" placeholder="Saturn Rings Arc">
+      <label class="field-label" for="f-slug">Slug</label>
+      <input id="f-slug" class="field" type="text" placeholder="saturn-rings-arc">
+      <div class="field-grid two">
+        <div>
+          <label class="field-label" for="f-category">Category</label>
+          <input id="f-category" class="field" type="text" placeholder="planetary">
+        </div>
+        <div>
+          <label class="field-label" for="f-accent">Accent / mood</label>
+          <input id="f-accent" class="field" type="text" placeholder="Warm gold">
+        </div>
+      </div>
+      <div class="field-grid two">
+        <div>
+          <label class="field-label" for="f-price">Full set price</label>
+          <input id="f-price" class="field" type="number" step="0.01" placeholder="229">
+        </div>
+        <div>
+          <label class="field-label" for="f-price-label">Price label</label>
+          <input id="f-price-label" class="field" type="text" placeholder="£189–£249">
+        </div>
+      </div>
+      <div class="field-grid two">
+        <div>
+          <label class="field-label" for="f-size">Display size</label>
+          <input id="f-size" class="field" type="text" placeholder="Large panoramic">
+        </div>
+        <div>
+          <label class="field-label" for="f-material">Material</label>
+          <input id="f-material" class="field" type="text" placeholder="Aluminium composite">
+        </div>
+      </div>
+      <label class="field-label" for="f-short">Short line</label>
+      <input id="f-short" class="field" type="text" placeholder="A premium hexagonal panel set">
+      <label class="field-label" for="f-description">Description</label>
+      <textarea id="f-description" class="field textarea" placeholder="Write the full product description..."></textarea>
+      <label class="field-label" for="f-note">Note</label>
+      <textarea id="f-note" class="field textarea" placeholder="Optional production or edition note..."></textarea>
+      <div class="toggle-grid">
+        <label class="toggle-row"><input id="f-is-collection" type="checkbox"><span>Collection</span></label>
+        <label class="toggle-row"><input id="f-is-bundle" type="checkbox"><span>Bundle</span></label>
+        <label class="toggle-row"><input id="f-is-published" type="checkbox" checked><span>Published</span></label>
+      </div>
+    </section>
 
-      var els = {};
+    <!-- Imagery -->
+    <section class="panel">
+      <div class="panel-head">
+        <div><p class="eyebrow">Imagery</p><h2>Images</h2></div>
+      </div>
+      <label class="field-label" for="f-image">Main image URL</label>
+      <input id="f-image" class="field" type="url" placeholder="https://...">
+      <div class="img-thumb-wrap" id="thumb-main"><div class="img-thumb-empty">No image</div></div>
+      <label class="field-label" for="f-wall-image">Wall preview URL</label>
+      <input id="f-wall-image" class="field" type="url" placeholder="https://...">
+      <div class="img-thumb-wrap" id="thumb-wall"><div class="img-thumb-empty">No image</div></div>
+      <label class="field-label" for="f-panel-hint">Panel hint text</label>
+      <input id="f-panel-hint" class="field" type="text" placeholder="Select your arrangement below">
+    </section>
 
-      document.addEventListener('DOMContentLoaded', function () {
-        cacheEls();
-        bindAuth();
-        bindUI();
+    <!-- Panels -->
+    <section class="panel">
+      <div class="panel-head">
+        <div><p class="eyebrow">Panels</p><h2>Arrangement</h2></div>
+        <button class="btn btn-ghost btn-sm" id="rebuild-panels-btn" type="button">Rebuild</button>
+      </div>
+      <div class="field-grid two">
+        <div>
+          <label class="field-label" for="f-pieces">Panels</label>
+          <input id="f-pieces" class="field" type="number" min="1" max="24" value="6">
+        </div>
+        <div>
+          <label class="field-label" for="layout-preset">Layout preset</label>
+          <select id="layout-preset" class="field field-select">
+            <option value="auto">Auto</option>
+            <option value="line">Line</option>
+            <option value="arc">Arc</option>
+            <option value="cluster">Cluster</option>
+            <option value="honeycomb">Honeycomb</option>
+          </select>
+        </div>
+      </div>
+      <div class="panel-editor-toolbar">
+        <button class="btn btn-ghost btn-sm" id="auto-layout-btn" type="button">Auto layout</button>
+        <button class="btn btn-ghost btn-sm" id="sort-layout-btn" type="button">Tidy rows</button>
+      </div>
+      <div class="panel-list-head">
+        <span>#</span><span>Name</span><span>Image URL</span><span>Row</span><span>Col</span>
+      </div>
+      <div id="panel-list" class="panel-list"></div>
+    </section>
 
-        if (sessionStorage.getItem('admin') === '1') {
-          hideAuth();
-          initCreator();
+    <!-- Save -->
+    <section class="panel">
+      <div class="panel-head">
+        <div><p class="eyebrow">Actions</p><h2>Save product</h2></div>
+      </div>
+      <div class="inline-actions">
+        <button class="btn btn-primary" id="save-btn" type="button">Save</button>
+        <button class="btn btn-ghost" id="sync-btn" type="button">Sync</button>
+      </div>
+    </section>
+
+  </aside>
+
+  <!-- ── PREVIEW STAGE ── -->
+  <section class="preview-stage" id="preview-stage">
+    <div class="preview-header">
+      <div>
+        <p class="eyebrow">Live preview</p>
+        <h2 id="preview-title">Untitled product</h2>
+      </div>
+      <!-- View switcher — using data attributes cleanly, no brackets in selector -->
+      <div class="view-tabs" id="view-tabs">
+        <button class="view-tab is-active" data-view="main">Main</button>
+        <button class="view-tab" data-view="wall">Wall</button>
+        <button class="view-tab" data-view="panels">Panels</button>
+      </div>
+    </div>
+
+    <div class="preview-grid">
+
+      <!-- Media card — changes by tab -->
+      <div class="preview-card media-card">
+        <!-- Main image view -->
+        <div class="preview-view" id="view-main">
+          <div class="preview-media-wrap">
+            <img id="preview-main-image" class="preview-media" alt="" src="">
+            <div id="preview-main-empty" class="preview-empty">Add a main image URL on the left to preview it here.</div>
+          </div>
+        </div>
+
+        <!-- Wall image view -->
+        <div class="preview-view" id="view-wall" style="display:none">
+          <div class="preview-media-wrap preview-wall-wrap">
+            <img id="preview-wall-image" class="preview-media" alt="" src="">
+            <div id="preview-wall-empty" class="preview-empty">Add a wall image URL to preview the in-room mockup.</div>
+          </div>
+        </div>
+
+        <!-- Panels view: main image with hex tiles composited on top -->
+        <div class="preview-view" id="view-panels" style="display:none">
+          <div class="panels-composite-wrap">
+            <div class="panels-bg-layer" id="panels-bg-layer">
+              <div class="panels-bg-empty" id="panels-bg-empty">Add a main image to see panels composited on it.</div>
+            </div>
+            <div class="panels-hex-layer" id="panels-hex-layer"></div>
+            <div class="panels-overlay-label">Panel arrangement preview</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Meta card -->
+      <div class="preview-card meta-card">
+        <span class="preview-badge" id="preview-badge">Series</span>
+        <h3 id="preview-name">Untitled product</h3>
+        <p id="preview-short" class="preview-short">Add a short product line.</p>
+        <div class="preview-price-row">
+          <span id="preview-price">£0.00</span>
+          <span id="preview-price-label"></span>
+        </div>
+        <p id="preview-description" class="preview-description">Your description will appear here.</p>
+        <div class="preview-meta-pills" id="preview-meta-pills"></div>
+      </div>
+
+      <!-- Arrangement card -->
+      <div class="preview-card arrangement-card">
+        <div class="arrangement-head">
+          <div>
+            <p class="eyebrow">Arrangement</p>
+            <h3>Hex panel layout</h3>
+          </div>
+          <span class="arrangement-count" id="arrangement-count">0 panels</span>
+        </div>
+        <div class="arrangement-wrap">
+          <div id="hex-preview" class="hex-preview"></div>
+        </div>
+        <p class="arrangement-hint">Each tile shows a cropped region of the main image. Individual panel image URLs override this.</p>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ─── State ─── */
+  var state = {
+    products: [],
+    currentId: null,
+    panelNames: [],
+    panelImages: [],
+    panelPositions: [],
+    activeView: 'main'
+  };
+
+  /* ─── Element cache ─── */
+  var E = {};
+
+  document.addEventListener('DOMContentLoaded', function () {
+    cacheEls();
+    bindAuth();
+    bindUI();
+    if (sessionStorage.getItem('admin') === '1') {
+      E.authScreen.style.display = 'none';
+      initCreator();
+    }
+  });
+
+  function cacheEls() {
+    E.authScreen   = document.getElementById('auth-screen');
+    E.authPw       = document.getElementById('auth-pw');
+    E.authErr      = document.getElementById('auth-err');
+    E.authBtn      = document.getElementById('auth-btn');
+    E.statusText   = document.getElementById('status-text');
+    E.statusDot    = document.getElementById('status-dot');
+    E.productSel   = document.getElementById('product-select');
+    E.previewStage = document.getElementById('preview-stage');
+    E.panelList    = document.getElementById('panel-list');
+
+    E.f = {
+      name:         document.getElementById('f-name'),
+      slug:         document.getElementById('f-slug'),
+      category:     document.getElementById('f-category'),
+      accent:       document.getElementById('f-accent'),
+      price:        document.getElementById('f-price'),
+      priceLabel:   document.getElementById('f-price-label'),
+      size:         document.getElementById('f-size'),
+      material:     document.getElementById('f-material'),
+      short:        document.getElementById('f-short'),
+      description:  document.getElementById('f-description'),
+      note:         document.getElementById('f-note'),
+      isCollection: document.getElementById('f-is-collection'),
+      isBundle:     document.getElementById('f-is-bundle'),
+      isPublished:  document.getElementById('f-is-published'),
+      image:        document.getElementById('f-image'),
+      wallImage:    document.getElementById('f-wall-image'),
+      panelHint:    document.getElementById('f-panel-hint'),
+      pieces:       document.getElementById('f-pieces'),
+      layoutPreset: document.getElementById('layout-preset')
+    };
+
+    E.prev = {
+      title:            document.getElementById('preview-title'),
+      badge:            document.getElementById('preview-badge'),
+      name:             document.getElementById('preview-name'),
+      short:            document.getElementById('preview-short'),
+      price:            document.getElementById('preview-price'),
+      priceLabel:       document.getElementById('preview-price-label'),
+      description:      document.getElementById('preview-description'),
+      metaPills:        document.getElementById('preview-meta-pills'),
+      mainImage:        document.getElementById('preview-main-image'),
+      wallImage:        document.getElementById('preview-wall-image'),
+      mainEmpty:        document.getElementById('preview-main-empty'),
+      wallEmpty:        document.getElementById('preview-wall-empty'),
+      panelsBgLayer:    document.getElementById('panels-bg-layer'),
+      panelsBgEmpty:    document.getElementById('panels-bg-empty'),
+      panelsHexLayer:   document.getElementById('panels-hex-layer'),
+      arrangementCount: document.getElementById('arrangement-count'),
+      hexPreview:       document.getElementById('hex-preview'),
+      thumbMain:        document.getElementById('thumb-main'),
+      thumbWall:        document.getElementById('thumb-wall')
+    };
+
+    E.views = {
+      main:   document.getElementById('view-main'),
+      wall:   document.getElementById('view-wall'),
+      panels: document.getElementById('view-panels')
+    };
+  }
+
+  /* ─── Auth ─── */
+  function bindAuth() {
+    E.authBtn.addEventListener('click', doAuth);
+    E.authPw.addEventListener('keydown', function (e) { if (e.key === 'Enter') doAuth(); });
+  }
+
+  function doAuth() {
+    var pw = E.authPw.value.trim();
+    if (!pw) { E.authErr.style.display = 'block'; return; }
+    fetch('/.netlify/functions/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pw })
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (d && d.ok) {
+        sessionStorage.setItem('admin', '1');
+        sessionStorage.setItem('admin_pw', pw);
+        E.authScreen.style.display = 'none';
+        initCreator();
+      } else {
+        E.authErr.style.display = 'block';
+        E.authPw.value = '';
+      }
+    })
+    .catch(function () { E.authErr.style.display = 'block'; });
+  }
+
+  /* ─── UI bindings ─── */
+  function bindUI() {
+    E.productSel.addEventListener('change', function () { loadProduct(this.value); });
+    document.getElementById('new-series-btn').addEventListener('click', function () { createBlank(false); });
+    document.getElementById('new-collection-btn').addEventListener('click', function () { createBlank(true); });
+    document.getElementById('rebuild-panels-btn').addEventListener('click', rebuildPanelEditors);
+    document.getElementById('auto-layout-btn').addEventListener('click', applyPresetLayout);
+    document.getElementById('sort-layout-btn').addEventListener('click', tidyPositions);
+    document.getElementById('save-btn').addEventListener('click', saveProduct);
+    document.getElementById('sync-btn').addEventListener('click', syncProduct);
+    document.getElementById('preview-toggle').addEventListener('click', function () {
+      E.previewStage.classList.toggle('is-open');
+    });
+
+    /* View tabs — no attribute selectors, just target the container */
+    document.getElementById('view-tabs').addEventListener('click', function (e) {
+      var btn = e.target.closest('.view-tab');
+      if (!btn) return;
+      var view = btn.getAttribute('data-view');
+      if (!view) return;
+      document.querySelectorAll('.view-tab').forEach(function (b) { b.classList.remove('is-active'); });
+      btn.classList.add('is-active');
+      state.activeView = view;
+      renderPreview();
+    });
+
+    /* Field watchers */
+    Object.keys(E.f).forEach(function (key) {
+      var el = E.f[key];
+      var evt = (el.type === 'checkbox' || el.tagName === 'SELECT') ? 'change' : 'input';
+      el.addEventListener(evt, function () {
+        if (key === 'pieces') { ensurePanelArrays(); rebuildPanelEditors(); }
+        if (key === 'layoutPreset') applyPresetLayout();
+        if (key === 'name' && !E.f.slug.dataset.touched) {
+          E.f.slug.value = slugify(E.f.name.value);
         }
+        if (key === 'image') updateThumb('main', E.f.image.value.trim());
+        if (key === 'wallImage') updateThumb('wall', E.f.wallImage.value.trim());
+        renderPreview();
       });
+    });
 
-      function cacheEls() {
-        els.authScreen = document.getElementById('auth-screen');
-        els.authPw = document.getElementById('auth-pw');
-        els.authErr = document.getElementById('auth-err');
-        els.authBtn = document.getElementById('auth-btn');
-        els.statusText = document.getElementById('status-text');
-        els.statusDot = document.getElementById('status-dot');
-        els.productSelect = document.getElementById('product-select');
-        els.previewStage = document.getElementById('preview-stage');
+    E.f.slug.addEventListener('input', function () { E.f.slug.dataset.touched = '1'; });
+  }
 
-        els.fields = {
-          name: document.getElementById('f-name'),
-          slug: document.getElementById('f-slug'),
-          category: document.getElementById('f-category'),
-          accent: document.getElementById('f-accent'),
-          price: document.getElementById('f-price'),
-          priceLabel: document.getElementById('f-price-label'),
-          size: document.getElementById('f-size'),
-          material: document.getElementById('f-material'),
-          short: document.getElementById('f-short'),
-          description: document.getElementById('f-description'),
-          note: document.getElementById('f-note'),
-          isCollection: document.getElementById('f-is-collection'),
-          isBundle: document.getElementById('f-is-bundle'),
-          isPublished: document.getElementById('f-is-published'),
-          image: document.getElementById('f-image'),
-          wallImage: document.getElementById('f-wall-image'),
-          panelHint: document.getElementById('f-panel-hint'),
-          pieces: document.getElementById('f-pieces'),
-          layoutPreset: document.getElementById('layout-preset')
-        };
+  /* ─── Load products ─── */
+  function initCreator() {
+    setStatus('Loading products…', 'loading');
+    fetch('/.netlify/functions/load-products', { cache: 'no-store' })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      state.products = Array.isArray(data) ? data : (data.products || []);
+      populateSelect();
+      if (state.products.length) {
+        loadProduct(state.products[0].slug || state.products[0].id || '');
+      } else {
+        createBlank(false);
+      }
+      setStatus('Ready', 'ready');
+    })
+    .catch(function () {
+      createBlank(false);
+      setStatus('Could not load products', 'error');
+    });
+  }
 
-        els.panelList = document.getElementById('panel-list');
+  function populateSelect() {
+    E.productSel.innerHTML = '';
+    if (!state.products.length) {
+      var empty = document.createElement('option');
+      empty.value = '';
+      empty.textContent = 'No saved products';
+      E.productSel.appendChild(empty);
+      return;
+    }
+    var placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = '— select a product —';
+    E.productSel.appendChild(placeholder);
+    state.products.forEach(function (p) {
+      var opt = document.createElement('option');
+      opt.value = p.slug || p.id || '';
+      opt.textContent = p.name || p.slug || 'Untitled';
+      E.productSel.appendChild(opt);
+    });
+  }
 
-        els.preview = {
-          title: document.getElementById('preview-title'),
-          badge: document.getElementById('preview-badge'),
-          name: document.getElementById('preview-name'),
-          short: document.getElementById('preview-short'),
-          price: document.getElementById('preview-price'),
-          priceLabel: document.getElementById('preview-price-label'),
-          description: document.getElementById('preview-description'),
-          mainImage: document.getElementById('preview-main-image'),
-          wallImage: document.getElementById('preview-wall-image'),
-          mediaEmpty: document.getElementById('preview-media-empty'),
-          arrangementCount: document.getElementById('arrangement-count'),
-          hexPreview: document.getElementById('hex-preview')
-        };
+  function loadProduct(id) {
+    if (!id) return;
+    var p = state.products.find(function (x) { return (x.slug || x.id) === id; });
+    if (!p) return;
+    state.currentId = id;
+    E.productSel.value = id;
+
+    E.f.name.value         = p.name || '';
+    E.f.slug.value         = p.slug || '';
+    E.f.slug.dataset.touched = '1';
+    E.f.category.value     = p.category || '';
+    E.f.accent.value       = p.accent || '';
+    E.f.price.value        = p.price || '';
+    E.f.priceLabel.value   = p.priceLabel || '';
+    E.f.size.value         = p.size || '';
+    E.f.material.value     = p.material || '';
+    E.f.short.value        = p.short || '';
+    E.f.description.value  = p.description || '';
+    E.f.note.value         = p.note || '';
+    E.f.isCollection.checked = !!p.isCollection;
+    E.f.isBundle.checked   = !!p.isBundle;
+    E.f.isPublished.checked = p.isPublished !== false;
+    E.f.image.value        = p.image || '';
+    E.f.wallImage.value    = p.wallImage || '';
+    E.f.panelHint.value    = p.panelHint || '';
+    E.f.pieces.value       = parseInt(p.pieces, 10) || 1;
+
+    state.panelNames     = Array.isArray(p.panelNames) ? p.panelNames.slice() : [];
+    state.panelImages    = Array.isArray(p.panelImages) ? p.panelImages.slice() : [];
+    state.panelPositions = (p.panelMap && Array.isArray(p.panelMap.positions))
+      ? p.panelMap.positions.map(function (x) { return { row: x.row, col: x.col }; })
+      : [];
+
+    ensurePanelArrays();
+    rebuildPanelEditors();
+    updateThumb('main', p.image || '');
+    updateThumb('wall', p.wallImage || '');
+    renderPreview();
+    setStatus('Loaded ' + (p.name || 'product'), 'ready');
+  }
+
+  function createBlank(isCollection) {
+    state.currentId = null;
+    E.productSel.value = '';
+    E.f.slug.dataset.touched = '';
+    Object.keys(E.f).forEach(function (k) {
+      var el = E.f[k];
+      if (el.type === 'checkbox') { el.checked = k === 'isPublished'; }
+      else if (k === 'pieces') { el.value = 6; }
+      else if (k === 'layoutPreset') { el.value = 'auto'; }
+      else { el.value = ''; }
+    });
+    E.f.isCollection.checked = !!isCollection;
+    state.panelNames = [];
+    state.panelImages = [];
+    state.panelPositions = [];
+    ensurePanelArrays();
+    applyPresetLayout();
+    rebuildPanelEditors();
+    updateThumb('main', '');
+    updateThumb('wall', '');
+    renderPreview();
+    setStatus('New draft', 'ready');
+  }
+
+  /* ─── Panel arrays ─── */
+  function ensurePanelArrays() {
+    var count = Math.max(1, parseInt(E.f.pieces.value, 10) || 1);
+    while (state.panelNames.length < count) state.panelNames.push('');
+    while (state.panelImages.length < count) state.panelImages.push('');
+    while (state.panelPositions.length < count) state.panelPositions.push({ row: 0, col: state.panelPositions.length });
+    state.panelNames = state.panelNames.slice(0, count);
+    state.panelImages = state.panelImages.slice(0, count);
+    state.panelPositions = state.panelPositions.slice(0, count);
+  }
+
+  function rebuildPanelEditors() {
+    ensurePanelArrays();
+    E.panelList.innerHTML = '';
+    state.panelPositions.forEach(function (pos, i) {
+      var row = document.createElement('div');
+      row.className = 'panel-row';
+      row.innerHTML =
+        '<div class="panel-index">' + (i + 1) + '</div>' +
+        '<input class="field pn" type="text" placeholder="Panel name">' +
+        '<input class="field pi" type="url" placeholder="https://...">' +
+        '<input class="field pr" type="number" step="1">' +
+        '<input class="field pc" type="number" step="1">';
+
+      var nameIn  = row.querySelector('.pn');
+      var imgIn   = row.querySelector('.pi');
+      var rowIn   = row.querySelector('.pr');
+      var colIn   = row.querySelector('.pc');
+
+      nameIn.value = state.panelNames[i] || '';
+      imgIn.value  = state.panelImages[i] || '';
+      rowIn.value  = pos.row;
+      colIn.value  = pos.col;
+
+      nameIn.addEventListener('input', function () { state.panelNames[i] = nameIn.value; renderPreview(); });
+      imgIn.addEventListener('input',  function () { state.panelImages[i] = imgIn.value; renderPreview(); });
+      rowIn.addEventListener('input',  function () { state.panelPositions[i].row = parseInt(rowIn.value, 10) || 0; renderPreview(); });
+      colIn.addEventListener('input',  function () { state.panelPositions[i].col = parseInt(colIn.value, 10) || 0; renderPreview(); });
+
+      E.panelList.appendChild(row);
+    });
+    renderPreview();
+  }
+
+  /* ─── Layout presets ─── */
+  function applyPresetLayout() {
+    ensurePanelArrays();
+    var count  = state.panelPositions.length;
+    var preset = E.f.layoutPreset.value || 'auto';
+    var pos    = [];
+
+    if (preset === 'line') {
+      for (var i = 0; i < count; i++) pos.push({ row: 0, col: i });
+
+    } else if (preset === 'arc') {
+      for (var j = 0; j < count; j++) {
+        pos.push({ row: (j === 0 || j === count - 1) ? 1 : 0, col: j });
       }
 
-      function bindAuth() {
-        els.authBtn.addEventListener('click', doAuth);
-        els.authPw.addEventListener('keydown', function (e) {
-          if (e.key === 'Enter') doAuth();
-        });
-      }
+    } else if (preset === 'cluster') {
+      var cluster = [
+        {row:0,col:1},{row:1,col:0},{row:1,col:1},{row:1,col:2},
+        {row:2,col:0},{row:2,col:1},{row:2,col:2},{row:2,col:3},
+        {row:3,col:1},{row:3,col:2}
+      ];
+      for (var c = 0; c < count; c++) pos.push(cluster[c] || { row: Math.floor(c/3), col: c%3 });
 
-      function bindUI() {
-        els.productSelect.addEventListener('change', function () {
-          loadProduct(this.value);
-        });
+    } else if (preset === 'honeycomb') {
+      var honey = [
+        {row:0,col:1},{row:1,col:0},{row:1,col:1},{row:1,col:2},
+        {row:2,col:0},{row:2,col:1},{row:2,col:2},{row:2,col:3},
+        {row:3,col:1},{row:3,col:2},{row:4,col:1},{row:4,col:2}
+      ];
+      for (var h = 0; h < count; h++) pos.push(honey[h] || { row: Math.floor(h/4), col: h%4 });
 
-        document.getElementById('new-series-btn').addEventListener('click', function () {
-          createBlank(false);
-        });
+    } else {
+      pos = autoLayout(count);
+    }
 
-        document.getElementById('new-collection-btn').addEventListener('click', function () {
-          createBlank(true);
-        });
+    state.panelPositions = pos;
+    rebuildPanelEditors();
+  }
 
-        document.getElementById('rebuild-panels-btn').addEventListener('click', rebuildPanelEditors);
-        document.getElementById('auto-layout-btn').addEventListener('click', applyPresetLayout);
-        document.getElementById('sort-layout-btn').addEventListener('click', tidyPositions);
+  function tidyPositions() {
+    var sorted = state.panelPositions.map(function (p, idx) {
+      return { row: parseInt(p.row,10)||0, col: parseInt(p.col,10)||0, idx: idx };
+    }).sort(function (a, b) { return a.row !== b.row ? a.row - b.row : a.col - b.col; });
 
-        document.getElementById('save-btn').addEventListener('click', saveProduct);
-        document.getElementById('sync-btn').addEventListener('click', syncProduct);
-        document.getElementById('preview-toggle').addEventListener('click', function () {
-          els.previewStage.classList.toggle('is-open');
-        });
+    var nn = [], ni = [], np = [];
+    sorted.forEach(function (item) {
+      nn.push(state.panelNames[item.idx] || '');
+      ni.push(state.panelImages[item.idx] || '');
+      np.push({ row: item.row, col: item.col });
+    });
+    state.panelNames = nn; state.panelImages = ni; state.panelPositions = np;
+    rebuildPanelEditors();
+  }
 
-        Array.prototype.forEach.call(document.querySelectorAll('.chip[data-view]'), function (btn) {
-          btn.addEventListener('click', function () {
-            Array.prototype.forEach.call(document.querySelectorAll('.chip[data-view]'), function (b) {
-              b.classList.remove('is-active');
-            });
-            btn.classList.add('is-active');
-            state.activeView = btn.getAttribute('data-view');
-            renderPreview();
-          });
-        });
+  function autoLayout(count) {
+    var positions = [], cols = Math.max(2, Math.ceil(Math.sqrt(count)));
+    var placed = 0, r = 0;
+    while (placed < count) {
+      var rowCols = Math.min(cols, count - placed);
+      for (var c = 0; c < rowCols; c++) { positions.push({ row: r, col: c }); placed++; }
+      r++;
+    }
+    return positions;
+  }
 
-        Object.keys(els.fields).forEach(function (key) {
-          var el = els.fields[key];
-          var evt = (el.type === 'checkbox' || el.tagName === 'SELECT') ? 'change' : 'input';
-          el.addEventListener(evt, function () {
-            if (key === 'pieces') ensurePanelArrays();
-            if (key === 'layoutPreset') applyPresetLayout();
-            if (key === 'name' && !els.fields.slug.dataset.touched) {
-              els.fields.slug.value = slugify(els.fields.name.value);
-            }
-            renderPreview();
-          });
-        });
+  /* ─── Thumb previews in rail ─── */
+  function updateThumb(which, url) {
+    var wrap = which === 'main' ? E.prev.thumbMain : E.prev.thumbWall;
+    if (!wrap) return;
+    if (url) {
+      wrap.innerHTML = '<img src="' + url + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:10px">';
+    } else {
+      wrap.innerHTML = '<div class="img-thumb-empty">No image</div>';
+    }
+  }
 
-        els.fields.slug.addEventListener('input', function () {
-          els.fields.slug.dataset.touched = '1';
-        });
-      }
+  /* ─── Preview rendering ─── */
+  function renderPreview() {
+    var name        = E.f.name.value.trim() || 'Untitled product';
+    var isCollection = E.f.isCollection.checked;
+    var isBundle    = E.f.isBundle.checked;
+    var image       = E.f.image.value.trim();
+    var wallImage   = E.f.wallImage.value.trim();
+    var shortLine   = E.f.short.value.trim() || 'Add a short product line.';
+    var description = E.f.description.value.trim() || 'Your description will appear here.';
+    var price       = parseFloat(E.f.price.value || 0);
+    var count       = Math.max(1, parseInt(E.f.pieces.value, 10) || 1);
 
-      function doAuth() {
-        var pw = els.authPw.value.trim();
-        if (!pw) {
-          els.authErr.style.display = 'block';
-          return;
+    E.prev.title.textContent       = name;
+    E.prev.name.textContent        = name;
+    E.prev.badge.textContent       = isBundle ? 'Bundle' : (isCollection ? 'Collection' : 'Series');
+    E.prev.short.textContent       = shortLine;
+    E.prev.description.textContent = description;
+    E.prev.price.textContent       = '£' + price.toFixed(2);
+    E.prev.priceLabel.textContent  = E.f.priceLabel.value || '';
+    E.prev.arrangementCount.textContent = count + ' panel' + (count === 1 ? '' : 's');
+
+    /* Meta pills */
+    var pills = [];
+    if (E.f.size.value.trim()) pills.push(E.f.size.value.trim());
+    if (E.f.material.value.trim()) pills.push(E.f.material.value.trim());
+    if (E.f.category.value.trim()) pills.push(E.f.category.value.trim());
+    E.prev.metaPills.innerHTML = pills.map(function (p) {
+      return '<span class="meta-pill">' + p + '</span>';
+    }).join('');
+
+    /* Switch view panes */
+    Object.keys(E.views).forEach(function (v) {
+      E.views[v].style.display = v === state.activeView ? '' : 'none';
+    });
+
+    /* Main image */
+    if (image) {
+      E.prev.mainImage.src = image;
+      E.prev.mainImage.style.display = '';
+      E.prev.mainEmpty.style.display = 'none';
+    } else {
+      E.prev.mainImage.src = '';
+      E.prev.mainImage.style.display = 'none';
+      E.prev.mainEmpty.style.display = '';
+    }
+
+    /* Wall image */
+    if (wallImage) {
+      E.prev.wallImage.src = wallImage;
+      E.prev.wallImage.style.display = '';
+      E.prev.wallEmpty.style.display = 'none';
+    } else {
+      E.prev.wallImage.src = '';
+      E.prev.wallImage.style.display = 'none';
+      E.prev.wallEmpty.style.display = '';
+    }
+
+    /* Panels composite view */
+    renderPanelsView(image, count);
+
+    /* Arrangement card hex grid */
+    renderHexGrid();
+  }
+
+  /* ── Panels composite: main image + hex tiles as overlay ── */
+  function renderPanelsView(mainImageUrl, count) {
+    var bgLayer  = E.prev.panelsBgLayer;
+    var bgEmpty  = E.prev.panelsBgEmpty;
+    var hexLayer = E.prev.panelsHexLayer;
+
+    /* Background: blurred main image */
+    if (mainImageUrl) {
+      bgLayer.style.backgroundImage    = 'url(' + mainImageUrl + ')';
+      bgLayer.style.backgroundSize     = 'cover';
+      bgLayer.style.backgroundPosition = 'center';
+      bgEmpty.style.display = 'none';
+    } else {
+      bgLayer.style.backgroundImage = '';
+      bgEmpty.style.display = '';
+    }
+
+    /* Hex layer: tiles composited on the image */
+    hexLayer.innerHTML = '';
+    var grouped = groupByRow();
+    var rowKeys = Object.keys(grouped).map(Number).sort(function (a, b) { return a - b; });
+
+    /* Work out the full grid extent so we can calculate tile positions */
+    var maxRow = rowKeys.length ? rowKeys[rowKeys.length - 1] : 0;
+    var maxCol = 0;
+    rowKeys.forEach(function (r) {
+      grouped[r].forEach(function (c) { if (c.col > maxCol) maxCol = c.col; });
+    });
+    var totalRows = maxRow + 1;
+    var totalCols = maxCol + 1;
+
+    rowKeys.forEach(function (rowKey) {
+      var rowEl = document.createElement('div');
+      rowEl.className = 'hex-row' + (rowKey % 2 !== 0 ? ' offset' : '');
+
+      grouped[rowKey].sort(function (a, b) { return a.col - b.col; }).forEach(function (cell) {
+        var hex = document.createElement('div');
+        hex.className = 'hex-cell-composite';
+
+        /* Each tile shows the portion of the main image that corresponds to its grid position */
+        var imgSrc = state.panelImages[cell.idx] || mainImageUrl;
+        if (imgSrc) {
+          /* bg-position: map col→x%, row→y% within the full image */
+          var xPct = totalCols > 1 ? Math.round((cell.col / (totalCols - 1)) * 100) : 50;
+          var yPct = totalRows > 1 ? Math.round((rowKey / (totalRows - 1)) * 100) : 50;
+          /* bg-size: scale image so that one "cell-sized" region fills the tile.
+             We want totalCols tiles across → background-size = totalCols * 100% */
+          var bsW = Math.max(totalCols, 1) * 100;
+          var bsH = Math.max(totalRows, 1) * 100;
+
+          hex.style.backgroundImage    = 'url(' + imgSrc + ')';
+          hex.style.backgroundSize     = bsW + '% ' + bsH + '%';
+          hex.style.backgroundPosition = xPct + '% ' + yPct + '%';
+          hex.style.backgroundRepeat   = 'no-repeat';
         }
 
-        fetch('/.netlify/functions/auth', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password: pw })
-        })
-        .then(function (r) { return r.json(); })
-        .then(function (d) {
-          if (d && d.ok) {
-            sessionStorage.setItem('admin', '1');
-            sessionStorage.setItem('admin_pw', pw);
-            hideAuth();
-            initCreator();
-          } else {
-            els.authErr.style.display = 'block';
-            els.authPw.value = '';
-          }
-        })
-        .catch(function () {
-          els.authErr.style.display = 'block';
-        });
-      }
+        var label = document.createElement('span');
+        label.className = 'hex-label-preview';
+        label.textContent = cell.idx + 1;
+        hex.appendChild(label);
+        rowEl.appendChild(hex);
+      });
+      hexLayer.appendChild(rowEl);
+    });
+  }
 
-      function hideAuth() {
-        els.authScreen.style.display = 'none';
-      }
+  /* ── Arrangement card hex grid (same crop logic) ── */
+  function renderHexGrid() {
+    ensurePanelArrays();
+    var wrap       = E.prev.hexPreview;
+    var mainImage  = E.f.image.value.trim();
+    var grouped    = groupByRow();
+    var rowKeys    = Object.keys(grouped).map(Number).sort(function (a, b) { return a - b; });
+    var maxRow = rowKeys.length ? rowKeys[rowKeys.length - 1] : 0;
+    var maxCol = 0;
+    rowKeys.forEach(function (r) {
+      grouped[r].forEach(function (c) { if (c.col > maxCol) maxCol = c.col; });
+    });
+    var totalRows = maxRow + 1;
+    var totalCols = maxCol + 1;
 
-      function initCreator() {
-        setStatus('Loading products…', 'loading');
-        fetch('/.netlify/functions/load-products', { cache: 'no-store' })
-          .then(function (r) { return r.json(); })
-          .then(function (data) {
-            state.products = Array.isArray(data) ? data : (data.products || []);
-            populateSelect();
-            if (state.products.length) {
-              loadProduct(state.products[0].slug || state.products[0].id || '');
-            } else {
-              createBlank(false);
-            }
-            setStatus('Ready', 'ready');
-          })
-          .catch(function () {
-            createBlank(false);
-            setStatus('Could not load products', 'error');
-          });
-      }
+    wrap.innerHTML = '';
+    rowKeys.forEach(function (rowKey) {
+      var rowEl = document.createElement('div');
+      rowEl.className = 'hex-row' + (rowKey % 2 !== 0 ? ' offset' : '');
 
-      function populateSelect() {
-        els.productSelect.innerHTML = '';
-        if (!state.products.length) {
-          var empty = document.createElement('option');
-          empty.value = '';
-          empty.textContent = 'No saved products';
-          els.productSelect.appendChild(empty);
-          return;
+      grouped[rowKey].sort(function (a, b) { return a.col - b.col; }).forEach(function (cell) {
+        var hex = document.createElement('div');
+        hex.className = 'hex-cell-preview';
+
+        var imgSrc = state.panelImages[cell.idx] || mainImage;
+        if (imgSrc) {
+          var xPct = totalCols > 1 ? Math.round((cell.col / (totalCols - 1)) * 100) : 50;
+          var yPct = totalRows > 1 ? Math.round((rowKey / (totalRows - 1)) * 100) : 50;
+          var bsW  = Math.max(totalCols, 1) * 100;
+          var bsH  = Math.max(totalRows, 1) * 100;
+
+          hex.style.backgroundImage    = 'url(' + imgSrc + ')';
+          hex.style.backgroundSize     = bsW + '% ' + bsH + '%';
+          hex.style.backgroundPosition = xPct + '% ' + yPct + '%';
+          hex.style.backgroundRepeat   = 'no-repeat';
         }
 
-        var placeholder = document.createElement('option');
-        placeholder.value = '';
-        placeholder.textContent = 'Select a product…';
-        els.productSelect.appendChild(placeholder);
+        var label = document.createElement('span');
+        label.className = 'hex-label-preview';
+        label.textContent = cell.idx + 1;
+        hex.appendChild(label);
+        rowEl.appendChild(hex);
+      });
+      wrap.appendChild(rowEl);
+    });
+  }
 
-        state.products.forEach(function (product) {
-          var option = document.createElement('option');
-          option.value = product.slug || product.id || '';
-          option.textContent = product.name || product.slug || 'Untitled';
-          els.productSelect.appendChild(option);
-        });
+  function groupByRow() {
+    var grouped = {};
+    state.panelPositions.forEach(function (pos, idx) {
+      var r = parseInt(pos.row, 10) || 0;
+      if (!grouped[r]) grouped[r] = [];
+      grouped[r].push({ idx: idx, row: r, col: parseInt(pos.col, 10) || 0 });
+    });
+    return grouped;
+  }
+
+  /* ─── Save / Sync ─── */
+  function buildPayload() {
+    ensurePanelArrays();
+    return {
+      slug:         E.f.slug.value.trim() || slugify(E.f.name.value),
+      name:         E.f.name.value.trim(),
+      category:     E.f.category.value.trim(),
+      price:        parseFloat(E.f.price.value || 0),
+      price_label:  E.f.priceLabel.value.trim(),
+      short:        E.f.short.value.trim(),
+      description:  E.f.description.value.trim(),
+      note:         E.f.note.value.trim(),
+      accent:       E.f.accent.value.trim(),
+      size:         E.f.size.value.trim(),
+      material:     E.f.material.value.trim(),
+      pieces:       Math.max(1, parseInt(E.f.pieces.value, 10) || 1),
+      panel_hint:   E.f.panelHint.value.trim(),
+      image:        E.f.image.value.trim(),
+      wall_image:   E.f.wallImage.value.trim(),
+      is_collection: E.f.isCollection.checked,
+      is_bundle:    E.f.isBundle.checked,
+      is_published: E.f.isPublished.checked,
+      panel_names:  state.panelNames.slice(),
+      panel_images: state.panelImages.slice(),
+      panel_map: {
+        positions: state.panelPositions.map(function (p) {
+          return { row: parseInt(p.row,10)||0, col: parseInt(p.col,10)||0 };
+        }),
+        transforms: []
       }
+    };
+  }
 
-      function loadProduct(id) {
-        if (!id) return;
-        var product = state.products.find(function (p) {
-          return (p.slug || p.id) === id;
-        });
-        if (!product) return;
+  function saveProduct() {
+    var payload = buildPayload();
+    if (!payload.name || !payload.slug) { setStatus('Name and slug are required', 'error'); return; }
+    setStatus('Saving…', 'saving');
+    fetch('/.netlify/functions/save-product', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-password': sessionStorage.getItem('admin_pw') || '' },
+      body: JSON.stringify(payload)
+    })
+    .then(function (r) { return r.json(); })
+    .then(function () {
+      setStatus('Saved', 'success');
+      return fetch('/.netlify/functions/load-products', { cache: 'no-store' });
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      state.products = Array.isArray(data) ? data : (data.products || []);
+      populateSelect();
+      loadProduct(payload.slug);
+    })
+    .catch(function () { setStatus('Save failed', 'error'); });
+  }
 
-        state.currentId = id;
-        els.productSelect.value = id;
+  function syncProduct() {
+    var payload = buildPayload();
+    setStatus('Syncing…', 'saving');
+    fetch('/.netlify/functions/sync-product', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-password': sessionStorage.getItem('admin_pw') || '' },
+      body: JSON.stringify(payload)
+    })
+    .then(function (r) { return r.json(); })
+    .then(function () { setStatus('Synced', 'success'); })
+    .catch(function () { setStatus('Sync failed', 'error'); });
+  }
 
-        els.fields.name.value = product.name || '';
-        els.fields.slug.value = product.slug || '';
-        els.fields.slug.dataset.touched = '1';
-        els.fields.category.value = product.category || '';
-        els.fields.accent.value = product.accent || '';
-        els.fields.price.value = product.price || '';
-        els.fields.priceLabel.value = product.priceLabel || '';
-        els.fields.size.value = product.size || '';
-        els.fields.material.value = product.material || '';
-        els.fields.short.value = product.short || '';
-        els.fields.description.value = product.description || '';
-        els.fields.note.value = product.note || '';
-        els.fields.isCollection.checked = !!product.isCollection;
-        els.fields.isBundle.checked = !!product.isBundle;
-        els.fields.isPublished.checked = product.isPublished !== false;
-        els.fields.image.value = product.image || '';
-        els.fields.wallImage.value = product.wallImage || '';
-        els.fields.panelHint.value = product.panelHint || '';
-        els.fields.pieces.value = parseInt(product.pieces, 10) || 1;
+  /* ─── Helpers ─── */
+  function slugify(v) {
+    return (v || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  }
 
-        state.panelNames = Array.isArray(product.panelNames) ? product.panelNames.slice() : [];
-        state.panelImages = Array.isArray(product.panelImages) ? product.panelImages.slice() : [];
-        state.panelPositions = product.panelMap && Array.isArray(product.panelMap.positions)
-          ? product.panelMap.positions.map(function (p) { return { row: p.row, col: p.col }; })
-          : [];
+  function setStatus(text, mode) {
+    E.statusText.textContent = text;
+    E.statusDot.className = 'status-dot' + (mode ? ' is-' + mode : '');
+  }
 
-        ensurePanelArrays();
-        rebuildPanelEditors();
-        renderPreview();
-        setStatus('Loaded ' + (product.name || 'product'), 'ready');
-      }
-
-      function createBlank(isCollection) {
-        state.currentId = null;
-        els.productSelect.value = '';
-        els.fields.slug.dataset.touched = '';
-
-        els.fields.name.value = '';
-        els.fields.slug.value = '';
-        els.fields.category.value = '';
-        els.fields.accent.value = '';
-        els.fields.price.value = '';
-        els.fields.priceLabel.value = '';
-        els.fields.size.value = '';
-        els.fields.material.value = '';
-        els.fields.short.value = '';
-        els.fields.description.value = '';
-        els.fields.note.value = '';
-        els.fields.isCollection.checked = !!isCollection;
-        els.fields.isBundle.checked = false;
-        els.fields.isPublished.checked = true;
-        els.fields.image.value = '';
-        els.fields.wallImage.value = '';
-        els.fields.panelHint.value = '';
-        els.fields.pieces.value = 6;
-        els.fields.layoutPreset.value = 'auto';
-
-        state.panelNames = [];
-        state.panelImages = [];
-        state.panelPositions = [];
-        ensurePanelArrays();
-        applyPresetLayout();
-        rebuildPanelEditors();
-        renderPreview();
-        setStatus('New draft', 'ready');
-      }
-
-      function ensurePanelArrays() {
-        var count = Math.max(1, parseInt(els.fields.pieces.value, 10) || 1);
-
-        while (state.panelNames.length < count) state.panelNames.push('');
-        while (state.panelImages.length < count) state.panelImages.push('');
-        while (state.panelPositions.length < count) state.panelPositions.push({ row: 0, col: state.panelPositions.length });
-
-        state.panelNames = state.panelNames.slice(0, count);
-        state.panelImages = state.panelImages.slice(0, count);
-        state.panelPositions = state.panelPositions.slice(0, count);
-      }
-
-      function rebuildPanelEditors() {
-        ensurePanelArrays();
-        els.panelList.innerHTML = '';
-
-        state.panelPositions.forEach(function (pos, index) {
-          var row = document.createElement('div');
-          row.className = 'panel-row';
-
-          row.innerHTML =
-            '<div class="panel-index">' + (index + 1) + '</div>' +
-            '<input class="field panel-name" type="text" placeholder="Panel name">' +
-            '<input class="field panel-image" type="url" placeholder="https://...">' +
-            '<input class="field panel-num" type="number" step="1">' +
-            '<input class="field panel-num" type="number" step="1">';
-
-          var nameInput = row.children[1];
-          var imageInput = row.children[2];
-          var rowInput = row.children[3];
-          var colInput = row.children[4];
-
-          nameInput.value = state.panelNames[index] || '';
-          imageInput.value = state.panelImages[index] || '';
-          rowInput.value = pos.row;
-          colInput.value = pos.col;
-
-          nameInput.addEventListener('input', function () {
-            state.panelNames[index] = nameInput.value;
-            renderPreview();
-          });
-
-          imageInput.addEventListener('input', function () {
-            state.panelImages[index] = imageInput.value;
-            renderPreview();
-          });
-
-          rowInput.addEventListener('input', function () {
-            state.panelPositions[index].row = parseInt(rowInput.value, 10) || 0;
-            renderPreview();
-          });
-
-          colInput.addEventListener('input', function () {
-            state.panelPositions[index].col = parseInt(colInput.value, 10) || 0;
-            renderPreview();
-          });
-
-          els.panelList.appendChild(row);
-        });
-
-        renderPreview();
-      }
-
-      function applyPresetLayout() {
-        ensurePanelArrays();
-        var count = state.panelPositions.length;
-        var preset = els.fields.layoutPreset.value || 'auto';
-        var positions = [];
-
-        if (preset === 'line') {
-          for (var i = 0; i < count; i++) positions.push({ row: 0, col: i });
-        } else if (preset === 'arc') {
-          for (var j = 0; j < count; j++) {
-            var row = (j === 0 || j === count - 1) ? 1 : 0;
-            positions.push({ row: row, col: j });
-          }
-        } else if (preset === 'cluster') {
-          var cluster = [
-            { row: 0, col: 1 },
-            { row: 1, col: 0 },
-            { row: 1, col: 1 },
-            { row: 1, col: 2 },
-            { row: 2, col: 0 },
-            { row: 2, col: 1 },
-            { row: 2, col: 2 },
-            { row: 2, col: 3 },
-            { row: 3, col: 1 },
-            { row: 3, col: 2 }
-          ];
-          for (var c = 0; c < count; c++) positions.push(cluster[c] || { row: Math.floor(c / 3), col: c % 3 });
-        } else if (preset === 'honeycomb') {
-          var honey = [
-            { row: 0, col: 1 },
-            { row: 1, col: 0 },
-            { row: 1, col: 1 },
-            { row: 1, col: 2 },
-            { row: 2, col: 0 },
-            { row: 2, col: 1 },
-            { row: 2, col: 2 },
-            { row: 2, col: 3 },
-            { row: 3, col: 1 },
-            { row: 3, col: 2 },
-            { row: 4, col: 1 },
-            { row: 4, col: 2 }
-          ];
-          for (var h = 0; h < count; h++) positions.push(honey[h] || { row: Math.floor(h / 4), col: h % 4 });
-        } else {
-          positions = autoLayout(count);
-        }
-
-        state.panelPositions = positions;
-        rebuildPanelEditors();
-      }
-
-      function tidyPositions() {
-        var sorted = state.panelPositions
-          .map(function (p, idx) {
-            return { row: parseInt(p.row, 10) || 0, col: parseInt(p.col, 10) || 0, idx: idx };
-          })
-          .sort(function (a, b) {
-            if (a.row !== b.row) return a.row - b.row;
-            return a.col - b.col;
-          });
-
-        var newNames = [];
-        var newImages = [];
-        var newPositions = [];
-
-        sorted.forEach(function (item) {
-          newNames.push(state.panelNames[item.idx] || '');
-          newImages.push(state.panelImages[item.idx] || '');
-          newPositions.push({ row: item.row, col: item.col });
-        });
-
-        state.panelNames = newNames;
-        state.panelImages = newImages;
-        state.panelPositions = newPositions;
-        rebuildPanelEditors();
-      }
-
-      function renderPreview() {
-        var name = els.fields.name.value.trim() || 'Untitled product';
-        var isCollection = els.fields.isCollection.checked;
-        var isBundle = els.fields.isBundle.checked;
-        var image = els.fields.image.value.trim();
-        var wallImage = els.fields.wallImage.value.trim();
-        var shortLine = els.fields.short.value.trim() || 'Add a short product line.';
-        var description = els.fields.description.value.trim() || 'Your description will appear here.';
-        var price = parseFloat(els.fields.price.value || 0);
-        var count = Math.max(1, parseInt(els.fields.pieces.value, 10) || 1);
-
-        els.preview.title.textContent = name;
-        els.preview.name.textContent = name;
-        els.preview.badge.textContent = isBundle ? 'Bundle' : (isCollection ? 'Collection' : 'Series');
-        els.preview.short.textContent = shortLine;
-        els.preview.description.textContent = description;
-        els.preview.price.textContent = '£' + price.toFixed(2);
-        els.preview.priceLabel.textContent = els.fields.priceLabel.value ? ' ' + els.fields.priceLabel.value : '';
-
-        els.preview.mainImage.src = image || '';
-        els.preview.wallImage.src = wallImage || '';
-        els.preview.mainImage.alt = name;
-        els.preview.wallImage.alt = name + ' on wall';
-
-        var hasAnyImage = !!(image || wallImage);
-        els.preview.mediaEmpty.style.display = hasAnyImage ? 'none' : 'flex';
-
-        els.preview.mainImage.classList.toggle('is-visible', state.activeView === 'main' && !!image);
-        els.preview.wallImage.classList.toggle('is-visible', state.activeView === 'wall' && !!wallImage);
-
-        if (state.activeView === 'main' && !image && wallImage) {
-          els.preview.wallImage.classList.add('is-visible');
-        }
-        if (state.activeView === 'wall' && !wallImage && image) {
-          els.preview.mainImage.classList.add('is-visible');
-        }
-        if (state.activeView === 'panels') {
-          els.preview.mainImage.classList.remove('is-visible');
-          els.preview.wallImage.classList.remove('is-visible');
-          if (image) els.preview.mainImage.classList.add('is-visible');
-        }
-
-        els.preview.arrangementCount.textContent = count + ' panel' + (count === 1 ? '' : 's');
-        renderHexPreview();
-      }
-
-      function renderHexPreview() {
-        ensurePanelArrays();
-        var wrap = els.preview.hexPreview;
-        wrap.innerHTML = '';
-
-        var grouped = {};
-        state.panelPositions.forEach(function (pos, index) {
-          var row = parseInt(pos.row, 10) || 0;
-          if (!grouped[row]) grouped[row] = [];
-          grouped[row].push({
-            idx: index,
-            row: row,
-            col: parseInt(pos.col, 10) || 0
-          });
-        });
-
-        var rowKeys = Object.keys(grouped).map(Number).sort(function (a, b) { return a - b; });
-
-        rowKeys.forEach(function (rowKey) {
-          var rowEl = document.createElement('div');
-          rowEl.className = 'hex-row' + (rowKey % 2 !== 0 ? ' offset' : '');
-
-          grouped[rowKey]
-            .sort(function (a, b) { return a.col - b.col; })
-            .forEach(function (cell) {
-              var hex = document.createElement('div');
-              hex.className = 'hex-cell-preview';
-
-              var imgSrc = state.panelImages[cell.idx] || els.fields.image.value.trim();
-              if (imgSrc) {
-                var img = document.createElement('img');
-                img.src = imgSrc;
-                img.alt = state.panelNames[cell.idx] || ('Panel ' + (cell.idx + 1));
-                img.style.objectPosition = fallbackObjectPosition(cell.idx, state.panelPositions.length);
-                hex.appendChild(img);
-              }
-
-              var label = document.createElement('span');
-              label.className = 'hex-label-preview';
-              label.textContent = cell.idx + 1;
-              hex.appendChild(label);
-
-              rowEl.appendChild(hex);
-            });
-
-          wrap.appendChild(rowEl);
-        });
-      }
-
-      function fallbackObjectPosition(index, total) {
-        if (total <= 1) return '50% 50%';
-        var cols = Math.ceil(Math.sqrt(total));
-        var col = index % cols;
-        var row = Math.floor(index / cols);
-        var rows = Math.ceil(total / cols);
-        var x = cols > 1 ? Math.round((col / (cols - 1)) * 100) : 50;
-        var y = rows > 1 ? Math.round((row / (rows - 1)) * 100) : 50;
-        return x + '% ' + y + '%';
-      }
-
-      function autoLayout(count) {
-        var positions = [];
-        var cols = Math.max(2, Math.ceil(Math.sqrt(count)));
-        var placed = 0;
-        var row = 0;
-        while (placed < count) {
-          var rowCols = Math.min(cols, count - placed);
-          for (var c = 0; c < rowCols; c++) {
-            positions.push({ row: row, col: c });
-            placed++;
-          }
-          row++;
-        }
-        return positions;
-      }
-
-      function buildPayload() {
-        ensurePanelArrays();
-
-        return {
-          slug: els.fields.slug.value.trim() || slugify(els.fields.name.value),
-          name: els.fields.name.value.trim(),
-          category: els.fields.category.value.trim(),
-          price: parseFloat(els.fields.price.value || 0),
-          price_label: els.fields.priceLabel.value.trim(),
-          short: els.fields.short.value.trim(),
-          description: els.fields.description.value.trim(),
-          note: els.fields.note.value.trim(),
-          accent: els.fields.accent.value.trim(),
-          size: els.fields.size.value.trim(),
-          material: els.fields.material.value.trim(),
-          pieces: Math.max(1, parseInt(els.fields.pieces.value, 10) || 1),
-          panel_hint: els.fields.panelHint.value.trim(),
-          image: els.fields.image.value.trim(),
-          wall_image: els.fields.wallImage.value.trim(),
-          is_collection: els.fields.isCollection.checked,
-          is_bundle: els.fields.isBundle.checked,
-          is_published: els.fields.isPublished.checked,
-          panel_names: state.panelNames.slice(),
-          panel_images: state.panelImages.slice(),
-          panel_map: {
-            positions: state.panelPositions.map(function (p) {
-              return {
-                row: parseInt(p.row, 10) || 0,
-                col: parseInt(p.col, 10) || 0
-              };
-            }),
-            transforms: []
-          }
-        };
-      }
-
-      function saveProduct() {
-        var payload = buildPayload();
-        if (!payload.name || !payload.slug) {
-          setStatus('Name and slug are required', 'error');
-          return;
-        }
-
-        setStatus('Saving…', 'saving');
-        fetch('/.netlify/functions/save-product', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-admin-password': sessionStorage.getItem('admin_pw') || ''
-          },
-          body: JSON.stringify(payload)
-        })
-        .then(function (r) { return r.json(); })
-        .then(function () {
-          setStatus('Saved', 'success');
-          return fetch('/.netlify/functions/load-products', { cache: 'no-store' });
-        })
-        .then(function (r) { return r.json(); })
-        .then(function (data) {
-          state.products = Array.isArray(data) ? data : (data.products || []);
-          populateSelect();
-          loadProduct(payload.slug);
-        })
-        .catch(function () {
-          setStatus('Save failed', 'error');
-        });
-      }
-
-      function syncProduct() {
-        var payload = buildPayload();
-        setStatus('Syncing…', 'saving');
-
-        fetch('/.netlify/functions/sync-product', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-admin-password': sessionStorage.getItem('admin_pw') || ''
-          },
-          body: JSON.stringify(payload)
-        })
-        .then(function (r) { return r.json(); })
-        .then(function () {
-          setStatus('Synced', 'success');
-        })
-        .catch(function () {
-          setStatus('Sync failed', 'error');
-        });
-      }
-
-      function slugify(value) {
-        return (value || '')
-          .toLowerCase()
-          .trim()
-          .replace(/[^a-z0-9]+/g, '-')
-          .replace(/^-+|-+$/g, '');
-      }
-
-      function setStatus(text, mode) {
-        els.statusText.textContent = text;
-        els.statusDot.className = 'status-dot';
-        if (mode) els.statusDot.classList.add('is-' + mode);
-      }
-    })();
-  </script>
+})();
+</script>
 </body>
 </html>
