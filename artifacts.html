@@ -124,8 +124,9 @@
 <script src="/js/nav.js"></script>
 <script src="/js/basket.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
   var activeFilter = 'all';
+  var allArtifacts = [];
 
   function renderArtifacts(artifacts) {
     var grid = document.getElementById('artifacts-grid');
@@ -133,33 +134,41 @@ document.addEventListener('DOMContentLoaded', function() {
 
     var filtered = activeFilter === 'all'
       ? artifacts
-      : artifacts.filter(function(a) {
+      : artifacts.filter(function (a) {
           var cat = (a.category || '').toLowerCase();
-          return cat === activeFilter || cat.includes(activeFilter);
+          return cat === activeFilter || cat.indexOf(activeFilter) !== -1;
         });
 
     if (!filtered.length) {
-      grid.innerHTML = '<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:60px 0">No artifacts in this category.</p>';
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:80px 0 60px;color:var(--muted)">' +
+        '<p style="font-family:var(--fd);font-size:1.5rem;font-weight:300;margin-bottom:8px">No artifacts in this category</p>' +
+        '<p style="font-size:.9rem">Try selecting a different filter above.</p>' +
+      '</div>';
       return;
     }
 
-    grid.innerHTML = filtered.map(function(a) {
-      var name = a.name || 'Untitled';
-      var desc = a.desc || a.description || '';
-      var truncDesc = desc.length > 90 ? desc.substring(0, 90) + '…' : desc;
-      var price = parseFloat(a.price || 0).toFixed(2);
+    grid.innerHTML = filtered.map(function (a) {
+      var name      = a.name || 'Untitled';
+      var desc      = a.description || '';
+      var truncDesc = desc.length > 90 ? desc.substring(0, 90) + '\u2026' : desc;
+      var price     = parseFloat(a.price || 0).toFixed(2);
+
       var imgHtml = a.image
-        ? '<img src="' + a.image + '" alt="' + name.replace(/"/g, '&quot;') + '" loading="lazy">'
-        : '<div class="card-media-placeholder"></div>';
-      var href = a.slug ? '/artifact.html?slug=' + encodeURIComponent(a.slug) : (a.id ? '/artifact.html?slug=' + encodeURIComponent(a.id) : '#');
+        ? '<img src="' + a.image.replace(/"/g, '&quot;') + '" alt="' + name.replace(/"/g, '&quot;') + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block">'
+        : '<div class="card-media-placeholder" style="width:100%;height:100%"></div>';
+
+      /* artifacts table has id (bigint) but no slug — link via id */
+      var href = a.id ? '/artifact.html?id=' + encodeURIComponent(a.id) : '#';
+
       return (
         '<a class="card card-link" href="' + href + '">' +
-          '<div class="card-media">' + imgHtml +
+          '<div class="card-media">' +
+            imgHtml +
             '<div class="badge-row"><span class="badge badge-gold">Artifact</span></div>' +
           '</div>' +
           '<div class="card-body">' +
             '<h3>' + name + '</h3>' +
-            (truncDesc ? '<p class="muted">' + truncDesc + '</p>' : '') +
+            (truncDesc ? '<p class="muted" style="font-size:.85rem;line-height:1.55;margin-bottom:10px">' + truncDesc + '</p>' : '') +
             '<div class="price">&pound;' + price + '</div>' +
           '</div>' +
         '</a>'
@@ -168,43 +177,55 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   fetch('/.netlify/functions/load-catalogue')
-    .then(function(r) { return r.json(); })
-    .then(function(d) {
-      // Artifacts live in d.artifacts (separate table), NOT in d.products
-      // Fall back to filtering d.products by category if d.artifacts is empty
-      var artifacts = [];
+    .then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function (d) {
+      var grid = document.getElementById('artifacts-grid');
+      if (!grid) return;
+
+      /*
+        Artifacts come from the dedicated `artifacts` Supabase table → d.artifacts.
+        Fall back to filtering products only if d.artifacts is genuinely absent.
+      */
       if (Array.isArray(d.artifacts) && d.artifacts.length > 0) {
-        artifacts = d.artifacts;
+        allArtifacts = d.artifacts;
       } else if (Array.isArray(d.products)) {
-        artifacts = d.products.filter(function(p) {
+        allArtifacts = d.products.filter(function (p) {
           var cat = (p.category || '').toLowerCase();
           return cat === 'artifact' || cat === 'artifacts' || p.isArtifact === true;
         });
       }
 
-      var grid = document.getElementById('artifacts-grid');
-      if (!grid) return;
-
-      if (!artifacts.length) {
-        grid.innerHTML = '<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:60px 0">No artifacts available yet.</p>';
+      if (!allArtifacts.length) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:80px 0 60px;color:var(--muted)">' +
+          '<p style="font-family:var(--fd);font-size:1.5rem;font-weight:300;margin-bottom:8px">No artifacts yet</p>' +
+          '<p style="font-size:.9rem">Check back soon — new pieces are added regularly.</p>' +
+        '</div>';
         return;
       }
 
-      // Wire up filter pills
-      document.querySelectorAll('.filter-pill').forEach(function(pill) {
-        pill.addEventListener('click', function() {
-          document.querySelectorAll('.filter-pill').forEach(function(p) { p.classList.remove('active'); });
+      document.querySelectorAll('.filter-pill').forEach(function (pill) {
+        pill.addEventListener('click', function () {
+          document.querySelectorAll('.filter-pill').forEach(function (p) { p.classList.remove('active'); });
           this.classList.add('active');
           activeFilter = this.dataset.filter || 'all';
-          renderArtifacts(artifacts);
+          renderArtifacts(allArtifacts);
         });
       });
 
-      renderArtifacts(artifacts);
+      renderArtifacts(allArtifacts);
     })
-    .catch(function() {
+    .catch(function (err) {
+      console.error('artifacts load error:', err);
       var grid = document.getElementById('artifacts-grid');
-      if (grid) grid.innerHTML = '<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:60px 0">Could not load artifacts. Please try again.</p>';
+      if (grid) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:80px 0 60px;color:var(--muted)">' +
+          '<p style="font-family:var(--fd);font-size:1.5rem;font-weight:300;margin-bottom:8px">Could not load artifacts</p>' +
+          '<p style="font-size:.9rem">Please refresh the page or <a href="/contact.html" style="color:var(--accent)">contact us</a> if the problem persists.</p>' +
+        '</div>';
+      }
     });
 });
 </script>
