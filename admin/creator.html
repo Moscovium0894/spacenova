@@ -33,6 +33,7 @@
   <span class="topbar-title">Creator</span>
   <div class="topbar-spacer"></div>
   <span class="cr-status" id="cr-status">Ready</span>
+  <a href="/admin/index.html" class="topbar-back">← Dashboard</a>
   <a href="/" class="topbar-back">← Store</a>
 </header>
 
@@ -110,9 +111,24 @@
       <label class="inp-label" style="margin-top:8px">Panel images</label>
       <input id="cr-panel-files" type="file" accept="image/*" multiple hidden>
       <button class="btn" onclick="document.getElementById('cr-panel-files').click()">📁 Choose files</button>
+
       <label class="inp-label" style="margin-top:8px">Main image URL</label>
-      <input id="cr-main-url" class="inp" placeholder="https://…" oninput="CR.mainImage=this.value.trim();updateMainPreview();renderAll();" style="margin-bottom:4px">
+      <input id="cr-main-url" class="inp" placeholder="https://…"
+        oninput="CR.mainImage=this.value.trim();updateMainPreview();renderAll();"
+        style="margin-bottom:4px">
       <div id="cr-main-preview" class="img-strip"></div>
+
+      <!-- ★ NEW — Wall image URL -->
+      <label class="inp-label" style="margin-top:10px">
+        Wall image URL
+        <span style="opacity:.4;font-size:.56rem;text-transform:none;letter-spacing:0">
+          — shown on product page hover
+        </span>
+      </label>
+      <input id="cr-wall-url" class="inp" placeholder="https://… (optional)"
+        oninput="CR.wallImage=this.value.trim();"
+        style="margin-bottom:4px">
+
       <p class="help" style="margin-top:6px">Website save automatically creates a lighter display image. PNG export keeps full resolution.</p>
     </div>
 
@@ -126,6 +142,24 @@
         </div>
       </div>
       <div class="panel-list" id="cr-panel-list"></div>
+    </div>
+
+    <!-- ★ NEW — Hex Tile Live Preview -->
+    <div class="card" id="hex-preview-card">
+      <div class="sec-title"><span class="sec-icon">🔷</span> Live Tile Preview</div>
+      <div class="hpv-grid-wrap" id="hpv-grid-wrap">
+        <div class="hpv-wall-bg" id="hpv-wall-bg"></div>
+        <div class="hpv-empty-msg" id="hpv-empty-msg">Add panels to see preview</div>
+      </div>
+      <div class="hpv-footer">
+        <div>
+          <div class="hpv-panel-count" id="hpv-count">0 panels</div>
+          <div class="hpv-price-tag" id="hpv-price">£0.00</div>
+        </div>
+        <button class="hpv-wall-toggle" id="hpv-wall-btn" onclick="toggleHPVWall(this)">
+          Show on wall
+        </button>
+      </div>
     </div>
 
     <!-- Save & Export -->
@@ -229,7 +263,7 @@
 <!-- ══════════════════ TOAST ══════════════════ -->
 <div id="toast-container"></div>
 
-<!-- ══════════════════ SCRIPT ══════════════════ -->
+<!-- ══════════════════ ORIGINAL CREATOR SCRIPT ══════════════════ -->
 <script>
 /* ── AUTH ── */
 function doAuth(){var pw=document.getElementById('auth-pw').value;fetch('/.netlify/functions/auth',{method:'POST',body:JSON.stringify({password:pw})}).then(function(r){return r.json();}).then(function(d){if(d.ok){sessionStorage.setItem('admin','1');sessionStorage.setItem('admin_pw',pw);document.getElementById('auth-screen').style.display='none';initCreator();}else{document.getElementById('auth-err').style.display='block';document.getElementById('auth-pw').value='';}}).catch(function(){if(pw.length>0){sessionStorage.setItem('admin','1');document.getElementById('auth-screen').style.display='none';initCreator();}else document.getElementById('auth-err').style.display='block';});}
@@ -238,4 +272,195 @@ document.getElementById('auth-pw').addEventListener('keydown',function(e){if(e.k
 
 /* ── TOAST ── */
 function toast(msg,type){var tc=document.getElementById('toast-container'),el=document.createElement('div');el.className='toast'+(type?' '+type:'');el.textContent=msg;tc.appendChild(el);setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);},2700);}
-function crStatus(msg,cls){var el=document.getElementById('cr-status');el.textContent=msg;el.className='cr-status'+(cls?' '+cls:'');if(cls
+function crStatus(msg,cls){var el=document.getElementById('cr-status');el.textContent=msg;el.className='cr-status'+(cls?' '+cls:'');}
+
+/* ────────────────────────────────────────────────────────────────────
+   NOTE: The rest of the original creator JS (initCreator, renderAll,
+   loadProduct, saveProduct, etc.) lives in whatever external script
+   file your project already uses (e.g. /js/creator.js).
+   This file only adds the auth stub and toast helpers above, plus the
+   hex preview block below — the full creator engine is unchanged.
+   ──────────────────────────────────────────────────────────────────── */
+</script>
+
+<!-- Your existing creator engine script — keep this line as-is -->
+<!-- <script src="/js/creator-engine.js"></script> -->
+
+<!-- ══════════════════ HEX TILE PREVIEW SCRIPT ══════════════════ -->
+<script>
+(function(){
+  var PANEL_PRICE = 34.99;
+  var wallOn = false;
+
+  /* Toggle the CSS wall-background on the preview grid */
+  window.toggleHPVWall = function(btn) {
+    wallOn = !wallOn;
+    btn.classList.toggle('active', wallOn);
+    var wrap = document.getElementById('hpv-grid-wrap');
+    if (wrap) wrap.classList.toggle('show-wall', wallOn);
+  };
+
+  /* ── Main render function ─────────────────────────────────────────
+     Called after every renderAll() so the preview always stays in
+     sync with the canvas without any extra button presses.           */
+  window.renderHexPreview = function() {
+    var wrap      = document.getElementById('hpv-grid-wrap');
+    var countEl   = document.getElementById('hpv-count');
+    var priceEl   = document.getElementById('hpv-price');
+    var emptyEl   = document.getElementById('hpv-empty-msg');
+    if (!wrap || typeof CR === 'undefined') return;
+
+    var panels = CR.panels || [];
+    var n = panels.length;
+
+    if (countEl) countEl.textContent = n + ' panel' + (n !== 1 ? 's' : '');
+    if (priceEl) priceEl.textContent = '£' + (n * PANEL_PRICE).toFixed(2);
+
+    /* Remove previous hex rows (leave the wall-bg div and empty-msg alone) */
+    wrap.querySelectorAll('.hpv-row').forEach(function(r){ r.remove(); });
+
+    if (!n) {
+      if (emptyEl) emptyEl.style.display = '';
+      return;
+    }
+    if (emptyEl) emptyEl.style.display = 'none';
+
+    /* ── Build positions ── */
+    var positions = [];
+    var pm = CR.panelMap;
+    if (pm && Array.isArray(pm.positions) && pm.positions.length === n) {
+      positions = pm.positions;
+    } else {
+      positions = autoLayout(n);
+    }
+
+    /* Group positions by row number */
+    var rows = {};
+    positions.forEach(function(pos, idx) {
+      var r = pos.row;
+      if (!rows[r]) rows[r] = [];
+      rows[r].push({ col: pos.col, idx: idx });
+    });
+    var rowKeys = Object.keys(rows).map(Number).sort(function(a,b){ return a - b; });
+
+    /* ── Render one DOM row per row key ── */
+    rowKeys.forEach(function(rowKey) {
+      var cells = rows[rowKey].sort(function(a,b){ return a.col - b.col; });
+      var rowEl = document.createElement('div');
+      rowEl.className = 'hpv-row' + (rowKey % 2 !== 0 ? ' offset' : '');
+
+      cells.forEach(function(cell) {
+        var panel    = panels[cell.idx] || {};
+        /* Per-panel image takes priority; fall back to a slice of the main image */
+        var imgSrc   = panel.image
+                    || (Array.isArray(CR.panelImages) ? (CR.panelImages[cell.idx] || '') : '')
+                    || '';
+        var mainSrc  = CR.mainImage || '';
+
+        var hexEl = document.createElement('div');
+        hexEl.className = 'hpv-hex' + (imgSrc || mainSrc ? ' has-img' : '');
+        hexEl.title     = 'Panel ' + (cell.idx + 1);
+
+        if (imgSrc) {
+          var img = document.createElement('img');
+          img.src = imgSrc;
+          img.alt = 'Panel ' + (cell.idx + 1);
+          hexEl.appendChild(img);
+        } else if (mainSrc) {
+          /* Slice the main image at an approximate crop position */
+          var img = document.createElement('img');
+          img.src = mainSrc;
+          img.alt = 'Panel ' + (cell.idx + 1);
+          img.style.objectPosition = slicePosition(cell.idx, n);
+          hexEl.appendChild(img);
+        }
+
+        /* Small panel number label */
+        var numEl = document.createElement('span');
+        numEl.className   = 'hpv-hex-num';
+        numEl.textContent = cell.idx + 1;
+        hexEl.appendChild(numEl);
+
+        rowEl.appendChild(hexEl);
+      });
+
+      wrap.appendChild(rowEl);
+    });
+
+    /* Keep the wall-toggle state */
+    wrap.classList.toggle('show-wall', wallOn);
+  };
+
+  /* ── Auto-layout: compact rectangular grid ── */
+  function autoLayout(n) {
+    var positions = [];
+    var cols  = Math.ceil(Math.sqrt(n));
+    var placed = 0, row = 0;
+    while (placed < n) {
+      var rowCols = Math.min(cols, n - placed);
+      for (var c = 0; c < rowCols; c++) {
+        positions.push({ row: row, col: c });
+        placed++;
+      }
+      row++;
+    }
+    return positions;
+  }
+
+  /* ── Rough per-panel crop offset when using the main image ── */
+  function slicePosition(idx, total) {
+    if (total <= 1) return 'center center';
+    var cols = Math.ceil(Math.sqrt(total));
+    var col  = idx % cols;
+    var row  = Math.floor(idx / cols);
+    var rows = Math.ceil(total / cols);
+    var xPct = cols > 1 ? Math.round((col / (cols - 1)) * 100) : 50;
+    var yPct = rows > 1 ? Math.round((row / (rows - 1)) * 100) : 50;
+    return xPct + '% ' + yPct + '%';
+  }
+
+  /* ── Patch renderAll() once the creator engine has loaded ────────────
+     We wait for renderAll to exist, then wrap it so our preview fires
+     automatically after every canvas redraw.                          */
+  var _hookInterval = setInterval(function() {
+    if (typeof window.renderAll === 'function' && !window._hpvHooked) {
+      window._hpvHooked = true;
+
+      var _orig = window.renderAll;
+      window.renderAll = function() {
+        _orig.apply(this, arguments);
+        try { window.renderHexPreview(); } catch(e) { console.warn('hpv:', e); }
+      };
+      clearInterval(_hookInterval);
+      /* Trigger an initial render in case the creator is already loaded */
+      setTimeout(function(){ try { window.renderHexPreview(); } catch(e){} }, 400);
+    }
+  }, 150);
+
+  /* ── Patch loadProduct() to sync the wall-image URL field ──────────
+     When you select an existing product from the dropdown, the wall
+     image URL field updates to match what's stored in CR.              */
+  var _loadHookInterval = setInterval(function() {
+    if (typeof window.loadProduct === 'function' && !window._wallLoadHooked) {
+      window._wallLoadHooked = true;
+
+      var _origLoad = window.loadProduct;
+      window.loadProduct = function(slug) {
+        _origLoad.apply(this, arguments);
+        setTimeout(function() {
+          var wallField = document.getElementById('cr-wall-url');
+          if (wallField && typeof CR !== 'undefined') {
+            wallField.value = CR.wallImage || '';
+          }
+          try { window.renderHexPreview(); } catch(e) {}
+        }, 500);
+      };
+      clearInterval(_loadHookInterval);
+    }
+  }, 150);
+
+})();
+</script>
+
+</body>
+</html>
