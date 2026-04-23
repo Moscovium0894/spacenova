@@ -1,285 +1,328 @@
-(function() {
+(function () {
   'use strict';
 
   var stripe;
   var elements;
-  var paymentElement;
   var shippingAddressElement;
   var linkAuthElement;
-  var clientSecret;
-  var customerEmail = '';
 
-  var form = document.getElementById('payment-form');
+  var form      = document.getElementById('payment-form');
   var submitBtn = document.getElementById('submit-btn');
-  var btnText = document.getElementById('btn-text');
-  var spinner = document.getElementById('btn-spinner');
-  var errorMsg = document.getElementById('payment-errors');
-  var orderSummary = document.getElementById('order-summary');
-  var summarySubtotal = document.getElementById('summary-subtotal');
-  var summaryDiscount = document.getElementById('summary-discount');
-  var summaryDiscountRow = document.getElementById('summary-discount-row');
-  var summaryShipping = document.getElementById('summary-shipping');
-  var summaryTotal = document.getElementById('summary-total');
-  var shippingMethodSelect = document.getElementById('shipping-method');
-  var loader = document.getElementById('payment-loader');
+  var btnText   = document.getElementById('btn-text');
+  var btnSpinner = document.getElementById('btn-spinner');
+  var errorsEl  = document.getElementById('payment-errors');
+  var loaderEl  = document.getElementById('payment-loader');
 
-  var FREE_SHIPPING = 150;
-  var SHIPPING_OPTIONS = {
-    uk_standard: { label: 'UK Standard (3\u20135 working days)', amount: 4.99, freeThreshold: FREE_SHIPPING },
-    uk_express: { label: 'UK Express (1\u20132 working days)', amount: 9.99 },
-    eu_standard: { label: 'Europe Standard (5\u201310 working days)', amount: 12.99 },
-    us_ca_standard: { label: 'USA & Canada Standard (7\u201314 working days)', amount: 14.99 },
-    row_standard: { label: 'Rest of World Standard (10\u201321 working days)', amount: 17.99 }
+  var summaryEl   = document.getElementById('order-summary');
+  var subtotalEl  = document.getElementById('summary-subtotal');
+  var discRow     = document.getElementById('summary-discount-row');
+  var discEl      = document.getElementById('summary-discount');
+  var shippingEl  = document.getElementById('summary-shipping');
+  var totalEl     = document.getElementById('summary-total');
+
+  /* Stripe appearance — matches Spacenova theme exactly */
+  var stripeAppearance = {
+    theme: 'stripe',
+    variables: {
+      colorPrimary:         '#d4780f',
+      colorBackground:      '#faf9f6',
+      colorText:            '#1a1814',
+      colorTextSecondary:   '#7a7267',
+      colorTextPlaceholder: '#b0aa9f',
+      colorDanger:          '#c0392b',
+      colorSuccess:         '#1a9e40',
+      fontFamily:           '"DM Mono", ui-monospace, monospace',
+      fontSizeBase:         '14px',
+      fontWeightNormal:     '300',
+      borderRadius:         '10px',
+      spacingUnit:          '5px',
+    },
+    rules: {
+      '.Input': {
+        border:          '1px solid #ddd8d0',
+        boxShadow:       'none',
+        padding:         '13px 16px',
+        fontSize:        '14px',
+        backgroundColor: '#faf9f6',
+        transition:      'border-color 0.18s ease, box-shadow 0.18s ease',
+      },
+      '.Input:focus': {
+        border:     '1px solid #d4780f',
+        boxShadow:  '0 0 0 3px rgba(212,120,15,0.12)',
+        outline:    'none',
+      },
+      '.Input::placeholder': {
+        color: '#b0aa9f',
+      },
+      '.Label': {
+        fontFamily:    '"DM Mono", monospace',
+        fontSize:      '11px',
+        fontWeight:    '400',
+        letterSpacing: '0.1em',
+        textTransform: 'uppercase',
+        color:         '#9a9088',
+        marginBottom:  '6px',
+      },
+      '.Tab': {
+        border:          '1px solid #ddd8d0',
+        backgroundColor: '#faf9f6',
+        boxShadow:       'none',
+        borderRadius:    '10px',
+      },
+      '.Tab:hover':   { borderColor: '#c9c0b4' },
+      '.Tab--selected': {
+        borderColor: '#d4780f',
+        boxShadow:   '0 0 0 2px rgba(212,120,15,0.2)',
+        color:       '#d4780f',
+      },
+      '.CheckboxInput': {
+        border:       '1px solid #ddd8d0',
+        borderRadius: '5px',
+      },
+      '.CheckboxInput--checked': {
+        backgroundColor: '#d4780f',
+        borderColor:     '#d4780f',
+      },
+      '.Error': {
+        fontSize: '13px',
+        color:    '#c0392b',
+      },
+    },
   };
 
-  function fmt(n) { return '\u00a3' + parseFloat(n).toFixed(2); }
+  /* Address element options — with proper placeholders */
+  var addressOptions = {
+    mode: 'shipping',
+    defaultValues: {
+      address: { country: 'GB' },
+    },
+    fields: {
+      phone: 'always',
+    },
+    validation: {
+      phone: { required: 'always' },
+    },
+    display: {
+      name: 'full',
+    },
+  };
 
-  function getBasketData() {
-    try { return JSON.parse(localStorage.getItem('sn_basket')) || []; }
-    catch(e) { return []; }
+  function fmt(n) { return '\u00a3' + n.toFixed(2); }
+
+  function setLoading(on) {
+    if (!submitBtn) return;
+    submitBtn.disabled = on;
+    if (btnText)    btnText.style.display    = on ? 'none' : '';
+    if (btnSpinner) btnSpinner.style.display = on ? '' : 'none';
   }
 
-  function getAppliedPromo() {
-    try {
-      if (typeof window.getAppliedPromo === 'function') {
-        return window.getAppliedPromo();
-      }
-    } catch (e) {}
-    return null;
+  function showError(msg) {
+    if (!errorsEl) return;
+    errorsEl.textContent = msg || '';
+    errorsEl.style.display = msg ? '' : 'none';
   }
 
-  function calcDiscount(sub, promo) {
-    if (!promo) return 0;
-    if (promo.type === 'percent') return sub * (promo.value / 100);
-    if (promo.type === 'fixed') return Math.min(promo.value, sub);
-    return 0;
-  }
+  /* ── Basket → order summary ── */
+  function populateSummary() {
+    var raw = localStorage.getItem('spacenova_basket');
+    var basket = [];
+    try { basket = raw ? JSON.parse(raw) : []; } catch(e) {}
 
-  function getShippingCost(discountedSubtotal, method) {
-    var selected = SHIPPING_OPTIONS[method] || SHIPPING_OPTIONS.uk_standard;
-    if (selected.freeThreshold && discountedSubtotal >= selected.freeThreshold) return 0;
-    return selected.amount;
-  }
+    if (!summaryEl) return;
 
-  function calcTotals(items, promo, method) {
-    var sub = items.reduce(function(s, i) { return s + i.price * i.qty; }, 0);
-    var disc = calcDiscount(sub, promo);
-    var discountedSubtotal = Math.max(0, sub - disc);
-    var ship = getShippingCost(discountedSubtotal, method);
-    return { sub: sub, disc: disc, ship: ship, total: discountedSubtotal + ship };
-  }
-
-  function renderSummary(items, totals) {
-    if (orderSummary) {
-      orderSummary.innerHTML = items.map(function(i) {
-        return '<div class="co-item"><span class="co-item-name">' + i.name + ' &times;' + i.qty + '</span><span class="co-item-price">' + fmt(i.price * i.qty) + '</span></div>';
-      }).join('');
-    }
-    if (summarySubtotal) summarySubtotal.textContent = fmt(totals.sub);
-    if (summaryDiscountRow) summaryDiscountRow.style.display = totals.disc > 0 ? '' : 'none';
-    if (summaryDiscount) summaryDiscount.textContent = '-' + fmt(totals.disc);
-    if (summaryShipping) summaryShipping.textContent = totals.ship === 0 ? 'Free' : fmt(totals.ship);
-    if (summaryTotal) summaryTotal.textContent = fmt(totals.total);
-  }
-
-  async function getPublishableKey() {
-    var keyRes = await fetch('/.netlify/functions/stripe-config');
-    var keyData = await keyRes.json();
-    if (!keyRes.ok || !keyData.publishableKey || typeof keyData.publishableKey !== 'string') {
-      throw new Error(keyData.error || 'Stripe publishable key is unavailable');
-    }
-    return keyData.publishableKey;
-  }
-
-  async function createPaymentIntent(items, promo, shippingMethod) {
-    var intentRes = await fetch('/.netlify/functions/create-payment-intent', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        items: items,
-        promo: promo,
-        shippingMethod: shippingMethod
-      })
-    });
-    var intentData = await intentRes.json();
-    if (!intentRes.ok) throw new Error(intentData.error || 'Could not create payment intent');
-    return intentData;
-  }
-
-  async function mountElements() {
-    var items = getBasketData();
-    var promo = getAppliedPromo();
-    var shippingMethod = shippingMethodSelect ? shippingMethodSelect.value : 'uk_standard';
-    var totals = calcTotals(items, promo, shippingMethod);
-
-    renderSummary(items, totals);
-
-    var intentData = await createPaymentIntent(items, promo, shippingMethod);
-    clientSecret = intentData.clientSecret;
-
-    if (paymentElement) paymentElement.destroy();
-    if (shippingAddressElement) shippingAddressElement.destroy();
-    if (linkAuthElement) linkAuthElement.destroy();
-
-    elements = stripe.elements({
-      clientSecret: clientSecret,
-      appearance: {
-        theme: 'night',
-        variables: {
-          colorPrimary: '#c8a96e',
-          fontFamily: 'Syne, sans-serif',
-          borderRadius: '4px'
-        }
-      }
-    });
-
-    linkAuthElement = elements.create('linkAuthentication');
-    linkAuthElement.on('change', function(event) {
-      customerEmail = event && event.value ? (event.value.email || '') : '';
-    });
-    linkAuthElement.mount('#link-authentication-element');
-
-    // Fix: remove validation.phone entirely when fields.phone is 'never'
-    shippingAddressElement = elements.create('address', {
-      mode: 'shipping',
-      allowedCountries: ['GB', 'US', 'CA', 'FR', 'DE', 'ES', 'IT', 'NL', 'IE', 'AU', 'NZ'],
-      fields: { phone: 'never' }
-    });
-    shippingAddressElement.mount('#shipping-address-element');
-
-    paymentElement = elements.create('payment', {
-      layout: 'tabs',
-      wallets: { applePay: 'auto', googlePay: 'auto' }
-    });
-    paymentElement.mount('#payment-element');
-
-    if (loader) loader.style.display = 'none';
-  }
-
-  async function init() {
-    var items = getBasketData();
-    if (!items.length) {
-      window.location.href = '/shop.html';
+    if (!basket.length) {
+      summaryEl.innerHTML = '<p style="color:var(--muted);font-size:.85rem">Your basket is empty.</p>';
       return;
     }
 
-    try {
-      var key = await getPublishableKey();
-      stripe = Stripe(key);
+    summaryEl.innerHTML = basket.map(function(item) {
+      var lineTotal = (item.price || 0) * (item.qty || 1);
+      return (
+        '<div class="co-item">' +
+          '<span class="co-item-name">' + item.name + (item.qty > 1 ? ' &times;' + item.qty : '') + '</span>' +
+          '<span class="co-item-price">' + fmt(lineTotal) + '</span>' +
+        '</div>'
+      );
+    }).join('');
 
-      await mountElements();
+    var sub = basket.reduce(function(s, i) { return s + (i.price || 0) * (i.qty || 1); }, 0);
+    if (subtotalEl) subtotalEl.textContent = fmt(sub);
+    if (shippingEl) shippingEl.textContent = 'Calculated at checkout';
+    if (totalEl)    totalEl.textContent    = fmt(sub);
+  }
 
-      if (shippingMethodSelect) {
-        shippingMethodSelect.addEventListener('change', async function() {
-          try {
-            setLoading(true);
-            await mountElements();
-          } catch (err) {
-            if (errorMsg) { errorMsg.textContent = err.message; errorMsg.style.display = 'block'; }
-          } finally {
-            setLoading(false);
-          }
-        });
-      }
-    } catch(err) {
-      if (errorMsg) { errorMsg.textContent = err.message; errorMsg.style.display = 'block'; }
-      if (loader) loader.style.display = 'none';
+  /* ── Mount Stripe Elements ── */
+  async function mountElements() {
+    if (!stripe) return;
+
+    var raw = localStorage.getItem('spacenova_basket');
+    var basket = [];
+    try { basket = raw ? JSON.parse(raw) : []; } catch(e) {}
+    var amount = Math.round(basket.reduce(function(s, i) { return s + (i.price || 0) * (i.qty || 1); }, 0) * 100);
+
+    /* Create PaymentIntent */
+    var piRes = await fetch('/.netlify/functions/create-payment-intent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount: amount || 100, currency: 'gbp' }),
+    });
+    var piData = await piRes.json();
+    if (!piData.clientSecret) throw new Error('Could not initialise payment.');
+
+    /* Destroy old instances */
+    if (linkAuthElement)     { linkAuthElement.destroy();     linkAuthElement = null; }
+    if (shippingAddressElement) { shippingAddressElement.destroy(); shippingAddressElement = null; }
+
+    elements = stripe.elements({
+      clientSecret: piData.clientSecret,
+      appearance: stripeAppearance,
+      loader: 'auto',
+    });
+
+    /* Link authentication (email) */
+    var linkEl = document.getElementById('link-authentication-element');
+    if (linkEl) {
+      linkAuthElement = elements.create('linkAuthentication');
+      linkAuthElement.mount('#link-authentication-element');
+    }
+
+    /* Shipping address */
+    var addrEl = document.getElementById('shipping-address-element');
+    if (addrEl) {
+      shippingAddressElement = elements.create('address', addressOptions);
+      shippingAddressElement.mount('#shipping-address-element');
+    }
+
+    /* Payment element */
+    var payEl = document.getElementById('payment-element');
+    if (payEl) {
+      var paymentElement = elements.create('payment', {
+        layout: { type: 'tabs', defaultCollapsed: false },
+        fields: { billingDetails: 'auto' },
+        wallets: { applePay: 'auto', googlePay: 'auto' },
+      });
+      paymentElement.mount('#payment-element');
+      paymentElement.on('ready', function() {
+        if (loaderEl) loaderEl.style.display = 'none';
+      });
     }
   }
 
-  if (form) {
-    form.addEventListener('submit', async function(e) {
-      e.preventDefault();
-      if (!stripe || !elements) return;
-      setLoading(true);
-      if (errorMsg) errorMsg.style.display = 'none';
+  /* ── Shipping cost by method ── */
+  var SHIPPING_COSTS = {
+    uk_standard:    4.99,
+    uk_express:     9.99,
+    eu_standard:    12.99,
+    us_ca_standard: 14.99,
+    row_standard:   17.99,
+  };
+  var FREE_SHIPPING_THRESHOLD = 150;
 
-      try {
-        var addressResult = await shippingAddressElement.getValue();
-        if (!addressResult.complete) {
-          throw new Error('Please complete your shipping address.');
-        }
+  function getShippingCost(method, subtotal) {
+    if (method === 'uk_standard' && subtotal >= FREE_SHIPPING_THRESHOLD) return 0;
+    return SHIPPING_COSTS[method] || 0;
+  }
 
-        var submitResult = await elements.submit();
-        if (submitResult.error) {
-          throw new Error(submitResult.error.message);
-        }
+  function updateShippingDisplay() {
+    var method = document.getElementById('shipping-method');
+    if (!method || !shippingEl) return;
+    var raw = localStorage.getItem('spacenova_basket');
+    var basket = []; try { basket = raw ? JSON.parse(raw) : []; } catch(e) {}
+    var sub = basket.reduce(function(s, i) { return s + (i.price || 0) * (i.qty || 1); }, 0);
+    var ship = getShippingCost(method.value, sub);
+    shippingEl.textContent = ship === 0 ? 'Free' : fmt(ship);
+    if (totalEl) totalEl.textContent = fmt(sub + ship);
+  }
 
-        var shippingData = addressResult.value;
-        var shippingMethod = shippingMethodSelect ? shippingMethodSelect.value : 'uk_standard';
+  /* ── Init ── */
+  async function init() {
+    populateSummary();
 
-        // Snapshot checkout state into localStorage so success.html can reconstruct the order
-        var items = getBasketData();
-        var promo = getAppliedPromo();
-        var totals = calcTotals(items, promo, shippingMethod);
-        var orderRef = 'SN-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7).toUpperCase();
+    /* Fetch publishable key */
+    var keyRes = await fetch('/.netlify/functions/stripe-config');
+    var keyData = await keyRes.json();
+    if (!keyData.publishableKey) {
+      showError('Payment system could not be loaded. Please refresh.');
+      return;
+    }
+    stripe = Stripe(keyData.publishableKey);
 
-        var pendingOrder = {
-          ref: orderRef,
-          items: items,
-          delivery: {
-            firstName: (shippingData.name || '').split(' ')[0] || '',
-            lastName: (shippingData.name || '').split(' ').slice(1).join(' ') || '',
-            address1: shippingData.address.line1 || '',
-            address2: shippingData.address.line2 || '',
-            city: shippingData.address.city || '',
-            postcode: shippingData.address.postal_code || '',
-            country: shippingData.address.country || '',
-            email: customerEmail || ''
-          },
-          customer_name: shippingData.name || '',
-          email: customerEmail || '',
-          address: {
-            line1: shippingData.address.line1 || '',
-            line2: shippingData.address.line2 || '',
-            city: shippingData.address.city || '',
-            postcode: shippingData.address.postal_code || '',
-            country: shippingData.address.country || ''
-          },
-          total: totals.total,
-          promo_code: promo ? (promo.code || null) : null,
-          discount: totals.disc,
-          shipping_type: shippingMethod,
-          created_at: new Date().toISOString()
-        };
+    try {
+      await mountElements();
+    } catch (err) {
+      showError(err.message || 'Failed to load payment form.');
+      return;
+    }
 
-        // Persist order snapshot — success.html will read and save this
-        try { localStorage.setItem('sn_pending_order', JSON.stringify(pendingOrder)); } catch(e) {}
+    /* Shipping method change */
+    var methodSelect = document.getElementById('shipping-method');
+    if (methodSelect) {
+      methodSelect.addEventListener('change', function() {
+        updateShippingDisplay();
+        /* Remount elements with updated amount */
+        mountElements().catch(function(e) { showError(e.message); });
+      });
+    }
 
-        var result = await stripe.confirmPayment({
-          elements: elements,
-          confirmParams: {
-            return_url: window.location.origin + '/success.html',
-            receipt_email: customerEmail || undefined,
-            shipping: {
-              name: shippingData.name,
-              address: {
-                line1: shippingData.address.line1,
-                line2: shippingData.address.line2 || undefined,
-                city: shippingData.address.city,
-                state: shippingData.address.state || undefined,
-                postal_code: shippingData.address.postal_code,
-                country: shippingData.address.country
-              }
+    /* Form submit */
+    if (form) {
+      form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        if (!stripe || !elements) return;
+        showError('');
+        setLoading(true);
+
+        try {
+          /* Validate address */
+          if (shippingAddressElement) {
+            var addrResult = await shippingAddressElement.getValue();
+            if (!addrResult.complete) {
+              throw new Error('Please complete your shipping address.');
             }
           }
-        });
 
-        if (result.error) {
-          throw new Error(result.error.message);
+          /* Validate elements */
+          var submitResult = await elements.submit();
+          if (submitResult.error) throw new Error(submitResult.error.message);
+
+          /* Confirm */
+          var raw  = localStorage.getItem('spacenova_basket');
+          var basket = []; try { basket = raw ? JSON.parse(raw) : []; } catch(e) {}
+          var methodSel = document.getElementById('shipping-method');
+          var sub  = basket.reduce(function(s, i) { return s + (i.price || 0) * (i.qty || 1); }, 0);
+          var ship = getShippingCost(methodSel ? methodSel.value : 'uk_standard', sub);
+
+          var result = await stripe.confirmPayment({
+            elements: elements,
+            confirmParams: {
+              return_url: window.location.origin + '/success.html',
+              shipping: shippingAddressElement
+                ? (await shippingAddressElement.getValue()).value
+                : undefined,
+              payment_method_data: {
+                billing_details: {
+                  email: linkAuthElement
+                    ? (await linkAuthElement.getValue()).value.email
+                    : undefined,
+                },
+              },
+            },
+          });
+
+          if (result.error) throw new Error(result.error.message);
+
+        } catch (err) {
+          showError(err.message || 'Payment failed. Please try again.');
+          setLoading(false);
         }
-      } catch (err) {
-        if (errorMsg) { errorMsg.textContent = err.message; errorMsg.style.display = 'block'; }
-        setLoading(false);
-      }
+      });
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    init().catch(function(err) {
+      showError('Could not load checkout. Please refresh the page.');
+      console.error(err);
     });
-  }
-
-  function setLoading(on) {
-    if (submitBtn) submitBtn.disabled = on;
-    if (btnText) btnText.style.display = on ? 'none' : '';
-    if (spinner) spinner.style.display = on ? '' : 'none';
-  }
-
-  document.addEventListener('DOMContentLoaded', init);
+  });
 })();
