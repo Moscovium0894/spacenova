@@ -20,8 +20,9 @@ function normaliseProduct(p) {
     pieces: p.pieces,
     panelHint: p.panel_hint,
     image: p.image,
-    wallImage: p.wall_image || null,   // ← NEW
+    wallImage: p.wall_image || null,
     isCollection: !!p.is_collection,
+    isBundle: !!p.is_bundle,
     isPublished: p.is_published !== false,
     panelNames: Array.isArray(p.panel_names) ? p.panel_names : [],
     panelImages: Array.isArray(p.panel_images) ? p.panel_images : [],
@@ -29,6 +30,22 @@ function normaliseProduct(p) {
       p.panel_map && typeof p.panel_map === 'object'
         ? p.panel_map
         : { positions: [], transforms: [] }
+  };
+}
+
+// Normalise artifact rows so the frontend always sees consistent fields
+function normaliseArtifact(a) {
+  return {
+    slug: a.slug || null,
+    id: a.id || null,
+    name: a.name || '',
+    category: a.category || '',
+    price: a.price || 0,
+    desc: a.desc || a.description || '',
+    description: a.desc || a.description || '',
+    image: a.image || null,
+    isPublished: a.is_published !== false,
+    isArtifact: true
   };
 }
 
@@ -68,13 +85,7 @@ exports.handler = async (event) => {
       items: Array.isArray(b.items) ? b.items : [],
       text: b.text
     }));
-    const artifacts = (artifactsRes.data || []).map((a) => ({
-      name: a.name,
-      category: a.category,
-      price: a.price,
-      desc: a.desc,
-      image: a.image
-    }));
+    const artifacts = (artifactsRes.data || []).map(normaliseArtifact);
     const wholesaleSources = (wholesaleRes.data || []).map((w) => ({
       name: w.name,
       url: w.url,
