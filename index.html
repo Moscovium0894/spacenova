@@ -180,28 +180,56 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   fetch('/.netlify/functions/load-catalogue')
-    .then(r => r.json())
-    .then(d => {
-      const products = (d.products || []).filter(p => p.isPublished !== false).slice(0, 3);
-      const el = document.getElementById('stat-products');
-      if (el) el.textContent = (d.products || []).length || '—';
-      const grid = document.getElementById('home-grid');
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      var products = (d.products || []).filter(function(p) { return p.isPublished !== false; }).slice(0, 3);
+
+      var el = document.getElementById('stat-products');
+      if (el) el.textContent = (d.products || []).length || '\u2014';
+
+      var grid = document.getElementById('home-grid');
       if (!grid) return;
-      if (!products.length) { grid.innerHTML = '<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:40px 0">No products available yet.</p>'; return; }
-      grid.innerHTML = products.map(p => `
-        <a class="card card-link" href="/product.html?slug=${p.slug || p.id}">
-          <div class="card-media">
-            ${p.image ? `<img src="${p.image}" alt="${p.name}" loading="lazy">` : '<div class="card-media-placeholder"></div>'}
-            <div class="badge-row"><span class="badge badge-accent">${p.isCollection ? 'Collection' : 'Series'}</span></div>
-          </div>
-          <div class="card-body">
-            <h3>${p.name}</h3>
-            <p class="muted">${p.description ? p.description.substring(0, 90) + (p.description.length > 90 ? '...' : '') : ''}</p>
-            <div class="price">&pound;${parseFloat(p.price || 0).toFixed(2)}</div>
-          </div>
-        </a>`).join('');
+
+      if (!products.length) {
+        grid.innerHTML = '<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:40px 0">No products available yet.</p>';
+        return;
+      }
+
+      grid.innerHTML = products.map(function(p) {
+        var desc = (p.description || '').substring(0, 90) + ((p.description || '').length > 90 ? '\u2026' : '');
+        var badge = '<div class="badge-row"><span class="badge badge-accent">' + (p.isCollection ? 'Collection' : 'Series') + '</span></div>';
+        var media;
+
+        if (!p.image) {
+          media = '<div class="card-media"><div class="card-media-placeholder"></div>' + badge + '</div>';
+        } else if (p.wallImage) {
+          media = '<div class="card-media card-has-wall">' +
+            '<img class="card-img-main" src="' + p.image + '" alt="' + esc(p.name) + '" loading="lazy">' +
+            '<img class="card-img-wall" src="' + p.wallImage + '" alt="' + esc(p.name) + ' on wall" loading="lazy">' +
+            badge +
+          '</div>';
+        } else {
+          media = '<div class="card-media"><img src="' + p.image + '" alt="' + esc(p.name) + '" loading="lazy">' + badge + '</div>';
+        }
+
+        return '<a class="card card-link" href="/product.html?slug=' + (p.slug || p.id) + '">' +
+          media +
+          '<div class="card-body">' +
+            '<h3>' + esc(p.name) + '</h3>' +
+            '<p class="muted">' + desc + '</p>' +
+            '<div class="price">&pound;' + parseFloat(p.price || 0).toFixed(2) + '</div>' +
+          '</div>' +
+        '</a>';
+      }).join('');
     })
-    .catch(() => { const grid = document.getElementById('home-grid'); if (grid) grid.innerHTML = '<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:40px 0">Could not load products.</p>'; });
+    .catch(function() {
+      var grid = document.getElementById('home-grid');
+      if (grid) grid.innerHTML = '<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:40px 0">Could not load products.</p>';
+    });
+
+  function esc(str) {
+    return (str || '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
 });
 </script>
 </body>
