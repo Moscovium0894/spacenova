@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <title>Artifact — SPACENOVA</title>
+  <link rel="icon" type="image/png" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/Spacenovafavicon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ══ ARTIFACT GALLERY — same scroll-snap system as product.html ══ */
+    .pg-wrap {
+      position: relative;
+      border-radius: var(--r);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: var(--bg1);
+      isolation: isolate;
+    }
+    .pg-track {
+      display: flex;
+      touch-action: pan-y pinch-zoom;
+      -webkit-overflow-scrolling: touch;
+      overflow-x: scroll;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+    }
+    .pg-track::-webkit-scrollbar { display: none; }
+    .pg-slide {
+      flex: 0 0 100%;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      position: relative;
+      aspect-ratio: 4/3;
+    }
+    .pg-slide img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+      -webkit-user-drag: none; user-select: none;
+    }
+    .pg-slide-placeholder {
+      width: 100%; height: 100%;
+      background: linear-gradient(135deg, #f0ede8 0%, #e8e3db 100%);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .pg-slide-placeholder svg { width: 48px; height: 48px; opacity: .25; }
+    .pg-arrow {
+      position: absolute; top: 50%; transform: translateY(-50%); z-index: 10;
+      width: 40px; height: 40px; border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.55);
+      background: rgba(255,255,255,.82); backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 4px 20px rgba(0,0,0,.12);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; opacity: 0; transition: opacity .2s, transform .2s ease, background .15s;
+      pointer-events: none;
+    }
+    .pg-wrap:hover .pg-arrow { opacity: 1; pointer-events: auto; }
+    .pg-arrow:hover { background: rgba(255,255,255,.97); }
+    .pg-arrow:active { transform: translateY(-50%) scale(.94); }
+    .pg-arrow svg { width: 16px; height: 16px; stroke: #111; fill: none; }
+    .pg-arrow-prev { left: 12px; }
+    .pg-arrow-next { right: 12px; }
+    .pg-wrap.single .pg-arrow { display: none; }
+    .pg-dots {
+      display: flex; gap: 6px; justify-content: center; padding: 10px 0 4px;
+    }
+    .pg-dot {
+      width: 5px; height: 5px; border-radius: 999px;
+      background: rgba(0,0,0,.18); border: none; padding: 0;
+      cursor: pointer; transition: background .2s, transform .2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .pg-dot.active { background: var(--accent); transform: scale(1.4); }
+    .pg-wrap.single .pg-dots { display: none; }
+    .pg-thumbs {
+      display: flex; gap: 8px; margin-top: 10px;
+      overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; padding-bottom: 2px;
+    }
+    .pg-thumbs::-webkit-scrollbar { display: none; }
+    .pg-thumb {
+      flex: 0 0 60px; height: 60px; border-radius: 8px; overflow: hidden;
+      border: 2px solid transparent; cursor: pointer;
+      transition: border-color .18s, opacity .18s; opacity: .55;
+      -webkit-tap-highlight-color: transparent; background: none; padding: 0;
+    }
+    .pg-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .pg-thumb.active { border-color: var(--accent); opacity: 1; }
+    .pg-wrap.single ~ .pg-thumbs { display: none; }
+
+    /* ══ ARTIFACT INFO PANEL ══ */
+    .artifact-hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(24px, 4vw, 60px);
+      align-items: start;
+      padding-top: 32px;
+    }
+    @media (max-width: 760px) {
+      .artifact-hero { grid-template-columns: 1fr; gap: 28px; }
+    }
+
+    .artifact-media { position: sticky; top: 100px; }
+    @media (max-width: 760px) { .artifact-media { position: static; } }
+
+    .artifact-info { padding-bottom: 60px; }
+    .artifact-info h2 {
+      font-family: var(--fd);
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 300;
+      line-height: 1.06;
+      letter-spacing: -.02em;
+      color: #111;
+      margin-bottom: 10px;
+    }
+    .artifact-tagline {
+      font-family: var(--fm);
+      font-size: .72rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 22px;
+    }
+    .artifact-price-row {
+      display: flex; align-items: baseline; gap: 14px; margin-bottom: 24px;
+    }
+    .artifact-price {
+      font-family: var(--fd);
+      font-size: 2.4rem;
+      font-weight: 300;
+      color: var(--gold);
+      letter-spacing: -.01em;
+    }
+    .artifact-price-label {
+      font-family: var(--fm);
+      font-size: .62rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .artifact-desc {
+      font-size: .96rem;
+      line-height: 1.8;
+      color: rgba(10,10,10,.72);
+      margin-bottom: 28px;
+    }
+
+    /* Meta details table */
+    .artifact-meta {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 28px;
+    }
+    .artifact-meta-row {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .artifact-meta-row:last-child { border-bottom: none; }
+    .artifact-meta-key {
+      font-family: var(--fm);
+      font-size: .58rem;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      min-width: 90px;
+      flex-shrink: 0;
+    }
+    .artifact-meta-val {
+      font-family: var(--fm);
+      font-size: .75rem;
+      color: #111;
+    }
+
+    /* Edition badge */
+    .edition-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--fm);
+      font-size: .58rem;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      padding: 5px 12px;
+      border-radius: 999px;
+      background: rgba(154,122,58,.1);
+      color: var(--gold);
+      border: 1px solid rgba(154,122,58,.22);
+      margin-bottom: 18px;
+    }
+    .edition-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--gold2);
+      box-shadow: 0 0 6px rgba(200,160,80,.8);
+      animation: blink 2s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    /* CTA area */
+    .artifact-actions {
+      display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px;
+    }
+    .artifact-actions .btn { flex: 1 1 140px; }
+
+    .artifact-notice {
+      font-family: var(--fm);
+      font-size: .62rem;
+      letter-spacing: .06em;
+      color: var(--muted);
+      line-height: 1.6;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--bg1);
+    }
+
+    /* Related artifacts */
+    .related-section { padding: 60px 0 80px; }
+    .related-section h3 {
+      font-family: var(--fd); font-size: 1.8rem; font-weight: 300;
+      letter-spacing: -.01em; margin-bottom: 28px;
+    }
+  </style>
+</head>
+<body class="page-inner">
+
+<nav id="main-nav">
+  <div class="nav-inner">
+    <a class="nav-logo" href="/"><img class="nav-logo-img" src="/spacenovalogocropped.png" alt="Spacenova"><div class="nav-logo-mark"></div></a>
+    <div class="nav-links">
+      <a class="nav-link" href="/shop.html">Shop</a>
+      <a class="nav-link active" href="/artifacts.html">Artifacts</a>
+      <a class="nav-link" href="/about.html">About</a>
+      <div class="nav-more-wrap" id="nav-more-wrap">
+        <button class="nav-link nav-more-btn" id="nav-more-btn" aria-haspopup="true" aria-expanded="false">More <span class="nav-chevron">&#9662;</span></button>
+        <div class="nav-dropdown" id="nav-dropdown" role="menu">
+          <div class="ndd-section">Help</div>
+          <a class="ndd-item" href="/contact.html" role="menuitem">Contact Us</a>
+          <a class="ndd-item" href="/shipping.html" role="menuitem">Shipping</a>
+          <a class="ndd-item" href="/returns.html" role="menuitem">Returns</a>
+          <a class="ndd-item" href="/faq.html" role="menuitem">FAQ</a>
+          <div class="ndd-divider"></div>
+          <div class="ndd-section">Company</div>
+          <a class="ndd-item" href="/press.html" role="menuitem">Press</a>
+        </div>
+      </div>
+    </div>
+    <div class="nav-spacer"></div>
+    <button class="nav-basket-btn" id="basket-toggle-btn" aria-label="Open basket">
+      <svg class="basket-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+      <span class="basket-btn-label">Basket</span>
+      <span class="basket-badge" id="basket-badge"></span>
+    </button>
+    <button class="burger-btn" id="burger-btn" aria-label="Open menu" aria-expanded="false"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<div class="mobile-backdrop" id="mobile-backdrop"></div>
+<div class="mobile-panel" id="mobile-panel" aria-hidden="true">
+  <div class="mp-head"><span class="mp-title">Menu</span><button class="mp-close" id="mp-close">&times;</button></div>
+  <div class="mp-body">
+    <div class="mp-section-label">Shop</div>
+    <a class="mp-item" href="/shop.html">Shop</a>
+    <a class="mp-item mp-item-active" href="/artifacts.html">Artifacts</a>
+    <a class="mp-item" href="/about.html">About</a>
+    <div class="mp-divider"></div>
+    <div class="mp-section-label">Help</div>
+    <a class="mp-item" href="/contact.html">Contact Us</a>
+    <a class="mp-item" href="/shipping.html">Shipping</a>
+    <a class="mp-item" href="/returns.html">Returns</a>
+    <a class="mp-item" href="/faq.html">FAQ</a>
+    <div class="mp-divider"></div>
+    <div class="mp-section-label">Company</div>
+    <a class="mp-item" href="/press.html">Press</a>
+    <div class="mp-divider"></div>
+    <button class="mp-basket-row" id="mp-basket-btn">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+      View Basket <span class="mp-badge" id="mp-badge"></span>
+    </button>
+  </div>
+</div>
+
+<main class="page-main" id="artifact-main">
+  <div class="section">
+    <div class="breadcrumbs" id="breadcrumbs">
+      <a href="/">Home</a> <span>/</span>
+      <a href="/artifacts.html">Artifacts</a> <span>/</span>
+      <span id="bc-name">Loading…</span>
+    </div>
+    <div id="artifact-content">
+      <!-- Skeleton while loading -->
+      <div class="artifact-hero" id="artifact-skeleton">
+        <div>
+          <div class="skeleton skeleton-image" style="border-radius:20px;aspect-ratio:4/3;width:100%"></div>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <div class="skeleton" style="width:60px;height:60px;border-radius:8px"></div>
+            <div class="skeleton" style="width:60px;height:60px;border-radius:8px"></div>
+          </div>
+        </div>
+        <div style="padding-top:8px">
+          <div class="skeleton skeleton-heading" style="width:60%;margin-bottom:14px"></div>
+          <div class="skeleton skeleton-text" style="width:90%"></div>
+          <div class="skeleton skeleton-text" style="width:75%"></div>
+          <div class="skeleton skeleton-text" style="width:82%"></div>
+          <div class="skeleton skeleton-text" style="width:40%;margin-top:16px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer id="main-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <img class="footer-logo" src="/spacenovalogocropped.png" alt="Spacenova">
+      <p>Museum-quality hexagonal space photography panels.</p>
+    </div>
+    <div class="footer-col"><h4>Shop</h4><a href="/shop.html">All Series</a><a href="/artifacts.html">Artifacts</a></div>
+    <div class="footer-col"><h4>Help</h4><a href="/shipping.html">Shipping</a><a href="/returns.html">Returns</a><a href="/faq.html">FAQ</a><a href="/contact.html">Contact</a></div>
+    <div class="footer-col"><h4>Company</h4><a href="/about.html">About</a><a href="/press.html">Press</a></div>
+  </div>
+  <div class="footer-bottom"><span>&copy; 2026 Spacenova Ltd.</span><span>Made for the cosmos</span></div>
+</footer>
+
+<div id="basket-overlay"></div>
+<div id="basket-drawer">
+  <div class="drawer-header"><h2>Your Basket</h2><button class="drawer-close" id="basket-close">&times;</button></div>
+  <div class="drawer-body" id="basket-body"></div>
+  <div class="drawer-footer" id="basket-footer" style="display:none">
+    <div class="promo-row">
+      <input class="promo-input" id="promo-input" type="text" placeholder="Promo code">
+      <button class="promo-btn" id="promo-apply-btn">Apply</button>
+    </div>
+    <div class="promo-applied" id="promo-applied" style="display:none">
+      <span id="promo-applied-text"></span><button id="promo-remove-btn">Remove</button>
+    </div>
+    <p class="promo-error" id="promo-error" style="display:none">Invalid or expired code</p>
+    <div class="basket-summary">
+      <div class="bsum-row"><span>Subtotal</span><span id="basket-subtotal">£0.00</span></div>
+      <div class="bsum-row" id="discount-row" style="display:none"><span>Discount</span><span id="basket-discount" class="discount-val">-£0.00</span></div>
+      <div class="bsum-row"><span>Shipping</span><span>Calculated at checkout</span></div>
+      <div class="bsum-row bsum-total"><span>Total</span><strong id="basket-total">£0.00</strong></div>
+    </div>
+    <a class="btn btn-primary btn-full" href="/checkout.html">Checkout</a>
+  </div>
+</div>
+<div id="toast-container"></div>
+
+<script src="/js/nav.js"></script>
+<script src="/js/basket.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  /* ── Skeleton shimmer CSS ── */
+  var skeletonStyle = document.createElement('style');
+  skeletonStyle.textContent = '@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}.skeleton{background:linear-gradient(90deg,#f0ede8 25%,#e8e3db 50%,#f0ede8 75%);background-size:200% 100%;animation:shimmer 1.5s ease-in-out infinite;border-radius:8px}';
+  document.head.appendChild(skeletonStyle);
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var params = new URLSearchParams(window.location.search);
+    var slug = params.get('slug') || params.get('id');
+
+    if (!slug) {
+      showError('Artifact not found. <a href="/artifacts.html">Browse all artifacts &rarr;</a>');
+      return;
+    }
+
+    fetch('/.netlify/functions/load-catalogue')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        // Look in d.artifacts first, then fall back to products with isArtifact flag
+        var artifact = null;
+        if (Array.isArray(d.artifacts)) {
+          artifact = d.artifacts.find(function (a) {
+            return a.slug === slug || String(a.id) === slug;
+          });
+        }
+        if (!artifact && Array.isArray(d.products)) {
+          artifact = d.products.find(function (p) {
+            var cat = (p.category || '').toLowerCase();
+            return (p.slug === slug || String(p.id) === slug) &&
+              (cat === 'artifact' || cat === 'artifacts' || p.isArtifact === true);
+          });
+        }
+
+        if (!artifact) {
+          showError('Artifact not found. <a href="/artifacts.html">Browse all artifacts &rarr;</a>');
+          return;
+        }
+
+        renderArtifact(artifact);
+
+        // Related artifacts (up to 4, excluding current)
+        var all = [];
+        if (Array.isArray(d.artifacts)) all = d.artifacts;
+        else if (Array.isArray(d.products)) {
+          all = d.products.filter(function (p) {
+            var cat = (p.category || '').toLowerCase();
+            return cat === 'artifact' || cat === 'artifacts' || p.isArtifact;
+          });
+        }
+        var related = all.filter(function (a) {
+          return (a.slug || a.id) !== (artifact.slug || artifact.id);
+        }).slice(0, 4);
+        if (related.length) renderRelated(related);
+      })
+      .catch(function () {
+        showError('Could not load artifact. Please try again.');
+      });
+  });
+
+  /* ────────────────────────────────────── */
+  function renderArtifact(a) {
+    var name        = a.name || 'Untitled Artifact';
+    var desc        = a.desc || a.description || '';
+    var price       = parseFloat(a.price || 0).toFixed(2);
+    var category    = a.category || 'Artifact';
+    var edition     = a.edition || a.editionSize || null;
+    var medium      = a.medium || a.material || null;
+    var dimensions  = a.dimensions || a.size || null;
+    var year        = a.year || null;
+    var condition   = a.condition || null;
+    var provenance  = a.provenance || null;
+
+    // Gallery images — support both single image and images array
+    var images = [];
+    if (Array.isArray(a.images) && a.images.length) {
+      images = a.images.map(function (src, i) { return { src: src, alt: name + (i > 0 ? ' — view ' + (i + 1) : '') }; });
+    } else if (a.image) {
+      images = [{ src: a.image, alt: name }];
+    }
+
+    document.title = name + ' — SPACENOVA';
+    document.getElementById('bc-name').textContent = name;
+
+    // Meta rows — only show rows that have data
+    var metaRows = [
+      { key: 'Category',   val: category },
+      edition    ? { key: 'Edition',    val: edition }    : null,
+      medium     ? { key: 'Medium',     val: medium }     : null,
+      dimensions ? { key: 'Dimensions', val: dimensions } : null,
+      year       ? { key: 'Year',       val: year }       : null,
+      condition  ? { key: 'Condition',  val: condition }  : null,
+      provenance ? { key: 'Provenance', val: provenance } : null,
+    ].filter(Boolean);
+
+    var metaHtml = metaRows.length
+      ? '<div class="artifact-meta">' +
+          metaRows.map(function (r) {
+            return '<div class="artifact-meta-row">' +
+              '<span class="artifact-meta-key">' + r.key + '</span>' +
+              '<span class="artifact-meta-val">' + r.val + '</span>' +
+            '</div>';
+          }).join('') +
+        '</div>'
+      : '';
+
+    var galleryHtml  = buildGalleryHtml(images);
+    var thumbsHtml   = images.length > 1 ? buildThumbsHtml(images) : '';
+
+    var html =
+      '<div class="artifact-hero">' +
+        '<div class="artifact-media">' +
+          galleryHtml +
+          thumbsHtml +
+        '</div>' +
+        '<div class="artifact-info">' +
+          '<div class="edition-badge"><span class="edition-dot"></span>Artifact' +
+            (edition ? ' &mdash; Ed. ' + edition : '') +
+          '</div>' +
+          '<h2>' + name + '</h2>' +
+          '<p class="artifact-tagline">' + category + '</p>' +
+          '<div class="artifact-price-row">' +
+            '<span class="artifact-price">&pound;' + price + '</span>' +
+            '<span class="artifact-price-label">inc. VAT</span>' +
+          '</div>' +
+          (desc ? '<p class="artifact-desc">' + desc + '</p>' : '') +
+          metaHtml +
+          '<div class="artifact-actions">' +
+            '<button class="btn btn-primary" id="artifact-add-btn">Add to Basket</button>' +
+            '<a class="btn btn-ghost" href="/checkout.html">Buy Now</a>' +
+          '</div>' +
+          '<div class="artifact-notice">' +
+            'Free UK shipping on orders over &pound;150. Dispatched within 2&ndash;3 business days.<br>' +
+            'Authenticity certificate included where applicable.' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+    document.getElementById('artifact-content').innerHTML = html;
+
+    // Wire up gallery interactivity
+    initGallery(images);
+
+    // Wire up basket button
+    document.getElementById('artifact-add-btn').addEventListener('click', function () {
+      if (window.addToBasket) {
+        window.addToBasket({
+          id: (a.slug || a.id || name) + '-artifact',
+          name: name,
+          price: parseFloat(a.price || 0),
+          image: images.length ? images[0].src : '',
+          quantity: 1
+        });
+      }
+    });
+  }
+
+  /* ── Gallery HTML builder ── */
+  function buildGalleryHtml(images) {
+    var isSingle = !images.length || images.length === 1;
+    var slides = images.length
+      ? images.map(function (img, i) {
+          return '<div class="pg-slide">' +
+            '<img src="' + escHtml(img.src) + '" alt="' + escHtml(img.alt) + '"' +
+            (i === 0 ? ' fetchpriority="high"' : ' loading="lazy"') + '>' +
+          '</div>';
+        }).join('')
+      : '<div class="pg-slide"><div class="pg-slide-placeholder">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>' +
+        '</div></div>';
+
+    var arrows = isSingle ? '' :
+      '<button class="pg-arrow pg-arrow-prev" id="pg-prev" aria-label="Previous image">' +
+        '<svg viewBox="0 0 16 16" stroke-width="1.8"><path d="M10 3L5 8l5 5"/></svg>' +
+      '</button>' +
+      '<button class="pg-arrow pg-arrow-next" id="pg-next" aria-label="Next image">' +
+        '<svg viewBox="0 0 16 16" stroke-width="1.8"><path d="M6 3l5 5-5 5"/></svg>' +
+      '</button>';
+
+    var dots = isSingle ? '' :
+      '<div class="pg-dots" id="pg-dots">' +
+        images.map(function (_, i) {
+          return '<button class="pg-dot' + (i === 0 ? ' active' : '') + '" data-idx="' + i + '" aria-label="Image ' + (i + 1) + '"></button>';
+        }).join('') +
+      '</div>';
+
+    return '<div class="pg-wrap' + (isSingle ? ' single' : '') + '" id="pg-wrap">' +
+      '<div class="pg-track" id="pg-track">' + slides + '</div>' +
+      arrows + dots +
+    '</div>';
+  }
+
+  function buildThumbsHtml(images) {
+    return '<div class="pg-thumbs" id="pg-thumbs">' +
+      images.map(function (img, i) {
+        return '<button class="pg-thumb' + (i === 0 ? ' active' : '') + '" data-idx="' + i + '" aria-label="View image ' + (i + 1) + '">' +
+          '<img src="' + escHtml(img.src) + '" alt="" loading="lazy">' +
+        '</button>';
+      }).join('') +
+    '</div>';
+  }
+
+  /* ── Gallery controller ── */
+  function initGallery(images) {
+    var track = document.getElementById('pg-track');
+    if (!track || images.length <= 1) return;
+
+    var total   = images.length;
+    var current = 0;
+
+    function goTo(idx) {
+      idx = Math.max(0, Math.min(total - 1, idx));
+      current = idx;
+      track.scrollTo({ left: idx * track.clientWidth, behavior: 'smooth' });
+      syncUI(idx);
+    }
+
+    function syncUI(idx) {
+      document.querySelectorAll('.pg-dot').forEach(function (d) {
+        d.classList.toggle('active', parseInt(d.dataset.idx) === idx);
+      });
+      document.querySelectorAll('.pg-thumb').forEach(function (t) {
+        t.classList.toggle('active', parseInt(t.dataset.idx) === idx);
+      });
+    }
+
+    var scrollTimer;
+    track.addEventListener('scroll', function () {
+      clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(function () {
+        var idx = Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
+        current = idx;
+        syncUI(idx);
+      }, 80);
+    }, { passive: true });
+
+    var prevBtn = document.getElementById('pg-prev');
+    var nextBtn = document.getElementById('pg-next');
+    if (prevBtn) prevBtn.addEventListener('click', function () { goTo(current - 1); });
+    if (nextBtn) nextBtn.addEventListener('click', function () { goTo(current + 1); });
+
+    document.querySelectorAll('.pg-dot').forEach(function (d) {
+      d.addEventListener('click', function () { goTo(parseInt(d.dataset.idx)); });
+    });
+    document.querySelectorAll('.pg-thumb').forEach(function (t) {
+      t.addEventListener('click', function () { goTo(parseInt(t.dataset.idx)); });
+    });
+  }
+
+  /* ── Related artifacts ── */
+  function renderRelated(artifacts) {
+    var section = document.createElement('section');
+    section.className = 'section related-section';
+    section.innerHTML =
+      '<h3>More Artifacts</h3>' +
+      '<div class="grid">' +
+        artifacts.map(function (a) {
+          var name    = a.name || 'Untitled';
+          var desc    = a.desc || a.description || '';
+          var trunc   = desc.length > 80 ? desc.substring(0, 80) + '\u2026' : desc;
+          var price   = parseFloat(a.price || 0).toFixed(2);
+          var href    = '/artifact.html?slug=' + encodeURIComponent(a.slug || a.id || '');
+          var imgHtml = a.image
+            ? '<img src="' + escHtml(a.image) + '" alt="' + escHtml(name) + '" loading="lazy">'
+            : '<div class="card-media-placeholder"></div>';
+          return (
+            '<a class="card card-link" href="' + href + '">' +
+              '<div class="card-media">' + imgHtml +
+                '<div class="badge-row"><span class="badge badge-gold">Artifact</span></div>' +
+              '</div>' +
+              '<div class="card-body">' +
+                '<h3>' + escHtml(name) + '</h3>' +
+                (trunc ? '<p class="muted">' + escHtml(trunc) + '</p>' : '') +
+                '<div class="price">&pound;' + price + '</div>' +
+              '</div>' +
+            '</a>'
+          );
+        }).join('') +
+      '</div>';
+    document.getElementById('artifact-main').appendChild(section);
+  }
+
+  function showError(msg) {
+    var el = document.getElementById('artifact-content');
+    if (el) el.innerHTML = '<p style="color:var(--muted);padding:60px 0;text-align:center">' + msg + '</p>';
+  }
+
+  function escHtml(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+})();
+</script>
+</body>
+</html>

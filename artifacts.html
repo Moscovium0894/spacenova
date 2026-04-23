@@ -20,7 +20,6 @@
     <a class="nav-logo" href="/"><img class="nav-logo-img" src="/spacenovalogocropped.png" alt="Spacenova"><div class="nav-logo-mark"></div></a>
     <div class="nav-links">
       <a class="nav-link" href="/shop.html">Shop</a>
-      <a class="nav-link" href="/collections.html">Collections</a>
       <a class="nav-link active" href="/artifacts.html">Artifacts</a>
       <a class="nav-link" href="/about.html">About</a>
       <div class="nav-more-wrap" id="nav-more-wrap">
@@ -52,7 +51,6 @@
   <div class="mp-body">
     <div class="mp-section-label">Shop</div>
     <a class="mp-item" href="/shop.html">Shop</a>
-    <a class="mp-item" href="/collections.html">Collections</a>
     <a class="mp-item mp-item-active" href="/artifacts.html">Artifacts</a>
     <a class="mp-item" href="/about.html">About</a>
     <div class="mp-divider"></div>
@@ -97,7 +95,7 @@
 <footer id="main-footer">
   <div class="footer-inner">
     <div class="footer-brand"><img class="footer-logo" src="/spacenovalogocropped.png" alt="Spacenova"><p>Bringing the universe's most breathtaking vistas into your home.</p></div>
-    <div class="footer-col"><h4>Shop</h4><a href="/shop.html">All Series</a><a href="/collections.html">Collections</a><a href="/artifacts.html">Artifacts</a></div>
+    <div class="footer-col"><h4>Shop</h4><a href="/shop.html">All Series</a><a href="/artifacts.html">Artifacts</a></div>
     <div class="footer-col"><h4>Help</h4><a href="/shipping.html">Shipping</a><a href="/returns.html">Returns</a><a href="/faq.html">FAQ</a><a href="/contact.html">Contact</a></div>
     <div class="footer-col"><h4>Company</h4><a href="/about.html">About</a><a href="/press.html">Press</a></div>
   </div>
@@ -146,14 +144,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     grid.innerHTML = filtered.map(function(a) {
-      var name     = a.name || 'Untitled';
-      var desc     = a.desc || a.description || '';
-      var truncDesc = desc.length > 90 ? desc.substring(0, 90) + '\u2026' : desc;
-      var price    = parseFloat(a.price || 0).toFixed(2);
-      var imgHtml  = a.image
+      var name = a.name || 'Untitled';
+      var desc = a.desc || a.description || '';
+      var truncDesc = desc.length > 90 ? desc.substring(0, 90) + '…' : desc;
+      var price = parseFloat(a.price || 0).toFixed(2);
+      var imgHtml = a.image
         ? '<img src="' + a.image + '" alt="' + name.replace(/"/g, '&quot;') + '" loading="lazy">'
         : '<div class="card-media-placeholder"></div>';
-      var href = a.slug ? '/product.html?slug=' + a.slug : '#';
+      var href = a.slug ? '/artifact.html?slug=' + encodeURIComponent(a.slug) : (a.id ? '/artifact.html?slug=' + encodeURIComponent(a.id) : '#');
       return (
         '<a class="card card-link" href="' + href + '">' +
           '<div class="card-media">' + imgHtml +
@@ -172,7 +170,7 @@ document.addEventListener('DOMContentLoaded', function() {
   fetch('/.netlify/functions/load-catalogue')
     .then(function(r) { return r.json(); })
     .then(function(d) {
-      // Artifacts live in d.artifacts (their own Supabase table), NOT in d.products
+      // Artifacts live in d.artifacts (separate table), NOT in d.products
       // Fall back to filtering d.products by category if d.artifacts is empty
       var artifacts = [];
       if (Array.isArray(d.artifacts) && d.artifacts.length > 0) {
@@ -192,6 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
       }
 
+      // Wire up filter pills
       document.querySelectorAll('.filter-pill').forEach(function(pill) {
         pill.addEventListener('click', function() {
           document.querySelectorAll('.filter-pill').forEach(function(p) { p.classList.remove('active'); });
