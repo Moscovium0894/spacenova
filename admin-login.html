@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — SPACENOVA</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{
+      min-height:100svh;display:flex;align-items:center;justify-content:center;
+      background:radial-gradient(ellipse at 50% 30%,rgba(212,120,15,.07) 0%,#f8f8f8 70%);
+      font-family:'Syne',-apple-system,sans-serif;
+    }
+    .login-card{
+      background:rgba(255,255,255,.96);border:1px solid rgba(0,0,0,.1);
+      border-radius:28px;padding:52px 44px;width:min(420px,92vw);text-align:center;
+      box-shadow:0 40px 80px rgba(0,0,0,.08);
+    }
+    .orbit{width:72px;height:72px;border-radius:50%;margin:0 auto 28px;position:relative;
+      background:linear-gradient(135deg,rgba(212,120,15,.14),rgba(212,120,15,.04));
+      border:1px solid rgba(212,120,15,.2);display:flex;align-items:center;justify-content:center;font-size:1.9rem;}
+    h1{font-family:'Cormorant Garamond',serif;font-size:2.4rem;font-weight:300;margin-bottom:8px;}
+    p{color:rgba(0,0,0,.44);font-size:.9rem;margin-bottom:32px;line-height:1.6;}
+    .inp{width:100%;padding:14px 16px;background:#f8f8f8;border:1px solid rgba(0,0,0,.12);
+      border-radius:12px;font:inherit;font-size:.95rem;outline:none;
+      transition:border-color .2s,box-shadow .2s;margin-bottom:16px;}
+    .inp:focus{border-color:#d4780f;box-shadow:0 0 0 3px rgba(212,120,15,.1);}
+    .btn-login{width:100%;padding:14px 24px;background:#d4780f;color:#fff;border:none;
+      border-radius:999px;font:inherit;font-size:.78rem;font-weight:700;letter-spacing:.06em;
+      text-transform:uppercase;cursor:pointer;transition:background .2s,transform .2s;
+      box-shadow:0 4px 18px rgba(212,120,15,.22);}
+    .btn-login:hover{background:#b86200;transform:translateY(-1px);}
+    .btn-login:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+    .err{color:#d93025;font-size:.82rem;margin-top:12px;display:none;}
+    .back{display:block;margin-top:20px;font-size:.78rem;color:rgba(0,0,0,.4);text-decoration:none;transition:color .15s;}
+    .back:hover{color:#d4780f;}
+    .spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.4);
+      border-top-color:#fff;border-radius:50%;animation:spin .65s linear infinite;vertical-align:middle;margin-left:6px;}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+<div class="login-card">
+  <div class="orbit">🛸</div>
+  <h1>Admin Access</h1>
+  <p>Enter your team password to open the operations dashboard.</p>
+  <input class="inp" type="password" id="pw" placeholder="Team password" autocomplete="current-password">
+  <button class="btn-login" id="login-btn" onclick="doLogin()">Open Dashboard →</button>
+  <div class="err" id="err">Incorrect password — try again.</div>
+  <a class="back" href="/">← Back to store</a>
+</div>
+
+<script>
+document.getElementById('pw').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
+
+async function doLogin(){
+  const pw = document.getElementById('pw').value;
+  const btn = document.getElementById('login-btn');
+  const err = document.getElementById('err');
+  if(!pw){err.style.display='block';err.textContent='Please enter a password.';return;}
+  err.style.display='none';
+  btn.disabled=true;
+  btn.innerHTML='Checking<span class="spinner"></span>';
+  try{
+    const res = await fetch('/.netlify/functions/auth',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({password:pw})
+    });
+    const d = await res.json();
+    if(d.ok){
+      sessionStorage.setItem('admin','1');
+      sessionStorage.setItem('admin_pw',pw);
+      window.location.href='/admin/index.html';
+    } else {
+      err.style.display='block';
+      err.textContent='Incorrect password — try again.';
+      document.getElementById('pw').value='';
+      btn.disabled=false;
+      btn.innerHTML='Open Dashboard →';
+    }
+  } catch(e){
+    // Offline fallback — still redirect if sessionStorage already set
+    err.style.display='block';
+    err.textContent='Could not reach server. Check connection.';
+    btn.disabled=false;
+    btn.innerHTML='Open Dashboard →';
+  }
+}
+
+// Already authenticated — skip straight to dashboard
+if(sessionStorage.getItem('admin')==='1'){
+  window.location.href='/admin/index.html';
+}
+</script>
+</body>
+</html>
