@@ -334,20 +334,25 @@ img { display: block; max-width: 100%; }
 .panels-bg-layer {
   position: absolute; inset: 0;
   background-size: cover; background-position: center;
-  filter: blur(3px) brightness(0.6);
-  transform: scale(1.06); /* avoid blur edge artifacts */
-  transition: background-image .3s;
+  /* no blur — image shows through SVG hex windows */
 }
 .panels-bg-empty {
   position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;
   text-align: center; padding: 24px;
-  color: rgba(255,255,255,.7); font-size: .9rem;
+  color: var(--muted); font-size: .9rem;
 }
 .panels-hex-layer {
   position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  flex-direction: column;
+}
+.panels-hex-layer svg {
+  width: 100%; height: 100%;
+  display: block;
+}
+.panels-overlay-label {
+  position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+  font-family: var(--fm); font-size: .54rem; letter-spacing: .14em; text-transform: uppercase;
+  color: rgba(255,255,255,.45); white-space: nowrap; pointer-events: none;
 }
 /* Hex rows inside the composite layer */
 .panels-hex-layer .hex-row { display: flex; }
