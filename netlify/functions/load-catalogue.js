@@ -6,43 +6,46 @@ const supabase = createClient(
 
 function normaliseProduct(p) {
   return {
-    slug:        p.slug,
-    name:        p.name,
-    category:    p.category,
-    price:       p.price,
-    priceLabel:  p.price_label,
-    short:       p.short,
-    description: p.description,
-    note:        p.note,
-    accent:      p.accent,
-    size:        p.size,
-    material:    p.material,
-    pieces:      p.pieces,
-    panelHint:   p.panel_hint,
-    image:       p.image,
-    wallImage:   p.wall_image    || null,
+    slug:         p.slug,
+    name:         p.name,
+    category:     p.category,
+    price:        p.price,
+    priceLabel:   p.price_label,
+    short:        p.short,
+    description:  p.description,
+    note:         p.note,
+    accent:       p.accent,
+    size:         p.size,
+    material:     p.material,
+    pieces:       p.pieces,
+    panelHint:    p.panel_hint,
+    image:        p.image,
+    wallImage:    p.wall_image || null,
     isCollection: !!p.is_collection,
-    isBundle:    !!p.is_bundle,
-    isPublished: p.is_published !== false,
-    panelNames:  p.panel_names   || [],
-    panelImages: p.panel_images  || [],
-    panelMap:    (p.panel_map && typeof p.panel_map === 'object')
-                   ? p.panel_map
-                   : { positions: [], transforms: [] }
+    isBundle:     false,
+    isPublished:  p.is_published !== false,
+    panelNames:   Array.isArray(p.panel_names)  ? p.panel_names  : [],
+    panelImages:  Array.isArray(p.panel_images) ? p.panel_images : [],
+    panelMap:     (p.panel_map && typeof p.panel_map === 'object')
+                    ? p.panel_map
+                    : { positions: [], transforms: [] }
   };
 }
 
+/*
+  Artifacts table columns (actual schema):
+    id bigint, name text, category text, price numeric,
+    description text, image text, updated_at timestamptz
+  No slug, no is_published, no desc alias.
+*/
 function normaliseArtifact(a) {
   return {
-    slug:        a.slug  || null,
-    id:          a.id    || null,
-    name:        a.name  || '',
-    category:    a.category || '',
-    price:       a.price || 0,
-    desc:        a.desc  || a.description || '',
-    description: a.desc  || a.description || '',
-    image:       a.image || null,
-    isPublished: a.is_published !== false,
+    id:          String(a.id || ''),
+    name:        a.name        || '',
+    category:    a.category    || '',
+    price:       a.price       || 0,
+    description: a.description || '',
+    image:       a.image       || null,
     isArtifact:  true
   };
 }
@@ -51,27 +54,49 @@ exports.handler = async (event) => {
   if (event.httpMethod !== 'GET') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
+
   try {
     const [productsRes, artifactsRes] = await Promise.all([
-      supabase.from('products').select('*').order('created_at', { ascending: false }),
-      supabase.from('artifacts').select('*').order('name', { ascending: true })
+      supabase
+        .from('products')
+        .select('*')
+        .eq('is_published', true)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('artifacts')
+        .select('*')
+        .order('name', { ascending: true })
     ]);
 
-    // artifacts table might not exist yet — treat that as empty, not an error
+    if (productsRes.error) {
+      console.error('products query error:', productsRes.error);
+      return {
+        statusCode: 500,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        body: JSON.stringify({ error: 'Failed to load products' })
+      };
+    }
+
     const products  = (productsRes.data  || []).map(normaliseProduct);
+    // Artifacts table might be empty — never treat empty as an error
     const artifacts = artifactsRes.error
       ? []
       : (artifactsRes.data || []).map(normaliseArtifact);
 
+    if (artifactsRes.error) {
+      console.warn('artifacts query warning (non-fatal):', artifactsRes.error.message);
+    }
+
     return {
       statusCode: 200,
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type':                'application/json',
         'Access-Control-Allow-Origin': '*',
-        'Cache-Control': 'no-store'
+        'Cache-Control':               'public, max-age=30, stale-while-revalidate=60'
       },
       body: JSON.stringify({ products, artifacts })
     };
+
   } catch (err) {
     console.error('load-catalogue fatal error:', err);
     return {
