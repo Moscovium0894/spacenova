@@ -127,32 +127,85 @@
 <script src="/js/basket.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  var activeFilter = 'all';
+
+  function renderArtifacts(artifacts) {
+    var grid = document.getElementById('artifacts-grid');
+    if (!grid) return;
+
+    var filtered = activeFilter === 'all'
+      ? artifacts
+      : artifacts.filter(function(a) {
+          var cat = (a.category || '').toLowerCase();
+          return cat === activeFilter || cat.includes(activeFilter);
+        });
+
+    if (!filtered.length) {
+      grid.innerHTML = '<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:60px 0">No artifacts in this category.</p>';
+      return;
+    }
+
+    grid.innerHTML = filtered.map(function(a) {
+      var name     = a.name || 'Untitled';
+      var desc     = a.desc || a.description || '';
+      var truncDesc = desc.length > 90 ? desc.substring(0, 90) + '\u2026' : desc;
+      var price    = parseFloat(a.price || 0).toFixed(2);
+      var imgHtml  = a.image
+        ? '<img src="' + a.image + '" alt="' + name.replace(/"/g, '&quot;') + '" loading="lazy">'
+        : '<div class="card-media-placeholder"></div>';
+      var href = a.slug ? '/product.html?slug=' + a.slug : '#';
+      return (
+        '<a class="card card-link" href="' + href + '">' +
+          '<div class="card-media">' + imgHtml +
+            '<div class="badge-row"><span class="badge badge-gold">Artifact</span></div>' +
+          '</div>' +
+          '<div class="card-body">' +
+            '<h3>' + name + '</h3>' +
+            (truncDesc ? '<p class="muted">' + truncDesc + '</p>' : '') +
+            '<div class="price">&pound;' + price + '</div>' +
+          '</div>' +
+        '</a>'
+      );
+    }).join('');
+  }
+
   fetch('/.netlify/functions/load-catalogue')
-    .then(r => r.json())
-    .then(d => {
-      const products = (d.products || []).filter(p => p.isPublished !== false && p.type === 'artifact');
-      const grid = document.getElementById('artifacts-grid');
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      // Artifacts live in d.artifacts (their own Supabase table), NOT in d.products
+      // Fall back to filtering d.products by category if d.artifacts is empty
+      var artifacts = [];
+      if (Array.isArray(d.artifacts) && d.artifacts.length > 0) {
+        artifacts = d.artifacts;
+      } else if (Array.isArray(d.products)) {
+        artifacts = d.products.filter(function(p) {
+          var cat = (p.category || '').toLowerCase();
+          return cat === 'artifact' || cat === 'artifacts' || p.isArtifact === true;
+        });
+      }
+
+      var grid = document.getElementById('artifacts-grid');
       if (!grid) return;
-      if (!products.length) {
-        grid.innerHTML = '<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:40px 0">No artifacts available yet.</p>';
+
+      if (!artifacts.length) {
+        grid.innerHTML = '<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:60px 0">No artifacts available yet.</p>';
         return;
       }
-      grid.innerHTML = products.map(p => `
-        <a class="card card-link" href="/product.html?slug=${p.slug || p.id}">
-          <div class="card-media">${p.image ? `<img src="${p.image}" alt="${p.name}" loading="lazy">` : '<div class="card-media-placeholder"></div>'}<div class="badge-row"><span class="badge badge-gold">Artifact</span></div></div>
-          <div class="card-body"><h3>${p.name}</h3><p class="muted">${(p.description||'').substring(0,90)}${p.description&&p.description.length>90?'...':''}</p><div class="price">&pound;${parseFloat(p.price||0).toFixed(2)}</div></div>
-        </a>`).join('');
-      const pills = document.querySelectorAll('.filter-pill');
-      pills.forEach(pill => {
+
+      document.querySelectorAll('.filter-pill').forEach(function(pill) {
         pill.addEventListener('click', function() {
-          pills.forEach(p => p.classList.remove('active'));
+          document.querySelectorAll('.filter-pill').forEach(function(p) { p.classList.remove('active'); });
           this.classList.add('active');
+          activeFilter = this.dataset.filter || 'all';
+          renderArtifacts(artifacts);
         });
       });
+
+      renderArtifacts(artifacts);
     })
-    .catch(() => {
-      const grid = document.getElementById('artifacts-grid');
-      if (grid) grid.innerHTML = '<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:40px 0">Could not load artifacts.</p>';
+    .catch(function() {
+      var grid = document.getElementById('artifacts-grid');
+      if (grid) grid.innerHTML = '<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:60px 0">Could not load artifacts. Please try again.</p>';
     });
 });
 </script>
