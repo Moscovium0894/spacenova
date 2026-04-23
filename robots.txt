@@ -1,1 +1,4 @@
-dummy
+User-agent: *
+Allow: /
+
+Sitemap: https://spacenova.co.uk/sitemap.xml
