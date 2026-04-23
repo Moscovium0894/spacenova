@@ -353,24 +353,21 @@ button { font-family: inherit; }
 }
 
 .badge-accent {
-  background: rgba(212,120,15,.92);
-  color: #fff;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: #fff;
+  color: var(--accent);
+  border: 1.5px solid var(--accent);
 }
 
 .badge-gold {
-  background: rgba(180,140,0,.88);
-  color: #fff;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: #fff;
+  color: var(--gold);
+  border: 1.5px solid var(--gold);
 }
 
 .badge-muted {
-  background: rgba(255,255,255,.82);
-  color: rgba(0,0,0,.65);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: #fff;
+  color: var(--muted);
+  border: 1.5px solid var(--border2);
 }
 
 .card-wishlist { position: absolute; top: 12px; right: 12px; width: 32px; height: 32px; background: rgba(255,255,255,.92); backdrop-filter: var(--blur-sm); border: 1px solid rgba(0,0,0,.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all .2s; color: var(--muted); font-size: .85rem; -webkit-tap-highlight-color: transparent; }
