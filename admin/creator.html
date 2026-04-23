@@ -718,102 +718,165 @@
     renderHexGrid();
   }
 
-  /* ── Panels composite: main image + hex tiles as overlay ── */
+   /* ── Panels composite: main image + hex outlines ── */
   function renderPanelsView(mainImageUrl, count) {
     var bgLayer  = E.prev.panelsBgLayer;
     var bgEmpty  = E.prev.panelsBgEmpty;
     var hexLayer = E.prev.panelsHexLayer;
 
-    /* Background: blurred main image */
     if (mainImageUrl) {
       bgLayer.style.backgroundImage    = 'url(' + mainImageUrl + ')';
       bgLayer.style.backgroundSize     = 'cover';
       bgLayer.style.backgroundPosition = 'center';
+      bgLayer.style.filter             = 'none';
+      bgLayer.style.transform          = 'none';
       bgEmpty.style.display = 'none';
     } else {
       bgLayer.style.backgroundImage = '';
+      bgLayer.style.filter          = '';
+      bgLayer.style.transform       = '';
       bgEmpty.style.display = '';
     }
 
-    /* Hex layer: tiles composited on the image */
-    hexLayer.innerHTML = '';
-    var grouped = groupByRow();
-    var rowKeys = Object.keys(grouped).map(Number).sort(function (a, b) { return a - b; });
-
-    /* Work out the full grid extent so we can calculate tile positions */
-    var maxRow = rowKeys.length ? rowKeys[rowKeys.length - 1] : 0;
-    var maxCol = 0;
-    rowKeys.forEach(function (r) {
-      grouped[r].forEach(function (c) { if (c.col > maxCol) maxCol = c.col; });
-    });
-    var totalRows = maxRow + 1;
-    var totalCols = maxCol + 1;
-
-    rowKeys.forEach(function (rowKey) {
-      var rowEl = document.createElement('div');
-      rowEl.className = 'hex-row' + (rowKey % 2 !== 0 ? ' offset' : '');
-
-      grouped[rowKey].sort(function (a, b) { return a.col - b.col; }).forEach(function (cell) {
-        var hex = document.createElement('div');
-        hex.className = 'hex-cell-composite';
-
-        /* Each tile shows the portion of the main image that corresponds to its grid position */
-        var imgSrc = state.panelImages[cell.idx] || mainImageUrl;
-        if (imgSrc) {
-          /* bg-position: map col→x%, row→y% within the full image */
-          var xPct = totalCols > 1 ? Math.round((cell.col / (totalCols - 1)) * 100) : 50;
-          var yPct = totalRows > 1 ? Math.round((rowKey / (totalRows - 1)) * 100) : 50;
-          /* bg-size: scale image so that one "cell-sized" region fills the tile.
-             We want totalCols tiles across → background-size = totalCols * 100% */
-          var bsW = Math.max(totalCols, 1) * 100;
-          var bsH = Math.max(totalRows, 1) * 100;
-
-          hex.style.backgroundImage    = 'url(' + imgSrc + ')';
-          hex.style.backgroundSize     = bsW + '% ' + bsH + '%';
-          hex.style.backgroundPosition = xPct + '% ' + yPct + '%';
-          hex.style.backgroundRepeat   = 'no-repeat';
-        }
-
-        var label = document.createElement('span');
-        label.className = 'hex-label-preview';
-        label.textContent = cell.idx + 1;
-        hex.appendChild(label);
-        rowEl.appendChild(hex);
-      });
-      hexLayer.appendChild(rowEl);
-    });
+    /* Draw SVG hex outlines on top */
+    renderOutlineHexSVG(hexLayer, mainImageUrl);
   }
 
-  /* ── Arrangement card hex grid (same crop logic) ── */
+  /* Draws an SVG with transparent hex outlines + numbered labels over the image */
+  function renderOutlineHexSVG(hexLayer, mainImageUrl) {
+    hexLayer.innerHTML = '';
+    ensurePanelArrays();
+
+    var grouped  = groupByRow();
+    var rowKeys  = Object.keys(grouped).map(Number).sort(function (a,b) { return a-b; });
+    if (!rowKeys.length) return;
+
+    /* Cell geometry — pointy-top hexagon */
+    var CW = 80, CH = 92;           /* cell width, height */
+    var OVERLAP = CH * 0.25;        /* vertical row overlap */
+    var ROW_PITCH = CH - OVERLAP;   /* vertical distance between row origins */
+    var COL_PITCH = CW + 4;         /* horizontal distance between cells in same row */
+    var OFFSET_X  = CW / 2 + 2;    /* even/odd row horizontal offset */
+
+    /* Compute bounding box of entire grid */
+    var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    rowKeys.forEach(function (rk) {
+      var isOdd = rk % 2 !== 0;
+      grouped[rk].forEach(function (cell) {
+        var cx = cell.col * COL_PITCH + (isOdd ? OFFSET_X : 0) + CW / 2;
+        var cy = rk * ROW_PITCH + CH / 2;
+        minX = Math.min(minX, cx - CW/2 - 4);
+        minY = Math.min(minY, cy - CH/2 - 4);
+        maxX = Math.max(maxX, cx + CW/2 + 4);
+        maxY = Math.max(maxY, cy + CH/2 + 4);
+      });
+    });
+
+    var svgW = maxX - minX;
+    var svgH = maxY - minY;
+
+    /* Build hex polygon points for a pointy-top hex centred at (cx, cy) */
+    function hexPoints(cx, cy) {
+      var pts = [];
+      var w = CW / 2, h = CH / 2;
+      /* pointy-top: top, upper-right, lower-right, bottom, lower-left, upper-left */
+      pts.push((cx)         + ',' + (cy - h));
+      pts.push((cx + w)     + ',' + (cy - h/2));
+      pts.push((cx + w)     + ',' + (cy + h/2));
+      pts.push((cx)         + ',' + (cy + h));
+      pts.push((cx - w)     + ',' + (cy + h/2));
+      pts.push((cx - w)     + ',' + (cy - h/2));
+      return pts.join(' ');
+    }
+
+    var svgParts = [
+      '<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="',
+      minX + ' ' + minY + ' ' + svgW + ' ' + svgH,
+      '">'
+    ];
+
+    /* Semi-transparent dark overlay everywhere */
+    svgParts.push('<rect x="' + minX + '" y="' + minY + '" width="' + svgW + '" height="' + svgH + '" fill="rgba(0,0,0,0.35)"/>');
+
+    /* For each hex: cut a "window" using clipPath so the image shows through cleanly */
+    rowKeys.forEach(function (rk) {
+      var isOdd = rk % 2 !== 0;
+      grouped[rk].forEach(function (cell) {
+        var cx = cell.col * COL_PITCH + (isOdd ? OFFSET_X : 0) + CW / 2;
+        var cy = rk * ROW_PITCH + CH / 2;
+        var pts = hexPoints(cx, cy);
+        var id  = 'hp' + cell.idx;
+
+        /* Clip path so image shows through this hex only */
+        svgParts.push(
+          '<clipPath id="' + id + '"><polygon points="' + pts + '"/></clipPath>' +
+          '<image href="' + (mainImageUrl || '') + '" x="' + minX + '" y="' + minY +
+          '" width="' + svgW + '" height="' + svgH +
+          '" preserveAspectRatio="xMidYMid slice" clip-path="url(#' + id + ')"/>'
+        );
+
+        /* Outline */
+        svgParts.push('<polygon points="' + pts + '" fill="none" stroke="rgba(255,255,255,0.75)" stroke-width="2"/>');
+
+        /* Number label */
+        svgParts.push(
+          '<text x="' + cx + '" y="' + (cy + 5) + '" text-anchor="middle" dominant-baseline="middle"' +
+          ' font-family="\'DM Mono\', monospace" font-size="14" fill="rgba(255,255,255,0.92)"' +
+          ' style="text-shadow: 0 1px 4px rgba(0,0,0,0.8)">' +
+          (cell.idx + 1) + '</text>'
+        );
+      });
+    });
+
+    svgParts.push('</svg>');
+    hexLayer.innerHTML = svgParts.join('');
+  }
+
+  /* ── Arrangement card hex grid (background-image crop per tile) ── */
   function renderHexGrid() {
     ensurePanelArrays();
-    var wrap       = E.prev.hexPreview;
-    var mainImage  = E.f.image.value.trim();
-    var grouped    = groupByRow();
-    var rowKeys    = Object.keys(grouped).map(Number).sort(function (a, b) { return a - b; });
-    var maxRow = rowKeys.length ? rowKeys[rowKeys.length - 1] : 0;
-    var maxCol = 0;
-    rowKeys.forEach(function (r) {
-      grouped[r].forEach(function (c) { if (c.col > maxCol) maxCol = c.col; });
-    });
-    var totalRows = maxRow + 1;
-    var totalCols = maxCol + 1;
+    var wrap      = E.prev.hexPreview;
+    var mainImage = E.f.image.value.trim();
+    var grouped   = groupByRow();
+    var rowKeys   = Object.keys(grouped).map(Number).sort(function (a,b) { return a-b; });
 
     wrap.innerHTML = '';
-    rowKeys.forEach(function (rowKey) {
-      var rowEl = document.createElement('div');
-      rowEl.className = 'hex-row' + (rowKey % 2 !== 0 ? ' offset' : '');
+    if (!rowKeys.length) return;
 
-      grouped[rowKey].sort(function (a, b) { return a.col - b.col; }).forEach(function (cell) {
+    /* Compute true extents: what are the actual unique col values? */
+    var allCols = [];
+    rowKeys.forEach(function (rk) {
+      grouped[rk].forEach(function (c) { if (allCols.indexOf(c.col) === -1) allCols.push(c.col); });
+    });
+    allCols.sort(function (a,b) { return a-b; });
+
+    var allRows = rowKeys.slice(); /* already sorted */
+
+    /* Map row/col values to sequential indices 0..N so positions spread across full image */
+    function rowIdx(r)  { return allRows.indexOf(r); }
+    function colIdx(c)  { return allCols.indexOf(c); }
+    var totalRows = allRows.length;
+    var totalCols = allCols.length;
+
+    rowKeys.forEach(function (rk) {
+      var rowEl = document.createElement('div');
+      rowEl.className = 'hex-row' + (rk % 2 !== 0 ? ' offset' : '');
+
+      grouped[rk].sort(function (a,b) { return a.col - b.col; }).forEach(function (cell) {
         var hex = document.createElement('div');
         hex.className = 'hex-cell-preview';
 
         var imgSrc = state.panelImages[cell.idx] || mainImage;
         if (imgSrc) {
-          var xPct = totalCols > 1 ? Math.round((cell.col / (totalCols - 1)) * 100) : 50;
-          var yPct = totalRows > 1 ? Math.round((rowKey / (totalRows - 1)) * 100) : 50;
+          var ri   = rowIdx(rk);
+          var ci   = colIdx(cell.col);
+          /* background-size: scale image so totalCols tiles fit across, totalRows tiles fit vertically */
           var bsW  = Math.max(totalCols, 1) * 100;
           var bsH  = Math.max(totalRows, 1) * 100;
+          /* background-position: percentage tells where to put the image origin */
+          /* For position: tile [ci, ri] should show the [ci/totalCols, ri/totalRows] region */
+          var xPct = totalCols > 1 ? (ci / (totalCols - 1)) * 100 : 50;
+          var yPct = totalRows > 1 ? (ri / (totalRows - 1)) * 100 : 50;
 
           hex.style.backgroundImage    = 'url(' + imgSrc + ')';
           hex.style.backgroundSize     = bsW + '% ' + bsH + '%';
@@ -830,7 +893,7 @@
       wrap.appendChild(rowEl);
     });
   }
-
+  
   function groupByRow() {
     var grouped = {};
     state.panelPositions.forEach(function (pos, idx) {
