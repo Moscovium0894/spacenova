@@ -24,7 +24,7 @@
     }
     .pg-track {
       display: flex;
-      touch-action: pan-y pinch-zoom;
+      touch-action: pan-x pinch-zoom;
       -webkit-overflow-scrolling: touch;
       overflow-x: scroll;
       scroll-snap-type: x mandatory;
@@ -102,6 +102,10 @@
     .pg-arrow-prev { left: 12px; }
     .pg-arrow-next { right: 12px; }
     .pg-wrap.single .pg-arrow { display: none; }
+    @media (max-width: 760px), (hover: none) and (pointer: coarse) {
+      .pg-arrow { display: none !important; }
+      .pg-wrap:hover .pg-arrow { opacity: 0; pointer-events: none; }
+    }
     .pg-dots {
       display: flex;
       gap: 10px;
@@ -522,6 +526,10 @@
     if (!track || images.length <= 1) return;
 
     var slides = Array.from(track.querySelectorAll('.pg-slide'));
+    var dots = Array.from(document.querySelectorAll('.pg-dot'));
+    var thumbs = Array.from(document.querySelectorAll('.pg-thumb'));
+    var prevBtn = document.getElementById('pg-prev');
+    var nextBtn = document.getElementById('pg-next');
     var total = slides.length;
     var current = 0;
     var slideMetrics = [];
@@ -562,10 +570,10 @@
     }
 
     function syncUI(idx) {
-      document.querySelectorAll('.pg-dot').forEach(function(d) {
+      dots.forEach(function(d) {
         d.classList.toggle('active', parseInt(d.dataset.idx) === idx);
       });
-      document.querySelectorAll('.pg-thumb').forEach(function(t) {
+      thumbs.forEach(function(t) {
         t.classList.toggle('active', parseInt(t.dataset.idx) === idx);
       });
       if (prevBtn) prevBtn.disabled = idx === 0;
@@ -586,8 +594,9 @@
 
     function snapToCurrent() {
       measureSlides();
+      current = getNearestIndex(track.scrollLeft);
       var target = slideMetrics[current] ? slideMetrics[current].left : 0;
-      track.scrollTo({ left: target, behavior: 'auto' });
+      track.scrollTo({ left: target });
       syncUI(current);
     }
 
@@ -596,22 +605,29 @@
       handleScroll();
     }, { passive: true });
 
-    var prevBtn = document.getElementById('pg-prev');
-    var nextBtn = document.getElementById('pg-next');
     if (prevBtn) prevBtn.addEventListener('click', function() { goTo(current - 1); });
     if (nextBtn) nextBtn.addEventListener('click', function() { goTo(current + 1); });
 
-    document.querySelectorAll('.pg-dot').forEach(function(d) {
+    dots.forEach(function(d) {
       d.addEventListener('click', function() { goTo(parseInt(d.dataset.idx)); });
     });
-    document.querySelectorAll('.pg-thumb').forEach(function(t) {
+    thumbs.forEach(function(t) {
       t.addEventListener('click', function() { goTo(parseInt(t.dataset.idx)); });
     });
 
     measureSlides();
+    current = getNearestIndex(track.scrollLeft);
     syncUI(current);
-    window.addEventListener('resize', snapToCurrent, { passive: true });
-    window.addEventListener('orientationchange', snapToCurrent, { passive: true });
+    window.addEventListener('resize', function() {
+      requestAnimationFrame(function() {
+        requestAnimationFrame(snapToCurrent);
+      });
+    }, { passive: true });
+    window.addEventListener('orientationchange', function() {
+      requestAnimationFrame(function() {
+        requestAnimationFrame(snapToCurrent);
+      });
+    }, { passive: true });
   }
 
   /* ── Hex selector ── */
