@@ -16,6 +16,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
+<a class="skip-link" href="#main-content">Skip to main content</a>
 <nav id="main-nav" class="nav-transparent">
   <div class="nav-inner">
     <a class="nav-logo" href="/">
@@ -27,8 +28,8 @@
       <a class="nav-link" href="/artifacts.html">Artifacts</a>
       <a class="nav-link" href="/about.html">About</a>
       <div class="nav-more-wrap" id="nav-more-wrap">
-        <button class="nav-link nav-more-btn" id="nav-more-btn" aria-haspopup="true" aria-expanded="false">More <span class="nav-chevron">&#9662;</span></button>
-        <div class="nav-dropdown" id="nav-dropdown" role="menu">
+        <button class="nav-link nav-more-btn" id="nav-more-btn" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown">More <span class="nav-chevron">&#9662;</span></button>
+        <div class="nav-dropdown" id="nav-dropdown" role="menu" aria-label="More links">
           <div class="ndd-section">Help</div>
           <a class="ndd-item" href="/contact.html" role="menuitem">Contact Us</a>
           <a class="ndd-item" href="/shipping.html" role="menuitem">Shipping</a>
@@ -46,7 +47,7 @@
       <span class="basket-btn-label">Basket</span>
       <span class="basket-badge" id="basket-badge"></span>
     </button>
-    <button class="burger-btn" id="burger-btn" aria-label="Open menu" aria-expanded="false">
+    <button class="burger-btn" id="burger-btn" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-panel">
       <span></span><span></span><span></span>
     </button>
   </div>
@@ -79,9 +80,10 @@
     </button>
   </div>
 </div>
+<main id="main-content">
 <section class="hero">
   <div class="hero-bg">
-    <img class="hero-bg-img" src="https://c02.purpledshub.com/uploads/sites/48/2016/03/27499657575_389c310eae_k.jpg?webp=1&w=1200" alt="Earth from space">
+    <img class="hero-bg-img" src="https://c02.purpledshub.com/uploads/sites/48/2016/03/27499657575_389c310eae_k.jpg?webp=1&w=1200" alt="Earth from space" fetchpriority="high" decoding="async">
     <div class="hero-overlay"></div>
   </div>
   <div class="hero-content">
@@ -144,6 +146,7 @@
     <div class="testimonial"><div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><p>"Fast delivery, beautiful packaging, and the panels are even better than the photos suggest."</p><div class="testimonial-author">— Tom K., Manchester</div></div>
   </div>
 </section>
+ </main>
 <footer id="main-footer">
   <div class="footer-inner">
     <div class="footer-brand">
@@ -182,10 +185,11 @@ document.addEventListener('DOMContentLoaded', function() {
   fetch('/.netlify/functions/load-catalogue')
     .then(function(r) { return r.json(); })
     .then(function(d) {
-      var products = (d.products || []).filter(function(p) { return p.isPublished !== false; }).slice(0, 3);
+      var allProducts = (d.products || []).filter(function(p) { return p.isPublished !== false; });
+      var products = allProducts.slice(0, 3);
 
       var el = document.getElementById('stat-products');
-      if (el) el.textContent = (d.products || []).length || '\u2014';
+      if (el) el.textContent = allProducts.length || '\u2014';
 
       var grid = document.getElementById('home-grid');
       if (!grid) return;
@@ -224,7 +228,7 @@ document.addEventListener('DOMContentLoaded', function() {
     })
     .catch(function() {
       var grid = document.getElementById('home-grid');
-      if (grid) grid.innerHTML = '<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:40px 0">Could not load products.</p>';
+      if (grid) grid.innerHTML = '<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:40px 0">Unable to load products right now. Please try again shortly.</p>';
     });
 
   function esc(str) {
