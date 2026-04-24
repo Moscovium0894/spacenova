@@ -1558,7 +1558,7 @@ body.panel-open { overflow: hidden; }
 }
 #main-nav.nav-scrolled,
 #main-nav.nav-solid { background: rgba(255,255,255,.97); box-shadow: 0 10px 50px rgba(0,0,0,.10); }
-.nav-inner { display: flex; align-items: center; width: 100%; }
+.nav-inner { position: relative; display: flex; align-items: center; width: 100%; min-height: 100%; }
 .nav-link { position: relative; }
 .nav-link::after {
   content: '';
