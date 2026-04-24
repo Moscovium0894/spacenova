@@ -608,6 +608,35 @@
     document.querySelectorAll('.pg-thumb').forEach(function (t) {
       t.addEventListener('click', function () { goTo(parseInt(t.dataset.idx)); });
     });
+
+    // Explicit swipe support for touch devices (helps when momentum scroll is inconsistent)
+    var touchStartX = 0;
+    var touchStartY = 0;
+    var touchEndX = 0;
+    var touchEndY = 0;
+    var SWIPE_THRESHOLD = 40;
+
+    track.addEventListener('touchstart', function (e) {
+      if (!e.touches || !e.touches.length) return;
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      touchEndX = touchStartX;
+      touchEndY = touchStartY;
+    }, { passive: true });
+
+    track.addEventListener('touchmove', function (e) {
+      if (!e.touches || !e.touches.length) return;
+      touchEndX = e.touches[0].clientX;
+      touchEndY = e.touches[0].clientY;
+    }, { passive: true });
+
+    track.addEventListener('touchend', function () {
+      var dx = touchEndX - touchStartX;
+      var dy = touchEndY - touchStartY;
+      if (Math.abs(dx) < SWIPE_THRESHOLD || Math.abs(dx) <= Math.abs(dy)) return;
+      if (dx < 0) goTo(current + 1);
+      else goTo(current - 1);
+    }, { passive: true });
   }
 
   /* ── Related artifacts ── */
