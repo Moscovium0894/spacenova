@@ -13,6 +13,21 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ── table skeleton ── */
+    .table-skeleton { display: flex; flex-direction: column; gap: 10px; margin-bottom: 40px; }
+    .table-skeleton-row {
+      height: 48px; border-radius: 10px;
+      background: linear-gradient(90deg, #f0ede8 25%, #e8e3db 50%, #f0ede8 75%);
+      background-size: 200% 100%;
+      animation: tableShimmer 1.5s ease-in-out infinite;
+    }
+    .table-skeleton-row:first-child { height: 38px; opacity: .55; }
+    @keyframes tableShimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+  </style>
 </head>
 <body>
 <nav id="main-nav">
@@ -81,16 +96,18 @@
 <section class="section" style="padding-top:0">
   <div class="shipping-table-wrap">
     <h2 class="info-section-title">Delivery Options</h2>
-    <table class="shipping-table">
-      <thead><tr><th>Region</th><th>Service</th><th>Estimated Time</th><th>Cost</th></tr></thead>
-      <tbody>
-        <tr><td>United Kingdom</td><td>Standard</td><td>3&ndash;5 working days</td><td>Free over &pound;150, otherwise &pound;4.99</td></tr>
-        <tr><td>United Kingdom</td><td>Express</td><td>1&ndash;2 working days</td><td>&pound;9.99</td></tr>
-        <tr><td>Europe</td><td>Standard</td><td>5&ndash;10 working days</td><td>From &pound;12.99</td></tr>
-        <tr><td>USA &amp; Canada</td><td>Standard</td><td>7&ndash;14 working days</td><td>From &pound;14.99</td></tr>
-        <tr><td>Rest of World</td><td>Standard</td><td>10&ndash;21 working days</td><td>From &pound;17.99</td></tr>
-      </tbody>
-    </table>
+
+    <!-- Skeleton while loading -->
+    <div id="shipping-table-container">
+      <div class="table-skeleton">
+        <div class="table-skeleton-row"></div>
+        <div class="table-skeleton-row"></div>
+        <div class="table-skeleton-row"></div>
+        <div class="table-skeleton-row"></div>
+        <div class="table-skeleton-row"></div>
+        <div class="table-skeleton-row" style="opacity:.5"></div>
+      </div>
+    </div>
   </div>
 
   <div class="info-cards">
@@ -143,5 +160,66 @@
 <div id="toast-container"></div>
 <script src="/js/nav.js"></script>
 <script src="/js/basket.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  function esc(s) {
+    return String(s || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function fmtPrice(option) {
+    if (option.freeThreshold) {
+      return 'Free over &pound;' + option.freeThreshold.toFixed(0) + ', otherwise &pound;' + option.price.toFixed(2);
+    }
+    return 'From &pound;' + option.price.toFixed(2);
+  }
+
+  function renderTable(options) {
+    var container = document.getElementById('shipping-table-container');
+    if (!options.length) {
+      container.innerHTML = '<p style="color:var(--muted);padding:20px 0">No shipping options available. Please <a href="/contact.html" style="color:var(--accent)">contact us</a> for delivery information.</p>';
+      return;
+    }
+
+    var rows = options.map(function (o) {
+      return '<tr>' +
+        '<td>' + esc(o.region) + '</td>' +
+        '<td>' + esc(o.label.replace(/ \(.*\)/, '')) + '</td>' +  /* strip duration from label for the "Service" col */
+        '<td>' + esc(o.description) + '</td>' +
+        '<td>' + fmtPrice(o) + '</td>' +
+      '</tr>';
+    }).join('');
+
+    container.innerHTML =
+      '<table class="shipping-table">' +
+        '<thead><tr><th>Region</th><th>Service</th><th>Estimated Time</th><th>Cost</th></tr></thead>' +
+        '<tbody>' + rows + '</tbody>' +
+      '</table>';
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    fetch('/.netlify/functions/load-shipping-options', { cache: 'no-store' })
+      .then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function (d) {
+        renderTable(d.options || []);
+      })
+      .catch(function (err) {
+        console.error('Shipping options load error:', err);
+        var container = document.getElementById('shipping-table-container');
+        container.innerHTML =
+          '<p style="color:var(--muted);padding:20px 0">Could not load shipping information. ' +
+          'Please <a href="/contact.html" style="color:var(--accent)">contact us</a> for delivery details.</p>';
+      });
+  });
+})();
+</script>
 </body>
 </html>

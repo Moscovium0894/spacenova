@@ -13,6 +13,25 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ── FAQ skeleton ── */
+    .faq-skeleton { display: flex; flex-direction: column; gap: 10px; }
+    .faq-skeleton-item {
+      height: 60px; border-radius: 16px;
+      background: linear-gradient(90deg, #f0ede8 25%, #e8e3db 50%, #f0ede8 75%);
+      background-size: 200% 100%;
+      animation: faqShimmer 1.5s ease-in-out infinite;
+    }
+    @keyframes faqShimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    .faq-error {
+      text-align: center; padding: 48px 20px;
+      color: var(--muted); font-size: .9rem; line-height: 1.7;
+    }
+    .faq-error a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+  </style>
 </head>
 <body>
 <nav id="main-nav">
@@ -80,95 +99,19 @@
 
 <section class="section" style="padding-top:0">
   <div class="faq-layout">
-    <nav class="faq-sidebar">
-      <a class="faq-nav-item active" href="#products">Products</a>
-      <a class="faq-nav-item" href="#ordering">Ordering</a>
-      <a class="faq-nav-item" href="#shipping">Shipping</a>
-      <a class="faq-nav-item" href="#returns">Returns</a>
-      <a class="faq-nav-item" href="#installation">Installation</a>
-    </nav>
-    <div class="faq-content">
+    <!-- Sidebar nav — rendered dynamically -->
+    <nav class="faq-sidebar" id="faq-sidebar" aria-label="FAQ categories"></nav>
 
-      <div class="faq-group" id="products">
-        <h2 class="faq-group-title">Products</h2>
-        <div class="faq-item">
-          <button class="faq-q">What are Spacenova panels made of? <span class="faq-chevron">&#9662;</span></button>
-          <div class="faq-a"><p>Our panels are made from a rigid composite board with an archival-quality print surface. The magnetic backing system uses industrial-grade rare earth magnets rated for thousands of attachment cycles.</p></div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-q">How large are the hexagonal panels? <span class="faq-chevron">&#9662;</span></button>
-          <div class="faq-a"><p>Standard panels measure 30cm point-to-point. Large panels measure 45cm point-to-point. Both sizes are compatible with the same magnetic mounting system and can be mixed freely.</p></div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-q">Are the images real photographs? <span class="faq-chevron">&#9662;</span></button>
-          <div class="faq-a"><p>Yes. Every image is a genuine photograph taken by an observatory, space telescope, or ISS crew. We do not use CGI or composites. Colours may be enhanced to bring out scientifically accurate spectral data invisible to the naked eye.</p></div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-q">How long will the prints last? <span class="faq-chevron">&#9662;</span></button>
-          <div class="faq-a"><p>Our pigment inks and archival substrate are rated for over 100 years when kept out of direct sunlight. UV-resistant coating is applied to every panel as standard.</p></div>
-        </div>
+    <!-- FAQ content — rendered dynamically -->
+    <div class="faq-content" id="faq-content">
+      <!-- Skeleton while loading -->
+      <div class="faq-skeleton">
+        <div class="faq-skeleton-item"></div>
+        <div class="faq-skeleton-item"></div>
+        <div class="faq-skeleton-item"></div>
+        <div class="faq-skeleton-item"></div>
+        <div class="faq-skeleton-item" style="opacity:.6"></div>
       </div>
-
-      <div class="faq-group" id="ordering">
-        <h2 class="faq-group-title">Ordering</h2>
-        <div class="faq-item">
-          <button class="faq-q">Can I change or cancel my order? <span class="faq-chevron">&#9662;</span></button>
-          <div class="faq-a"><p>Orders can be changed or cancelled within 2 hours of being placed by contacting us at hello@spacenova.co.uk. After this window your order will have entered production and cannot be changed.</p></div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-q">What payment methods do you accept? <span class="faq-chevron">&#9662;</span></button>
-          <div class="faq-a"><p>We accept all major credit and debit cards (Visa, Mastercard, American Express), Apple Pay, and Google Pay — all processed securely through Stripe.</p></div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-q">Will I receive an order confirmation? <span class="faq-chevron">&#9662;</span></button>
-          <div class="faq-a"><p>Yes. A confirmation email is sent immediately after your payment is processed. It includes your order reference number and a summary of your items.</p></div>
-        </div>
-      </div>
-
-      <div class="faq-group" id="shipping">
-        <h2 class="faq-group-title">Shipping</h2>
-        <div class="faq-item">
-          <button class="faq-q">How long does shipping take? <span class="faq-chevron">&#9662;</span></button>
-          <div class="faq-a"><p>UK Standard: 3&ndash;5 working days. UK Express: 1&ndash;2 working days. Europe: 5&ndash;10 working days. Rest of World: 7&ndash;14 working days. All orders are dispatched within 3 working days of being placed.</p></div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-q">Do you offer free shipping? <span class="faq-chevron">&#9662;</span></button>
-          <div class="faq-a"><p>Yes. All UK orders over &pound;150 qualify for free standard shipping, applied automatically at checkout.</p></div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-q">Do you ship internationally? <span class="faq-chevron">&#9662;</span></button>
-          <div class="faq-a"><p>Yes, we ship worldwide. International shipping rates are calculated at checkout based on your delivery address and the weight of your order.</p></div>
-        </div>
-      </div>
-
-      <div class="faq-group" id="returns">
-        <h2 class="faq-group-title">Returns</h2>
-        <div class="faq-item">
-          <button class="faq-q">What is your returns policy? <span class="faq-chevron">&#9662;</span></button>
-          <div class="faq-a"><p>We accept returns within 30 days of delivery for unused items in their original packaging. Custom or personalised orders are non-refundable unless faulty.</p></div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-q">My order arrived damaged — what do I do? <span class="faq-chevron">&#9662;</span></button>
-          <div class="faq-a"><p>We are sorry to hear that. Please photograph the damage and email us at hello@spacenova.co.uk within 48 hours of receipt. We will arrange a replacement or full refund immediately.</p></div>
-        </div>
-      </div>
-
-      <div class="faq-group" id="installation">
-        <h2 class="faq-group-title">Installation</h2>
-        <div class="faq-item">
-          <button class="faq-q">Do I need tools to install the panels? <span class="faq-chevron">&#9662;</span></button>
-          <div class="faq-a"><p>No tools required. The magnetic wall plates attach with a peel-and-stick adhesive rated for smooth and painted surfaces. No drilling, no damage.</p></div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-q">Will the adhesive damage my walls? <span class="faq-chevron">&#9662;</span></button>
-          <div class="faq-a"><p>Our adhesive is specifically formulated to remove cleanly from painted plaster, plasterboard, and most tile surfaces. We recommend testing on a small area first if you have delicate or wallpapered walls.</p></div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-q">Can I rearrange the panels after installation? <span class="faq-chevron">&#9662;</span></button>
-          <div class="faq-a"><p>Yes — that is the whole point. The magnetic system allows you to swap, rotate, and rearrange individual panels as often as you like without touching the wall plates.</p></div>
-        </div>
-      </div>
-
     </div>
   </div>
 </section>
@@ -205,29 +148,125 @@
 <script src="/js/nav.js"></script>
 <script src="/js/basket.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('.faq-q').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      const item = this.closest('.faq-item');
-      const isOpen = item.classList.contains('open');
-      document.querySelectorAll('.faq-item.open').forEach(function(el) {
-        el.classList.remove('open');
-        el.querySelector('.faq-a').style.maxHeight = null;
+(function () {
+  'use strict';
+
+  /* ── helpers ── */
+  function esc(s) {
+    return String(s || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  /* Convert a category name to a URL-safe anchor id */
+  function categoryId(cat) {
+    return cat.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  }
+
+  function renderFAQs(categories, faqs) {
+    var sidebar  = document.getElementById('faq-sidebar');
+    var content  = document.getElementById('faq-content');
+
+    /* ── sidebar nav ── */
+    sidebar.innerHTML = categories.map(function (cat, i) {
+      return '<a class="faq-nav-item' + (i === 0 ? ' active' : '') + '" href="#' + categoryId(cat) + '">' + esc(cat) + '</a>';
+    }).join('');
+
+    /* ── FAQ groups ── */
+    content.innerHTML = categories.map(function (cat) {
+      var items = (faqs[cat] || []).map(function (faq) {
+        return (
+          '<div class="faq-item">' +
+            '<button class="faq-q">' + esc(faq.question) + ' <span class="faq-chevron">&#9662;</span></button>' +
+            '<div class="faq-a"><p>' + esc(faq.answer) + '</p></div>' +
+          '</div>'
+        );
+      }).join('');
+
+      return (
+        '<div class="faq-group" id="' + categoryId(cat) + '">' +
+          '<h2 class="faq-group-title">' + esc(cat) + '</h2>' +
+          items +
+        '</div>'
+      );
+    }).join('');
+
+    /* ── accordion behaviour ── */
+    content.querySelectorAll('.faq-q').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var item   = btn.closest('.faq-item');
+        var isOpen = item.classList.contains('open');
+        content.querySelectorAll('.faq-item.open').forEach(function (el) {
+          el.classList.remove('open');
+          el.querySelector('.faq-a').style.maxHeight = null;
+        });
+        if (!isOpen) {
+          item.classList.add('open');
+          var ans = item.querySelector('.faq-a');
+          ans.style.maxHeight = ans.scrollHeight + 'px';
+        }
       });
-      if (!isOpen) {
-        item.classList.add('open');
-        const ans = item.querySelector('.faq-a');
-        ans.style.maxHeight = ans.scrollHeight + 'px';
-      }
     });
-  });
-  document.querySelectorAll('.faq-nav-item').forEach(function(link) {
-    link.addEventListener('click', function(e) {
-      document.querySelectorAll('.faq-nav-item').forEach(function(l) { l.classList.remove('active'); });
-      this.classList.add('active');
+
+    /* ── sidebar active state on scroll ── */
+    var groups = content.querySelectorAll('.faq-group');
+    var navItems = sidebar.querySelectorAll('.faq-nav-item');
+
+    function updateActiveNav() {
+      var scrollY = window.scrollY + 120;
+      var activeId = null;
+      groups.forEach(function (g) {
+        if (g.offsetTop <= scrollY) activeId = g.id;
+      });
+      navItems.forEach(function (a) {
+        var href = a.getAttribute('href').replace('#', '');
+        a.classList.toggle('active', href === activeId);
+      });
+    }
+
+    window.addEventListener('scroll', updateActiveNav, { passive: true });
+    updateActiveNav();
+
+    /* ── sidebar click ── */
+    navItems.forEach(function (a) {
+      a.addEventListener('click', function () {
+        navItems.forEach(function (n) { n.classList.remove('active'); });
+        a.classList.add('active');
+      });
     });
+  }
+
+  function showError() {
+    document.getElementById('faq-content').innerHTML =
+      '<div class="faq-error">' +
+        '<p>Could not load FAQs right now.</p>' +
+        '<p style="margin-top:8px">Please <a href="/contact.html">contact us</a> if you need help with a specific question.</p>' +
+      '</div>';
+    document.getElementById('faq-sidebar').innerHTML = '';
+  }
+
+  /* ── fetch from Supabase via Netlify function ── */
+  document.addEventListener('DOMContentLoaded', function () {
+    fetch('/.netlify/functions/load-faqs', { cache: 'no-store' })
+      .then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function (d) {
+        if (!d.categories || !d.categories.length) {
+          showError();
+          return;
+        }
+        renderFAQs(d.categories, d.faqs);
+      })
+      .catch(function (err) {
+        console.error('FAQ load error:', err);
+        showError();
+      });
   });
-});
+})();
 </script>
 </body>
 </html>

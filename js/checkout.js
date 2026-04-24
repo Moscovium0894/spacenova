@@ -7,6 +7,9 @@
   var linkAuthElement;
   var linkAuthEmail = '';
 
+  /* Shipping options loaded from Supabase — starts empty, populated on init */
+  var SHIPPING_OPTIONS = {};  /* key → { label, price, freeThreshold } */
+
   var form       = document.getElementById('payment-form');
   var submitBtn  = document.getElementById('submit-btn');
   var btnText    = document.getElementById('btn-text');
@@ -107,18 +110,45 @@
     try { return raw ? JSON.parse(raw) : []; } catch(e) { return []; }
   }
 
-  var SHIPPING_COSTS = {
-    uk_standard:    4.99,
-    uk_express:     9.99,
-    eu_standard:    12.99,
-    us_ca_standard: 14.99,
-    row_standard:   17.99,
-  };
-  var FREE_SHIPPING_THRESHOLD = 150;
-
   function getShippingCost(method, subtotal) {
-    if (method === 'uk_standard' && subtotal >= FREE_SHIPPING_THRESHOLD) return 0;
-    return SHIPPING_COSTS[method] || 0;
+    var opt = SHIPPING_OPTIONS[method];
+    if (!opt) return 0;
+    if (opt.freeThreshold && subtotal >= opt.freeThreshold) return 0;
+    return opt.price;
+  }
+
+  /* ── Populate the shipping <select> from Supabase data ── */
+  function populateShippingSelect(options) {
+    var select = document.getElementById('shipping-method');
+    if (!select) return;
+
+    /* Build the SHIPPING_OPTIONS lookup map */
+    SHIPPING_OPTIONS = {};
+    options.forEach(function (o) {
+      SHIPPING_OPTIONS[o.key] = {
+        label:         o.label,
+        price:         o.price,
+        freeThreshold: o.freeThreshold
+      };
+    });
+
+    /* Rebuild <select> options */
+    select.innerHTML = '';
+    options.forEach(function (o) {
+      var opt = document.createElement('option');
+      opt.value = o.key;
+
+      /* Build a friendly cost string */
+      var costStr;
+      if (o.freeThreshold) {
+        costStr = 'Free over \u00a3' + o.freeThreshold.toFixed(0) + ', otherwise \u00a3' + o.price.toFixed(2);
+      } else {
+        costStr = '\u00a3' + o.price.toFixed(2);
+      }
+
+      opt.textContent = o.label + ' \u2014 ' + costStr;
+      select.appendChild(opt);
+    });
   }
 
   function populateSummary() {
@@ -139,7 +169,7 @@
 
     var sub = basket.reduce(function(s, i) { return s + (i.price || 0) * (i.qty || 1); }, 0);
     var methodEl = document.getElementById('shipping-method');
-    var method   = methodEl ? methodEl.value : 'uk_standard';
+    var method   = methodEl ? methodEl.value : '';
     var ship     = getShippingCost(method, sub);
 
     if (subtotalEl) subtotalEl.textContent = fmt(sub);
@@ -154,7 +184,7 @@
     if (!basket.length) throw new Error('Your basket is empty.');
 
     var methodEl = document.getElementById('shipping-method');
-    var method   = methodEl ? methodEl.value : 'uk_standard';
+    var method   = methodEl ? methodEl.value : (Object.keys(SHIPPING_OPTIONS)[0] || 'uk_standard');
 
     var piRes = await fetch('/.netlify/functions/create-payment-intent', {
       method: 'POST',
@@ -184,7 +214,6 @@
     if (linkAuthElement)        { linkAuthElement.destroy();        linkAuthElement = null; }
     if (shippingAddressElement) { shippingAddressElement.destroy(); shippingAddressElement = null; }
 
-    /* Reset captured email whenever elements are remounted */
     linkAuthEmail = '';
 
     elements = stripe.elements({
@@ -197,8 +226,6 @@
     if (linkEl) {
       linkAuthElement = elements.create('linkAuthentication');
       linkAuthElement.mount('#link-authentication-element');
-
-      /* Capture email via change event — getValue() is not supported on this element */
       linkAuthElement.on('change', function(e) {
         if (e && e.value && e.value.email) {
           linkAuthEmail = e.value.email;
@@ -227,8 +254,42 @@
   }
 
   async function init() {
+    /* 1. Load shipping options from Supabase */
+    try {
+      var shRes  = await fetch('/.netlify/functions/load-shipping-options');
+      var shData = await shRes.json();
+      if (shData.options && shData.options.length) {
+        populateShippingSelect(shData.options);
+      } else {
+        /* Fall back to sensible hardcoded defaults so checkout never breaks */
+        console.warn('No shipping options from DB — using defaults');
+        SHIPPING_OPTIONS = {
+          uk_standard:    { label: 'UK Standard (3–5 working days)', price: 4.99, freeThreshold: 150 },
+          uk_express:     { label: 'UK Express (1–2 working days)',   price: 9.99, freeThreshold: null },
+          eu_standard:    { label: 'Europe Standard (5–10 working days)', price: 12.99, freeThreshold: null },
+          us_ca_standard: { label: 'USA & Canada Standard (7–14 working days)', price: 14.99, freeThreshold: null },
+          row_standard:   { label: 'Rest of World Standard (10–21 working days)', price: 17.99, freeThreshold: null }
+        };
+        /* Rebuild select from defaults */
+        var select = document.getElementById('shipping-method');
+        if (select) {
+          select.innerHTML = Object.keys(SHIPPING_OPTIONS).map(function (k) {
+            var o = SHIPPING_OPTIONS[k];
+            var cost = o.freeThreshold
+              ? 'Free over \u00a3' + o.freeThreshold + ', otherwise \u00a3' + o.price.toFixed(2)
+              : '\u00a3' + o.price.toFixed(2);
+            return '<option value="' + k + '">' + o.label + ' \u2014 ' + cost + '</option>';
+          }).join('');
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load shipping options:', e);
+    }
+
+    /* 2. Populate order summary */
     populateSummary();
 
+    /* 3. Load Stripe publishable key */
     var keyRes  = await fetch('/.netlify/functions/stripe-config');
     var keyData = await keyRes.json();
     if (!keyData.publishableKey) {
@@ -237,6 +298,7 @@
     }
     stripe = Stripe(keyData.publishableKey);
 
+    /* 4. Mount Stripe elements */
     try {
       await mountElements();
     } catch (err) {
@@ -244,6 +306,7 @@
       return;
     }
 
+    /* 5. Re-mount elements when shipping method changes */
     var methodSelect = document.getElementById('shipping-method');
     if (methodSelect) {
       methodSelect.addEventListener('change', function() {
@@ -252,6 +315,7 @@
       });
     }
 
+    /* 6. Form submit */
     if (form) {
       form.addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -277,7 +341,6 @@
             confirmParams.shipping = addrVal.value;
           }
 
-          /* Use the email captured from the change event, not getValue() */
           if (linkAuthEmail) {
             confirmParams.payment_method_data = {
               billing_details: { email: linkAuthEmail },
