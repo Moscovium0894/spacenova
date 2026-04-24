@@ -741,28 +741,6 @@ button { font-family: inherit; }
   letter-spacing: -.01em;
 }
 
-/* Match current basket.js class names */
-.bi-controls { display: inline-flex; align-items: center; gap: 6px; }
-.bi-controls .qty-btn,
-.bi-remove {
-  width: 34px;
-  height: 34px;
-  border: 1px solid var(--border2);
-  border-radius: 999px;
-  background: var(--bg1);
-  color: var(--text);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-.bi-controls .qty-btn:hover,
-.bi-remove:hover { background: var(--surface); border-color: var(--border3); }
-.qty-val {
-  min-width: 24px;
-  text-align: center;
-  font-family: var(--fm);
-  font-size: .78rem;
 /* Active basket JS class support */
 .basket-item {
   display: grid;
@@ -987,10 +965,6 @@ button { font-family: inherit; }
   box-shadow: 0 0 0 3px rgba(212,120,15,.08);
 }
 .promo-input::placeholder { text-transform: none; letter-spacing: 0; color: var(--muted); }
-
-@supports (-webkit-touch-callout: none) {
-  .promo-input { font-size: 16px; }
-}
 
 /* Apply button — proper pill button */
 .promo-apply-btn {
@@ -1558,7 +1532,7 @@ body.panel-open { overflow: hidden; }
 }
 #main-nav.nav-scrolled,
 #main-nav.nav-solid { background: rgba(255,255,255,.97); box-shadow: 0 10px 50px rgba(0,0,0,.10); }
-.nav-inner { position: relative; display: flex; align-items: center; width: 100%; min-height: 100%; }
+.nav-inner { display: flex; align-items: center; width: 100%; }
 .nav-link { position: relative; }
 .nav-link::after {
   content: '';
