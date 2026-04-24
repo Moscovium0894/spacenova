@@ -455,7 +455,7 @@ button { font-family: inherit; }
 .breadcrumbs a:hover { color: var(--text); }
 
 .product-hero { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; margin-bottom: 80px; }
-.product-media { position: sticky; top: calc(var(--nav-h) + 24px); }
+.product-media { position: relative; }
 .product-media img { width: 100%; border-radius: var(--r); display: block; border: 1px solid var(--border); }
 
 .product-info h2 { font-family: var(--fd); font-size: clamp(2.2rem,4vw,3.2rem); font-weight: 300; line-height: 1.08; margin-bottom: 8px; letter-spacing: -.01em; color: var(--text); }
