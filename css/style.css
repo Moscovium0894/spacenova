@@ -1575,25 +1575,52 @@ body.panel-open { overflow: hidden; }
 /* ══════════════════════════════════════════
    SHOP CARD — wall image crossfade
    ══════════════════════════════════════════ */
-.card-media.card-has-wall { position: relative; overflow: hidden; }
+.card-media.card-has-wall { position: relative; overflow: hidden; touch-action: pan-y; }
 .card-media.card-has-wall .card-img-main,
 .card-media.card-has-wall .card-img-wall {
   position: absolute; inset: 0; width: 100%; height: 100%;
   object-fit: cover; display: block; will-change: opacity, transform;
 }
-.card-media.card-has-wall .card-img-main {
+.card-media.card-has-wall .card-img-main,
+.card-media.card-has-wall[data-active-index="0"] .card-img-main {
   opacity: 1; transform: scale(1);
   transition: opacity .55s cubic-bezier(.22,1,.36,1), transform .7s cubic-bezier(.22,1,.36,1);
 }
-.card-media.card-has-wall .card-img-wall {
+.card-media.card-has-wall .card-img-wall,
+.card-media.card-has-wall[data-active-index="0"] .card-img-wall {
   opacity: 0; transform: scale(1.04);
   transition: opacity .55s cubic-bezier(.22,1,.36,1), transform .7s cubic-bezier(.22,1,.36,1);
 }
+.card-media.card-has-wall[data-active-index="1"] .card-img-main { opacity: 0; transform: scale(1.04); }
+.card-media.card-has-wall[data-active-index="1"] .card-img-wall { opacity: 1; transform: scale(1); }
 @media (hover: hover) {
-  .card:hover .card-media.card-has-wall .card-img-main { opacity: 0; transform: scale(1.04); }
-  .card:hover .card-media.card-has-wall .card-img-wall { opacity: 1; transform: scale(1); }
+  .card:hover .card-media.card-has-wall:not([data-active-index="1"]) .card-img-main { opacity: 0; transform: scale(1.04); }
+  .card:hover .card-media.card-has-wall:not([data-active-index="1"]) .card-img-wall { opacity: 1; transform: scale(1); }
 }
 .card-media.card-has-wall  { position: relative; z-index: 3; }
+.card-flick-dots {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  z-index: 4;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.card-flick-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  border: 0;
+  padding: 0;
+  background: rgba(255,255,255,.46);
+  cursor: pointer;
+  transition: transform .18s ease, background .18s ease;
+}
+.card-flick-dot.active {
+  background: rgba(255,255,255,.96);
+  transform: scale(1.22);
+}
 .card-media:not(.card-has-wall) img {
   width: 100%; height: 100%; object-fit: cover;
   transition: transform .7s cubic-bezier(.22,1,.36,1);

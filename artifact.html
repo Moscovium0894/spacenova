@@ -65,6 +65,7 @@
     .pg-wrap:hover .pg-arrow { opacity: 1; pointer-events: auto; }
     .pg-arrow:hover { background: rgba(255,255,255,.97); }
     .pg-arrow:active { transform: translateY(-50%) scale(.94); }
+    .pg-arrow:disabled { opacity: .45 !important; cursor: not-allowed; pointer-events: none; }
     .pg-arrow svg { width: 16px; height: 16px; stroke: #111; fill: none; }
     .pg-arrow-prev { left: 12px; }
     .pg-arrow-next { right: 12px; }
@@ -359,6 +360,7 @@
 
 <script src="/js/nav.js"></script>
 <script src="/js/basket.js"></script>
+<script src="/js/card-flick.js"></script>
 <script>
 (function () {
   'use strict';
@@ -568,13 +570,39 @@
     var track = document.getElementById('pg-track');
     if (!track || images.length <= 1) return;
 
-    var total   = images.length;
+    var slides = Array.from(track.querySelectorAll('.pg-slide'));
+    var total = slides.length;
     var current = 0;
+    var slideMetrics = [];
+    var rafId = null;
+
+    function measureSlides() {
+      slideMetrics = slides.map(function (slide) {
+        return { left: slide.offsetLeft, width: slide.getBoundingClientRect().width };
+      });
+    }
+
+    function getNearestIndex(scrollLeft) {
+      if (!slideMetrics.length) return 0;
+      var viewportCenter = scrollLeft + track.clientWidth / 2;
+      var nearestIdx = 0;
+      var nearestDist = Infinity;
+      slideMetrics.forEach(function (metric, idx) {
+        var center = metric.left + metric.width / 2;
+        var dist = Math.abs(center - viewportCenter);
+        if (dist < nearestDist) {
+          nearestDist = dist;
+          nearestIdx = idx;
+        }
+      });
+      return nearestIdx;
+    }
 
     function goTo(idx) {
       idx = Math.max(0, Math.min(total - 1, idx));
       current = idx;
-      track.scrollTo({ left: idx * track.clientWidth, behavior: 'smooth' });
+      var target = slideMetrics[idx] ? slideMetrics[idx].left : 0;
+      track.scrollTo({ left: target, behavior: 'smooth' });
       syncUI(idx);
     }
 
@@ -585,16 +613,31 @@
       document.querySelectorAll('.pg-thumb').forEach(function (t) {
         t.classList.toggle('active', parseInt(t.dataset.idx) === idx);
       });
+      if (prevBtn) prevBtn.disabled = idx === 0;
+      if (nextBtn) nextBtn.disabled = idx === total - 1;
     }
 
-    var scrollTimer;
+    function handleScroll() {
+      if (rafId) return;
+      rafId = requestAnimationFrame(function () {
+        rafId = null;
+        var idx = getNearestIndex(track.scrollLeft);
+        if (idx !== current) {
+          current = idx;
+          syncUI(idx);
+        }
+      });
+    }
+
+    function snapToCurrent() {
+      measureSlides();
+      var target = slideMetrics[current] ? slideMetrics[current].left : 0;
+      track.scrollTo({ left: target, behavior: 'auto' });
+      syncUI(current);
+    }
+
     track.addEventListener('scroll', function () {
-      clearTimeout(scrollTimer);
-      scrollTimer = setTimeout(function () {
-        var idx = Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
-        current = idx;
-        syncUI(idx);
-      }, 80);
+      handleScroll();
     }, { passive: true });
 
     var prevBtn = document.getElementById('pg-prev');
@@ -608,10 +651,37 @@
     document.querySelectorAll('.pg-thumb').forEach(function (t) {
       t.addEventListener('click', function () { goTo(parseInt(t.dataset.idx)); });
     });
+
+    measureSlides();
+    syncUI(current);
+    window.addEventListener('resize', snapToCurrent, { passive: true });
+    window.addEventListener('orientationchange', snapToCurrent, { passive: true });
   }
 
   /* ── Related artifacts ── */
   function renderRelated(artifacts) {
+    function relatedMediaHtml(a, name) {
+      var images = [];
+      if (Array.isArray(a.images) && a.images.length) images = a.images.filter(Boolean).slice(0, 2);
+      if (!images.length) {
+        if (a.image) images.push(a.image);
+        if (a.wallImage) images.push(a.wallImage);
+      }
+
+      if (!images.length) {
+        return '<div class="card-media"><div class="card-media-placeholder"></div><div class="badge-row"><span class="badge badge-gold">Artifact</span></div></div>';
+      }
+      if (images.length === 1) {
+        return '<div class="card-media"><img src="' + escHtml(images[0]) + '" alt="' + escHtml(name) + '" loading="lazy"><div class="badge-row"><span class="badge badge-gold">Artifact</span></div></div>';
+      }
+      return '<div class="card-media card-has-wall" data-card-flick data-card-count="2" data-active-index="0">' +
+        '<img class="card-img-main" src="' + escHtml(images[0]) + '" alt="' + escHtml(name) + '" loading="lazy">' +
+        '<img class="card-img-wall" src="' + escHtml(images[1]) + '" alt="' + escHtml(name) + ' image 2" loading="lazy">' +
+        '<div class="card-flick-dots"><button class="card-flick-dot active" data-idx="0" aria-label="Show image 1"></button><button class="card-flick-dot" data-idx="1" aria-label="Show image 2"></button></div>' +
+        '<div class="badge-row"><span class="badge badge-gold">Artifact</span></div>' +
+      '</div>';
+    }
+
     var section = document.createElement('section');
     section.className = 'section related-section';
     section.innerHTML =
@@ -623,14 +693,9 @@
           var trunc   = desc.length > 80 ? desc.substring(0, 80) + '\u2026' : desc;
           var price   = parseFloat(a.price || 0).toFixed(2);
           var href    = '/artifact.html?slug=' + encodeURIComponent(a.slug || a.id || '');
-          var imgHtml = a.image
-            ? '<img src="' + escHtml(a.image) + '" alt="' + escHtml(name) + '" loading="lazy">'
-            : '<div class="card-media-placeholder"></div>';
           return (
             '<a class="card card-link" href="' + href + '">' +
-              '<div class="card-media">' + imgHtml +
-                '<div class="badge-row"><span class="badge badge-gold">Artifact</span></div>' +
-              '</div>' +
+              relatedMediaHtml(a, name) +
               '<div class="card-body">' +
                 '<h3>' + escHtml(name) + '</h3>' +
                 (trunc ? '<p class="muted">' + escHtml(trunc) + '</p>' : '') +
@@ -640,6 +705,7 @@
           );
         }).join('') +
       '</div>';
+    if (window.initCardFlickGalleries) window.initCardFlickGalleries(section);
     document.getElementById('artifact-main').appendChild(section);
   }
 

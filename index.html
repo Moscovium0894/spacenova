@@ -180,6 +180,7 @@
 <div id="toast-container"></div>
 <script src="/js/basket.js"></script>
 <script src="/js/nav.js"></script>
+<script src="/js/card-flick.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   fetch('/.netlify/functions/load-catalogue')
@@ -207,9 +208,13 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!p.image) {
           media = '<div class="card-media"><div class="card-media-placeholder"></div>' + badge + '</div>';
         } else if (p.wallImage) {
-          media = '<div class="card-media card-has-wall">' +
+          media = '<div class="card-media card-has-wall" data-card-flick data-card-count="2" data-active-index="0">' +
             '<img class="card-img-main" src="' + p.image + '" alt="' + esc(p.name) + '" loading="lazy">' +
             '<img class="card-img-wall" src="' + p.wallImage + '" alt="' + esc(p.name) + ' on wall" loading="lazy">' +
+            '<div class="card-flick-dots">' +
+              '<button class="card-flick-dot active" data-idx="0" aria-label="Show image 1"></button>' +
+              '<button class="card-flick-dot" data-idx="1" aria-label="Show image 2"></button>' +
+            '</div>' +
             badge +
           '</div>';
         } else {
@@ -225,6 +230,7 @@ document.addEventListener('DOMContentLoaded', function() {
           '</div>' +
         '</a>';
       }).join('');
+      if (window.initCardFlickGalleries) window.initCardFlickGalleries(grid);
     })
     .catch(function() {
       var grid = document.getElementById('home-grid');
