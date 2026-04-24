@@ -27,7 +27,12 @@
     var deltaX = 0;
     var deltaY = 0;
     var dragging = false;
-    var suppressClick = false;
+    var horizontalSwipe = false;
+    var suppressClickUntil = 0;
+
+    function suppressClickWindow() {
+      suppressClickUntil = Date.now() + 350;
+    }
 
     media.addEventListener('touchstart', function (e) {
       var t = e.changedTouches && e.changedTouches[0];
@@ -37,6 +42,7 @@
       deltaX = 0;
       deltaY = 0;
       dragging = true;
+      horizontalSwipe = false;
     }, { passive: true });
 
     media.addEventListener('touchmove', function (e) {
@@ -46,6 +52,7 @@
       deltaX = t.clientX - startX;
       deltaY = t.clientY - startY;
       if (Math.abs(deltaX) > 8 && Math.abs(deltaX) > Math.abs(deltaY)) {
+        horizontalSwipe = true;
         e.preventDefault();
       }
     }, { passive: false });
@@ -54,20 +61,26 @@
       if (!dragging) return;
       dragging = false;
 
+      if (horizontalSwipe) {
+        suppressClickWindow();
+      }
+
       if (Math.abs(deltaX) >= 28 && Math.abs(deltaX) > Math.abs(deltaY)) {
         var current = toInt(media.dataset.activeIndex, 0);
         var dir = deltaX < 0 ? 1 : -1;
         var next = (current + dir + total) % total;
         setIndex(media, next);
-        suppressClick = true;
-        setTimeout(function () { suppressClick = false; }, 250);
       }
+    }, { passive: true });
+    media.addEventListener('touchcancel', function () {
+      dragging = false;
+      horizontalSwipe = false;
     }, { passive: true });
 
     var link = media.closest('a.card-link');
     if (link) {
       link.addEventListener('click', function (e) {
-        if (suppressClick) {
+        if (Date.now() <= suppressClickUntil) {
           e.preventDefault();
           e.stopPropagation();
         }
