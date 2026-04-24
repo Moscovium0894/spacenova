@@ -154,14 +154,13 @@ body.drawer-open { overflow: hidden; }
 
 /* Header — generous top padding so title clears any safe-area */
 .drawer-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 28px 26px 22px;
+  display: flex; align-items: center; justify-content: flex-end;
+  padding: 14px 18px 10px;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
 .drawer-header h2 {
-  font-family: var(--fd); font-size: 1.55rem; font-weight: 300;
-  letter-spacing: -.02em; color: var(--text);
+  display: none;
 }
 .drawer-header-meta {
   font-family: var(--fm); font-size: .58rem;
@@ -529,6 +528,8 @@ body.drawer-open { overflow: hidden; }
   padding: 34px 30px;
   position: sticky;
   top: calc(var(--nav-h) + 28px);
+  max-height: calc(100dvh - var(--nav-h) - 40px);
+  overflow: auto;
 }
 .co-summary-title {
   font-family: var(--fd); font-size: 1.45rem; font-weight: 300;
@@ -624,6 +625,8 @@ body.drawer-open { overflow: hidden; }
 /* ── Trust badges ── */
 .co-trust {
   margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
   display: flex; flex-direction: column; gap: 10px;
 }
 .co-trust-item {
@@ -737,11 +740,11 @@ body.drawer-open { overflow: hidden; }
 @media (max-width: 420px) {
   .nav-inner { padding: 0 max(10px, env(safe-area-inset-right)); gap: 8px; }
   .burger-btn { margin-left: 2px; margin-right: 2px; }
-  .co-summary-box { padding: 24px 20px; }
+  .co-summary-box { padding: 24px 20px; max-height: none; overflow: visible; }
   .checkout-page { padding-top: calc(var(--nav-h) + 32px); }
   .checkout-title { margin-bottom: 36px; }
   .co-section-label { margin-top: 36px; }
-  .drawer-header { padding: 24px 20px 18px; }
+  .drawer-header { padding: 10px 16px 8px; }
   .drawer-body { padding: 4px 16px 12px; }
   .drawer-footer { padding: 16px 18px 24px; }
 }

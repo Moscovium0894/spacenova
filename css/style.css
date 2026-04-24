@@ -523,20 +523,14 @@ button { font-family: inherit; }
 
 /* Header */
 .drawer-header {
-  display: flex; align-items: flex-start; justify-content: space-between;
-  padding: 32px 32px 26px;
+  display: flex; align-items: center; justify-content: flex-end;
+  padding: 14px 20px 10px;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
   background: linear-gradient(180deg, rgba(212,120,15,.04) 0%, rgba(212,120,15,0) 100%);
 }
 .drawer-header h2 {
-  font-family: var(--fd);
-  font-size: clamp(1.9rem, 1.4rem + 1.2vw, 2.5rem);
-  font-weight: 400;
-  letter-spacing: -.02em;
-  line-height: 1;
-  color: var(--text);
-  margin: 0;
+  display: none;
 }
 .drawer-header-meta {
   font-family: var(--fm);
