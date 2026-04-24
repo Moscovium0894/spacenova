@@ -718,6 +718,63 @@ button { font-family: inherit; }
   letter-spacing: -.01em;
 }
 
+/* Match current basket.js class names */
+.bi-controls { display: inline-flex; align-items: center; gap: 6px; }
+.bi-controls .qty-btn,
+.bi-remove {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border2);
+  border-radius: 999px;
+  background: var(--bg1);
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.bi-controls .qty-btn:hover,
+.bi-remove:hover { background: var(--surface); border-color: var(--border3); }
+.qty-val {
+  min-width: 24px;
+  text-align: center;
+  font-family: var(--fm);
+  font-size: .78rem;
+}
+.bsum-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 20px;
+}
+.bsum-row.bsum-total {
+  border-top: 1px solid var(--border2);
+  padding-top: 12px;
+  margin-top: 6px;
+}
+.bsum-row.bsum-total strong {
+  font-family: var(--fd);
+  font-size: 1.8rem;
+  font-weight: 400;
+  color: var(--gold);
+}
+.promo-row { display: flex; gap: 10px; }
+.promo-btn {
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: var(--rs);
+  border: 0;
+  background: #111;
+  color: #fff;
+  font-family: var(--fu);
+  font-size: .74rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  font-weight: 700;
+  cursor: pointer;
+}
+.promo-btn:hover { background: var(--accent); }
+
 .shipping-note {
   font-family: var(--fm);
   font-size: .6rem;
@@ -803,6 +860,10 @@ button { font-family: inherit; }
   box-shadow: 0 0 0 3px rgba(212,120,15,.08);
 }
 .promo-input::placeholder { text-transform: none; letter-spacing: 0; color: var(--muted); }
+
+@supports (-webkit-touch-callout: none) {
+  .promo-input { font-size: 16px; }
+}
 
 /* Apply button — proper pill button */
 .promo-apply-btn {

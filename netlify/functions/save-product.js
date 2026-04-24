@@ -33,11 +33,14 @@ exports.handler = async (event) => {
       };
     }
 
+    const pieces = Math.max(1, parseInt(product.pieces, 10) || 1);
+    const derivedPrice = Math.max(0, (pieces * 10) - 10);
+
     const payload = {
       slug:          product.slug,
       name:          product.name,
       category:      product.category      || null,
-      price:         product.price         ?? null,
+      price:         derivedPrice,
       price_label:   product.price_label   || product.priceLabel   || null,
       short:         product.short         || null,
       description:   product.description   || null,
@@ -45,7 +48,7 @@ exports.handler = async (event) => {
       accent:        product.accent        || null,
       size:          product.size          || null,
       material:      product.material      || null,
-      pieces:        product.pieces        || null,
+      pieces:        pieces,
       panel_hint:    product.panel_hint    || product.panelHint    || null,
       image:         product.image         || null,
       wall_image:    product.wall_image    || product.wallImage    || null,
