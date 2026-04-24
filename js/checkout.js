@@ -20,6 +20,7 @@
   var discEl     = document.getElementById('summary-discount');
   var shippingEl = document.getElementById('summary-shipping');
   var totalEl    = document.getElementById('summary-total');
+  var SHIPPING_METHOD_KEY = 'sn_shipping_method';
 
   var stripeAppearance = {
     theme: 'stripe',
@@ -115,6 +116,27 @@
     row_standard:   17.99,
   };
   var FREE_SHIPPING_THRESHOLD = 150;
+  var SHIPPING_METHODS = ['uk_standard', 'uk_express', 'eu_standard', 'us_ca_standard', 'row_standard'];
+
+  function getPreferredShippingMethod() {
+    var urlMethod = '';
+    try {
+      urlMethod = new URLSearchParams(window.location.search).get('shipping') || '';
+    } catch (e) {}
+
+    var saved = '';
+    try {
+      saved = localStorage.getItem(SHIPPING_METHOD_KEY) || '';
+    } catch (e) {}
+
+    var candidate = urlMethod || saved || 'uk_standard';
+    return SHIPPING_METHODS.indexOf(candidate) > -1 ? candidate : 'uk_standard';
+  }
+
+  function persistShippingMethod(method) {
+    if (SHIPPING_METHODS.indexOf(method) === -1) return;
+    try { localStorage.setItem(SHIPPING_METHOD_KEY, method); } catch (e) {}
+  }
 
   function getShippingCost(method, subtotal) {
     if (method === 'uk_standard' && subtotal >= FREE_SHIPPING_THRESHOLD) return 0;
@@ -139,7 +161,7 @@
 
     var sub = basket.reduce(function(s, i) { return s + (i.price || 0) * (i.qty || 1); }, 0);
     var methodEl = document.getElementById('shipping-method');
-    var method   = methodEl ? methodEl.value : 'uk_standard';
+    var method   = methodEl ? methodEl.value : getPreferredShippingMethod();
     var ship     = getShippingCost(method, sub);
 
     if (subtotalEl) subtotalEl.textContent = fmt(sub);
@@ -154,7 +176,8 @@
     if (!basket.length) throw new Error('Your basket is empty.');
 
     var methodEl = document.getElementById('shipping-method');
-    var method   = methodEl ? methodEl.value : 'uk_standard';
+    var method   = methodEl ? methodEl.value : getPreferredShippingMethod();
+    persistShippingMethod(method);
 
     var piRes = await fetch('/.netlify/functions/create-payment-intent', {
       method: 'POST',
@@ -227,6 +250,12 @@
   }
 
   async function init() {
+    var methodSelect = document.getElementById('shipping-method');
+    if (methodSelect) {
+      methodSelect.value = getPreferredShippingMethod();
+      persistShippingMethod(methodSelect.value);
+    }
+
     populateSummary();
 
     var keyRes  = await fetch('/.netlify/functions/stripe-config');
@@ -244,9 +273,9 @@
       return;
     }
 
-    var methodSelect = document.getElementById('shipping-method');
     if (methodSelect) {
       methodSelect.addEventListener('change', function() {
+        persistShippingMethod(this.value);
         populateSummary();
         mountElements().catch(function(e) { showError(e.message); });
       });

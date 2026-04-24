@@ -206,6 +206,19 @@
 <script src="/js/basket.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  var helpErrorPatterns = [
+    /could not load faqs right now/i,
+    /please contact us if you need help with a specific question/i
+  ];
+  document.querySelectorAll('p,div').forEach(function(el) {
+    var text = (el.textContent || '').trim();
+    if (helpErrorPatterns.some(function(re) { return re.test(text); })) {
+      el.remove();
+    }
+  });
+  var faqLayout = document.querySelector('.faq-layout');
+  if (faqLayout) faqLayout.style.display = '';
+
   document.querySelectorAll('.faq-q').forEach(function(btn) {
     btn.addEventListener('click', function() {
       const item = this.closest('.faq-item');

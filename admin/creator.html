@@ -413,7 +413,11 @@
       var el = E.f[key];
       var evt = (el.type === 'checkbox' || el.tagName === 'SELECT') ? 'change' : 'input';
       el.addEventListener(evt, function () {
-        if (key === 'pieces') { ensurePanelArrays(); rebuildPanelEditors(); }
+        if (key === 'pieces') {
+          syncPriceFromPieces();
+          ensurePanelArrays();
+          rebuildPanelEditors();
+        }
         if (key === 'layoutPreset') applyPresetLayout();
         if (key === 'name' && !E.f.slug.dataset.touched) {
           E.f.slug.value = slugify(E.f.name.value);
@@ -495,6 +499,7 @@
     E.f.wallImage.value    = p.wallImage || '';
     E.f.panelHint.value    = p.panelHint || '';
     E.f.pieces.value       = parseInt(p.pieces, 10) || 1;
+    syncPriceFromPieces();
 
     state.panelNames     = Array.isArray(p.panelNames) ? p.panelNames.slice() : [];
     state.panelImages    = Array.isArray(p.panelImages) ? p.panelImages.slice() : [];
@@ -522,6 +527,7 @@
       else { el.value = ''; }
     });
     E.f.isCollection.checked = !!isCollection;
+    syncPriceFromPieces();
     state.panelNames = [];
     state.panelImages = [];
     state.panelPositions = [];
@@ -535,6 +541,12 @@
   }
 
   /* ─── Panel arrays ─── */
+  function syncPriceFromPieces() {
+    var count = Math.max(1, parseInt(E.f.pieces.value, 10) || 1);
+    var derivedPrice = Math.max(0, (count * 10) - 10);
+    E.f.price.value = derivedPrice.toFixed(2);
+  }
+
   function ensurePanelArrays() {
     var count = Math.max(1, parseInt(E.f.pieces.value, 10) || 1);
     while (state.panelNames.length < count) state.panelNames.push('');
@@ -907,6 +919,7 @@
   /* ─── Save / Sync ─── */
   function buildPayload() {
     ensurePanelArrays();
+    syncPriceFromPieces();
     return {
       slug:         E.f.slug.value.trim() || slugify(E.f.name.value),
       name:         E.f.name.value.trim(),
