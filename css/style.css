@@ -40,13 +40,30 @@
    RESET
    ══════════════════════════════════════════ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; overflow-x: hidden; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
-body { background: var(--bg); color: var(--text); font-family: var(--fu); font-size: 15px; line-height: 1.6; overflow-x: hidden; min-height: 100svh; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+html { scroll-behavior: smooth; overflow-x: clip; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { background: var(--bg); color: var(--text); font-family: var(--fu); font-size: 15px; line-height: 1.6; overflow-x: clip; width: 100%; min-height: 100svh; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 img, svg, canvas, video { max-width: 100%; display: block; }
 a { color: inherit; text-decoration: none; }
 button { font-family: inherit; }
 ::selection { background: rgba(212,120,15,.18); color: var(--text); }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+
+.skip-link {
+  position: fixed;
+  top: 10px;
+  left: 12px;
+  z-index: 2000;
+  background: #111;
+  color: #fff;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: .7rem;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  transform: translateY(-140%);
+  transition: transform .2s ease;
+}
+.skip-link:focus-visible { transform: translateY(0); }
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(0,0,0,.14); border-radius: 2px; }
@@ -473,7 +490,11 @@ button { font-family: inherit; }
    BASKET DRAWER
    ══════════════════════════════════════════ */
 #basket-overlay {
-  position: fixed; inset: 0;
+  position: fixed;
+  top: var(--nav-h);
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: rgba(10, 10, 10, .34);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -484,9 +505,11 @@ button { font-family: inherit; }
 #basket-overlay.open { opacity: 1; pointer-events: auto; }
 
 #basket-drawer {
-  position: fixed; top: 0; right: 0;
+  position: fixed;
+  top: var(--nav-h);
+  right: 0;
   width: min(100vw, 520px);
-  height: 100dvh;
+  height: calc(100dvh - var(--nav-h));
   background: var(--surface);
   border-left: 1px solid var(--border);
   transform: translateX(102%);
@@ -718,6 +741,145 @@ button { font-family: inherit; }
   letter-spacing: -.01em;
 }
 
+/* Active basket JS class support */
+.basket-item {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr) auto;
+  gap: 14px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+  align-items: start;
+}
+.basket-item:last-child { border-bottom: 0; }
+.bi-img {
+  width: 84px;
+  height: 84px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: var(--bg1);
+  border: 1px solid var(--border2);
+}
+.bi-img-placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.bi-info { min-width: 0; }
+.bi-name {
+  font-family: var(--fd);
+  font-size: 1.1rem;
+  line-height: 1.2;
+}
+.bi-price {
+  margin-top: 5px;
+  color: var(--muted);
+  font-family: var(--fm);
+  font-size: .7rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.bi-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+.bi-controls .qty-btn {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border2);
+  border-radius: 999px;
+  background: var(--bg);
+  font-size: 1rem;
+  touch-action: manipulation;
+}
+.bi-controls .qty-btn:hover { background: var(--surface); }
+.qty-val {
+  min-width: 28px;
+  text-align: center;
+  font-family: var(--fm);
+  font-size: .82rem;
+}
+.bi-remove {
+  border: 1px solid var(--border2);
+  border-radius: 999px;
+  background: var(--bg1);
+  color: var(--muted);
+  width: 34px;
+  height: 34px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.bi-remove:hover {
+  border-color: rgba(217, 48, 37, .35);
+  color: var(--danger);
+  background: rgba(217, 48, 37, .08);
+}
+.bsum-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 24px;
+}
+.bsum-row > span:first-child {
+  color: var(--muted);
+  font-family: var(--fm);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-size: .64rem;
+}
+.bsum-row.bsum-total {
+  margin-top: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border2);
+}
+.bsum-row.bsum-total strong {
+  font-family: var(--fd);
+  font-size: 1.75rem;
+  font-weight: 400;
+  color: var(--gold);
+}
+.promo-row {
+  display: flex;
+  gap: 10px;
+}
+.promo-btn {
+  min-height: 48px;
+  border: 0;
+  border-radius: var(--rs);
+  background: #111;
+  color: #fff;
+  padding: 0 18px;
+  font-family: var(--fu);
+  font-size: .74rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.promo-btn:hover { background: var(--accent); }
+.promo-applied {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: var(--rs);
+  border: 1px solid rgba(26,158,64,.22);
+  background: rgba(26,158,64,.05);
+}
+.promo-applied button {
+  border: 0;
+  background: transparent;
+  font-size: .72rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--success);
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .shipping-note {
   font-family: var(--fm);
   font-size: .6rem;
@@ -792,7 +954,7 @@ button { font-family: inherit; }
   border: 1px solid var(--border2);
   border-radius: var(--rs);
   color: var(--text);
-  font-family: var(--fm); font-size: .8rem;
+  font-family: var(--fm); font-size: 16px;
   letter-spacing: .1em; text-transform: uppercase;
   outline: none;
   transition: border-color .2s, box-shadow .2s;
@@ -1328,6 +1490,7 @@ body.panel-open { overflow: hidden; }
   transition: background .16s ease;
 }
 .ndd-item:hover { background: rgba(0,0,0,.05); }
+.ndd-item:focus-visible { background: rgba(0,0,0,.08); }
 .ndd-divider { height: 1px; background: rgba(0,0,0,.07); margin: 6px 4px; }
 
 /* ── Inner hero (artifacts, collections, etc.) ── */
@@ -1345,6 +1508,15 @@ body.panel-open { overflow: hidden; }
 /* ── Show burger on mobile breakpoint ── */
 @media (max-width: 860px) {
   .burger-btn { display: inline-flex; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* ── Kill old legacy mobile menu classes ── */
