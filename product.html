@@ -93,6 +93,11 @@
     .pg-wrap:hover .pg-arrow { opacity: 1; pointer-events: auto; }
     .pg-arrow:hover { background: rgba(255,255,255,.97); }
     .pg-arrow:active { transform: translateY(-50%) scale(.94); }
+    .pg-arrow:disabled {
+      opacity: .45 !important;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
     .pg-arrow svg { width: 16px; height: 16px; stroke: #111; }
     .pg-arrow-prev { left: 12px; }
     .pg-arrow-next { right: 12px; }
@@ -115,8 +120,6 @@
       -webkit-tap-highlight-color: transparent;
     }
     .pg-dot.active { background: var(--accent); transform: scale(1.3); }
-    }
-    .pg-dot.active { background: var(--accent); transform: scale(1.4); }
     .pg-wrap.single .pg-dots { display: none; }
     .pg-thumbs {
       display: flex;
@@ -204,11 +207,10 @@
 .hex-row:last-child .hex-cell { margin-bottom: 1px; }
 .hex-row.offset { margin-left: 30px; }   /* = (W + 2px margin*2) / 2 = (56+4)/2 = 30 */
 
-@media (max-width: 600px) {
-  .hex-cell { width: 46px; height: 53px; margin-bottom: -13px; }
-  .hex-row.offset { margin-left: 25px; }
-  .hex-row:last-child .hex-cell { margin-bottom: 1px; }
-}
+    @media (max-width: 600px) {
+      .hex-cell { width: 46px; height: 53px; margin-bottom: -13px; }
+      .hex-row.offset { margin-left: 25px; }
+      .hex-row:last-child .hex-cell { margin-bottom: 1px; }
     }
     .hex-row:last-child .hex-cell { margin-bottom: 1px; }
     .hex-cell img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
@@ -266,11 +268,6 @@
       white-space: nowrap;
       text-shadow: 0 1px 3px rgba(0,0,0,.7);
       pointer-events: none;
-    }
-    @media (max-width: 600px) {
-      .hex-cell { width: 46px; height: 53px; margin-bottom: -13px; }
-      .hex-row.offset { margin-left: 24px; }
-      .hex-row:last-child .hex-cell { margin-bottom: 1px; }
     }
   </style>
 </head>
@@ -524,13 +521,43 @@
     var track = document.getElementById('pg-track');
     if (!track || images.length <= 1) return;
 
-    var total   = images.length;
+    var slides = Array.from(track.querySelectorAll('.pg-slide'));
+    var total = slides.length;
     var current = 0;
+    var slideMetrics = [];
+    var rafId = null;
+
+    function measureSlides() {
+      slideMetrics = slides.map(function(slide) {
+        return {
+          left: slide.offsetLeft,
+          width: slide.getBoundingClientRect().width
+        };
+      });
+    }
+
+    function getNearestIndex(scrollLeft) {
+      if (!slideMetrics.length) return 0;
+      var viewportCenter = scrollLeft + track.clientWidth / 2;
+      var nearestIdx = 0;
+      var nearestDist = Infinity;
+
+      slideMetrics.forEach(function(metric, idx) {
+        var slideCenter = metric.left + metric.width / 2;
+        var dist = Math.abs(slideCenter - viewportCenter);
+        if (dist < nearestDist) {
+          nearestDist = dist;
+          nearestIdx = idx;
+        }
+      });
+      return nearestIdx;
+    }
 
     function goTo(idx) {
       idx = Math.max(0, Math.min(total - 1, idx));
       current = idx;
-      track.scrollTo({ left: idx * track.clientWidth, behavior: 'smooth' });
+      var target = slideMetrics[idx] ? slideMetrics[idx].left : 0;
+      track.scrollTo({ left: target, behavior: 'smooth' });
       syncUI(idx);
     }
 
@@ -541,17 +568,32 @@
       document.querySelectorAll('.pg-thumb').forEach(function(t) {
         t.classList.toggle('active', parseInt(t.dataset.idx) === idx);
       });
+      if (prevBtn) prevBtn.disabled = idx === 0;
+      if (nextBtn) nextBtn.disabled = idx === total - 1;
+    }
+
+    function handleScroll() {
+      if (rafId) return;
+      rafId = requestAnimationFrame(function() {
+        rafId = null;
+        var idx = getNearestIndex(track.scrollLeft);
+        if (idx !== current) {
+          current = idx;
+          syncUI(idx);
+        }
+      });
+    }
+
+    function snapToCurrent() {
+      measureSlides();
+      var target = slideMetrics[current] ? slideMetrics[current].left : 0;
+      track.scrollTo({ left: target, behavior: 'auto' });
+      syncUI(current);
     }
 
     // Sync dots/thumbs when user swipes
-    var scrollTimer;
     track.addEventListener('scroll', function() {
-      clearTimeout(scrollTimer);
-      scrollTimer = setTimeout(function() {
-        var idx = Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
-        current = idx;
-        syncUI(idx);
-      }, 80);
+      handleScroll();
     }, { passive: true });
 
     var prevBtn = document.getElementById('pg-prev');
@@ -566,33 +608,10 @@
       t.addEventListener('click', function() { goTo(parseInt(t.dataset.idx)); });
     });
 
-    // Desktop hover: slide to wall image on enter, back on leave
-    var wrap = document.getElementById('pg-wrap');
-    var hoverTimer, leaveTimer, hoverSuppressed = false;
-
-    if (wrap && total >= 2 && window.matchMedia('(hover: hover)').matches) {
-      wrap.addEventListener('mouseenter', function() {
-        if (current !== 0 || hoverSuppressed) return;
-        clearTimeout(leaveTimer);
-        hoverTimer = setTimeout(function() { goTo(1); }, 180);
-      });
-
-      wrap.addEventListener('mouseleave', function() {
-        clearTimeout(hoverTimer);
-        leaveTimer = setTimeout(function() {
-          if (current === 1 && !hoverSuppressed) goTo(0);
-          hoverSuppressed = false;
-        }, 120);
-      });
-
-      // Manual navigation disables auto-return for that hover session
-      [prevBtn, nextBtn].forEach(function(btn) {
-        if (btn) btn.addEventListener('click', function() { hoverSuppressed = true; });
-      });
-      document.querySelectorAll('.pg-dot, .pg-thumb').forEach(function(el) {
-        el.addEventListener('click', function() { hoverSuppressed = true; });
-      });
-    }
+    measureSlides();
+    syncUI(current);
+    window.addEventListener('resize', snapToCurrent, { passive: true });
+    window.addEventListener('orientationchange', snapToCurrent, { passive: true });
   }
 
   /* ── Hex selector ── */

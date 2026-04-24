@@ -123,10 +123,39 @@
 <div id="toast-container"></div>
 <script src="/js/nav.js"></script>
 <script src="/js/basket.js"></script>
+<script src="/js/card-flick.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   var activeFilter = 'all';
   var allArtifacts = [];
+
+  function escapeAttr(str) {
+    return (str || '').replace(/"/g, '&quot;');
+  }
+
+  function cardMediaHtml(a, name) {
+    var baseImages = Array.isArray(a.images) ? a.images.filter(Boolean) : [];
+    if (!baseImages.length) {
+      if (a.image) baseImages.push(a.image);
+      if (a.wallImage) baseImages.push(a.wallImage);
+    }
+    var images = baseImages.slice(0, 2);
+
+    if (!images.length) {
+      return '<div class="card-media"><div class="card-media-placeholder" style="width:100%;height:100%"></div><div class="badge-row"><span class="badge badge-gold">Artifact</span></div></div>';
+    }
+
+    if (images.length === 1) {
+      return '<div class="card-media"><img src="' + escapeAttr(images[0]) + '" alt="' + escapeAttr(name) + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block"><div class="badge-row"><span class="badge badge-gold">Artifact</span></div></div>';
+    }
+
+    return '<div class="card-media card-has-wall" data-card-flick data-card-count="2" data-active-index="0">' +
+      '<img class="card-img-main" src="' + escapeAttr(images[0]) + '" alt="' + escapeAttr(name) + '" loading="lazy">' +
+      '<img class="card-img-wall" src="' + escapeAttr(images[1]) + '" alt="' + escapeAttr(name) + ' image 2" loading="lazy">' +
+      '<div class="card-flick-dots"><button class="card-flick-dot active" data-idx="0" aria-label="Show image 1"></button><button class="card-flick-dot" data-idx="1" aria-label="Show image 2"></button></div>' +
+      '<div class="badge-row"><span class="badge badge-gold">Artifact</span></div>' +
+    '</div>';
+  }
 
   function renderArtifacts(artifacts) {
     var grid = document.getElementById('artifacts-grid');
@@ -153,19 +182,12 @@ document.addEventListener('DOMContentLoaded', function () {
       var truncDesc = desc.length > 90 ? desc.substring(0, 90) + '\u2026' : desc;
       var price     = parseFloat(a.price || 0).toFixed(2);
 
-      var imgHtml = a.image
-        ? '<img src="' + a.image.replace(/"/g, '&quot;') + '" alt="' + name.replace(/"/g, '&quot;') + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block">'
-        : '<div class="card-media-placeholder" style="width:100%;height:100%"></div>';
-
       /* artifacts table has id (bigint) but no slug — link via id */
       var href = a.id ? '/artifact.html?id=' + encodeURIComponent(a.id) : '#';
 
       return (
         '<a class="card card-link" href="' + href + '">' +
-          '<div class="card-media">' +
-            imgHtml +
-            '<div class="badge-row"><span class="badge badge-gold">Artifact</span></div>' +
-          '</div>' +
+          cardMediaHtml(a, name) +
           '<div class="card-body">' +
             '<h3>' + name + '</h3>' +
             (truncDesc ? '<p class="muted" style="font-size:.85rem;line-height:1.55;margin-bottom:10px">' + truncDesc + '</p>' : '') +
@@ -174,6 +196,7 @@ document.addEventListener('DOMContentLoaded', function () {
         '</a>'
       );
     }).join('');
+    if (window.initCardFlickGalleries) window.initCardFlickGalleries(grid);
   }
 
   fetch('/.netlify/functions/load-catalogue')
