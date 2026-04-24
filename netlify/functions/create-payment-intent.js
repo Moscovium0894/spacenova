@@ -1,13 +1,44 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const { createClient } = require('@supabase/supabase-js');
 
-const FREE_SHIPPING_THRESHOLD = 150;
-const SHIPPING_OPTIONS = {
-  uk_standard: { label: 'UK Standard', amount: 4.99, freeThreshold: FREE_SHIPPING_THRESHOLD },
-  uk_express: { label: 'UK Express', amount: 9.99 },
-  eu_standard: { label: 'Europe Standard', amount: 12.99 },
-  us_ca_standard: { label: 'USA & Canada Standard', amount: 14.99 },
-  row_standard: { label: 'Rest of World Standard', amount: 17.99 }
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
+);
+
+/* Hardcoded fallback in case the DB is unreachable */
+const FALLBACK_SHIPPING = {
+  uk_standard:    { label: 'UK Standard',    amount: 4.99,  freeThreshold: 150 },
+  uk_express:     { label: 'UK Express',      amount: 9.99,  freeThreshold: null },
+  eu_standard:    { label: 'Europe Standard', amount: 12.99, freeThreshold: null },
+  us_ca_standard: { label: 'USA & Canada',    amount: 14.99, freeThreshold: null },
+  row_standard:   { label: 'Rest of World',   amount: 17.99, freeThreshold: null }
 };
+
+async function getShippingOptions() {
+  try {
+    const { data, error } = await supabase
+      .from('shipping_options')
+      .select('key, label, price, free_threshold')
+      .eq('active', true)
+      .order('sort_order', { ascending: true });
+
+    if (error || !data || !data.length) return FALLBACK_SHIPPING;
+
+    const map = {};
+    data.forEach(o => {
+      map[o.key] = {
+        label:         o.label,
+        amount:        parseFloat(o.price),
+        freeThreshold: o.free_threshold ? parseFloat(o.free_threshold) : null
+      };
+    });
+    return map;
+  } catch (e) {
+    console.warn('getShippingOptions DB error — using fallback:', e.message);
+    return FALLBACK_SHIPPING;
+  }
+}
 
 function toPence(value) {
   return Math.round(Number(value || 0) * 100);
@@ -41,7 +72,7 @@ exports.handler = async (event) => {
     const data = JSON.parse(event.body || '{}');
     const items = Array.isArray(data.items) ? data.items : [];
     const promo = data.promo || null;
-    const shippingMethod = SHIPPING_OPTIONS[data.shippingMethod] ? data.shippingMethod : 'uk_standard';
+    const requestedMethod = data.shippingMethod || 'uk_standard';
 
     if (!items.length) {
       return {
@@ -51,21 +82,26 @@ exports.handler = async (event) => {
       };
     }
 
+    /* Fetch shipping options from DB */
+    const shippingOptions = await getShippingOptions();
+    const shippingMethod  = shippingOptions[requestedMethod]
+      ? requestedMethod
+      : Object.keys(shippingOptions)[0] || 'uk_standard';
+
     const subtotal = items.reduce((sum, item) => {
-      const price = Number(item.price || 0);
-      const qty = Number(item.qty || 0);
-      return sum + price * qty;
+      return sum + Number(item.price || 0) * Number(item.qty || 0);
     }, 0);
 
-    const discount = computeDiscount(subtotal, promo);
+    const discount          = computeDiscount(subtotal, promo);
     const discountedSubtotal = Math.max(0, subtotal - discount);
 
-    const selectedShipping = SHIPPING_OPTIONS[shippingMethod];
-    const shippingCost = selectedShipping.freeThreshold && discountedSubtotal >= selectedShipping.freeThreshold
-      ? 0
-      : selectedShipping.amount;
+    const selectedShipping = shippingOptions[shippingMethod];
+    const shippingCost     =
+      selectedShipping.freeThreshold && discountedSubtotal >= selectedShipping.freeThreshold
+        ? 0
+        : selectedShipping.amount;
 
-    const total = discountedSubtotal + shippingCost;
+    const total  = discountedSubtotal + shippingCost;
     const amount = toPence(total);
 
     if (!amount || amount < 50) {
@@ -77,19 +113,21 @@ exports.handler = async (event) => {
     }
 
     const compactItems = items
-      .map((item) => `${String(item.id || '').slice(0, 40)}::${Number(item.qty || 0)}::${Number(item.price || 0).toFixed(2)}::${String(item.name || '').replace(/[|:]/g, '').slice(0, 50)}`)
+      .map(item =>
+        `${String(item.id || '').slice(0, 40)}::${Number(item.qty || 0)}::${Number(item.price || 0).toFixed(2)}::${String(item.name || '').replace(/[|:]/g, '').slice(0, 50)}`
+      )
       .join('|')
       .slice(0, 500);
 
     const metadata = {
-      items: compactItems,
-      subtotal: subtotal.toFixed(2),
-      discount: discount.toFixed(2),
-      shipping_cost: shippingCost.toFixed(2),
-      shipping_method: shippingMethod,
-      shipping_label: selectedShipping.label,
-      total: total.toFixed(2),
-      promo_code: promo && promo.code ? String(promo.code) : ''
+      items:            compactItems,
+      subtotal:         subtotal.toFixed(2),
+      discount:         discount.toFixed(2),
+      shipping_cost:    shippingCost.toFixed(2),
+      shipping_method:  shippingMethod,
+      shipping_label:   selectedShipping.label,
+      total:            total.toFixed(2),
+      promo_code:       promo && promo.code ? String(promo.code) : ''
     };
 
     const paymentIntent = await stripe.paymentIntents.create({
