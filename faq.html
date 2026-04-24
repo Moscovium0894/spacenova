@@ -247,13 +247,39 @@
     document.getElementById('faq-sidebar').innerHTML = '';
   }
 
+  async function fetchFaqs() {
+    var cacheKey = 'sn_faq_cache';
+    var retries = 1;
+    for (var attempt = 0; attempt <= retries; attempt++) {
+      var controller = new AbortController();
+      var timer = setTimeout(function () { controller.abort(); }, 8000);
+      try {
+        var res = await fetch('/.netlify/functions/load-faqs', { cache: 'no-store', signal: controller.signal });
+        clearTimeout(timer);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        var data = await res.json();
+        if (data.categories && data.categories.length) {
+          localStorage.setItem(cacheKey, JSON.stringify(data));
+        }
+        return data;
+      } catch (err) {
+        clearTimeout(timer);
+        if (attempt === retries) {
+          var cached = localStorage.getItem(cacheKey);
+          if (cached) {
+            try { return JSON.parse(cached); } catch (e) {}
+          }
+          throw err;
+        }
+        await new Promise(function (resolve) { setTimeout(resolve, 400 * (attempt + 1)); });
+      }
+    }
+    return { categories: [], faqs: {} };
+  }
+
   /* ── fetch from Supabase via Netlify function ── */
   document.addEventListener('DOMContentLoaded', function () {
-    fetch('/.netlify/functions/load-faqs', { cache: 'no-store' })
-      .then(function (r) {
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.json();
-      })
+    fetchFaqs()
       .then(function (d) {
         if (!d.categories || !d.categories.length) {
           showError();

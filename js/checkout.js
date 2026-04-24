@@ -117,6 +117,38 @@
     return opt.price;
   }
 
+  function getDefaultShippingOptions() {
+    return [
+      { key: 'uk_standard', label: 'UK Standard (3–5 working days)', price: 4.99, freeThreshold: 150 },
+      { key: 'uk_express', label: 'UK Express (1–2 working days)', price: 9.99, freeThreshold: null },
+      { key: 'eu_standard', label: 'Europe Standard (5–10 working days)', price: 12.99, freeThreshold: null },
+      { key: 'us_ca_standard', label: 'USA & Canada Standard (7–14 working days)', price: 14.99, freeThreshold: null },
+      { key: 'row_standard', label: 'Rest of World Standard (10–21 working days)', price: 17.99, freeThreshold: null }
+    ];
+  }
+
+  async function fetchJSONWithRetry(url, options, retries) {
+    var lastErr;
+    for (var attempt = 0; attempt <= retries; attempt += 1) {
+      var controller = new AbortController();
+      var timeout = setTimeout(function() { controller.abort(); }, 8000);
+      try {
+        var reqOpts = Object.assign({}, options || {}, { signal: controller.signal });
+        var res = await fetch(url, reqOpts);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        clearTimeout(timeout);
+        return await res.json();
+      } catch (err) {
+        clearTimeout(timeout);
+        lastErr = err;
+        if (attempt < retries) {
+          await new Promise(function(resolve) { setTimeout(resolve, 350 * (attempt + 1)); });
+        }
+      }
+    }
+    throw lastErr;
+  }
+
   /* ── Populate the shipping <select> from Supabase data ── */
   function populateShippingSelect(options) {
     var select = document.getElementById('shipping-method');
@@ -256,34 +288,16 @@
   async function init() {
     /* 1. Load shipping options from Supabase */
     try {
-      var shRes  = await fetch('/.netlify/functions/load-shipping-options');
-      var shData = await shRes.json();
+      var shData = await fetchJSONWithRetry('/.netlify/functions/load-shipping-options', { cache: 'no-store' }, 1);
       if (shData.options && shData.options.length) {
         populateShippingSelect(shData.options);
       } else {
-        /* Fall back to sensible hardcoded defaults so checkout never breaks */
         console.warn('No shipping options from DB — using defaults');
-        SHIPPING_OPTIONS = {
-          uk_standard:    { label: 'UK Standard (3–5 working days)', price: 4.99, freeThreshold: 150 },
-          uk_express:     { label: 'UK Express (1–2 working days)',   price: 9.99, freeThreshold: null },
-          eu_standard:    { label: 'Europe Standard (5–10 working days)', price: 12.99, freeThreshold: null },
-          us_ca_standard: { label: 'USA & Canada Standard (7–14 working days)', price: 14.99, freeThreshold: null },
-          row_standard:   { label: 'Rest of World Standard (10–21 working days)', price: 17.99, freeThreshold: null }
-        };
-        /* Rebuild select from defaults */
-        var select = document.getElementById('shipping-method');
-        if (select) {
-          select.innerHTML = Object.keys(SHIPPING_OPTIONS).map(function (k) {
-            var o = SHIPPING_OPTIONS[k];
-            var cost = o.freeThreshold
-              ? 'Free over \u00a3' + o.freeThreshold + ', otherwise \u00a3' + o.price.toFixed(2)
-              : '\u00a3' + o.price.toFixed(2);
-            return '<option value="' + k + '">' + o.label + ' \u2014 ' + cost + '</option>';
-          }).join('');
-        }
+        populateShippingSelect(getDefaultShippingOptions());
       }
     } catch (e) {
       console.error('Failed to load shipping options:', e);
+      populateShippingSelect(getDefaultShippingOptions());
     }
 
     /* 2. Populate order summary */
