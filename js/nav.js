@@ -1,6 +1,11 @@
 (function() {
   'use strict';
 
+  var viewportMeta = document.querySelector('meta[name="viewport"]');
+  if (viewportMeta && /iPhone|iPad|iPod/i.test(navigator.userAgent || '')) {
+    viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no');
+  }
+
   var nav = document.getElementById('main-nav');
   if (nav) {
     var onScroll = function() {
@@ -22,11 +27,16 @@
   var mpClose = document.getElementById('mp-close');
   var moreBtn = document.getElementById('nav-more-btn');
   var moreWrap = document.getElementById('nav-more-wrap');
+  var moreDropdown = document.getElementById('nav-dropdown');
   var basketToggle = document.getElementById('basket-toggle-btn');
   var mpBasketBtn = document.getElementById('mp-basket-btn');
+  var lastFocusedElement = null;
 
   function setPanelState(isOpen) {
     if (!panel) return;
+    if (isOpen) {
+      lastFocusedElement = document.activeElement;
+    }
     panel.classList.toggle('open', isOpen);
     panel.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
     document.body.classList.toggle('panel-open', isOpen);
@@ -36,6 +46,14 @@
       burger.setAttribute('aria-label', isOpen ? 'Close menu' : 'Open menu');
     }
     if (backdrop) backdrop.classList.toggle('open', isOpen);
+    if (isOpen && mpClose) {
+      window.requestAnimationFrame(function() {
+        mpClose.focus();
+      });
+    }
+    if (!isOpen && lastFocusedElement && typeof lastFocusedElement.focus === 'function') {
+      lastFocusedElement.focus();
+    }
   }
 
   function openPanel() {
@@ -63,21 +81,67 @@
   }
 
   document.addEventListener('keydown', function(e) {
+    if (e.key === 'Tab' && panel && panel.classList.contains('open')) {
+      var focusable = panel.querySelectorAll('a[href], button:not([disabled])');
+      if (!focusable.length) return;
+      var first = focusable[0];
+      var last = focusable[focusable.length - 1];
+
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+
     if (e.key === 'Escape') {
       closePanel();
       if (moreWrap && moreWrap.classList.contains('open')) {
         moreWrap.classList.remove('open');
         if (moreBtn) moreBtn.setAttribute('aria-expanded', 'false');
+        if (moreBtn) moreBtn.focus();
       }
     }
   });
 
-  if (moreBtn && moreWrap) {
+  if (moreBtn && moreWrap && moreDropdown) {
+    var moreItems = moreDropdown.querySelectorAll('[role="menuitem"]');
+
     moreBtn.addEventListener('click', function(e) {
       e.stopPropagation();
       var open = moreWrap.classList.toggle('open');
       moreBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (open && moreItems.length) {
+        moreItems[0].focus();
+      }
     });
+
+    moreBtn.addEventListener('keydown', function(e) {
+      if ((e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') && !moreWrap.classList.contains('open')) {
+        e.preventDefault();
+        moreWrap.classList.add('open');
+        moreBtn.setAttribute('aria-expanded', 'true');
+        if (moreItems.length) moreItems[0].focus();
+      }
+    });
+
+    moreDropdown.addEventListener('keydown', function(e) {
+      if (!moreItems.length) return;
+      var currentIndex = Array.prototype.indexOf.call(moreItems, document.activeElement);
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        moreItems[(currentIndex + 1 + moreItems.length) % moreItems.length].focus();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        moreItems[(currentIndex - 1 + moreItems.length) % moreItems.length].focus();
+      } else if (e.key === 'Tab' && !e.shiftKey && currentIndex === moreItems.length - 1) {
+        moreWrap.classList.remove('open');
+        moreBtn.setAttribute('aria-expanded', 'false');
+      }
+    });
+
     document.addEventListener('click', function(e) {
       if (!moreWrap.contains(e.target)) {
         moreWrap.classList.remove('open');
@@ -85,6 +149,12 @@
       }
     });
   }
+
+  window.addEventListener('resize', function() {
+    if (window.innerWidth > 860) {
+      closePanel();
+    }
+  });
 
   function openBasket() {
     if (typeof window.openBasketDrawer === 'function') {
