@@ -19,3 +19,23 @@
   from = "/admin"
   to = "/admin/index.html"
   status = 200
+
+[[redirects]]
+  from = "/faq"
+  to = "/faq.html"
+  status = 200
+
+[[redirects]]
+  from = "/faqs"
+  to = "/faq.html"
+  status = 200
+
+[[redirects]]
+  from = "/faqs.html"
+  to = "/faq.html"
+  status = 200
+
+[[redirects]]
+  from = "/shipping"
+  to = "/shipping.html"
+  status = 200

@@ -1,6 +1,11 @@
 (function() {
   'use strict';
 
+  var viewportMeta = document.querySelector('meta[name="viewport"]');
+  if (viewportMeta && /iPhone|iPad|iPod/i.test(navigator.userAgent || '')) {
+    viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no');
+  }
+
   var nav = document.getElementById('main-nav');
   if (nav) {
     var onScroll = function() {
