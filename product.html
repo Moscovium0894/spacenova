@@ -170,22 +170,15 @@
       border: 1px solid var(--border);
       border-radius: var(--r);
       overflow: hidden;
-      background: linear-gradient(160deg, #f4f1eb, #d9d0c2);
+      background: #f5efe5;
       position: relative;
     }
     .plate-preview-wrap.has-wall {
-      background-size: cover;
-      background-position: center;
+      background-image: none !important;
     }
     /* Subtle vignette/depth overlay */
     .plate-preview-wrap::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      background: radial-gradient(ellipse at 48% 36%, rgba(255,255,255,.10), transparent 55%),
-                  linear-gradient(to bottom, rgba(0,0,0,.02), rgba(0,0,0,.10));
-      z-index: 3;
+      display: none;
     }
 
     .plate-preview-header {
@@ -242,17 +235,18 @@
 
     /*
      * Individual plate piece.
-     * Uses clip-path for the hex shape.
+     * The image/gloss layers carry the hex clip so the outline can sit
+     * on the true edge without being cut off.
      * Positioned absolutely within .plate-cluster.
      * Width/height set inline by JS (97×112 base, scaled).
      */
     .plate-piece {
       position: absolute;
       cursor: pointer;
-      /* clip-path applied inline */
       transition: transform .18s cubic-bezier(.22,1,.36,1), filter .18s;
       -webkit-tap-highlight-color: transparent;
       will-change: transform;
+      overflow: visible;
     }
     .plate-piece:hover {
       transform: scale(1.06) translateZ(0);
@@ -263,12 +257,26 @@
     /* The photographic fill layer */
     .plate-piece-inner {
       position: absolute;
-      /* inset matches the frame width (4px) */
-      inset: 4px;
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      clip-path: inherit;
+      inset: 0;
+      overflow: hidden;
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      -webkit-clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    }
+    .plate-piece-inner img {
+      position: absolute;
+      display: block;
+      max-width: none;
+      pointer-events: none;
+      user-select: none;
+    }
+    .plate-piece-full-img {
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .plate-piece-crop-img {
+      object-fit: cover;
     }
 
     /* Surface gloss */
@@ -281,7 +289,8 @@
         rgba(255,255,255,.04) 38%,
         rgba(0,0,0,.12) 100%
       );
-      clip-path: inherit;
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      -webkit-clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
       pointer-events: none;
       z-index: 2;
     }
@@ -290,29 +299,37 @@
     .plate-piece-outline {
       position: absolute;
       inset: 0;
-      clip-path: inherit;
       pointer-events: none;
       z-index: 3;
-      box-shadow: inset 0 0 0 2.5px var(--accent);
-      /* Use SVG-based outline to stay inside the clip */
-      /* We achieve this via a pseudo box-shadow trick */
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+    .plate-piece-outline polygon {
+      fill: none;
+      stroke: rgba(255,255,255,.42);
+      stroke-width: 1.25;
+      vector-effect: non-scaling-stroke;
     }
 
     /* Unselected overlay — dims the plate */
     .plate-piece.is-unselected .plate-piece-inner {
-      filter: brightness(0.45) saturate(0.3);
+      opacity: 0;
     }
     .plate-piece.is-unselected .plate-piece-gloss {
-      background: rgba(0,0,0,.35);
+      background: transparent;
     }
     /* Unselected: show dashed outline */
-    .plate-piece.is-unselected .plate-piece-outline {
-      box-shadow: none;
+    .plate-piece.is-unselected .plate-piece-outline polygon {
+      stroke: rgba(212,120,15,.55);
+      stroke-width: 2;
+      stroke-dasharray: 4 4;
     }
 
     /* Selected: accent border + subtle glow */
-    .plate-piece.is-selected .plate-piece-outline {
-      box-shadow: inset 0 0 0 3px var(--accent), inset 0 0 12px rgba(212,120,15,.25);
+    .plate-piece.is-selected .plate-piece-outline polygon {
+      stroke: var(--accent);
+      stroke-width: 3;
     }
     .plate-piece.is-selected {
       filter: drop-shadow(0 0 6px rgba(212,120,15,.35));
@@ -535,13 +552,10 @@
   //   ODD_OFFSET  = HEX_W / 2      (odd rows shift right by half a column)
   //
   var HEX_H = 112;
-  var HEX_W = Math.round(HEX_H * Math.sqrt(3) / 2); // 97
-  var ROW_PITCH = HEX_H * 0.75;                      // 84
-  var COL_PITCH = HEX_W;                             // 97
-  var ODD_OFFSET = HEX_W / 2;                        // 48.5
-
-  // Clip-path for a pointy-top hexagon (matches CSS and SVG clip in mockup)
-  var HEX_CLIP = 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)';
+  var HEX_W = 97;
+  var ROW_PITCH = 84;
+  var COL_PITCH = 97;
+  var ODD_OFFSET = 48;
 
   // Pricing
   var PLATE_UNIT_PRICE = 34.99;
@@ -591,8 +605,6 @@
       (_totalPlates > 0 ? parseFloat((PLATE_SET_PRICE / _totalPlates).toFixed(2)) : 34.99);
 
     var wallImage = p.wallImage || null;
-    var wallSourceImage = p.wallSourceImage ||
-      (p.plateMap && p.plateMap.mockup && p.plateMap.mockup.wallSourceImage) || null;
     var plateImages = Array.isArray(p.plateImages) ? p.plateImages
       : (Array.isArray(p.panelImages) ? p.panelImages : []);
     var plateNames = Array.isArray(p.plateNames) ? p.plateNames
@@ -645,7 +657,7 @@
       '</div>';
 
     initGallery(galleryImages);
-    buildInteractivePreview(p, positions, plateImages, plateNames, wallSourceImage);
+    buildInteractivePreview(p, positions, plateImages, plateNames);
 
     document.getElementById('add-to-basket-btn').addEventListener('click', function () {
       addSelectionToBasket(p, plateNames);
@@ -768,7 +780,7 @@
   // Replaces both the old hex selector and the old live mockup.
   // The preview IS the selector: click a plate to toggle its selection.
   //
-  function buildInteractivePreview(p, positions, plateImages, plateNames, wallSourceImage) {
+  function buildInteractivePreview(p, positions, plateImages, plateNames) {
     var mount = document.getElementById('preview-mount');
     if (!mount || !_totalPlates || !positions.length) return;
 
@@ -787,68 +799,42 @@
     var scaleH = maxH / bounds.h;
     var scale = Math.min(1.0, scaleW, scaleH);
 
-    var clusterW = Math.round(bounds.w * scale);
-    var clusterH = Math.round(bounds.h * scale);
-    var tileW = Math.round(HEX_W * scale);
-    var tileH = Math.round(HEX_H * scale);
-
-    // Build wall-background style
-    var wallStyle = '';
-    if (wallSourceImage) {
-      wallStyle = ' style="background-image:url(' + wallSourceImage.replace(/"/g, '%22') + ');background-size:cover;background-position:center;"';
-    }
+    var clusterW = bounds.w * scale;
+    var clusterH = bounds.h * scale;
+    var tileW = HEX_W * scale;
+    var tileH = HEX_H * scale;
 
     // Build the HTML
     var tilesHtml = positions.map(function (pos, idx) {
       var px = pixelPos[idx];
-      var left = Math.round((px.x - bounds.minX) * scale);
-      var top = Math.round((px.y - bounds.minY) * scale);
+      var left = (px.x - bounds.minX) * scale;
+      var top = (px.y - bounds.minY) * scale;
 
-      // Image source: individual plate image OR crop from main image
-      var imgSrc = (plateImages[idx] && plateImages[idx].trim()) ? plateImages[idx] : (p.image || '');
-
-      // For main-image crops we use background-position to slice correctly
-      var innerStyle;
-      if (plateImages[idx] && plateImages[idx].trim()) {
-        // Individual plate image — just fill the hex
-        innerStyle = 'background-image:url(' + encodeImgUrl(plateImages[idx]) + ');background-size:cover;background-position:center;';
-      } else if (p.image) {
-        // Crop a region from the main product image proportional to this tile's position
-        var xFrac = bounds.w > HEX_W ? (px.x - bounds.minX) / (bounds.w - HEX_W) : 0.5;
-        var yFrac = bounds.h > HEX_H ? (px.y - bounds.minY) / (bounds.h - HEX_H) : 0.5;
-        xFrac = Math.max(0, Math.min(1, xFrac));
-        yFrac = Math.max(0, Math.min(1, yFrac));
-        innerStyle = 'background-image:url(' + encodeImgUrl(p.image) + ');' +
-          'background-size:' + (positions.length > 1 ? Math.round(100 + xFrac * 40) : 100) + '% auto;' +
-          'background-position:' + Math.round(xFrac * 100) + '% ' + Math.round(yFrac * 100) + '%;';
-      } else {
-        innerStyle = 'background:#222;';
-      }
+      var fill = platePreviewFill(p, plateImages, idx, px, bounds, scale);
 
       var name = plateNames[idx] || ('Plate ' + (idx + 1));
 
       return '<div class="plate-piece is-selected" data-idx="' + idx + '" ' +
-        'style="left:' + left + 'px;top:' + top + 'px;' +
-               'width:' + tileW + 'px;height:' + tileH + 'px;' +
-               'clip-path:' + HEX_CLIP + ';" ' +
+        'style="left:' + cssPx(left) + ';top:' + cssPx(top) + ';' +
+               'width:' + cssPx(tileW) + ';height:' + cssPx(tileH) + ';" ' +
         'title="' + esc(name) + '" ' +
         'role="checkbox" aria-label="' + esc(name) + '" aria-checked="true" tabindex="0">' +
-        '<div class="plate-piece-inner" style="' + innerStyle + '"></div>' +
+        '<div class="plate-piece-inner" style="' + fill.style + '">' + fill.html + '</div>' +
         '<div class="plate-piece-gloss"></div>' +
-        '<div class="plate-piece-outline"></div>' +
+        '<svg class="plate-piece-outline" viewBox="0 0 97 112" aria-hidden="true" focusable="false"><polygon points="48.5,1 96,28.5 96,83.5 48.5,111 1,83.5 1,28.5"/></svg>' +
         '<span class="plate-piece-num">' + (idx + 1) + '</span>' +
       '</div>';
     }).join('');
 
     mount.innerHTML =
-      '<div class="plate-preview-wrap' + (wallSourceImage ? ' has-wall' : '') + '"' + wallStyle + '>' +
+      '<div class="plate-preview-wrap">' +
         '<div class="plate-preview-header">' +
           '<span class="plate-preview-label">Preview</span>' +
           '<span class="plate-preview-hint">Tap plates to select</span>' +
         '</div>' +
         '<div class="plate-preview-stage">' +
           '<div class="plate-cluster" id="plate-cluster" ' +
-            'style="width:' + clusterW + 'px;height:' + clusterH + 'px;position:relative;">' +
+            'style="width:' + cssPx(clusterW) + ';height:' + cssPx(clusterH) + ';position:relative;">' +
             tilesHtml +
           '</div>' +
         '</div>' +
@@ -895,6 +881,57 @@
     // Expose global for basket
     window._selectedPlates = _selected;
     updatePreview();
+  }
+
+  function platePreviewFill(product, plateImages, idx, pixelPos, bounds, scale) {
+    var mainImage = ((product && product.image) || '').trim();
+    var plateImage = getUsablePlateImage(product, plateImages, idx, mainImage);
+    if (plateImage) {
+      return {
+        style: '',
+        html: '<img class="plate-piece-full-img" src="' + escapeAttr(plateImage) + '" alt="">'
+      };
+    }
+    if (!mainImage) return { style: 'background:#222;', html: '' };
+    var displayScale = typeof scale === 'number' && scale > 0 ? scale : 1;
+    var tileLeft = (pixelPos.x - bounds.minX) * displayScale;
+    var tileTop = (pixelPos.y - bounds.minY) * displayScale;
+    return {
+      style: '',
+      html: '<img class="plate-piece-crop-img" src="' + escapeAttr(mainImage) + '" alt="" style="' +
+        'width:' + cssPx(Math.max(1, bounds.w * displayScale)) + ';' +
+        'height:' + cssPx(Math.max(1, bounds.h * displayScale)) + ';' +
+        'left:-' + cssPx(tileLeft) + ';top:-' + cssPx(tileTop) + ';">'
+    };
+  }
+
+  function getUsablePlateImage(product, plateImages, idx, mainImage) {
+    var image = (plateImages[idx] || '').trim();
+    if (!image || sameImageUrl(image, mainImage)) return '';
+    var isCollection = !!(product && (product.isCollection || product.isBundle || product.collection || product.type === 'collection'));
+    if (!isCollection) return '';
+    var uniqueCustom = uniquePlateImages(plateImages, mainImage);
+    if (uniqueCustom.length < 2 && plateImages.length > 1) return '';
+    return image;
+  }
+
+  function uniquePlateImages(plateImages, mainImage) {
+    var seen = {};
+    (plateImages || []).forEach(function (img) {
+      img = (img || '').trim();
+      if (!img || sameImageUrl(img, mainImage)) return;
+      seen[normaliseImageUrl(img)] = img;
+    });
+    return Object.keys(seen).map(function (key) { return seen[key]; });
+  }
+
+  function sameImageUrl(a, b) {
+    if (!a || !b) return false;
+    return normaliseImageUrl(a) === normaliseImageUrl(b);
+  }
+
+  function normaliseImageUrl(value) {
+    return String(value || '').trim().replace(/\/+$/, '').toLowerCase();
   }
 
   function togglePlate(idx) {
@@ -1022,7 +1059,6 @@
     return true;
   }
 
-  // ─── Auto layout (fallback if no plateMap) ────────────────────────────────
   function autoLayout(n) {
     var presets = {
       1: [[0,0]],
@@ -1051,6 +1087,10 @@
   }
 
   // ─── Utility ──────────────────────────────────────────────────────────────
+  function cssPx(value) {
+    return (Math.round((Number(value) || 0) * 1000) / 1000) + 'px';
+  }
+
   function esc(s) {
     return String(s || '')
       .replace(/&/g, '&amp;')
@@ -1059,11 +1099,8 @@
       .replace(/"/g, '&quot;');
   }
 
-  function encodeImgUrl(url) {
-    // Don't double-encode, just make it safe for CSS url()
-    return url.replace(/[()'"]/g, function (c) {
-      return { '(': '%28', ')': '%29', "'": '%27', '"': '%22' }[c];
-    });
+  function escapeAttr(value) {
+    return esc(value).replace(/'/g, '&#39;');
   }
 
 })();
