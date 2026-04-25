@@ -18,12 +18,23 @@ function parseItems(metaItems) {
     .split('|')
     .filter(Boolean)
     .map((token) => {
-      const [id, qty, price, name] = token.split('::');
+      const [id, qty, price, name, plateToken, plateCount, priceMode] = token.split('::');
+      const selectedPlateIndexes = String(plateToken || '')
+        .split(',')
+        .filter(value => value !== '')
+        .map(value => Number(value))
+        .filter(Number.isFinite);
+      const count = Number(plateCount || 0);
       return {
         id: id || null,
         qty: Number(qty || 0),
         price: Number(price || 0),
-        name: name || null
+        name: name || null,
+        selected_plate_indexes: selectedPlateIndexes,
+        selected_plates: selectedPlateIndexes.map(index => ({ index, number: index + 1 })),
+        plate_count: count || null,
+        is_full_set: count > 0 && selectedPlateIndexes.length === count,
+        price_mode: priceMode || null
       };
     });
 }

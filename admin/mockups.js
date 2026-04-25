@@ -61,7 +61,7 @@ function renderResults(results, intro) {
 }
 
 async function renderCurrentMockups(all, selected) {
-  await new Promise(resolve => setTimeout(resolve, 1200));
+  await new Promise(resolve => setTimeout(resolve, 400));
   const products = await loadProducts();
   const visible = all
     ? products
@@ -76,7 +76,7 @@ async function renderCurrentMockups(all, selected) {
     }));
 
   if (results.length) {
-    renderResults(results, '<p style="color:#666">The function did not return JSON, but current saved mockups are shown below.</p>');
+    renderResults(results, '<p style="color:#666">Saved mockups are shown below. The generator response was delayed or unreadable, but storage has the latest available URLs.</p>');
   }
 }
 

@@ -1,15 +1,78 @@
 const { createClient } = require('@supabase/supabase-js');
+const {
+  inferPlateCount,
+  isMissingColumnError,
+  normalisePlateMap,
+  normaliseStringArray,
+  resolvePlatePricing,
+  stripAdvancedPlateFields
+} = require('./plate-helpers');
+
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
+
+function buildPayload(product) {
+  const plateCount = inferPlateCount(product);
+  const plateMap = normalisePlateMap(product, plateCount);
+  const plateNames = normaliseStringArray(product, ['plate_names', 'plateNames', 'panel_names', 'panelNames'], plateCount);
+  const plateImages = normaliseStringArray(product, ['plate_images', 'plateImages', 'panel_images', 'panelImages'], plateCount);
+  const pricing = resolvePlatePricing(product, plateCount);
+  const parsedPrice = Number.isFinite(pricing.setPrice) ? pricing.setPrice : 0;
+
+  return {
+    slug:             product.slug,
+    name:             product.name,
+    category:         product.category || null,
+    price:            parsedPrice,
+    price_label:      product.price_label || product.priceLabel || null,
+    short:            product.short || null,
+    description:      product.description || null,
+    note:             product.note || null,
+    accent:           product.accent || null,
+    size:             product.size || null,
+    material:         product.material || null,
+    pieces:           plateCount,
+    plate_count:      plateCount,
+    plate_unit_price: pricing.unitPrice,
+    plate_set_price:  pricing.setPrice,
+    panel_hint:       product.panel_hint || product.panelHint || null,
+    image:            product.image || null,
+    wall_image:       product.wall_image || product.wallImage || null,
+    wall_source_image: product.wall_source_image || product.wallSourceImage || null,
+    is_collection:    !!product.is_collection || !!product.isCollection,
+    is_bundle:        !!product.is_bundle || !!product.isBundle,
+    is_published:     product.is_published !== false && product.isPublished !== false,
+    plate_names:      plateNames,
+    plate_images:     plateImages,
+    plate_map:        plateMap,
+    panel_names:      plateNames,
+    panel_images:     plateImages,
+    panel_map:        plateMap,
+    updated_at:       new Date().toISOString()
+  };
+}
+
+async function upsertProduct(payload) {
+  const result = await supabase
+    .from('products')
+    .upsert(payload, { onConflict: 'slug' });
+
+  if (!result.error) return result;
+  if (!isMissingColumnError(result.error)) return result;
+
+  console.warn('save-product: advanced plate columns missing, falling back to legacy payload');
+  return supabase
+    .from('products')
+    .upsert(stripAdvancedPlateFields(payload), { onConflict: 'slug' });
+}
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
   try {
-    // Password comes from the x-admin-password header (set by creator.html)
     const password = (event.headers && (
       event.headers['x-admin-password'] ||
       event.headers['X-Admin-Password']
@@ -33,37 +96,7 @@ exports.handler = async (event) => {
       };
     }
 
-    const pieces = Math.max(1, parseInt(product.pieces, 10) || 1);
-    const parsedPrice = parseFloat(product.price);
-
-    const payload = {
-      slug:          product.slug,
-      name:          product.name,
-      category:      product.category      || null,
-      price:         Number.isFinite(parsedPrice) ? parsedPrice : 0,
-      price_label:   product.price_label   || product.priceLabel   || null,
-      short:         product.short         || null,
-      description:   product.description   || null,
-      note:          product.note          || null,
-      accent:        product.accent        || null,
-      size:          product.size          || null,
-      material:      product.material      || null,
-      pieces:        pieces,
-      panel_hint:    product.panel_hint    || product.panelHint    || null,
-      image:         product.image         || null,
-      wall_image:    product.wall_image    || product.wallImage    || null,
-      is_collection: !!product.is_collection || !!product.isCollection,
-      is_bundle:     !!product.is_bundle    || !!product.isBundle,
-      is_published:  product.is_published  !== false && product.isPublished !== false,
-      panel_names:   Array.isArray(product.panel_names)  ? product.panel_names  : (Array.isArray(product.panelNames)  ? product.panelNames  : []),
-      panel_images:  Array.isArray(product.panel_images) ? product.panel_images : (Array.isArray(product.panelImages) ? product.panelImages : []),
-      panel_map:     product.panel_map || product.panelMap || {},
-      updated_at:    new Date().toISOString()
-    };
-
-    const { error } = await supabase
-      .from('products')
-      .upsert(payload, { onConflict: 'slug' });
+    const { error } = await upsertProduct(buildPayload(product));
 
     if (error) {
       console.error('save-product supabase error:', error);

@@ -203,8 +203,10 @@
     summaryEl.innerHTML = basket.map(function(item) {
       var qty = item.qty || item.quantity || 1;
       var lineTotal = (item.price || 0) * qty;
+      var plateLine = formatPlateLine(item);
       return '<div class="co-item"><span class="co-item-name">' + item.name +
         (qty > 1 ? ' &times;' + qty : '') +
+        (plateLine ? '<small style="display:block;color:var(--muted);font-size:.68rem;margin-top:3px">' + plateLine + '</small>' : '') +
         '</span><span class="co-item-price">' + fmt(lineTotal) + '</span></div>';
     }).join('');
 
@@ -216,6 +218,16 @@
     if (subtotalEl) subtotalEl.textContent = fmt(sub);
     if (shippingEl) shippingEl.textContent = ship === 0 ? 'Free' : fmt(ship);
     if (totalEl)    totalEl.textContent    = fmt(sub + ship);
+  }
+
+  function formatPlateLine(item) {
+    if (item.isFullSet && item.plateCount) return 'Complete set, ' + item.plateCount + ' plates';
+    var indexes = Array.isArray(item.selectedPlateIndexes) ? item.selectedPlateIndexes : [];
+    if (!indexes.length && Array.isArray(item.plates)) {
+      indexes = item.plates.map(function(p) { return p.index; }).filter(function(v) { return Number.isFinite(Number(v)); });
+    }
+    if (!indexes.length) return '';
+    return 'Plates ' + indexes.map(function(idx) { return Number(idx) + 1; }).join(', ');
   }
 
   function setSummaryLoading(on) {

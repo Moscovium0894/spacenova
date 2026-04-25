@@ -10,6 +10,32 @@ function parseAmount(metaVal, fallbackMinor) {
   return Number(fallbackMinor || 0) / 100;
 }
 
+function parseItems(metaItems) {
+  return String(metaItems || '')
+    .split('|')
+    .filter(Boolean)
+    .map((token) => {
+      const [id, qty, price, name, plateToken, plateCount, priceMode] = token.split('::');
+      const selectedPlateIndexes = String(plateToken || '')
+        .split(',')
+        .filter(value => value !== '')
+        .map(value => Number(value))
+        .filter(Number.isFinite);
+      const count = Number(plateCount || 0);
+      return {
+        id: id || null,
+        qty: Number(qty || 0),
+        price: Number(price || 0),
+        name: name || null,
+        selected_plate_indexes: selectedPlateIndexes,
+        selected_plates: selectedPlateIndexes.map(index => ({ index, number: index + 1 })),
+        plate_count: count || null,
+        is_full_set: count > 0 && selectedPlateIndexes.length === count,
+        price_mode: priceMode || null
+      };
+    });
+}
+
 async function incrementPromoUse(promoCode) {
   if (!promoCode) return;
   const { data, error } = await supabase
@@ -52,18 +78,7 @@ exports.handler = async (event) => {
       const shippingAddress = shipping.address || {};
       const metadata = pi.metadata || {};
 
-      const parsedItems = String(metadata.items || '')
-        .split('|')
-        .filter(Boolean)
-        .map((token) => {
-          const [id, qty, price, name] = token.split('::');
-          return {
-            id: id || null,
-            qty: Number(qty || 0),
-            price: Number(price || 0),
-            name: name || null
-          };
-        });
+      const parsedItems = parseItems(metadata.items);
 
       const payload = {
         ref: pi.id,

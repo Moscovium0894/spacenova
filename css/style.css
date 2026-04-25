@@ -1225,20 +1225,6 @@ button { font-family: inherit; }
 @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
 /* ══════════════════════════════════════════
-   ARTIFACTS
-   ══════════════════════════════════════════ */
-.artifacts-hero { text-align: center; padding: 80px clamp(16px,4vw,28px) 52px; }
-.artifact-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px,1fr)); gap: 14px; padding: 0 clamp(16px,4vw,28px) 100px; max-width: 1200px; margin: 0 auto; }
-.artifact-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; transition: transform .28s cubic-bezier(.22,1,.36,1), box-shadow .28s; }
-.artifact-card:hover { transform: translateY(-3px); box-shadow: 0 14px 44px rgba(0,0,0,.09); border-color: var(--border2); }
-.artifact-card-img { width: 100%; height: 190px; object-fit: cover; display: block; }
-.artifact-card-body { padding: 20px; }
-.artifact-card-body h3 { font-family: var(--fd); font-size: 1.2rem; font-weight: 400; margin-bottom: 5px; color: var(--text); }
-.artifact-card-body p { color: var(--muted); font-size: .86rem; line-height: 1.65; margin-bottom: 13px; }
-.artifact-tag { font-family: var(--fm); font-size: .57rem; letter-spacing: .12em; text-transform: uppercase; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border2); color: var(--muted); display: inline-block; margin-bottom: 9px; }
-.artifact-price { font-family: var(--fd); font-size: 1.55rem; color: var(--gold); margin-bottom: 13px; }
-
-/* ══════════════════════════════════════════
    PRESS
    ══════════════════════════════════════════ */
 .press-logos { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px,1fr)); gap: 14px; margin: 28px 0; }
@@ -1523,7 +1509,7 @@ body.panel-open { overflow: hidden; }
 .ndd-item:focus-visible { background: rgba(0,0,0,.08); }
 .ndd-divider { height: 1px; background: rgba(0,0,0,.07); margin: 6px 4px; }
 
-/* ── Inner hero (artifacts, collections, etc.) ── */
+/* ── Inner hero (collections, help pages, etc.) ── */
 .inner-hero { padding: 80px clamp(16px,4vw,28px) 52px; text-align: center; }
 .inner-hero > * { max-width: 760px; margin-left: auto; margin-right: auto; }
 .inner-hero h1 {
