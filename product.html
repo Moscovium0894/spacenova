@@ -406,7 +406,9 @@
         document.title = p.name + ' — SPACENOVA';
         document.getElementById('bc-name').textContent = p.name;
 
-        var totalPanels = parseInt(p.pieces) || 0;
+        var totalPanels = parseInt(p.pieces, 10) || 0;
+        var fullSetPrice = parseFloat(p.price || 0);
+        PANEL_PRICE = totalPanels > 0 ? parseFloat((fullSetPrice / totalPanels).toFixed(2)) : 34.99;
         var wallImage   = p.wallImage || null;
         var panelImages = Array.isArray(p.panelImages) ? p.panelImages : [];
         var panelMap    = p.panelMap || {};
@@ -454,7 +456,7 @@
             window.addToBasket({
               id: p.slug + '-' + count + 'p',
               name: p.name + ' (' + count + ' panel' + (count !== 1 ? 's' : '') + ')',
-              price: count * PANEL_PRICE,
+              price: parseFloat((count * PANEL_PRICE).toFixed(2)),
               image: p.image || '',
               quantity: 1
             });
@@ -685,7 +687,7 @@
           '<div class="hex-selector-footer">' +
             '<div>' +
               '<div class="hex-price-row">&pound;' + (count * PANEL_PRICE).toFixed(2) + '</div>' +
-              '<div class="hex-price-sub">' + count + ' panel' + (count !== 1 ? 's' : '') + ' &times; &pound;34.99 each</div>' +
+              '<div class="hex-price-sub">' + count + ' panel' + (count !== 1 ? 's' : '') + ' &times; &pound;' + PANEL_PRICE.toFixed(2) + ' each</div>' +
             '</div>' +
             '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
               '<button class="hex-select-all" id="sel-all">Select all</button>' +
