@@ -5,6 +5,8 @@ const DEFAULT_BUCKET = 'product-images';
 const HEX_SIZE = 210;
 const ORIGIN_X = 520;
 const ORIGIN_Y = 190;
+const FRAME_WIDTH = 5;
+const FRAME_COLOUR = '#111111';
 
 const LAYOUTS = {
   single: [{ x: 0, y: 0 }],
@@ -51,7 +53,9 @@ exports.handler = async (event) => {
       return json(400, { success: false, error: 'Provide productId or all:true' });
     }
 
+    const wallBuffer = await fetchBuffer(wallImageUrl);
     const results = [];
+
     for (const product of products) {
       try {
         const imageUrl = product.image || product.image_url || product.main_image || product.photo;
@@ -60,7 +64,6 @@ exports.handler = async (event) => {
           continue;
         }
 
-        const wallBuffer = await fetchBuffer(wallImageUrl);
         const productBuffer = await fetchBuffer(imageUrl);
         const mockupBuffer = await generateMockup({ wallBuffer, productBuffer, layoutName });
         const storagePath = `mockups/${product.id}-wall-mockup.png`;
@@ -106,7 +109,7 @@ async function generateMockup({ wallBuffer, productBuffer, layoutName }) {
   const wallWidth = wallMeta.width || 1200;
   const wallHeight = wallMeta.height || 800;
 
-  const productHex = await createProductHex(productBuffer);
+  const productHex = await createFramedProductHex(productBuffer);
   const shadow = await createHexShadow();
   const composites = [];
 
@@ -124,11 +127,31 @@ async function generateMockup({ wallBuffer, productBuffer, layoutName }) {
     .toBuffer();
 }
 
-async function createProductHex(productBuffer) {
-  const mask = Buffer.from(hexMaskSvg(HEX_SIZE, false));
-  return sharp(productBuffer)
-    .resize(HEX_SIZE, HEX_SIZE, { fit: 'cover' })
-    .composite([{ input: mask, blend: 'dest-in' }])
+async function createFramedProductHex(productBuffer) {
+  const outerMask = Buffer.from(hexMaskSvg(HEX_SIZE));
+  const innerSize = HEX_SIZE - FRAME_WIDTH * 2;
+  const innerMask = Buffer.from(hexMaskSvg(innerSize));
+
+  const framedBase = await sharp({
+    create: {
+      width: HEX_SIZE,
+      height: HEX_SIZE,
+      channels: 4,
+      background: FRAME_COLOUR
+    }
+  })
+    .composite([{ input: outerMask, blend: 'dest-in' }])
+    .png()
+    .toBuffer();
+
+  const innerImage = await sharp(productBuffer)
+    .resize(innerSize, innerSize, { fit: 'cover' })
+    .composite([{ input: innerMask, blend: 'dest-in' }])
+    .png()
+    .toBuffer();
+
+  return sharp(framedBase)
+    .composite([{ input: innerImage, left: FRAME_WIDTH, top: FRAME_WIDTH }])
     .png()
     .toBuffer();
 }
