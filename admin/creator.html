@@ -282,6 +282,12 @@
 
   /* ─── Element cache ─── */
   var E = {};
+  var HEX_H = 112;
+  var HEX_W = 97;
+  var ROW_PITCH = 84;
+  var COL_PITCH = 97;
+  var ODD_OFFSET = 48;
+  var HEX_CLIP = 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)';
 
   document.addEventListener('DOMContentLoaded', function () {
     cacheEls();
@@ -803,6 +809,8 @@
   function renderOutlineHexSVG(hexLayer, mainImageUrl) {
     hexLayer.innerHTML = '';
     ensurePanelArrays();
+    renderOutlinePreviewSVG(hexLayer, mainImageUrl);
+    return;
 
     var grouped  = groupByRow();
     var rowKeys  = Object.keys(grouped).map(Number).sort(function (a,b) { return a-b; });
@@ -894,61 +902,149 @@
     ensurePanelArrays();
     var wrap      = E.prev.hexPreview;
     var mainImage = E.f.image.value.trim();
-    var grouped   = groupByRow();
-    var rowKeys   = Object.keys(grouped).map(Number).sort(function (a,b) { return a-b; });
+    renderPixelHexGrid(wrap, mainImage);
+    return;
+  }
 
+  function renderPixelHexGrid(wrap, mainImage) {
+    var pixelPositions = getPreviewPixelPositions();
+    var bounds = getPreviewBounds(pixelPositions);
     wrap.innerHTML = '';
-    if (!rowKeys.length) return;
+    if (!pixelPositions.length) return;
 
-    /* Compute true extents: what are the actual unique col values? */
-    var allCols = [];
-    rowKeys.forEach(function (rk) {
-      grouped[rk].forEach(function (c) { if (allCols.indexOf(c.col) === -1) allCols.push(c.col); });
+    wrap.style.position = 'relative';
+    wrap.style.display = 'block';
+    wrap.style.width = Math.round(Math.max(1, bounds.width)) + 'px';
+    wrap.style.height = Math.round(Math.max(1, bounds.height)) + 'px';
+    wrap.style.maxWidth = '';
+    wrap.style.margin = '0 auto';
+
+    pixelPositions.forEach(function (pos, idx) {
+      var hex = document.createElement('div');
+      hex.className = 'hex-cell-preview';
+      hex.style.position = 'absolute';
+      hex.style.left = Math.round(pos.x - bounds.minX) + 'px';
+      hex.style.top = Math.round(pos.y - bounds.minY) + 'px';
+      hex.style.width = HEX_W + 'px';
+      hex.style.height = HEX_H + 'px';
+      hex.style.margin = '0';
+      hex.style.clipPath = HEX_CLIP;
+      hex.style.background = '#191715';
+      hex.style.overflow = 'hidden';
+
+      var inner = document.createElement('div');
+      inner.style.cssText = 'position:absolute;inset:4px;clip-path:' + HEX_CLIP + ';background-repeat:no-repeat;' +
+        platePreviewStyle(mainImage, state.panelImages, idx, pixelPositions, bounds);
+
+      var label = document.createElement('span');
+      label.className = 'hex-label-preview';
+      label.textContent = idx + 1;
+      hex.appendChild(inner);
+      hex.appendChild(label);
+      wrap.appendChild(hex);
     });
-    allCols.sort(function (a,b) { return a-b; });
+  }
 
-    var allRows = rowKeys.slice(); /* already sorted */
+  function renderOutlinePreviewSVG(hexLayer, mainImageUrl) {
+    var pixelPositions = getPreviewPixelPositions();
+    if (!pixelPositions.length) return;
 
-    /* Map row/col values to sequential indices 0..N so positions spread across full image */
-    function rowIdx(r)  { return allRows.indexOf(r); }
-    function colIdx(c)  { return allCols.indexOf(c); }
-    var totalRows = allRows.length;
-    var totalCols = allCols.length;
+    var bounds = getPreviewBounds(pixelPositions);
+    var pad = 4;
+    var minX = bounds.minX - pad;
+    var minY = bounds.minY - pad;
+    var svgW = bounds.width + pad * 2;
+    var svgH = bounds.height + pad * 2;
+    var image = escapeSvgAttr(mainImageUrl || '');
+    var svgParts = [
+      '<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="',
+      minX + ' ' + minY + ' ' + svgW + ' ' + svgH,
+      '">'
+    ];
 
-    rowKeys.forEach(function (rk) {
-      var rowEl = document.createElement('div');
-      rowEl.className = 'hex-row' + (rk % 2 !== 0 ? ' offset' : '');
-
-      grouped[rk].sort(function (a,b) { return a.col - b.col; }).forEach(function (cell) {
-        var hex = document.createElement('div');
-        hex.className = 'hex-cell-preview';
-
-        var imgSrc = state.panelImages[cell.idx] || mainImage;
-        if (imgSrc) {
-          var ri   = rowIdx(rk);
-          var ci   = colIdx(cell.col);
-          /* background-size: scale image so totalCols tiles fit across, totalRows tiles fit vertically */
-          var bsW  = Math.max(totalCols, 1) * 100;
-          var bsH  = Math.max(totalRows, 1) * 100;
-          /* background-position: percentage tells where to put the image origin */
-          /* For position: tile [ci, ri] should show the [ci/totalCols, ri/totalRows] region */
-          var xPct = totalCols > 1 ? (ci / (totalCols - 1)) * 100 : 50;
-          var yPct = totalRows > 1 ? (ri / (totalRows - 1)) * 100 : 50;
-
-          hex.style.backgroundImage    = 'url(' + imgSrc + ')';
-          hex.style.backgroundSize     = bsW + '% ' + bsH + '%';
-          hex.style.backgroundPosition = xPct + '% ' + yPct + '%';
-          hex.style.backgroundRepeat   = 'no-repeat';
-        }
-
-        var label = document.createElement('span');
-        label.className = 'hex-label-preview';
-        label.textContent = cell.idx + 1;
-        hex.appendChild(label);
-        rowEl.appendChild(hex);
-      });
-      wrap.appendChild(rowEl);
+    svgParts.push('<rect x="' + minX + '" y="' + minY + '" width="' + svgW + '" height="' + svgH + '" fill="rgba(0,0,0,0.35)"/>');
+    pixelPositions.forEach(function (pos, idx) {
+      var pts = hexPoints(pos.x, pos.y);
+      var cx = pos.x + HEX_W / 2;
+      var cy = pos.y + HEX_H / 2;
+      var id = 'hp' + idx;
+      svgParts.push(
+        '<clipPath id="' + id + '"><polygon points="' + pts + '"/></clipPath>' +
+        '<image href="' + image + '" x="' + bounds.minX + '" y="' + bounds.minY +
+        '" width="' + bounds.width + '" height="' + bounds.height +
+        '" preserveAspectRatio="xMidYMid slice" clip-path="url(#' + id + ')"/>'
+      );
+      svgParts.push('<polygon points="' + pts + '" fill="none" stroke="rgba(255,255,255,0.75)" stroke-width="2"/>');
+      svgParts.push(
+        '<text x="' + cx + '" y="' + (cy + 5) + '" text-anchor="middle" dominant-baseline="middle"' +
+        ' font-family="\'DM Mono\', monospace" font-size="14" fill="rgba(255,255,255,0.92)"' +
+        ' style="text-shadow: 0 1px 4px rgba(0,0,0,0.8)">' +
+        (idx + 1) + '</text>'
+      );
     });
+    svgParts.push('</svg>');
+    hexLayer.innerHTML = svgParts.join('');
+  }
+
+  function getPreviewPixelPositions() {
+    ensurePanelArrays();
+    return state.panelPositions.map(function (pos) {
+      return gridToPreviewPixel(parseInt(pos.row, 10) || 0, parseInt(pos.col, 10) || 0);
+    });
+  }
+
+  function gridToPreviewPixel(row, col) {
+    return {
+      x: col * COL_PITCH + (row % 2 !== 0 ? ODD_OFFSET : 0),
+      y: row * ROW_PITCH
+    };
+  }
+
+  function getPreviewBounds(positions) {
+    if (!positions.length) return { minX: 0, minY: 0, width: HEX_W, height: HEX_H };
+    var minX = Math.min.apply(null, positions.map(function (p) { return p.x; }));
+    var minY = Math.min.apply(null, positions.map(function (p) { return p.y; }));
+    var maxX = Math.max.apply(null, positions.map(function (p) { return p.x + HEX_W; }));
+    var maxY = Math.max.apply(null, positions.map(function (p) { return p.y + HEX_H; }));
+    return { minX: minX, minY: minY, width: maxX - minX, height: maxY - minY };
+  }
+
+  function platePreviewStyle(sourceImage, plateImages, idx, pixelPositions, bounds) {
+    var mainImage = (sourceImage || '').trim();
+    var plateImage = (plateImages[idx] || '').trim();
+    var hasIndividualCrop = plateImage && plateImage !== mainImage;
+    if (hasIndividualCrop) {
+      return 'background-image:url(' + encodeImgUrl(plateImage) + ');background-size:cover;background-position:center;';
+    }
+    if (!mainImage) return 'background:#222;';
+    var pos = pixelPositions[idx] || { x: bounds.minX, y: bounds.minY };
+    var tileLeft = Math.round(pos.x - bounds.minX);
+    var tileTop = Math.round(pos.y - bounds.minY);
+    return 'background-image:url(' + encodeImgUrl(mainImage) + ');background-size:' +
+      Math.round(Math.max(1, bounds.width)) + 'px ' + Math.round(Math.max(1, bounds.height)) +
+      'px;background-position:-' + tileLeft + 'px -' + tileTop + 'px;';
+  }
+
+  function hexPoints(x, y) {
+    return [
+      (x + HEX_W * 0.5) + ',' + y,
+      (x + HEX_W) + ',' + (y + HEX_H * 0.25),
+      (x + HEX_W) + ',' + (y + HEX_H * 0.75),
+      (x + HEX_W * 0.5) + ',' + (y + HEX_H),
+      x + ',' + (y + HEX_H * 0.75),
+      x + ',' + (y + HEX_H * 0.25)
+    ].join(' ');
+  }
+
+  function encodeImgUrl(value) {
+    return String(value || '').replace(/"/g, '%22').replace(/\)/g, '%29').replace(/\s/g, '%20');
+  }
+
+  function escapeSvgAttr(value) {
+    return String(value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;');
   }
   
   function groupByRow() {

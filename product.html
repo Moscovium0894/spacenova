@@ -467,6 +467,11 @@
 (function() {
   var PLATE_UNIT_PRICE = 34.99;
   var PLATE_SET_PRICE = 0;
+  var LIVE_HEX_H = 112;
+  var LIVE_HEX_W = 97;
+  var LIVE_ROW_PITCH = 84;
+  var LIVE_COL_PITCH = 97;
+  var LIVE_ODD_OFFSET = 48;
 
   document.addEventListener('DOMContentLoaded', function() {
     var params = new URLSearchParams(window.location.search);
@@ -876,22 +881,14 @@
     var safeH = Math.max(1, bounds.height);
     var availableW = Math.max(240, mount.clientWidth || 420) - 44;
     var scale = Math.min(1.35, availableW / safeW, 310 / safeH);
-    var bg = wallSourceImage ? ' style="background-image:url(' + wallSourceImage.replace(/"/g, '%22') + ')"' : '';
+    var bg = wallSourceImage ? ' style="background-image:url(' + encodeImgUrl(wallSourceImage) + ')"' : '';
     var selectedIndexes = Array.from(selected).sort(function(a, b) { return a - b; });
 
     var pieces = selectedIndexes.map(function(idx) {
       var pos = pixelPositions[idx] || { x: 0, y: 0 };
       var left = Math.round(pos.x - bounds.minX);
       var top = Math.round(pos.y - bounds.minY);
-      var image = plateImages[idx] || p.image || '';
-      var innerStyle = '';
-      if (image) {
-        if (plateImages[idx]) {
-          innerStyle = 'background-image:url(' + image.replace(/"/g, '%22') + ');background-size:cover;background-position:center;';
-        } else {
-          innerStyle = 'background-image:url(' + image.replace(/"/g, '%22') + ');background-size:' + Math.round(safeW) + 'px ' + Math.round(safeH) + 'px;background-position:-' + left + 'px -' + top + 'px;';
-        }
-      }
+      var innerStyle = plateImageStyle(p.image, plateImages, idx, pixelPositions, bounds);
       return '<div class="plate-live-piece" style="left:' + left + 'px;top:' + top + 'px">' +
         '<div class="plate-live-inner" style="' + innerStyle + '"></div>' +
         '<span class="plate-live-number">' + (idx + 1) + '</span>' +
@@ -908,24 +905,39 @@
   }
 
   function gridToLivePixel(row, col) {
-    var hexH = 112;
-    var hexW = 97;
-    var colPitch = hexW;
-    var rowPitch = Math.round(hexH * 0.75);
-    var oddOffset = Math.round(colPitch / 2);
     return {
-      x: col * colPitch + (row % 2 !== 0 ? oddOffset : 0),
-      y: row * rowPitch
+      x: col * LIVE_COL_PITCH + (row % 2 !== 0 ? LIVE_ODD_OFFSET : 0),
+      y: row * LIVE_ROW_PITCH
     };
   }
 
   function getLiveBounds(positions) {
-    if (!positions.length) return { minX: 0, minY: 0, width: 97, height: 112 };
+    if (!positions.length) return { minX: 0, minY: 0, width: LIVE_HEX_W, height: LIVE_HEX_H };
     var minX = Math.min.apply(null, positions.map(function(p) { return p.x; }));
     var minY = Math.min.apply(null, positions.map(function(p) { return p.y; }));
-    var maxX = Math.max.apply(null, positions.map(function(p) { return p.x + 97; }));
-    var maxY = Math.max.apply(null, positions.map(function(p) { return p.y + 112; }));
+    var maxX = Math.max.apply(null, positions.map(function(p) { return p.x + LIVE_HEX_W; }));
+    var maxY = Math.max.apply(null, positions.map(function(p) { return p.y + LIVE_HEX_H; }));
     return { minX: minX, minY: minY, width: maxX - minX, height: maxY - minY };
+  }
+
+  function plateImageStyle(sourceImage, plateImages, idx, pixelPositions, bounds) {
+    var plateImage = (plateImages[idx] || '').trim();
+    var mainImage = (sourceImage || '').trim();
+    var hasIndividualCrop = plateImage && plateImage !== mainImage;
+    if (hasIndividualCrop) {
+      return 'background-image:url(' + encodeImgUrl(plateImage) + ');background-size:cover;background-position:center;';
+    }
+    if (!mainImage) return 'background:#222;';
+    var pos = pixelPositions[idx] || { x: bounds.minX, y: bounds.minY };
+    var tileLeft = Math.round(pos.x - bounds.minX);
+    var tileTop = Math.round(pos.y - bounds.minY);
+    return 'background-image:url(' + encodeImgUrl(mainImage) + ');background-size:' +
+      Math.round(Math.max(1, bounds.width)) + 'px ' + Math.round(Math.max(1, bounds.height)) +
+      'px;background-position:-' + tileLeft + 'px -' + tileTop + 'px;';
+  }
+
+  function encodeImgUrl(value) {
+    return String(value || '').replace(/"/g, '%22').replace(/\)/g, '%29').replace(/\s/g, '%20');
   }
 
   function autoLayout(n) {
