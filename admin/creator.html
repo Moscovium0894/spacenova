@@ -277,7 +277,8 @@
     panelNames: [],
     panelImages: [],
     panelPositions: [],
-    activeView: 'main'
+    activeView: 'main',
+    isSaving: false
   };
 
   /* ─── Element cache ─── */
@@ -288,6 +289,7 @@
   var COL_PITCH = 97;
   var ODD_OFFSET = 48;
   var HEX_CLIP = 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)';
+  var loadSeq = 0;
 
   document.addEventListener('DOMContentLoaded', function () {
     cacheEls();
@@ -443,13 +445,11 @@
   /* ─── Load products ─── */
   function initCreator() {
     setStatus('Loading products…', 'loading');
-    fetch('/.netlify/functions/load-products', { cache: 'no-store' })
-    .then(function (r) { return r.json(); })
-    .then(function (data) {
-      state.products = Array.isArray(data) ? data : (data.products || []);
-      populateSelect();
-      if (state.products.length) {
-        loadProduct(state.products[0].slug || state.products[0].id || '');
+    loadProductCatalogue()
+    .then(function (result) {
+      if (result.stale) return;
+      if (result.products.length) {
+        loadProduct(productKey(result.products[0]));
       } else {
         createBlank(false);
       }
@@ -459,6 +459,39 @@
       createBlank(false);
       setStatus('Could not load products', 'error');
     });
+  }
+
+  function loadProductCatalogue() {
+    var seq = ++loadSeq;
+    return fetchProducts()
+      .then(function (products) {
+        if (seq !== loadSeq) return { stale: true, products: state.products };
+        state.products = products;
+        populateSelect();
+        return { stale: false, products: state.products };
+      }, function (err) {
+        if (seq !== loadSeq) return { stale: true, products: state.products, error: err };
+        throw err;
+      });
+  }
+
+  function fetchProducts() {
+    return requestJson('/.netlify/functions/load-products', { cache: 'no-store' })
+      .then(extractProducts);
+  }
+
+  function extractProducts(data) {
+    var list = [];
+    if (Array.isArray(data)) {
+      list = data;
+    } else if (data && Array.isArray(data.products)) {
+      list = data.products;
+    } else if (data && Array.isArray(data.data)) {
+      list = data.data;
+    } else {
+      throw new Error('Product response did not include a product list');
+    }
+    return list.filter(Boolean).map(normaliseProductPayload);
   }
 
   function populateSelect() {
@@ -476,18 +509,18 @@
     E.productSel.appendChild(placeholder);
     state.products.forEach(function (p) {
       var opt = document.createElement('option');
-      opt.value = p.slug || p.id || '';
+      opt.value = productKey(p);
       opt.textContent = p.name || p.slug || 'Untitled';
       E.productSel.appendChild(opt);
     });
   }
 
   function loadProduct(id) {
-    if (!id) return;
-    var p = state.products.find(function (x) { return (x.slug || x.id) === id; });
-    if (!p) return;
-    state.currentId = id;
-    E.productSel.value = id;
+    if (!id) return false;
+    var p = findProduct(id);
+    if (!p) return false;
+    state.currentId = productKey(p);
+    E.productSel.value = state.currentId;
 
     E.f.name.value         = p.name || '';
     E.f.slug.value         = p.slug || '';
@@ -524,9 +557,11 @@
     updateThumb('wall', p.wallImage || '');
     renderPreview();
     setStatus('Loaded ' + (p.name || 'product'), 'ready');
+    return true;
   }
 
   function createBlank(isCollection) {
+    loadSeq++;
     state.currentId = null;
     E.productSel.value = '';
     E.f.slug.dataset.touched = '';
@@ -1136,26 +1171,48 @@
   }
 
   function saveProduct() {
+    if (state.isSaving) {
+      setStatus('Save already in progress', 'saving');
+      return;
+    }
+
     var payload = buildPayload();
     if (!payload.name || !payload.slug) { setStatus('Name and slug are required', 'error'); return; }
-    setStatus('Saving…', 'saving');
-    fetch('/.netlify/functions/save-product', {
+    state.isSaving = true;
+    setStatus('Saving...', 'saving');
+    requestJson('/.netlify/functions/save-product', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-admin-password': sessionStorage.getItem('admin_pw') || '' },
+      headers: { 'Content-Type': 'application/json', 'x-admin-password': getAdminPassword() },
       body: JSON.stringify(payload)
     })
-    .then(function (r) { return r.json(); })
+    .then(function (body) {
+      if (!body || body.ok !== true) {
+        throw new Error((body && (body.error || body.message)) || 'Save was not confirmed by the server');
+      }
+      setStatus('Saved, refreshing...', 'saving');
+      return loadProductCatalogue()
+        .then(function (result) {
+          if (result.stale) return;
+          if (!findProduct(payload.slug)) {
+            upsertProduct(payload);
+            populateSelect();
+          }
+          loadProduct(payload.slug);
+          setStatus('Saved', 'success');
+        })
+        .catch(function () {
+          upsertProduct(payload);
+          populateSelect();
+          loadProduct(payload.slug);
+          setStatus('Saved; using local copy until reload works', 'success');
+        });
+    })
     .then(function () {
-      setStatus('Saved', 'success');
-      return fetch('/.netlify/functions/load-products', { cache: 'no-store' });
-    })
-    .then(function (r) { return r.json(); })
-    .then(function (data) {
-      state.products = Array.isArray(data) ? data : (data.products || []);
-      populateSelect();
-      loadProduct(payload.slug);
-    })
-    .catch(function () { setStatus('Save failed', 'error'); });
+      state.isSaving = false;
+    }, function (err) {
+      state.isSaving = false;
+      setStatus((err && err.message) || 'Save failed', 'error');
+    });
   }
 
   function syncProduct() {
@@ -1163,7 +1220,7 @@
     setStatus('Syncing…', 'saving');
     fetch('/.netlify/functions/sync-product', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-admin-password': sessionStorage.getItem('admin_pw') || '' },
+      headers: { 'Content-Type': 'application/json', 'x-admin-password': getAdminPassword() },
       body: JSON.stringify(payload)
     })
     .then(function (r) { return r.json(); })
@@ -1172,6 +1229,131 @@
   }
 
   /* ─── Helpers ─── */
+  function getAdminPassword() {
+    return sessionStorage.getItem('admin_pw') || '';
+  }
+
+  function requestJson(url, options) {
+    return fetch(url, options || {}).then(function (response) {
+      return parseJsonResponse(response).then(function (body) {
+        if (!response.ok) throw makeRequestError(response, body);
+        return body;
+      }, function (parseErr) {
+        if (!response.ok) throw makeRequestError(response, null);
+        throw parseErr;
+      });
+    });
+  }
+
+  function parseJsonResponse(response) {
+    return response.text().then(function (text) {
+      if (!text) return null;
+      try {
+        return JSON.parse(text);
+      } catch (err) {
+        throw new Error('Invalid JSON response from server');
+      }
+    });
+  }
+
+  function makeRequestError(response, body) {
+    var message = body && (body.error || body.message);
+    if (!message) message = 'Request failed (' + response.status + ' ' + (response.statusText || 'Error') + ')';
+    var err = new Error(message);
+    err.status = response.status;
+    err.body = body;
+    return err;
+  }
+
+  function normaliseProductPayload(product) {
+    product = product || {};
+    var normalised = {};
+    Object.keys(product).forEach(function (key) {
+      normalised[key] = product[key];
+    });
+
+    var plateCount = parseInt(withDefault(readField(product, ['plateCount', 'plate_count', 'pieces']), 1), 10) || 1;
+    var plateNames = arrayCopy(readField(product, ['plateNames', 'plate_names', 'panelNames', 'panel_names']));
+    var plateImages = arrayCopy(readField(product, ['plateImages', 'plate_images', 'panelImages', 'panel_images']));
+    var plateMap = withDefault(readField(product, ['plateMap', 'plate_map', 'panelMap', 'panel_map']), {});
+    if (!plateMap || typeof plateMap !== 'object') plateMap = {};
+
+    normalised.id = readField(product, ['id']);
+    normalised.slug = withDefault(readField(product, ['slug']), '');
+    normalised.name = withDefault(readField(product, ['name']), '');
+    normalised.category = withDefault(readField(product, ['category']), '');
+    normalised.price = withDefault(readField(product, ['price', 'plateSetPrice', 'plate_set_price']), '');
+    normalised.priceLabel = withDefault(readField(product, ['priceLabel', 'price_label']), '');
+    normalised.short = withDefault(readField(product, ['short']), '');
+    normalised.description = withDefault(readField(product, ['description']), '');
+    normalised.note = withDefault(readField(product, ['note']), '');
+    normalised.accent = withDefault(readField(product, ['accent']), '');
+    normalised.size = withDefault(readField(product, ['size']), '');
+    normalised.material = withDefault(readField(product, ['material']), '');
+    normalised.pieces = plateCount;
+    normalised.plateCount = plateCount;
+    normalised.plateUnitPrice = withDefault(readField(product, ['plateUnitPrice', 'plate_unit_price']), '');
+    normalised.plateSetPrice = withDefault(readField(product, ['plateSetPrice', 'plate_set_price', 'price']), '');
+    normalised.panelHint = withDefault(readField(product, ['panelHint', 'panel_hint']), '');
+    normalised.image = withDefault(readField(product, ['image']), '');
+    normalised.wallImage = withDefault(readField(product, ['wallImage', 'wall_image']), '');
+    normalised.wallSourceImage = withDefault(readField(product, ['wallSourceImage', 'wall_source_image']), '');
+    normalised.isCollection = !!withDefault(readField(product, ['isCollection', 'is_collection']), false);
+    normalised.isBundle = !!withDefault(readField(product, ['isBundle', 'is_bundle']), false);
+    normalised.isPublished = withDefault(readField(product, ['isPublished', 'is_published']), true) !== false;
+    normalised.plateNames = plateNames;
+    normalised.plateImages = plateImages;
+    normalised.plateMap = plateMap;
+    normalised.panelNames = plateNames;
+    normalised.panelImages = plateImages;
+    normalised.panelMap = plateMap;
+    return normalised;
+  }
+
+  function readField(source, keys) {
+    for (var i = 0; i < keys.length; i++) {
+      if (Object.prototype.hasOwnProperty.call(source, keys[i]) && source[keys[i]] !== undefined && source[keys[i]] !== null) {
+        return source[keys[i]];
+      }
+    }
+    return undefined;
+  }
+
+  function withDefault(value, fallback) {
+    return value === undefined || value === null ? fallback : value;
+  }
+
+  function arrayCopy(value) {
+    return Array.isArray(value) ? value.slice() : [];
+  }
+
+  function productKey(product) {
+    var key = product && (product.slug || product.id);
+    return key === undefined || key === null ? '' : String(key);
+  }
+
+  function findProduct(id) {
+    var target = id === undefined || id === null ? '' : String(id);
+    for (var i = 0; i < state.products.length; i++) {
+      if (productKey(state.products[i]) === target) return state.products[i];
+    }
+    return null;
+  }
+
+  function upsertProduct(product) {
+    var normalised = normaliseProductPayload(product);
+    var key = productKey(normalised);
+    if (!key) return null;
+    for (var i = 0; i < state.products.length; i++) {
+      if (productKey(state.products[i]) === key) {
+        state.products[i] = normalised;
+        return normalised;
+      }
+    }
+    state.products.unshift(normalised);
+    return normalised;
+  }
+
   function slugify(v) {
     return (v || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
   }
