@@ -60,6 +60,11 @@
     saveBasket();
     render();
   }
+  function clearBasket() {
+    basket = [];
+    saveBasket();
+    render();
+  }
 
   function changeQty(id, delta) {
     var item = basket.find(function(i) { return i.id === id; });
@@ -121,10 +126,10 @@
           '<button class="qty-btn qty-minus" data-id="' + item.id + '">&#8722;</button>' +
           '<span class="qty-val">' + item.qty + '</span>' +
           '<button class="qty-btn qty-plus" data-id="' + item.id + '">+</button>' +
-          '<button class="bi-remove" data-id="' + item.id + '">&times;</button>' +
+          '<button class="bi-remove" data-id="' + item.id + '" aria-label="Remove ' + item.name + ' from basket">Remove</button>' +
         '</div>' +
       '</div>';
-    }).join('');
+    }).join('') + '<div class="basket-clear-row"><button class="basket-clear-btn" id="basket-clear-btn">Clear basket</button></div>';
 
     body.querySelectorAll('.qty-minus').forEach(function(btn) {
       btn.addEventListener('click', function() { changeQty(this.dataset.id, -1); });
@@ -135,6 +140,10 @@
     body.querySelectorAll('.bi-remove').forEach(function(btn) {
       btn.addEventListener('click', function() { removeItem(this.dataset.id); });
     });
+    var clearBtn = document.getElementById('basket-clear-btn');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', clearBasket);
+    }
 
     if (footer) footer.style.display = '';
     var sub = calcSubtotal();

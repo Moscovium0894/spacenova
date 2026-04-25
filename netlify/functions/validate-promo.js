@@ -52,11 +52,6 @@ exports.handler = async (event) => {
       };
     }
 
-    await supabase
-      .from('promo_codes')
-      .update({ uses_count: (data.uses_count || 0) + 1 })
-      .eq('id', data.id);
-
     return {
       statusCode: 200,
       headers,

@@ -209,6 +209,17 @@
     if (totalEl)    totalEl.textContent    = fmt(sub + ship);
   }
 
+  function setSummaryLoading(on) {
+    if (!summaryEl) return;
+    if (on) {
+      summaryEl.innerHTML = '<p style="color:var(--muted);font-size:.85rem">Calculating secure totals…</p>';
+      if (subtotalEl) subtotalEl.textContent = '\u2014';
+      if (shippingEl) shippingEl.textContent = '\u2014';
+      if (totalEl) totalEl.textContent = '\u2014';
+      if (discRow) discRow.style.display = 'none';
+    }
+  }
+
   async function mountElements() {
     if (!stripe) return;
 
@@ -300,8 +311,8 @@
       populateShippingSelect(getDefaultShippingOptions());
     }
 
-    /* 2. Populate order summary */
-    populateSummary();
+    /* 2. Keep totals in loading state until server responds */
+    setSummaryLoading(true);
 
     /* 3. Load Stripe publishable key */
     var keyRes  = await fetch('/.netlify/functions/stripe-config');
@@ -315,6 +326,7 @@
     /* 4. Mount Stripe elements */
     try {
       await mountElements();
+      populateSummary();
     } catch (err) {
       showError(err.message || 'Failed to load payment form.');
       return;
@@ -324,7 +336,7 @@
     var methodSelect = document.getElementById('shipping-method');
     if (methodSelect) {
       methodSelect.addEventListener('change', function() {
-        populateSummary();
+        setSummaryLoading(true);
         mountElements().catch(function(e) { showError(e.message); });
       });
     }

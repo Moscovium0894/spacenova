@@ -1,4 +1,4 @@
-const Stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 exports.handler = async (event) => {
   const { password, product } = JSON.parse(event.body || '{}');
@@ -13,14 +13,14 @@ exports.handler = async (event) => {
 
   // Create or update Stripe product
   try {
-    await Stripe.products.update(stripeId, {
+    await stripe.products.update(stripeId, {
       name: product.name,
       description: product.short || '',
       images: product.image ? [product.image] : [],
       metadata: { slug: product.slug, pieces: String(product.pieces || 6) }
     });
   } catch (e) {
-    await Stripe.products.create({
+    await stripe.products.create({
       id: stripeId,
       name: product.name,
       description: product.short || '',
@@ -30,12 +30,12 @@ exports.handler = async (event) => {
   }
 
   // Archive old price, create new
-  const prices = await Stripe.prices.list({ product: stripeId, active: true });
+  const prices = await stripe.prices.list({ product: stripeId, active: true });
   if (prices.data[0]) {
-    await Stripe.prices.update(prices.data[0].id, { active: false });
+    await stripe.prices.update(prices.data[0].id, { active: false });
   }
 
-  const newPrice = await Stripe.prices.create({
+  const newPrice = await stripe.prices.create({
     product: stripeId,
     unit_amount: priceInPence,
     currency: 'gbp',
