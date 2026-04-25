@@ -235,14 +235,14 @@
 
     /*
      * Individual plate piece.
-     * Uses clip-path for the hex shape.
+     * The image/gloss layers carry the hex clip so the outline can sit
+     * on the true edge without being cut off.
      * Positioned absolutely within .plate-cluster.
      * Width/height set inline by JS (97×112 base, scaled).
      */
     .plate-piece {
       position: absolute;
       cursor: pointer;
-      /* clip-path applied inline */
       transition: transform .18s cubic-bezier(.22,1,.36,1), filter .18s;
       -webkit-tap-highlight-color: transparent;
       will-change: transform;
@@ -257,12 +257,26 @@
     /* The photographic fill layer */
     .plate-piece-inner {
       position: absolute;
-      /* inset matches the frame width (4px) */
-      inset: 4px;
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      clip-path: inherit;
+      inset: 0;
+      overflow: hidden;
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      -webkit-clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    }
+    .plate-piece-inner img {
+      position: absolute;
+      display: block;
+      max-width: none;
+      pointer-events: none;
+      user-select: none;
+    }
+    .plate-piece-full-img {
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .plate-piece-crop-img {
+      object-fit: cover;
     }
 
     /* Surface gloss */
@@ -275,7 +289,8 @@
         rgba(255,255,255,.04) 38%,
         rgba(0,0,0,.12) 100%
       );
-      clip-path: inherit;
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      -webkit-clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
       pointer-events: none;
       z-index: 2;
     }
@@ -542,9 +557,6 @@
   var COL_PITCH = 97;
   var ODD_OFFSET = 48;
 
-  // Clip-path for a pointy-top hexagon (matches CSS and SVG clip in mockup)
-  var HEX_CLIP = 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)';
-
   // Pricing
   var PLATE_UNIT_PRICE = 34.99;
   var PLATE_SET_PRICE = 0;
@@ -787,30 +799,29 @@
     var scaleH = maxH / bounds.h;
     var scale = Math.min(1.0, scaleW, scaleH);
 
-    var clusterW = Math.round(bounds.w * scale);
-    var clusterH = Math.round(bounds.h * scale);
-    var tileW = Math.round(HEX_W * scale);
-    var tileH = Math.round(HEX_H * scale);
+    var clusterW = bounds.w * scale;
+    var clusterH = bounds.h * scale;
+    var tileW = HEX_W * scale;
+    var tileH = HEX_H * scale;
 
     // Build the HTML
     var tilesHtml = positions.map(function (pos, idx) {
       var px = pixelPos[idx];
-      var left = Math.round((px.x - bounds.minX) * scale);
-      var top = Math.round((px.y - bounds.minY) * scale);
+      var left = (px.x - bounds.minX) * scale;
+      var top = (px.y - bounds.minY) * scale;
 
-      var innerStyle = platePreviewImageStyle(p, plateImages, idx, px, bounds);
+      var fill = platePreviewFill(p, plateImages, idx, px, bounds, scale);
 
       var name = plateNames[idx] || ('Plate ' + (idx + 1));
 
       return '<div class="plate-piece is-selected" data-idx="' + idx + '" ' +
-        'style="left:' + left + 'px;top:' + top + 'px;' +
-               'width:' + tileW + 'px;height:' + tileH + 'px;' +
-               'clip-path:' + HEX_CLIP + ';" ' +
+        'style="left:' + cssPx(left) + ';top:' + cssPx(top) + ';' +
+               'width:' + cssPx(tileW) + ';height:' + cssPx(tileH) + ';" ' +
         'title="' + esc(name) + '" ' +
         'role="checkbox" aria-label="' + esc(name) + '" aria-checked="true" tabindex="0">' +
-        '<div class="plate-piece-inner" style="' + innerStyle + '"></div>' +
+        '<div class="plate-piece-inner" style="' + fill.style + '">' + fill.html + '</div>' +
         '<div class="plate-piece-gloss"></div>' +
-        '<svg class="plate-piece-outline" viewBox="0 0 97 112" aria-hidden="true" focusable="false"><polygon points="48.5,2 95,29 95,83 48.5,110 2,83 2,29"/></svg>' +
+        '<svg class="plate-piece-outline" viewBox="0 0 97 112" aria-hidden="true" focusable="false"><polygon points="48.5,1 96,28.5 96,83.5 48.5,111 1,83.5 1,28.5"/></svg>' +
         '<span class="plate-piece-num">' + (idx + 1) + '</span>' +
       '</div>';
     }).join('');
@@ -823,7 +834,7 @@
         '</div>' +
         '<div class="plate-preview-stage">' +
           '<div class="plate-cluster" id="plate-cluster" ' +
-            'style="width:' + clusterW + 'px;height:' + clusterH + 'px;position:relative;">' +
+            'style="width:' + cssPx(clusterW) + ';height:' + cssPx(clusterH) + ';position:relative;">' +
             tilesHtml +
           '</div>' +
         '</div>' +
@@ -872,18 +883,26 @@
     updatePreview();
   }
 
-  function platePreviewImageStyle(product, plateImages, idx, pixelPos, bounds) {
+  function platePreviewFill(product, plateImages, idx, pixelPos, bounds, scale) {
     var mainImage = ((product && product.image) || '').trim();
     var plateImage = getUsablePlateImage(product, plateImages, idx, mainImage);
     if (plateImage) {
-      return 'background-image:url(' + encodeImgUrl(plateImage) + ');background-size:cover;background-position:center;';
+      return {
+        style: '',
+        html: '<img class="plate-piece-full-img" src="' + escapeAttr(plateImage) + '" alt="">'
+      };
     }
-    if (!mainImage) return 'background:#222;';
-    var tileLeft = Math.round(pixelPos.x - bounds.minX + 4);
-    var tileTop = Math.round(pixelPos.y - bounds.minY + 4);
-    return 'background-image:url(' + encodeImgUrl(mainImage) + ');background-size:' +
-      Math.round(Math.max(1, bounds.w)) + 'px ' + Math.round(Math.max(1, bounds.h)) +
-      'px;background-position:-' + tileLeft + 'px -' + tileTop + 'px;';
+    if (!mainImage) return { style: 'background:#222;', html: '' };
+    var displayScale = typeof scale === 'number' && scale > 0 ? scale : 1;
+    var tileLeft = (pixelPos.x - bounds.minX) * displayScale;
+    var tileTop = (pixelPos.y - bounds.minY) * displayScale;
+    return {
+      style: '',
+      html: '<img class="plate-piece-crop-img" src="' + escapeAttr(mainImage) + '" alt="" style="' +
+        'width:' + cssPx(Math.max(1, bounds.w * displayScale)) + ';' +
+        'height:' + cssPx(Math.max(1, bounds.h * displayScale)) + ';' +
+        'left:-' + cssPx(tileLeft) + ';top:-' + cssPx(tileTop) + ';">'
+    };
   }
 
   function getUsablePlateImage(product, plateImages, idx, mainImage) {
@@ -1068,6 +1087,10 @@
   }
 
   // ─── Utility ──────────────────────────────────────────────────────────────
+  function cssPx(value) {
+    return (Math.round((Number(value) || 0) * 1000) / 1000) + 'px';
+  }
+
   function esc(s) {
     return String(s || '')
       .replace(/&/g, '&amp;')
@@ -1076,11 +1099,8 @@
       .replace(/"/g, '&quot;');
   }
 
-  function encodeImgUrl(url) {
-    // Don't double-encode, just make it safe for CSS url()
-    return String(url || '').replace(/\s/g, '%20').replace(/[()'"]/g, function (c) {
-      return { '(': '%28', ')': '%29', "'": '%27', '"': '%22' }[c];
-    });
+  function escapeAttr(value) {
+    return esc(value).replace(/'/g, '&#39;');
   }
 
 })();

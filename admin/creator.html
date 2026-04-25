@@ -928,13 +928,13 @@
       hex.style.width = HEX_W + 'px';
       hex.style.height = HEX_H + 'px';
       hex.style.margin = '0';
-      hex.style.clipPath = HEX_CLIP;
-      hex.style.background = '#191715';
-      hex.style.overflow = 'hidden';
+      hex.style.background = 'transparent';
+      hex.style.overflow = 'visible';
 
+      var fill = platePreviewFill(mainImage, state.panelImages, idx, pixelPositions, bounds);
       var inner = document.createElement('div');
-      inner.style.cssText = 'position:absolute;inset:4px;clip-path:' + HEX_CLIP + ';background-repeat:no-repeat;' +
-        platePreviewStyle(mainImage, state.panelImages, idx, pixelPositions, bounds);
+      inner.style.cssText = 'position:absolute;inset:0;clip-path:' + HEX_CLIP + ';overflow:hidden;' + fill.style;
+      inner.innerHTML = fill.html;
 
       var label = document.createElement('span');
       label.className = 'hex-label-preview';
@@ -1009,19 +1009,26 @@
     return { minX: minX, minY: minY, width: maxX - minX, height: maxY - minY };
   }
 
-  function platePreviewStyle(sourceImage, plateImages, idx, pixelPositions, bounds) {
+  function platePreviewFill(sourceImage, plateImages, idx, pixelPositions, bounds) {
     var mainImage = (sourceImage || '').trim();
     var plateImage = getUsablePlateImage(plateImages, idx, mainImage);
     if (plateImage) {
-      return 'background-image:url(' + encodeImgUrl(plateImage) + ');background-size:cover;background-position:center;';
+      return {
+        style: '',
+        html: '<img src="' + escapeSvgAttr(plateImage) + '" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;max-width:none;pointer-events:none;user-select:none;">'
+      };
     }
-    if (!mainImage) return 'background:#222;';
+    if (!mainImage) return { style: 'background:#222;', html: '' };
     var pos = pixelPositions[idx] || { x: bounds.minX, y: bounds.minY };
-    var tileLeft = Math.round(pos.x - bounds.minX + 4);
-    var tileTop = Math.round(pos.y - bounds.minY + 4);
-    return 'background-image:url(' + encodeImgUrl(mainImage) + ');background-size:' +
-      Math.round(Math.max(1, bounds.width)) + 'px ' + Math.round(Math.max(1, bounds.height)) +
-      'px;background-position:-' + tileLeft + 'px -' + tileTop + 'px;';
+    var tileLeft = Math.round(pos.x - bounds.minX);
+    var tileTop = Math.round(pos.y - bounds.minY);
+    return {
+      style: '',
+      html: '<img src="' + escapeSvgAttr(mainImage) + '" alt="" style="position:absolute;display:block;max-width:none;pointer-events:none;user-select:none;object-fit:cover;' +
+        'width:' + Math.round(Math.max(1, bounds.width)) + 'px;' +
+        'height:' + Math.round(Math.max(1, bounds.height)) + 'px;' +
+        'left:-' + tileLeft + 'px;top:-' + tileTop + 'px;">'
+    };
   }
 
   function getUsablePlateImage(plateImages, idx, mainImage) {
@@ -1063,15 +1070,12 @@
     ].join(' ');
   }
 
-  function encodeImgUrl(value) {
-    return String(value || '').replace(/"/g, '%22').replace(/\)/g, '%29').replace(/\s/g, '%20');
-  }
-
   function escapeSvgAttr(value) {
     return String(value || '')
       .replace(/&/g, '&amp;')
       .replace(/"/g, '&quot;')
-      .replace(/</g, '&lt;');
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
   }
   
   function groupByRow() {
