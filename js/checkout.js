@@ -135,9 +135,16 @@
       try {
         var reqOpts = Object.assign({}, options || {}, { signal: controller.signal });
         var res = await fetch(url, reqOpts);
-        if (!res.ok) throw new Error('HTTP ' + res.status);
+        var text = await res.text();
+        var json;
+        try {
+          json = text ? JSON.parse(text) : {};
+        } catch (parseErr) {
+          throw new Error('Received a non-JSON response from ' + url);
+        }
+        if (!res.ok) throw new Error(json.error || ('HTTP ' + res.status));
         clearTimeout(timeout);
-        return await res.json();
+        return json;
       } catch (err) {
         clearTimeout(timeout);
         lastErr = err;
@@ -159,6 +166,7 @@
     options.forEach(function (o) {
       SHIPPING_OPTIONS[o.key] = {
         label:         o.label,
+        description:   o.description || '',
         price:         o.price,
         freeThreshold: o.freeThreshold
       };
@@ -178,7 +186,7 @@
         costStr = '\u00a3' + o.price.toFixed(2);
       }
 
-      opt.textContent = o.label + ' \u2014 ' + costStr;
+      opt.textContent = o.label + (o.description ? ' (' + o.description + ')' : '') + ' \u2014 ' + costStr;
       select.appendChild(opt);
     });
   }
@@ -193,13 +201,14 @@
     }
 
     summaryEl.innerHTML = basket.map(function(item) {
-      var lineTotal = (item.price || 0) * (item.qty || 1);
+      var qty = item.qty || item.quantity || 1;
+      var lineTotal = (item.price || 0) * qty;
       return '<div class="co-item"><span class="co-item-name">' + item.name +
-        (item.qty > 1 ? ' &times;' + item.qty : '') +
+        (qty > 1 ? ' &times;' + qty : '') +
         '</span><span class="co-item-price">' + fmt(lineTotal) + '</span></div>';
     }).join('');
 
-    var sub = basket.reduce(function(s, i) { return s + (i.price || 0) * (i.qty || 1); }, 0);
+    var sub = basket.reduce(function(s, i) { return s + (i.price || 0) * (i.qty || i.quantity || 1); }, 0);
     var methodEl = document.getElementById('shipping-method');
     var method   = methodEl ? methodEl.value : '';
     var ship     = getShippingCost(method, sub);
@@ -239,7 +248,13 @@
       }),
     });
 
-    var piData = await piRes.json();
+    var piText = await piRes.text();
+    var piData;
+    try {
+      piData = piText ? JSON.parse(piText) : {};
+    } catch (parseErr) {
+      throw new Error('Payment totals returned an unreadable response.');
+    }
     if (!piRes.ok) throw new Error(piData.error || 'Could not initialise payment.');
     if (!piData.clientSecret) throw new Error('Could not initialise payment.');
 
@@ -316,7 +331,14 @@
 
     /* 3. Load Stripe publishable key */
     var keyRes  = await fetch('/.netlify/functions/stripe-config');
-    var keyData = await keyRes.json();
+    var keyText = await keyRes.text();
+    var keyData;
+    try {
+      keyData = keyText ? JSON.parse(keyText) : {};
+    } catch (parseErr) {
+      showError('Payment system returned an unreadable response. Please refresh.');
+      return;
+    }
     if (!keyData.publishableKey) {
       showError('Payment system could not be loaded. Please refresh.');
       return;

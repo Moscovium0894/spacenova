@@ -212,7 +212,13 @@
         var res = await fetch('/.netlify/functions/load-shipping-options', { cache: 'no-store', signal: controller.signal });
         clearTimeout(timer);
         if (!res.ok) throw new Error('HTTP ' + res.status);
-        var data = await res.json();
+        var text = await res.text();
+        var data;
+        try {
+          data = text ? JSON.parse(text) : {};
+        } catch (parseErr) {
+          throw new Error('Received a non-JSON response from shipping function');
+        }
         if (data.options && data.options.length) {
           localStorage.setItem(cacheKey, JSON.stringify(data.options));
         }

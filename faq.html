@@ -31,6 +31,8 @@
       color: var(--muted); font-size: .9rem; line-height: 1.7;
     }
     .faq-error a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+    .faq-layout { max-width: 980px; margin: 0 auto; }
+    .faq-content { min-width: 0; }
   </style>
 </head>
 <body>
@@ -257,7 +259,13 @@
         var res = await fetch('/.netlify/functions/load-faqs', { cache: 'no-store', signal: controller.signal });
         clearTimeout(timer);
         if (!res.ok) throw new Error('HTTP ' + res.status);
-        var data = await res.json();
+        var text = await res.text();
+        var data;
+        try {
+          data = text ? JSON.parse(text) : {};
+        } catch (parseErr) {
+          throw new Error('Received a non-JSON response from FAQ function');
+        }
         if (data.categories && data.categories.length) {
           localStorage.setItem(cacheKey, JSON.stringify(data));
         }

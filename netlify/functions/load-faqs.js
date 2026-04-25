@@ -2,7 +2,7 @@ const { createClient } = require('@supabase/supabase-js');
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY  // public read — no auth needed
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY
 );
 
 exports.handler = async (event) => {
@@ -13,37 +13,32 @@ exports.handler = async (event) => {
   const headers = {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
-    'Cache-Control': 'public, max-age=120, stale-while-revalidate=300'
+    'Cache-Control': 'no-store, max-age=0'
   };
 
   try {
-    let { data, error } = await queryFAQs(true);
-
-    if (error) {
-      console.warn('load-faqs: active FAQ query failed, retrying without active filter:', error.message || error);
-      ({ data, error } = await queryFAQs(false));
-    } else if (!data || data.length === 0) {
-      console.warn('load-faqs: no active FAQs found, falling back to all FAQs');
-      ({ data, error } = await queryFAQs(false));
-    }
+    const { data, error } = await supabase
+      .from('faqs')
+      .select('*');
 
     if (error) {
       console.error('load-faqs error:', error);
       return { statusCode: 500, headers, body: JSON.stringify({ error: 'Failed to load FAQs' }) };
     }
 
-    // Group by category, preserving sort order within each group
+    const rows = normaliseFAQRows(data || []);
     const grouped = {};
     const categoryOrder = [];
-    for (const faq of (data || [])) {
+
+    for (const faq of rows) {
       if (!grouped[faq.category]) {
         grouped[faq.category] = [];
         categoryOrder.push(faq.category);
       }
       grouped[faq.category].push({
-        id:       faq.id,
+        id: faq.id,
         question: faq.question,
-        answer:   faq.answer
+        answer: faq.answer
       });
     }
 
@@ -58,29 +53,56 @@ exports.handler = async (event) => {
   }
 };
 
-async function queryFAQs(filterActive, includeSortOrder = true) {
-  const selectColumns = includeSortOrder
-    ? 'id, category, question, answer, sort_order'
-    : 'id, category, question, answer';
+function normaliseFAQRows(rawRows) {
+  const rows = rawRows.map((row, index) => {
+    const category = getField(row, ['category', 'section', 'group', 'topic']) || 'General';
+    return {
+      id: getField(row, ['id', 'uuid']) || `${slugify(category)}-${index}`,
+      category,
+      question: getField(row, ['question', 'faq_question', 'title', 'q']),
+      answer: getField(row, ['answer', 'faq_answer', 'content', 'body', 'a']),
+      sortOrder: numberOr(getField(row, ['sort_order', 'sortOrder', 'order', 'position', 'display_order']), index),
+      active: activeState(getField(row, ['active', 'is_active', 'enabled', 'published', 'is_published']))
+    };
+  }).filter(row => row.question && row.answer);
 
-  let query = supabase
-    .from('faqs')
-    .select(selectColumns);
-
-  if (filterActive) query = query.eq('active', true);
-  query = query.order('category', { ascending: true });
-  if (includeSortOrder) query = query.order('sort_order', { ascending: true });
-
-  const result = await query;
-  if (result.error && includeSortOrder && isMissingColumnError(result.error, 'sort_order')) {
-    console.warn('load-faqs: sort_order unavailable, retrying without sort_order');
-    return queryFAQs(filterActive, false);
+  const hasActiveValues = rows.some(row => row.active !== null);
+  const activeRows = hasActiveValues ? rows.filter(row => row.active !== false) : rows;
+  if (hasActiveValues && activeRows.length === 0 && rows.length > 0) {
+    console.warn('load-faqs: active flag filtered every row, returning all FAQs');
   }
 
-  return result;
+  return (activeRows.length ? activeRows : rows).sort((a, b) => {
+    const categorySort = a.category.localeCompare(b.category);
+    if (categorySort) return categorySort;
+    if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
+    return a.question.localeCompare(b.question);
+  });
 }
 
-function isMissingColumnError(error, column) {
-  const message = String((error && (error.message || error.details || error.hint || error.code)) || '');
-  return message.toLowerCase().includes(column.toLowerCase());
+function getField(row, names) {
+  for (const name of names) {
+    if (Object.prototype.hasOwnProperty.call(row, name) && row[name] !== null && row[name] !== undefined && row[name] !== '') {
+      return row[name];
+    }
+  }
+  return null;
+}
+
+function numberOr(value, fallback) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function activeState(value) {
+  if (value === true || value === false) return value;
+  if (value === null || value === undefined || value === '') return null;
+  const normalised = String(value).trim().toLowerCase();
+  if (['true', '1', 'yes', 'y'].includes(normalised)) return true;
+  if (['false', '0', 'no', 'n'].includes(normalised)) return false;
+  return null;
+}
+
+function slugify(value) {
+  return String(value || 'general').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }

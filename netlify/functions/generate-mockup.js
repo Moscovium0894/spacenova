@@ -4,7 +4,7 @@ const { createClient } = require('@supabase/supabase-js');
 const DEFAULT_BUCKET = 'product-images';
 const HEX_H = 210;
 const HEX_W = Math.round(HEX_H * 0.866);
-const HEX_GAP = 2;
+const HEX_GAP = 0;
 const COL_PITCH = HEX_W + HEX_GAP;
 const ROW_PITCH = Math.round(HEX_H * 0.75) + HEX_GAP;
 const ODD_OFFSET = Math.round(COL_PITCH / 2);
@@ -43,7 +43,7 @@ exports.handler = async (event) => {
       if (error) throw error;
       products = data || [];
     } else if (body.productId) {
-      const { data, error } = await supabase.from('products').select('*').eq('id', body.productId).single();
+      const { data, error } = await getProductByIdentifier(supabase, body.productId);
       if (error || !data) return json(404, { success: false, error: 'Product not found', results: [] });
       products = [data];
     } else {
@@ -65,7 +65,8 @@ exports.handler = async (event) => {
         const pieceCount = positions.length;
         const productBuffer = await fetchBuffer(imageUrl);
         const mockupBuffer = await generateMockup({ wallBuffer, productBuffer, positions });
-        const storagePath = `mockups/${product.id}-wall-mockup.png`;
+        const productKey = getProductKey(product);
+        const storagePath = `mockups/${safeStorageName(productKey)}-mockup.png`;
 
         const { error: uploadError } = await supabase.storage
           .from(bucket)
@@ -77,16 +78,20 @@ exports.handler = async (event) => {
         if (uploadError) throw uploadError;
 
         const wallImage = `${process.env.SUPABASE_URL}/storage/v1/object/public/${bucket}/${storagePath}`;
-        const { error: updateError } = await supabase
-          .from('products')
-          .update({ wall_image: wallImage })
-          .eq('id', product.id);
+        await updateProductWallImage(supabase, product, wallImage);
 
-        if (updateError) throw updateError;
-
-        results.push({ productId: product.id, name: product.name, pieces: pieceCount, success: true, wall_image: wallImage });
+        results.push({
+          productId: product.id || product.slug,
+          slug: product.slug || null,
+          name: product.name,
+          pieces: pieceCount,
+          success: true,
+          storage_path: storagePath,
+          wall_image: wallImage,
+          positions_source: getPanelMapPositions(product) ? 'panel_map' : 'auto'
+        });
       } catch (err) {
-        results.push({ productId: product.id, name: product.name, success: false, error: err.message });
+        results.push({ productId: product.id || product.slug, slug: product.slug || null, name: product.name, success: false, error: err.message });
       }
     }
 
@@ -107,6 +112,57 @@ function getPieceCount(product) {
   if (Array.isArray(product.panel_names) && product.panel_names.length) return Math.min(product.panel_names.length, 24);
   if (Array.isArray(product.panelImages) && product.panelImages.length) return Math.min(product.panelImages.length, 24);
   return 3;
+}
+
+async function getProductByIdentifier(supabase, identifier) {
+  const value = String(identifier || '').trim();
+  if (!value) return { data: null, error: new Error('Missing product identifier') };
+
+  const bySlug = await supabase
+    .from('products')
+    .select('*')
+    .eq('slug', value)
+    .maybeSingle();
+
+  if (bySlug.data || (bySlug.error && !isNoRowsError(bySlug.error))) return bySlug;
+
+  return supabase
+    .from('products')
+    .select('*')
+    .eq('id', value)
+    .maybeSingle();
+}
+
+async function updateProductWallImage(supabase, product, wallImage) {
+  const attempts = [];
+  if (product.slug) attempts.push({ column: 'slug', value: product.slug });
+  if (product.id !== undefined && product.id !== null) attempts.push({ column: 'id', value: product.id });
+
+  let lastError = null;
+  for (const attempt of attempts) {
+    const { data, error } = await supabase
+      .from('products')
+      .update({ wall_image: wallImage })
+      .eq(attempt.column, attempt.value)
+      .select(attempt.column);
+
+    if (!error && data && data.length > 0) return data[0];
+    if (error) lastError = error;
+  }
+
+  throw lastError || new Error(`No product row matched ${product.slug || product.id || product.name || 'unknown product'}`);
+}
+
+function getProductKey(product) {
+  return product.slug || product.id || product.name || `product-${Date.now()}`;
+}
+
+function safeStorageName(value) {
+  return String(value || 'product')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'product';
 }
 
 function getPanelMapPositions(product) {
@@ -294,6 +350,10 @@ function hexMaskSvg(w, h) {
 
 function hexStrokeSvg(w, h) {
   return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg"><polygon points="${hexPoints(w, h)}" fill="none" stroke="rgba(255,255,255,0.28)" stroke-width="1"/><polygon points="${hexPoints(w, h)}" fill="none" stroke="rgba(0,0,0,0.28)" stroke-width="1.2"/></svg>`;
+}
+
+function isNoRowsError(error) {
+  return error && (error.code === 'PGRST116' || /no rows/i.test(error.message || ''));
 }
 
 function json(statusCode, body) {
