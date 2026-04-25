@@ -6,34 +6,44 @@
   <title>Mockup Generator - Spacenova Admin</title>
   <link rel="stylesheet" href="/css/style.css" />
   <style>
-    body { font-family: system-ui, sans-serif; padding: 20px; }
-    .container { max-width: 800px; margin: auto; }
-    label { display:block; margin-top:15px; }
-    select, input, button { width:100%; padding:10px; margin-top:5px; }
-    button { cursor:pointer; }
-    .results img { max-width:100%; margin-top:10px; }
+    body { font-family: system-ui, sans-serif; padding: 20px; background:#f7f7f5; color:#111; }
+    .container { max-width: 860px; margin: auto; background:#fff; border:1px solid rgba(0,0,0,.08); border-radius:20px; padding:24px; box-shadow:0 18px 50px rgba(0,0,0,.07); }
+    .top-row { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px; }
+    .top-row a { color:#555; text-decoration:none; font-size:.85rem; }
+    p { color:#666; line-height:1.55; }
+    label { display:block; margin-top:15px; font-size:.78rem; text-transform:uppercase; letter-spacing:.08em; color:#555; }
+    select, input, button { width:100%; padding:12px 13px; margin-top:6px; border-radius:12px; border:1px solid rgba(0,0,0,.14); font:inherit; }
+    button { cursor:pointer; border:none; background:#111; color:#fff; font-weight:700; }
+    button.secondary { background:#f1f1ef; color:#111; border:1px solid rgba(0,0,0,.1); }
+    .button-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:18px; }
+    .note { background:#faf8f3; border:1px solid rgba(154,122,58,.22); padding:12px 14px; border-radius:14px; margin-top:16px; font-size:.9rem; }
+    .results { margin-top:22px; }
+    .results img { max-width:100%; margin-top:10px; border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,0.15); }
+    @media (max-width:640px){ .button-grid{grid-template-columns:1fr;} .container{padding:18px;} }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Mockup Generator</h1>
+    <div class="top-row">
+      <h1>Mockup Generator</h1>
+      <a href="/admin/index.html">Back to dashboard</a>
+    </div>
+    <p>Create framed wall mockups from each product. The number of hexagons is taken from the product record automatically.</p>
 
     <label>Product</label>
     <select id="productSelect"></select>
 
-    <label>Layout</label>
-    <select id="layout">
-      <option value="single">Single</option>
-      <option value="three" selected>Three</option>
-      <option value="five">Five</option>
-      <option value="seven">Seven</option>
-    </select>
-
     <label>Wall Image URL</label>
-    <input id="wallUrl" placeholder="Optional wall image URL" />
+    <input id="wallUrl" placeholder="Leave blank to use DEFAULT_WALL_IMAGE_URL" />
 
-    <button id="generateOne">Generate for selected product</button>
-    <button id="generateAll">Generate for ALL products</button>
+    <div class="note">
+      Tip: use a permanent public Supabase Storage URL for the wall image. Signed URLs or paths with unescaped spaces can fail.
+    </div>
+
+    <div class="button-grid">
+      <button id="generateOne">Generate selected product</button>
+      <button class="secondary" id="generateAll">Generate ALL products</button>
+    </div>
 
     <div class="results" id="results"></div>
   </div>
