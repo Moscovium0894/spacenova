@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mockup Generator - Spacenova Admin</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    body { font-family: system-ui, sans-serif; padding: 20px; }
+    .container { max-width: 800px; margin: auto; }
+    label { display:block; margin-top:15px; }
+    select, input, button { width:100%; padding:10px; margin-top:5px; }
+    button { cursor:pointer; }
+    .results img { max-width:100%; margin-top:10px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Mockup Generator</h1>
+
+    <label>Product</label>
+    <select id="productSelect"></select>
+
+    <label>Layout</label>
+    <select id="layout">
+      <option value="single">Single</option>
+      <option value="three" selected>Three</option>
+      <option value="five">Five</option>
+      <option value="seven">Seven</option>
+    </select>
+
+    <label>Wall Image URL</label>
+    <input id="wallUrl" placeholder="Optional wall image URL" />
+
+    <button id="generateOne">Generate for selected product</button>
+    <button id="generateAll">Generate for ALL products</button>
+
+    <div class="results" id="results"></div>
+  </div>
+
+  <script src="/admin/mockups.js"></script>
+</body>
+</html>
