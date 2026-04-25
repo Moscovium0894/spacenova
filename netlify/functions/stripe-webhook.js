@@ -10,6 +10,23 @@ function parseAmount(metaVal, fallbackMinor) {
   return Number(fallbackMinor || 0) / 100;
 }
 
+async function incrementPromoUse(promoCode) {
+  if (!promoCode) return;
+  const { data, error } = await supabase
+    .from('promo_codes')
+    .select('id,uses_count')
+    .ilike('code', String(promoCode).trim())
+    .single();
+  if (error || !data) {
+    console.warn('Promo usage increment skipped:', error?.message || 'code not found');
+    return;
+  }
+  await supabase
+    .from('promo_codes')
+    .update({ uses_count: (data.uses_count || 0) + 1 })
+    .eq('id', data.id);
+}
+
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
@@ -79,6 +96,12 @@ exports.handler = async (event) => {
         created_at: new Date((pi.created || Date.now() / 1000) * 1000).toISOString()
       };
 
+      const { data: existingOrder } = await supabase
+        .from('orders')
+        .select('ref')
+        .eq('ref', pi.id)
+        .maybeSingle();
+
       const { error } = await supabase
         .from('orders')
         .upsert([payload], { onConflict: 'ref' });
@@ -86,6 +109,10 @@ exports.handler = async (event) => {
       if (error) {
         console.error('Failed to persist order from webhook:', error);
         return { statusCode: 500, body: 'Failed to persist order' };
+      }
+
+      if (!existingOrder) {
+        await incrementPromoUse(metadata.promo_code || null);
       }
     }
 

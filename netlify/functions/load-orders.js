@@ -63,7 +63,7 @@ exports.handler = async (event) => {
           avgOrderValue,
           paidOrders: orders.length
         },
-        recentOrders: orders.slice(0, 12)
+        recentOrders: orders
       })
     };
   } catch (err) {

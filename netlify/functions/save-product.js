@@ -34,13 +34,13 @@ exports.handler = async (event) => {
     }
 
     const pieces = Math.max(1, parseInt(product.pieces, 10) || 1);
-    const derivedPrice = Math.max(0, (pieces * 10) - 10);
+    const parsedPrice = parseFloat(product.price);
 
     const payload = {
       slug:          product.slug,
       name:          product.name,
       category:      product.category      || null,
-      price:         derivedPrice,
+      price:         Number.isFinite(parsedPrice) ? parsedPrice : 0,
       price_label:   product.price_label   || product.priceLabel   || null,
       short:         product.short         || null,
       description:   product.description   || null,

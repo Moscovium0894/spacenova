@@ -61,7 +61,20 @@
     <p class="success-note">Questions? <a href="/contact.html">Contact us</a> and quote your order reference.</p>
   </div>
 </div>
-<script>try { localStorage.removeItem('sn_basket'); } catch(e) {}</script>
+<script>
+(function () {
+  try { localStorage.removeItem('sn_basket'); } catch(e) {}
+  var paymentIntentId = new URLSearchParams(window.location.search).get('payment_intent');
+  if (!paymentIntentId) return;
+  fetch('/.netlify/functions/save-order', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ paymentIntentId: paymentIntentId })
+  }).catch(function(err) {
+    console.warn('save-order fallback failed:', err);
+  });
+})();
+</script>
 <script src="/js/nav.js"></script>
 </body>
 </html>
