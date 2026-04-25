@@ -16,7 +16,6 @@ async function loadProducts() {
 
 async function generate(all=false) {
   const productId = document.getElementById('productSelect').value;
-  const layout = document.getElementById('layout').value;
   const wallUrl = document.getElementById('wallUrl').value;
 
   const resultsDiv = document.getElementById('results');
@@ -26,7 +25,7 @@ async function generate(all=false) {
     const res = await fetch('/.netlify/functions/generate-mockup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ productId, all, layout, wallImageUrl: wallUrl })
+      body: JSON.stringify({ productId, all, wallImageUrl: wallUrl })
     });
 
     const data = await res.json();

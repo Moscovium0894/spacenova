@@ -2,12 +2,20 @@ const sharp = require('sharp');
 const { createClient } = require('@supabase/supabase-js');
 
 const DEFAULT_BUCKET = 'product-images';
-const HEX_SIZE = 210;
+const HEX_H = 210;
+const HEX_W = Math.round(HEX_H * 0.866);
+const HEX_GAP = 2;
+const COL_PITCH = HEX_W + HEX_GAP;
+const ROW_PITCH = Math.round(HEX_H * 0.75) + HEX_GAP;
+const ODD_OFFSET = Math.round(COL_PITCH / 2);
 const ORIGIN_X = 470;
 const ORIGIN_Y = 185;
-const FRAME_WIDTH = 4;
-const FRAME_COLOUR = '#111111';
-const CONTACT_SHADOW = 'rgba(0,0,0,0.16)';
+const FRAME_WIDTH = 5;
+const FRAME_COLOUR = '#1a1a1a';
+const SHADOW_OFFSET_X = 10;
+const SHADOW_OFFSET_Y = 10;
+const SHADOW_BLUR = 6;
+const SHADOW_PAD = 20;
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
@@ -53,9 +61,10 @@ exports.handler = async (event) => {
           continue;
         }
 
-        const pieceCount = getPieceCount(product);
+        const positions = getPositions(product);
+        const pieceCount = positions.length;
         const productBuffer = await fetchBuffer(imageUrl);
-        const mockupBuffer = await generateMockup({ wallBuffer, productBuffer, pieceCount });
+        const mockupBuffer = await generateMockup({ wallBuffer, productBuffer, positions });
         const storagePath = `mockups/${product.id}-wall-mockup.png`;
 
         const { error: uploadError } = await supabase.storage
@@ -91,11 +100,39 @@ exports.handler = async (event) => {
 };
 
 function getPieceCount(product) {
+  const mapped = getPanelMapPositions(product);
+  if (mapped && mapped.length > 0) return mapped.length;
   const direct = parseInt(product.pieces || product.panel_count || product.tile_count, 10);
   if (Number.isFinite(direct) && direct > 0) return Math.min(direct, 24);
   if (Array.isArray(product.panel_names) && product.panel_names.length) return Math.min(product.panel_names.length, 24);
   if (Array.isArray(product.panelImages) && product.panelImages.length) return Math.min(product.panelImages.length, 24);
   return 3;
+}
+
+function getPanelMapPositions(product) {
+  const panelMap = product.panel_map || product.panelMap;
+  return panelMap && Array.isArray(panelMap.positions) ? panelMap.positions : null;
+}
+
+function getPositions(product) {
+  const mapped = getPanelMapPositions(product);
+  if (mapped && mapped.length > 0) {
+    const positions = mapped
+      .map(p => gridToPixel(parseInt(p.row, 10), parseInt(p.col, 10)))
+      .filter(p => Number.isFinite(p.x) && Number.isFinite(p.y));
+    if (positions.length > 0) return positions;
+  }
+
+  return autoHoneycomb(getPieceCount(product));
+}
+
+function gridToPixel(row, col) {
+  const safeRow = Number.isFinite(row) ? row : 0;
+  const safeCol = Number.isFinite(col) ? col : 0;
+  return {
+    x: safeCol * COL_PITCH + (safeRow % 2 !== 0 ? ODD_OFFSET : 0),
+    y: safeRow * ROW_PITCH
+  };
 }
 
 function normaliseUrl(raw) {
@@ -116,22 +153,23 @@ async function fetchBuffer(url) {
   return Buffer.from(await res.arrayBuffer());
 }
 
-async function generateMockup({ wallBuffer, productBuffer, pieceCount }) {
+async function generateMockup({ wallBuffer, productBuffer, positions, pieceCount }) {
   const wallMeta = await sharp(wallBuffer).metadata();
   const wallWidth = wallMeta.width || 1200;
   const wallHeight = wallMeta.height || 800;
-  const positions = getHoneycombPositions(pieceCount);
-  const bounds = getBounds(positions);
-  const pieceImages = await createSlicedFramedPieces(productBuffer, positions, bounds);
+  const tilePositions = Array.isArray(positions) && positions.length ? positions : autoHoneycomb(pieceCount || 3);
+  const bounds = getBounds(tilePositions);
+  const pieceImages = await createSlicedFramedPieces(productBuffer, tilePositions, bounds);
   const shadow = await createContactShadow();
+  const highlight = await createWallContactHighlight();
   const composites = [];
 
-  for (let i = 0; i < positions.length; i += 1) {
-    const left = Math.round(ORIGIN_X + positions[i].x);
-    const top = Math.round(ORIGIN_Y + positions[i].y);
-    composites.push({ input: shadow, left: left + 3, top: top + 4 });
+  for (let i = 0; i < tilePositions.length; i += 1) {
+    const left = Math.round(ORIGIN_X + tilePositions[i].x);
+    const top = Math.round(ORIGIN_Y + tilePositions[i].y);
+    composites.push({ input: shadow, left: left - SHADOW_PAD + SHADOW_OFFSET_X, top: top - SHADOW_PAD + SHADOW_OFFSET_Y });
     composites.push({ input: pieceImages[i], left, top });
-    composites.push({ input: await createWallContactHighlight(), left, top });
+    composites.push({ input: highlight, left, top });
   }
 
   return sharp(wallBuffer)
@@ -142,71 +180,61 @@ async function generateMockup({ wallBuffer, productBuffer, pieceCount }) {
     .toBuffer();
 }
 
-function getHoneycombPositions(count) {
-  const stepX = HEX_SIZE * 0.75;
-  const stepY = HEX_SIZE * 0.5;
-  const coordsByCount = {
-    1: [[0, 0]],
-    2: [[0, 0], [1, 0]],
-    3: [[0, 0], [1, 0], [0.5, 1]],
-    4: [[0.5, 0], [1.5, 0], [0, 1], [1, 1]],
-    5: [[0.5, 0], [1.5, 0], [0, 1], [1, 1], [2, 1]],
-    6: [[0.5, 0], [1.5, 0], [0, 1], [1, 1], [2, 1], [0.5, 2]],
-    7: [[1, 0], [0.5, 1], [1.5, 1], [0, 2], [1, 2], [2, 2], [1, 3]]
-  };
-
-  const coords = coordsByCount[count] || makeRows(count);
-  return coords.map(([col, row]) => ({ x: col * stepX, y: row * stepY }));
-}
-
-function makeRows(count) {
-  const rows = [];
-  let remaining = count;
+function autoHoneycomb(count) {
+  const cols = Math.max(2, Math.ceil(Math.sqrt(count)));
+  const result = [];
+  let placed = 0;
   let row = 0;
-  while (remaining > 0) {
-    const rowCount = Math.min(4, remaining);
-    const offset = row % 2 ? 0 : 0.5;
-    for (let col = 0; col < rowCount; col += 1) rows.push([col + offset, row]);
-    remaining -= rowCount;
+
+  while (placed < count) {
+    const rowCols = Math.min(cols, count - placed);
+    for (let col = 0; col < rowCols; col += 1) result.push(gridToPixel(row, col));
+    placed += rowCols;
     row += 1;
   }
-  return rows;
+
+  return result;
 }
 
 function getBounds(positions) {
   const minX = Math.min(...positions.map(p => p.x));
   const minY = Math.min(...positions.map(p => p.y));
-  const maxX = Math.max(...positions.map(p => p.x + HEX_SIZE));
-  const maxY = Math.max(...positions.map(p => p.y + HEX_SIZE));
+  const maxX = Math.max(...positions.map(p => p.x + HEX_W));
+  const maxY = Math.max(...positions.map(p => p.y + HEX_H));
   return { minX, minY, width: maxX - minX, height: maxY - minY };
 }
 
 async function createSlicedFramedPieces(productBuffer, positions, bounds) {
-  const innerSize = HEX_SIZE - FRAME_WIDTH * 2;
+  const innerW = HEX_W - FRAME_WIDTH * 2;
+  const innerH = HEX_H - FRAME_WIDTH * 2;
+  const canvasW = Math.max(HEX_W, Math.round(bounds.width));
+  const canvasH = Math.max(HEX_H, Math.round(bounds.height));
   const imageCanvas = await sharp(productBuffer)
-    .resize(Math.round(bounds.width), Math.round(bounds.height), { fit: 'cover' })
+    .resize(canvasW, canvasH, { fit: 'cover' })
     .png()
     .toBuffer();
 
-  const outerMask = Buffer.from(hexMaskSvg(HEX_SIZE));
-  const innerMask = Buffer.from(hexMaskSvg(innerSize));
+  const outerMask = Buffer.from(hexMaskSvg(HEX_W, HEX_H));
+  const innerMask = Buffer.from(hexMaskSvg(innerW, innerH));
   const pieces = [];
 
   for (const pos of positions) {
     const cropLeft = Math.max(0, Math.round(pos.x - bounds.minX));
     const cropTop = Math.max(0, Math.round(pos.y - bounds.minY));
+    const safeLeft = Math.min(cropLeft, Math.max(0, canvasW - HEX_W));
+    const safeTop = Math.min(cropTop, Math.max(0, canvasH - HEX_H));
 
     const slice = await sharp(imageCanvas)
-      .extract({ left: cropLeft, top: cropTop, width: HEX_SIZE, height: HEX_SIZE })
-      .resize(innerSize, innerSize, { fit: 'cover' })
+      .extract({ left: safeLeft, top: safeTop, width: HEX_W, height: HEX_H })
+      .resize(innerW, innerH, { fit: 'cover' })
       .composite([{ input: innerMask, blend: 'dest-in' }])
       .png()
       .toBuffer();
 
     const frame = await sharp({
       create: {
-        width: HEX_SIZE,
-        height: HEX_SIZE,
+        width: HEX_W,
+        height: HEX_H,
         channels: 4,
         background: FRAME_COLOUR
       }
@@ -218,7 +246,7 @@ async function createSlicedFramedPieces(productBuffer, positions, bounds) {
     const piece = await sharp(frame)
       .composite([
         { input: slice, left: FRAME_WIDTH, top: FRAME_WIDTH },
-        { input: Buffer.from(hexStrokeSvg(HEX_SIZE)), left: 0, top: 0 }
+        { input: Buffer.from(hexStrokeSvg(HEX_W, HEX_H)), left: 0, top: 0 }
       ])
       .png()
       .toBuffer();
@@ -230,42 +258,42 @@ async function createSlicedFramedPieces(productBuffer, positions, bounds) {
 }
 
 async function createContactShadow() {
-  const pad = 8;
-  const total = HEX_SIZE + pad * 2;
-  const shiftedPoints = [
-    `${pad + HEX_SIZE * 0.5},${pad}`,
-    `${pad + HEX_SIZE},${pad + HEX_SIZE * 0.25}`,
-    `${pad + HEX_SIZE},${pad + HEX_SIZE * 0.75}`,
-    `${pad + HEX_SIZE * 0.5},${pad + HEX_SIZE}`,
-    `${pad},${pad + HEX_SIZE * 0.75}`,
-    `${pad},${pad + HEX_SIZE * 0.25}`
+  const totalW = HEX_W + SHADOW_PAD * 2;
+  const totalH = HEX_H + SHADOW_PAD * 2;
+  const pts = [
+    `${SHADOW_PAD + HEX_W * 0.5},${SHADOW_PAD}`,
+    `${SHADOW_PAD + HEX_W},${SHADOW_PAD + HEX_H * 0.25}`,
+    `${SHADOW_PAD + HEX_W},${SHADOW_PAD + HEX_H * 0.75}`,
+    `${SHADOW_PAD + HEX_W * 0.5},${SHADOW_PAD + HEX_H}`,
+    `${SHADOW_PAD},${SHADOW_PAD + HEX_H * 0.75}`,
+    `${SHADOW_PAD},${SHADOW_PAD + HEX_H * 0.25}`
   ].join(' ');
-  const svg = `<svg width="${total}" height="${total}" viewBox="0 0 ${total} ${total}" xmlns="http://www.w3.org/2000/svg"><defs><filter id="s"><feGaussianBlur stdDeviation="2.3"/></filter></defs><polygon points="${shiftedPoints}" fill="${CONTACT_SHADOW}" filter="url(#s)"/></svg>`;
+  const svg = `<svg width="${totalW}" height="${totalH}" viewBox="0 0 ${totalW} ${totalH}" xmlns="http://www.w3.org/2000/svg"><defs><filter id="s"><feGaussianBlur stdDeviation="${SHADOW_BLUR}"/></filter></defs><polygon points="${pts}" fill="rgba(0,0,0,0.28)" filter="url(#s)"/></svg>`;
   return sharp(Buffer.from(svg)).png().toBuffer();
 }
 
 async function createWallContactHighlight() {
-  const svg = `<svg width="${HEX_SIZE}" height="${HEX_SIZE}" viewBox="0 0 ${HEX_SIZE} ${HEX_SIZE}" xmlns="http://www.w3.org/2000/svg"><polygon points="${hexPoints(HEX_SIZE)}" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="1"/><polygon points="${hexPoints(HEX_SIZE)}" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="1.2"/></svg>`;
+  const svg = `<svg width="${HEX_W}" height="${HEX_H}" viewBox="0 0 ${HEX_W} ${HEX_H}" xmlns="http://www.w3.org/2000/svg"><polygon points="${hexPoints(HEX_W, HEX_H)}" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="1"/><polygon points="${hexPoints(HEX_W, HEX_H)}" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="1.2"/></svg>`;
   return sharp(Buffer.from(svg)).png().toBuffer();
 }
 
-function hexPoints(size) {
+function hexPoints(w, h) {
   return [
-    `${size * 0.5},0`,
-    `${size},${size * 0.25}`,
-    `${size},${size * 0.75}`,
-    `${size * 0.5},${size}`,
-    `0,${size * 0.75}`,
-    `0,${size * 0.25}`
+    `${w * 0.5},0`,
+    `${w},${h * 0.25}`,
+    `${w},${h * 0.75}`,
+    `${w * 0.5},${h}`,
+    `0,${h * 0.75}`,
+    `0,${h * 0.25}`
   ].join(' ');
 }
 
-function hexMaskSvg(size) {
-  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg"><polygon points="${hexPoints(size)}" fill="white"/></svg>`;
+function hexMaskSvg(w, h) {
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg"><polygon points="${hexPoints(w, h)}" fill="white"/></svg>`;
 }
 
-function hexStrokeSvg(size) {
-  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg"><polygon points="${hexPoints(size)}" fill="none" stroke="rgba(255,255,255,0.28)" stroke-width="1"/><polygon points="${hexPoints(size)}" fill="none" stroke="rgba(0,0,0,0.28)" stroke-width="1.2"/></svg>`;
+function hexStrokeSvg(w, h) {
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg"><polygon points="${hexPoints(w, h)}" fill="none" stroke="rgba(255,255,255,0.28)" stroke-width="1"/><polygon points="${hexPoints(w, h)}" fill="none" stroke="rgba(0,0,0,0.28)" stroke-width="1.2"/></svg>`;
 }
 
 function json(statusCode, body) {
