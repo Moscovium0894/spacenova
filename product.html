@@ -93,18 +93,13 @@
     .pg-wrap:hover .pg-arrow { opacity: 1; pointer-events: auto; }
     .pg-arrow:hover { background: rgba(255,255,255,.97); }
     .pg-arrow:active { transform: translateY(-50%) scale(.94); }
-    .pg-arrow:disabled {
-      opacity: .45 !important;
-      cursor: not-allowed;
-      pointer-events: none;
-    }
+    .pg-arrow:disabled { opacity: .45 !important; cursor: not-allowed; pointer-events: none; }
     .pg-arrow svg { width: 16px; height: 16px; stroke: #111; }
     .pg-arrow-prev { left: 12px; }
     .pg-arrow-next { right: 12px; }
     .pg-wrap.single .pg-arrow { display: none; }
     @media (max-width: 760px), (hover: none) and (pointer: coarse) {
       .pg-arrow { display: none !important; }
-      .pg-wrap:hover .pg-arrow { opacity: 0; pointer-events: none; }
     }
     .pg-dots {
       display: flex;
@@ -131,7 +126,6 @@
       margin-top: 10px;
       overflow-x: auto;
       scrollbar-width: none;
-      -ms-overflow-style: none;
       padding-bottom: 2px;
     }
     .pg-thumbs::-webkit-scrollbar { display: none; }
@@ -144,106 +138,244 @@
       cursor: pointer;
       transition: border-color .18s, opacity .18s;
       opacity: .55;
-      -webkit-tap-highlight-color: transparent;
       background: none;
       padding: 0;
+      -webkit-tap-highlight-color: transparent;
     }
     .pg-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .pg-thumb.active { border-color: var(--accent); opacity: 1; }
     .pg-wrap.single ~ .pg-thumbs { display: none; }
 
-    /* ══ HEX TILE SELECTOR ══ */
-    .hex-selector {
-      background: var(--bg1);
+    /* ══ INTERACTIVE PLATE PREVIEW ══ */
+    /*
+     * Pointy-top hex geometry (gap-free):
+     *   HEX_H = 112px  (full height)
+     *   HEX_W = HEX_H × √3/2 ≈ 97px
+     *   ROW_PITCH = HEX_H × 0.75 = 84px   (rows interlock perfectly)
+     *   COL_PITCH = HEX_W = 97px           (columns touch edge-to-edge)
+     *   ODD_ROW_OFFSET = HEX_W / 2 ≈ 48.5px
+     *
+     * All values in CSS/JS must match these exactly to prevent gaps.
+     */
+    :root {
+      --hex-h: 112px;
+      --hex-w: 97px;          /* HEX_H × sin(60°) */
+      --hex-row-pitch: 84px;  /* HEX_H × 0.75 — vertical distance between row origins */
+      --hex-col-pitch: 97px;  /* = HEX_W, cols touch side-to-side */
+      --hex-odd-offset: 48px; /* HEX_W / 2, half-step for alternating rows */
+    }
+
+    .plate-preview-wrap {
+      margin-top: 20px;
       border: 1px solid var(--border);
       border-radius: var(--r);
-      padding: 22px;
-      margin-top: 24px;
+      overflow: hidden;
+      background: linear-gradient(160deg, #f4f1eb, #d9d0c2);
+      position: relative;
     }
-    .hex-selector-title {
-      font-family: var(--fm);
-      font-size: .6rem;
-      letter-spacing: .18em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .plate-preview-wrap.has-wall {
+      background-size: cover;
+      background-position: center;
     }
-    .hex-grid-wrap {
-      overflow-x: auto;
-      overflow-y: hidden;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
-      padding-bottom: 4px;
-      margin-bottom: 18px;
-    }
-    .hex-grid-wrap::-webkit-scrollbar { display: none; }
-    .hex-grid-inner {
-      display: inline-flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0;
-    }
-    .hex-row { display: flex; }
-    .hex-row.offset { margin-left: 29px; }
-    /* Pointy-top hex: W=56px, H=64px
-   Vertical pitch between row origins = H * 0.75 = 48px
-   So margin-bottom = -(H * 0.25) = -16px
-   Odd-row offset = W/2 + gap/2 = 29px                    */
-.hex-cell {
-  width: 56px;
-  height: 64px;
-  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-  margin: 1px;
-  margin-bottom: -16px;   /* = H * 0.25 = 64 * 0.25 */
-  cursor: pointer;
-  background: rgba(0,0,0,.08);
-  border: 0;
-  padding: 0;
-  transition: transform .18s, filter .18s;
-  position: relative;
-  overflow: hidden;
-  flex-shrink: 0;
-  -webkit-tap-highlight-color: transparent;
-}
-.hex-row:last-child .hex-cell { margin-bottom: 1px; }
-.hex-row.offset { margin-left: 30px; }   /* = (W + 2px margin*2) / 2 = (56+4)/2 = 30 */
-
-    @media (max-width: 600px) {
-      .hex-cell { width: 46px; height: 53px; margin-bottom: -13px; }
-      .hex-row.offset { margin-left: 25px; }
-      .hex-row:last-child .hex-cell { margin-bottom: 1px; }
-    }
-    .hex-row:last-child .hex-cell { margin-bottom: 1px; }
-    .hex-cell img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
-    .hex-cell.selected { filter: brightness(1.08); transform: scale(1.06); box-shadow: 0 0 0 3px var(--accent); }
-    .hex-cell.selected::after {
-      content: '✓';
+    /* Subtle vignette/depth overlay */
+    .plate-preview-wrap::after {
+      content: '';
       position: absolute;
       inset: 0;
+      pointer-events: none;
+      background: radial-gradient(ellipse at 48% 36%, rgba(255,255,255,.10), transparent 55%),
+                  linear-gradient(to bottom, rgba(0,0,0,.02), rgba(0,0,0,.10));
+      z-index: 3;
+    }
+
+    .plate-preview-header {
+      position: absolute;
+      top: 12px;
+      left: 14px;
+      right: 14px;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      pointer-events: none;
+    }
+    .plate-preview-label {
+      font-family: var(--fm);
+      font-size: .56rem;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: rgba(0,0,0,.42);
+      background: rgba(255,255,255,.78);
+      border: 1px solid rgba(255,255,255,.6);
+      border-radius: 999px;
+      padding: 5px 12px;
+      backdrop-filter: blur(12px);
+    }
+    .plate-preview-hint {
+      font-family: var(--fm);
+      font-size: .54rem;
+      letter-spacing: .08em;
+      color: rgba(0,0,0,.38);
+      background: rgba(255,255,255,.72);
+      border: 1px solid rgba(255,255,255,.52);
+      border-radius: 999px;
+      padding: 4px 10px;
+      backdrop-filter: blur(10px);
+      pointer-events: none;
+    }
+
+    .plate-preview-stage {
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: .75rem;
-      color: #fff;
-      background: rgba(212,120,15,.45);
-      font-weight: 800;
+      padding: 52px 24px 28px;
+      min-height: 280px;
+      position: relative;
+      z-index: 2;
     }
-    .hex-cell:not(.selected) { filter: brightness(0.72) saturate(0.6); }
-    .hex-cell:hover { filter: brightness(0.9) saturate(0.85); transform: scale(1.04); }
-    .hex-cell.selected:hover { filter: brightness(1.1); }
-    .hex-selector-footer {
+
+    /* The cluster of hex pieces */
+    .plate-cluster {
+      position: relative;
+      /* width/height set by JS to fit the grid */
+    }
+
+    /*
+     * Individual plate piece.
+     * Uses clip-path for the hex shape.
+     * Positioned absolutely within .plate-cluster.
+     * Width/height set inline by JS (97×112 base, scaled).
+     */
+    .plate-piece {
+      position: absolute;
+      cursor: pointer;
+      /* clip-path applied inline */
+      transition: transform .18s cubic-bezier(.22,1,.36,1), filter .18s;
+      -webkit-tap-highlight-color: transparent;
+      will-change: transform;
+    }
+    .plate-piece:hover {
+      transform: scale(1.06) translateZ(0);
+      z-index: 5;
+    }
+    .plate-piece:active { transform: scale(0.97) translateZ(0); }
+
+    /* The photographic fill layer */
+    .plate-piece-inner {
+      position: absolute;
+      /* inset matches the frame width (4px) */
+      inset: 4px;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      clip-path: inherit;
+    }
+
+    /* Surface gloss */
+    .plate-piece-gloss {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        135deg,
+        rgba(255,255,255,.20) 0%,
+        rgba(255,255,255,.04) 38%,
+        rgba(0,0,0,.12) 100%
+      );
+      clip-path: inherit;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* Orange selection outline — shown when SELECTED */
+    .plate-piece-outline {
+      position: absolute;
+      inset: 0;
+      clip-path: inherit;
+      pointer-events: none;
+      z-index: 3;
+      box-shadow: inset 0 0 0 2.5px var(--accent);
+      /* Use SVG-based outline to stay inside the clip */
+      /* We achieve this via a pseudo box-shadow trick */
+    }
+
+    /* Unselected overlay — dims the plate */
+    .plate-piece.is-unselected .plate-piece-inner {
+      filter: brightness(0.45) saturate(0.3);
+    }
+    .plate-piece.is-unselected .plate-piece-gloss {
+      background: rgba(0,0,0,.35);
+    }
+    /* Unselected: show dashed outline */
+    .plate-piece.is-unselected .plate-piece-outline {
+      box-shadow: none;
+    }
+
+    /* Selected: accent border + subtle glow */
+    .plate-piece.is-selected .plate-piece-outline {
+      box-shadow: inset 0 0 0 3px var(--accent), inset 0 0 12px rgba(212,120,15,.25);
+    }
+    .plate-piece.is-selected {
+      filter: drop-shadow(0 0 6px rgba(212,120,15,.35));
+    }
+
+    /* Plate number label */
+    .plate-piece-num {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 4;
+      font-family: var(--fm);
+      font-size: .5rem;
+      letter-spacing: .08em;
+      color: rgba(255,255,255,.9);
+      text-shadow: 0 1px 4px rgba(0,0,0,.8);
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    /* Drop shadow for the whole cluster */
+    .plate-cluster-shadow {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ══ FOOTER BAR BELOW PREVIEW ══ */
+    .plate-preview-footer {
+      padding: 16px 20px;
+      border-top: 1px solid rgba(0,0,0,.07);
+      background: rgba(255,255,255,.82);
+      backdrop-filter: blur(12px);
       display: flex;
       align-items: center;
       justify-content: space-between;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 10px;
+      position: relative;
+      z-index: 5;
     }
-    .hex-price-row { font-family: var(--fd); font-size: 1.6rem; color: var(--gold); font-weight: 300; }
-    .hex-price-sub { font-family: var(--fm); font-size: .62rem; color: var(--muted); margin-top: 2px; }
-    .hex-select-all {
+    .plate-preview-price {
+      font-family: var(--fd);
+      font-size: 1.6rem;
+      font-weight: 300;
+      color: var(--gold);
+      line-height: 1;
+    }
+    .plate-preview-price-sub {
+      font-family: var(--fm);
+      font-size: .62rem;
+      color: var(--muted);
+      margin-top: 3px;
+      letter-spacing: .04em;
+    }
+    .plate-preview-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .plate-preview-select-all {
       font-family: var(--fm);
       font-size: .62rem;
       letter-spacing: .1em;
@@ -252,109 +384,36 @@
       background: none;
       border: 1px solid rgba(212,120,15,.3);
       border-radius: 999px;
-      padding: 5px 13px;
+      padding: 6px 14px;
       cursor: pointer;
       transition: background .15s;
       -webkit-tap-highlight-color: transparent;
     }
-    .hex-select-all:hover { background: rgba(212,120,15,.07); }
-    .hex-count { font-family: var(--fm); font-size: .7rem; color: var(--muted); }
-    .panel-label {
+    .plate-preview-select-all:hover { background: rgba(212,120,15,.08); }
+    .plate-preview-clear {
       font-family: var(--fm);
-      font-size: .44rem;
-      letter-spacing: .06em;
+      font-size: .62rem;
+      letter-spacing: .1em;
       text-transform: uppercase;
-      color: #fff;
-      position: absolute;
-      bottom: 5px;
-      left: 50%;
-      transform: translateX(-50%);
-      white-space: nowrap;
-      text-shadow: 0 1px 3px rgba(0,0,0,.7);
-      pointer-events: none;
-    }
-    .plate-live-mockup {
-      position: relative;
-      margin-top: 18px;
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      overflow: hidden;
-      aspect-ratio: 4/3;
-      min-height: 260px;
-      background:
-        linear-gradient(110deg, rgba(255,255,255,.58), rgba(255,255,255,0) 44%),
-        linear-gradient(160deg, #f4f1eb, #d9d0c2);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.6);
-    }
-    .plate-live-mockup.has-wall {
-      background-size: cover;
-      background-position: center;
-    }
-    .plate-live-mockup::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      background: radial-gradient(circle at 46% 34%, rgba(255,255,255,.12), transparent 38%), linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,.12));
-      mix-blend-mode: multiply;
-    }
-    .plate-live-title {
-      position: absolute;
-      left: 14px;
-      top: 12px;
-      z-index: 4;
-      font-family: var(--fm);
-      font-size: .56rem;
-      letter-spacing: .16em;
-      text-transform: uppercase;
-      color: rgba(0,0,0,.42);
-      background: rgba(255,255,255,.72);
-      border: 1px solid rgba(255,255,255,.58);
+      color: var(--muted);
+      background: none;
+      border: 1px solid var(--border2);
       border-radius: 999px;
-      padding: 5px 10px;
-      backdrop-filter: blur(12px);
+      padding: 6px 14px;
+      cursor: pointer;
+      transition: background .15s;
+      -webkit-tap-highlight-color: transparent;
     }
-    .plate-live-cluster {
-      position: absolute;
-      z-index: 2;
-      left: 50%;
-      top: 50%;
-      transform-origin: center;
-    }
-    .plate-live-piece {
-      position: absolute;
-      width: 97px;
-      height: 112px;
-      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-      background: #191715;
-      filter: drop-shadow(8px 11px 9px rgba(0,0,0,.28));
-    }
-    .plate-live-piece::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(255,255,255,.22), rgba(255,255,255,.02) 42%, rgba(0,0,0,.22));
-      z-index: 2;
-      pointer-events: none;
-    }
-    .plate-live-inner {
-      position: absolute;
-      inset: 4px;
-      clip-path: inherit;
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-    }
-    .plate-live-number {
-      position: absolute;
-      left: 50%;
-      bottom: 7px;
-      transform: translateX(-50%);
-      z-index: 3;
+    .plate-preview-clear:hover { background: var(--surface); }
+    .plate-count-chip {
       font-family: var(--fm);
-      font-size: .48rem;
-      color: rgba(255,255,255,.86);
-      text-shadow: 0 1px 4px rgba(0,0,0,.75);
+      font-size: .64rem;
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 4px 12px;
+      white-space: nowrap;
     }
   </style>
 </head>
@@ -444,7 +503,6 @@
 
 <div id="basket-overlay"></div>
 <div id="basket-drawer">
-  
   <div class="drawer-body" id="basket-body"></div>
   <div class="drawer-footer" id="basket-footer" style="display:none">
     <div class="promo-row"><input class="promo-input" id="promo-input" type="text" placeholder="Promo code"><button class="promo-btn" id="promo-apply-btn">Apply</button></div>
@@ -464,109 +522,153 @@
 <script src="/js/nav.js"></script>
 <script src="/js/basket.js"></script>
 <script>
-(function() {
+(function () {
+  'use strict';
+
+  // ─── Hex geometry constants (pointy-top, gap-free) ───────────────────────
+  // These must match the CSS :root variables and the mockup generator.
+  //
+  //   HEX_H       = full height of one hex tile
+  //   HEX_W       = HEX_H × sin(60°) = HEX_H × √3/2
+  //   ROW_PITCH   = HEX_H × 0.75  (rows interlock: each row overlaps by H/4)
+  //   COL_PITCH   = HEX_W          (columns share a full edge, zero gap)
+  //   ODD_OFFSET  = HEX_W / 2      (odd rows shift right by half a column)
+  //
+  var HEX_H = 112;
+  var HEX_W = Math.round(HEX_H * Math.sqrt(3) / 2); // 97
+  var ROW_PITCH = HEX_H * 0.75;                      // 84
+  var COL_PITCH = HEX_W;                             // 97
+  var ODD_OFFSET = HEX_W / 2;                        // 48.5
+
+  // Clip-path for a pointy-top hexagon (matches CSS and SVG clip in mockup)
+  var HEX_CLIP = 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)';
+
+  // Pricing
   var PLATE_UNIT_PRICE = 34.99;
   var PLATE_SET_PRICE = 0;
 
-  document.addEventListener('DOMContentLoaded', function() {
+  // ─── State ──────────────────────────────────────────────────────────────
+  var _selected = new Set();   // Set of plate indexes that are selected
+  var _totalPlates = 0;
+
+  // ─── DOM ready ──────────────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', function () {
     var params = new URLSearchParams(window.location.search);
     var slug = params.get('slug') || params.get('id');
     if (!slug) {
-      document.getElementById('product-content').innerHTML = '<p style="color:var(--muted)">Product not found.</p>';
+      document.getElementById('product-content').innerHTML =
+        '<p style="color:var(--muted)">Product not found.</p>';
       return;
     }
 
     fetch('/.netlify/functions/load-catalogue')
-      .then(function(r) { return r.json(); })
-      .then(function(d) {
-        var p = (d.products || []).find(function(x) { return x.slug === slug || x.id === slug; });
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var p = (d.products || []).find(function (x) {
+          return x.slug === slug || x.id === slug;
+        });
         if (!p) {
-          document.getElementById('product-content').innerHTML = '<p style="color:var(--muted)">Product not found.</p>';
+          document.getElementById('product-content').innerHTML =
+            '<p style="color:var(--muted)">Product not found.</p>';
           return;
         }
-
-        document.title = p.name + ' — SPACENOVA';
-        document.getElementById('bc-name').textContent = p.name;
-
-        var totalPlates = parseInt(p.plateCount || p.pieces, 10) || 0;
-        var fullSetPrice = parseFloat(p.plateSetPrice || p.price || 0);
-        PLATE_SET_PRICE = fullSetPrice || 0;
-        PLATE_UNIT_PRICE = parseFloat(p.plateUnitPrice || 0) || (totalPlates > 0 ? parseFloat((fullSetPrice / totalPlates).toFixed(2)) : 34.99);
-        var wallImage = p.wallImage || null;
-        var wallSourceImage = p.wallSourceImage || (p.plateMap && p.plateMap.mockup && p.plateMap.mockup.wallSourceImage) || null;
-        var plateImages = Array.isArray(p.plateImages) ? p.plateImages : (Array.isArray(p.panelImages) ? p.panelImages : []);
-        var plateNames = Array.isArray(p.plateNames) ? p.plateNames : (Array.isArray(p.panelNames) ? p.panelNames : []);
-        var plateMap = p.plateMap || p.panelMap || {};
-        var positions = Array.isArray(plateMap.positions) ? plateMap.positions : [];
-
-        var galleryImages = [];
-        if (p.image)   galleryImages.push({ src: p.image,    alt: p.name });
-        if (wallImage) galleryImages.push({ src: wallImage,  alt: p.name + ' on wall' });
-
-        document.getElementById('product-content').innerHTML =
-          '<div class="product-hero">' +
-            '<div class="product-media">' +
-              buildGalleryHtml(galleryImages) +
-              '<div id="plate-live-mockup-mount"></div>' +
-              '<div id="hex-selector-mount"></div>' +
-            '</div>' +
-            '<div class="product-info">' +
-              '<span class="badge badge-accent" style="margin-bottom:14px;display:inline-block">' +
-                (p.isBundle ? 'Bundle' : p.isCollection ? 'Collection' : 'Series') +
-              '</span>' +
-              '<h2>' + (p.name || '') + '</h2>' +
-              '<p class="product-tagline">' + (p.short || '') + '</p>' +
-              '<div class="product-price-row">' +
-                '<span class="product-price-main" id="dynamic-price">&pound;' + parseFloat(p.price || 0).toFixed(2) + '</span>' +
-                (p.priceLabel ? '<span class="product-price-range">' + p.priceLabel + '</span>' : '') +
-              '</div>' +
-              '<p style="color:var(--muted);font-family:var(--fm);font-size:.68rem;letter-spacing:.06em;margin-bottom:16px">' +
-                '&pound;' + PLATE_UNIT_PRICE.toFixed(2) + ' per individual plate &mdash; complete set &pound;' + PLATE_SET_PRICE.toFixed(2) +
-              '</p>' +
-              '<p style="color:var(--muted);font-size:.9rem;margin-bottom:24px;line-height:1.75">' + (p.description || '') + '</p>' +
-              '<div class="product-actions">' +
-                '<button class="btn btn-primary" id="add-to-basket-btn">Add to Basket</button>' +
-                '<a class="btn btn-ghost" id="buy-now-btn" href="/checkout.html">Buy Now</a>' +
-              '</div>' +
-              '<div class="notice" style="margin-top:20px">Free UK shipping on orders over &pound;150. Dispatched within 2&ndash;3 business days.</div>' +
-              (p.note ? '<p style="color:var(--muted);font-size:.83rem;margin-top:14px;line-height:1.7">' + p.note + '</p>' : '') +
-            '</div>' +
-          '</div>';
-
-        initGallery(galleryImages);
-        buildHexSelector(p, positions, plateImages, plateNames, totalPlates, wallSourceImage);
-
-        document.getElementById('add-to-basket-btn').addEventListener('click', function() {
-          addSelectionToBasket(p, plateNames, totalPlates);
-        });
-        document.getElementById('buy-now-btn').addEventListener('click', function(e) {
-          e.preventDefault();
-          if (addSelectionToBasket(p, plateNames, totalPlates)) {
-            window.setTimeout(function() { window.location.href = '/checkout.html'; }, 180);
-          }
-        });
+        renderProduct(p);
       })
-      .catch(function() {
-        document.getElementById('product-content').innerHTML = '<p style="color:var(--muted)">Could not load product.</p>';
+      .catch(function () {
+        document.getElementById('product-content').innerHTML =
+          '<p style="color:var(--muted)">Could not load product.</p>';
       });
   });
 
-  /* ── Gallery HTML ── */
-  function buildGalleryHtml(images) {
-    if (!images.length) {
-      return '<div class="pg-wrap single" id="pg-wrap">' +
-        '<div class="pg-track" id="pg-track">' +
-          '<div class="pg-slide"><div class="card-media-placeholder" style="aspect-ratio:4/3"></div></div>' +
+  // ─── Main render ─────────────────────────────────────────────────────────
+  function renderProduct(p) {
+    document.title = p.name + ' — SPACENOVA';
+    document.getElementById('bc-name').textContent = p.name;
+
+    _totalPlates = parseInt(p.plateCount || p.pieces, 10) || 0;
+    PLATE_SET_PRICE = parseFloat(p.plateSetPrice || p.price || 0);
+    PLATE_UNIT_PRICE = parseFloat(p.plateUnitPrice || 0) ||
+      (_totalPlates > 0 ? parseFloat((PLATE_SET_PRICE / _totalPlates).toFixed(2)) : 34.99);
+
+    var wallImage = p.wallImage || null;
+    var wallSourceImage = p.wallSourceImage ||
+      (p.plateMap && p.plateMap.mockup && p.plateMap.mockup.wallSourceImage) || null;
+    var plateImages = Array.isArray(p.plateImages) ? p.plateImages
+      : (Array.isArray(p.panelImages) ? p.panelImages : []);
+    var plateNames = Array.isArray(p.plateNames) ? p.plateNames
+      : (Array.isArray(p.panelNames) ? p.panelNames : []);
+    var plateMap = p.plateMap || p.panelMap || {};
+    var positions = Array.isArray(plateMap.positions) ? plateMap.positions : [];
+    if (!positions.length) positions = autoLayout(_totalPlates);
+
+    // Select all by default
+    _selected.clear();
+    for (var i = 0; i < _totalPlates; i++) _selected.add(i);
+
+    // Gallery images: main product photo + wall mockup
+    var galleryImages = [];
+    if (p.image) galleryImages.push({ src: p.image, alt: p.name });
+    if (wallImage) galleryImages.push({ src: wallImage, alt: p.name + ' on wall' });
+
+    document.getElementById('product-content').innerHTML =
+      '<div class="product-hero">' +
+        '<div class="product-media">' +
+          buildGalleryHtml(galleryImages) +
+          '<div id="preview-mount"></div>' +
+        '</div>' +
+        '<div class="product-info">' +
+          '<span class="badge badge-accent" style="margin-bottom:14px;display:inline-block">' +
+            (p.isBundle ? 'Bundle' : p.isCollection ? 'Collection' : 'Series') +
+          '</span>' +
+          '<h2>' + esc(p.name) + '</h2>' +
+          '<p class="product-tagline">' + esc(p.short || '') + '</p>' +
+          '<div class="product-price-row">' +
+            '<span class="product-price-main" id="dynamic-price">&pound;' +
+              PLATE_SET_PRICE.toFixed(2) +
+            '</span>' +
+            (p.priceLabel ? '<span class="product-price-range">' + esc(p.priceLabel) + '</span>' : '') +
+          '</div>' +
+          '<p style="color:var(--muted);font-family:var(--fm);font-size:.68rem;letter-spacing:.06em;margin-bottom:16px">' +
+            '&pound;' + PLATE_UNIT_PRICE.toFixed(2) +
+            ' per individual plate &mdash; complete set &pound;' + PLATE_SET_PRICE.toFixed(2) +
+          '</p>' +
+          '<p style="color:var(--muted);font-size:.9rem;margin-bottom:24px;line-height:1.75">' +
+            esc(p.description || '') +
+          '</p>' +
+          '<div class="product-actions">' +
+            '<button class="btn btn-primary" id="add-to-basket-btn">Add to Basket</button>' +
+            '<a class="btn btn-ghost" id="buy-now-btn" href="/checkout.html">Buy Now</a>' +
+          '</div>' +
+          '<div class="notice" style="margin-top:20px">Free UK shipping on orders over &pound;150. Dispatched within 2&ndash;3 business days.</div>' +
+          (p.note ? '<p style="color:var(--muted);font-size:.83rem;margin-top:14px;line-height:1.7">' + esc(p.note) + '</p>' : '') +
         '</div>' +
       '</div>';
+
+    initGallery(galleryImages);
+    buildInteractivePreview(p, positions, plateImages, plateNames, wallSourceImage);
+
+    document.getElementById('add-to-basket-btn').addEventListener('click', function () {
+      addSelectionToBasket(p, plateNames);
+    });
+    document.getElementById('buy-now-btn').addEventListener('click', function (e) {
+      e.preventDefault();
+      if (addSelectionToBasket(p, plateNames)) {
+        setTimeout(function () { window.location.href = '/checkout.html'; }, 180);
+      }
+    });
+  }
+
+  // ─── Gallery ─────────────────────────────────────────────────────────────
+  function buildGalleryHtml(images) {
+    if (!images.length) {
+      return '<div class="pg-wrap single" id="pg-wrap"><div class="pg-track" id="pg-track">' +
+        '<div class="pg-slide"><div class="card-media-placeholder" style="aspect-ratio:4/3"></div></div>' +
+      '</div></div>';
     }
-
     var isSingle = images.length === 1;
-
-    var slides = images.map(function(img, i) {
+    var slides = images.map(function (img, i) {
       return '<div class="pg-slide">' +
-        '<img src="' + img.src + '" alt="' + (img.alt || '').replace(/"/g, '&quot;') + '"' +
-        (i === 0 ? '' : ' loading="lazy"') + '>' +
+        '<img src="' + img.src + '" alt="' + esc(img.alt || '') + '"' + (i ? ' loading="lazy"' : '') + '>' +
         (i === 1 ? '<div class="wall-hint">Wall preview</div>' : '') +
       '</div>';
     }).join('');
@@ -581,35 +683,29 @@
 
     var dots = isSingle ? '' :
       '<div class="pg-dots" id="pg-dots">' +
-        images.map(function(_, i) {
-          return '<button class="pg-dot' + (i === 0 ? ' active' : '') + '" data-idx="' + i + '" aria-label="Image ' + (i + 1) + '"></button>';
+        images.map(function (_, i) {
+          return '<button class="pg-dot' + (i ? '' : ' active') + '" data-idx="' + i + '" aria-label="Image ' + (i + 1) + '"></button>';
         }).join('') +
       '</div>';
 
     var thumbs = isSingle ? '' :
       '<div class="pg-thumbs" id="pg-thumbs">' +
-        images.map(function(img, i) {
-          return '<button class="pg-thumb' + (i === 0 ? ' active' : '') + '" data-idx="' + i + '" aria-label="View image ' + (i + 1) + '">' +
+        images.map(function (img, i) {
+          return '<button class="pg-thumb' + (i ? '' : ' active') + '" data-idx="' + i + '">' +
             '<img src="' + img.src + '" alt="" loading="lazy">' +
           '</button>';
         }).join('') +
       '</div>';
 
-    return (
-      '<div class="pg-wrap' + (isSingle ? ' single' : '') + '" id="pg-wrap">' +
+    return '<div class="pg-wrap' + (isSingle ? ' single' : '') + '" id="pg-wrap">' +
         '<div class="pg-track" id="pg-track">' + slides + '</div>' +
-        arrows +
-        dots +
-      '</div>' +
-      thumbs
-    );
+        arrows + dots +
+      '</div>' + thumbs;
   }
 
-  /* ── Gallery controller ── */
   function initGallery(images) {
     var track = document.getElementById('pg-track');
     if (!track || images.length <= 1) return;
-
     var slides = Array.from(track.querySelectorAll('.pg-slide'));
     var dots = Array.from(document.querySelectorAll('.pg-dot'));
     var thumbs = Array.from(document.querySelectorAll('.pg-thumb'));
@@ -621,220 +717,282 @@
     var rafId = null;
 
     function measureSlides() {
-      slideMetrics = slides.map(function(slide) {
-        return {
-          left: slide.offsetLeft,
-          width: slide.getBoundingClientRect().width
-        };
+      slideMetrics = slides.map(function (s) {
+        return { left: s.offsetLeft, width: s.getBoundingClientRect().width };
       });
     }
-
     function getNearestIndex(scrollLeft) {
       if (!slideMetrics.length) return 0;
-      var viewportCenter = scrollLeft + track.clientWidth / 2;
-      var nearestIdx = 0;
-      var nearestDist = Infinity;
-
-      slideMetrics.forEach(function(metric, idx) {
-        var slideCenter = metric.left + metric.width / 2;
-        var dist = Math.abs(slideCenter - viewportCenter);
-        if (dist < nearestDist) {
-          nearestDist = dist;
-          nearestIdx = idx;
-        }
+      var viewCenter = scrollLeft + track.clientWidth / 2;
+      var nearestIdx = 0, nearestDist = Infinity;
+      slideMetrics.forEach(function (m, i) {
+        var dist = Math.abs(m.left + m.width / 2 - viewCenter);
+        if (dist < nearestDist) { nearestDist = dist; nearestIdx = i; }
       });
       return nearestIdx;
     }
-
     function goTo(idx) {
       idx = Math.max(0, Math.min(total - 1, idx));
       current = idx;
-      var target = slideMetrics[idx] ? slideMetrics[idx].left : 0;
-      track.scrollTo({ left: target, behavior: 'smooth' });
+      track.scrollTo({ left: slideMetrics[idx] ? slideMetrics[idx].left : 0, behavior: 'smooth' });
       syncUI(idx);
     }
-
     function syncUI(idx) {
-      dots.forEach(function(d) {
-        d.classList.toggle('active', parseInt(d.dataset.idx) === idx);
-      });
-      thumbs.forEach(function(t) {
-        t.classList.toggle('active', parseInt(t.dataset.idx) === idx);
-      });
+      dots.forEach(function (d) { d.classList.toggle('active', parseInt(d.dataset.idx) === idx); });
+      thumbs.forEach(function (t) { t.classList.toggle('active', parseInt(t.dataset.idx) === idx); });
       if (prevBtn) prevBtn.disabled = idx === 0;
       if (nextBtn) nextBtn.disabled = idx === total - 1;
     }
-
     function handleScroll() {
       if (rafId) return;
-      rafId = requestAnimationFrame(function() {
+      rafId = requestAnimationFrame(function () {
         rafId = null;
         var idx = getNearestIndex(track.scrollLeft);
-        if (idx !== current) {
-          current = idx;
-          syncUI(idx);
-        }
+        if (idx !== current) { current = idx; syncUI(idx); }
       });
     }
-
-    function snapToCurrent() {
-      measureSlides();
-      current = getNearestIndex(track.scrollLeft);
-      var target = slideMetrics[current] ? slideMetrics[current].left : 0;
-      track.scrollTo({ left: target });
-      syncUI(current);
-    }
-
-    // Sync dots/thumbs when user swipes
-    track.addEventListener('scroll', function() {
-      handleScroll();
-    }, { passive: true });
-
-    if (prevBtn) prevBtn.addEventListener('click', function() { goTo(current - 1); });
-    if (nextBtn) nextBtn.addEventListener('click', function() { goTo(current + 1); });
-
-    dots.forEach(function(d) {
-      d.addEventListener('click', function() { goTo(parseInt(d.dataset.idx)); });
-    });
-    thumbs.forEach(function(t) {
-      t.addEventListener('click', function() { goTo(parseInt(t.dataset.idx)); });
-    });
-
+    track.addEventListener('scroll', handleScroll, { passive: true });
+    if (prevBtn) prevBtn.addEventListener('click', function () { goTo(current - 1); });
+    if (nextBtn) nextBtn.addEventListener('click', function () { goTo(current + 1); });
+    dots.forEach(function (d) { d.addEventListener('click', function () { goTo(parseInt(d.dataset.idx)); }); });
+    thumbs.forEach(function (t) { t.addEventListener('click', function () { goTo(parseInt(t.dataset.idx)); }); });
     measureSlides();
-    current = getNearestIndex(track.scrollLeft);
-    syncUI(current);
-    window.addEventListener('resize', function() {
-      requestAnimationFrame(function() {
-        requestAnimationFrame(snapToCurrent);
-      });
-    }, { passive: true });
-    window.addEventListener('orientationchange', function() {
-      requestAnimationFrame(function() {
-        requestAnimationFrame(snapToCurrent);
-      });
+    syncUI(0);
+    window.addEventListener('resize', function () {
+      requestAnimationFrame(function () { requestAnimationFrame(function () { measureSlides(); goTo(current); }); });
     }, { passive: true });
   }
 
-  /* ── Hex selector ── */
-  function buildHexSelector(p, positions, plateImages, plateNames, totalPlates, wallSourceImage) {
-    var mount = document.getElementById('hex-selector-mount');
-    if (!mount || !totalPlates) return;
+  // ─── Interactive Preview ──────────────────────────────────────────────────
+  //
+  // Replaces both the old hex selector and the old live mockup.
+  // The preview IS the selector: click a plate to toggle its selection.
+  //
+  function buildInteractivePreview(p, positions, plateImages, plateNames, wallSourceImage) {
+    var mount = document.getElementById('preview-mount');
+    if (!mount || !_totalPlates || !positions.length) return;
 
-    var gridPositions = positions.length ? positions : autoLayout(totalPlates);
-    var selected = new Set();
-    for (var i = 0; i < totalPlates; i++) selected.add(i);
-    window._selectedPlates = selected;
+    // Compute pixel positions for each plate (gap-free geometry)
+    var pixelPos = positions.map(function (pos) {
+      return gridToPixel(parseInt(pos.row, 10) || 0, parseInt(pos.col, 10) || 0);
+    });
 
-    function updatePrice() {
-      var count = selected.size;
-      var el = document.getElementById('dynamic-price');
-      if (el) el.textContent = '\u00a3' + currentSelectionPrice(count, totalPlates).toFixed(2);
-      var btn = document.getElementById('add-to-basket-btn');
-      if (btn) btn.textContent = count > 0
+    // Bounding box of all tiles
+    var bounds = getBounds(pixelPos);
+
+    // Scale to fit available width (~420px container, with padding)
+    var maxW = 400;
+    var maxH = 320;
+    var scaleW = maxW / bounds.w;
+    var scaleH = maxH / bounds.h;
+    var scale = Math.min(1.0, scaleW, scaleH);
+
+    var clusterW = Math.round(bounds.w * scale);
+    var clusterH = Math.round(bounds.h * scale);
+    var tileW = Math.round(HEX_W * scale);
+    var tileH = Math.round(HEX_H * scale);
+
+    // Build wall-background style
+    var wallStyle = '';
+    if (wallSourceImage) {
+      wallStyle = ' style="background-image:url(' + wallSourceImage.replace(/"/g, '%22') + ');background-size:cover;background-position:center;"';
+    }
+
+    // Build the HTML
+    var tilesHtml = positions.map(function (pos, idx) {
+      var px = pixelPos[idx];
+      var left = Math.round((px.x - bounds.minX) * scale);
+      var top = Math.round((px.y - bounds.minY) * scale);
+
+      // Image source: individual plate image OR crop from main image
+      var imgSrc = (plateImages[idx] && plateImages[idx].trim()) ? plateImages[idx] : (p.image || '');
+
+      // For main-image crops we use background-position to slice correctly
+      var innerStyle;
+      if (plateImages[idx] && plateImages[idx].trim()) {
+        // Individual plate image — just fill the hex
+        innerStyle = 'background-image:url(' + encodeImgUrl(plateImages[idx]) + ');background-size:cover;background-position:center;';
+      } else if (p.image) {
+        // Crop a region from the main product image proportional to this tile's position
+        var xFrac = bounds.w > HEX_W ? (px.x - bounds.minX) / (bounds.w - HEX_W) : 0.5;
+        var yFrac = bounds.h > HEX_H ? (px.y - bounds.minY) / (bounds.h - HEX_H) : 0.5;
+        xFrac = Math.max(0, Math.min(1, xFrac));
+        yFrac = Math.max(0, Math.min(1, yFrac));
+        innerStyle = 'background-image:url(' + encodeImgUrl(p.image) + ');' +
+          'background-size:' + (positions.length > 1 ? Math.round(100 + xFrac * 40) : 100) + '% auto;' +
+          'background-position:' + Math.round(xFrac * 100) + '% ' + Math.round(yFrac * 100) + '%;';
+      } else {
+        innerStyle = 'background:#222;';
+      }
+
+      var name = plateNames[idx] || ('Plate ' + (idx + 1));
+
+      return '<div class="plate-piece is-selected" data-idx="' + idx + '" ' +
+        'style="left:' + left + 'px;top:' + top + 'px;' +
+               'width:' + tileW + 'px;height:' + tileH + 'px;' +
+               'clip-path:' + HEX_CLIP + ';" ' +
+        'title="' + esc(name) + '" ' +
+        'role="checkbox" aria-label="' + esc(name) + '" aria-checked="true" tabindex="0">' +
+        '<div class="plate-piece-inner" style="' + innerStyle + '"></div>' +
+        '<div class="plate-piece-gloss"></div>' +
+        '<div class="plate-piece-outline"></div>' +
+        '<span class="plate-piece-num">' + (idx + 1) + '</span>' +
+      '</div>';
+    }).join('');
+
+    mount.innerHTML =
+      '<div class="plate-preview-wrap' + (wallSourceImage ? ' has-wall' : '') + '"' + wallStyle + '>' +
+        '<div class="plate-preview-header">' +
+          '<span class="plate-preview-label">Preview</span>' +
+          '<span class="plate-preview-hint">Tap plates to select</span>' +
+        '</div>' +
+        '<div class="plate-preview-stage">' +
+          '<div class="plate-cluster" id="plate-cluster" ' +
+            'style="width:' + clusterW + 'px;height:' + clusterH + 'px;position:relative;">' +
+            tilesHtml +
+          '</div>' +
+        '</div>' +
+        '<div class="plate-preview-footer">' +
+          '<div>' +
+            '<div class="plate-preview-price" id="preview-price">&pound;' + PLATE_SET_PRICE.toFixed(2) + '</div>' +
+            '<div class="plate-preview-price-sub" id="preview-price-sub">' + priceSub(_totalPlates, _totalPlates) + '</div>' +
+          '</div>' +
+          '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
+            '<span class="plate-count-chip" id="preview-count">' + _totalPlates + ' of ' + _totalPlates + ' selected</span>' +
+            '<div class="plate-preview-actions">' +
+              '<button class="plate-preview-select-all" id="prev-sel-all">All</button>' +
+              '<button class="plate-preview-clear" id="prev-clear">Clear</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+    // Wire up tile click/keyboard toggles
+    var cluster = document.getElementById('plate-cluster');
+    cluster.addEventListener('click', function (e) {
+      var piece = e.target.closest('.plate-piece');
+      if (!piece) return;
+      var idx = parseInt(piece.dataset.idx, 10);
+      togglePlate(idx);
+    });
+    cluster.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      var piece = e.target.closest('.plate-piece');
+      if (!piece) return;
+      e.preventDefault();
+      togglePlate(parseInt(piece.dataset.idx, 10));
+    });
+
+    document.getElementById('prev-sel-all').addEventListener('click', function () {
+      for (var i = 0; i < _totalPlates; i++) _selected.add(i);
+      updatePreview();
+    });
+    document.getElementById('prev-clear').addEventListener('click', function () {
+      _selected.clear();
+      updatePreview();
+    });
+
+    // Expose global for basket
+    window._selectedPlates = _selected;
+    updatePreview();
+  }
+
+  function togglePlate(idx) {
+    if (_selected.has(idx)) {
+      _selected.delete(idx);
+    } else {
+      _selected.add(idx);
+    }
+    window._selectedPlates = _selected;
+    updatePreview();
+  }
+
+  function updatePreview() {
+    var cluster = document.getElementById('plate-cluster');
+    if (!cluster) return;
+
+    // Update each tile's visual state
+    cluster.querySelectorAll('.plate-piece').forEach(function (piece) {
+      var idx = parseInt(piece.dataset.idx, 10);
+      var sel = _selected.has(idx);
+      piece.classList.toggle('is-selected', sel);
+      piece.classList.toggle('is-unselected', !sel);
+      piece.setAttribute('aria-checked', sel ? 'true' : 'false');
+    });
+
+    var count = _selected.size;
+
+    // Update price
+    var priceEl = document.getElementById('preview-price');
+    var subEl = document.getElementById('preview-price-sub');
+    var countEl = document.getElementById('preview-count');
+    var dynPrice = document.getElementById('dynamic-price');
+
+    var price = calcPrice(count);
+    if (priceEl) priceEl.textContent = '\u00a3' + price.toFixed(2);
+    if (subEl) subEl.innerHTML = priceSub(count, _totalPlates);
+    if (countEl) countEl.textContent = count + ' of ' + _totalPlates + ' selected';
+    if (dynPrice) dynPrice.textContent = '\u00a3' + price.toFixed(2);
+
+    // Update Add to Basket button label
+    var addBtn = document.getElementById('add-to-basket-btn');
+    if (addBtn) {
+      addBtn.textContent = count > 0
         ? 'Add ' + count + ' Plate' + (count !== 1 ? 's' : '') + ' to Basket'
         : 'Select Plates';
-      renderLiveMockup(p, gridPositions, plateImages, selected, wallSourceImage);
     }
-
-    function render() {
-      var count = selected.size;
-
-      var rows = {};
-      gridPositions.forEach(function(pos, idx) {
-        if (!rows[pos.row]) rows[pos.row] = [];
-        rows[pos.row].push({ row: pos.row, col: pos.col, idx: idx });
-      });
-      var rowKeys = Object.keys(rows).map(Number).sort(function(a, b) { return a - b; });
-
-      var rowsHtml = rowKeys.map(function(rowKey) {
-        var cells = rows[rowKey].slice().sort(function(a, b) { return a.col - b.col; });
-        var isOffset = rowKey % 2 !== 0;
-        var cellsHtml = cells.map(function(cell) {
-          var img  = plateImages[cell.idx] || '';
-          var name = plateNames[cell.idx] || ('Plate ' + (cell.idx + 1));
-          var sel  = selected.has(cell.idx);
-          return '<button class="hex-cell' + (sel ? ' selected' : '') + '" data-idx="' + cell.idx + '" title="' + name.replace(/"/g, '') + '">' +
-            (img ? '<img src="' + img + '" alt="' + name.replace(/"/g, '') + '">' : '') +
-            '<span class="panel-label">' + (cell.idx + 1) + '</span>' +
-          '</button>';
-        }).join('');
-        return '<div class="hex-row' + (isOffset ? ' offset' : '') + '">' + cellsHtml + '</div>';
-      }).join('');
-
-      mount.innerHTML =
-        '<div class="hex-selector">' +
-          '<div class="hex-selector-title">' +
-            '<span>Select your plates</span>' +
-            '<span class="hex-count">' + count + ' of ' + totalPlates + ' selected</span>' +
-          '</div>' +
-          '<div class="hex-grid-wrap"><div class="hex-grid-inner" id="hex-grid">' + rowsHtml + '</div></div>' +
-          '<div class="hex-selector-footer">' +
-            '<div>' +
-              '<div class="hex-price-row">&pound;' + currentSelectionPrice(count, totalPlates).toFixed(2) + '</div>' +
-              '<div class="hex-price-sub">' + priceSubline(count, totalPlates) + '</div>' +
-            '</div>' +
-            '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
-              '<button class="hex-select-all" id="sel-all">Select all</button>' +
-              '<button class="hex-select-all" id="sel-none" style="color:var(--muted);border-color:var(--border2)">Clear</button>' +
-            '</div>' +
-          '</div>' +
-        '</div>';
-
-      mount.querySelectorAll('.hex-cell').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-          var idx = parseInt(btn.dataset.idx);
-          if (selected.has(idx)) selected.delete(idx); else selected.add(idx);
-          window._selectedPlates = selected;
-          render();
-          updatePrice();
-        });
-      });
-      mount.querySelector('#sel-all').addEventListener('click', function() {
-        for (var i = 0; i < totalPlates; i++) selected.add(i);
-        window._selectedPlates = selected; render(); updatePrice();
-      });
-      mount.querySelector('#sel-none').addEventListener('click', function() {
-        selected.clear();
-        window._selectedPlates = selected; render(); updatePrice();
-      });
-
-      updatePrice();
-    }
-
-    render();
   }
 
-  function currentSelectionPrice(count, totalPlates) {
+  // ─── Geometry helpers ─────────────────────────────────────────────────────
+
+  // Convert grid [row, col] to pixel position (top-left of tile bounding box)
+  // using gap-free pointy-top hex geometry.
+  function gridToPixel(row, col) {
+    return {
+      x: col * COL_PITCH + (row % 2 !== 0 ? ODD_OFFSET : 0),
+      y: row * ROW_PITCH
+    };
+  }
+
+  function getBounds(pixelPos) {
+    if (!pixelPos.length) return { minX: 0, minY: 0, w: HEX_W, h: HEX_H };
+    var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    pixelPos.forEach(function (p) {
+      if (p.x < minX) minX = p.x;
+      if (p.y < minY) minY = p.y;
+      if (p.x + HEX_W > maxX) maxX = p.x + HEX_W;
+      if (p.y + HEX_H > maxY) maxY = p.y + HEX_H;
+    });
+    return { minX: minX, minY: minY, w: maxX - minX, h: maxY - minY };
+  }
+
+  // ─── Pricing helpers ──────────────────────────────────────────────────────
+  function calcPrice(count) {
     if (!count) return 0;
-    if (count === totalPlates && PLATE_SET_PRICE > 0) return PLATE_SET_PRICE;
+    if (count === _totalPlates && PLATE_SET_PRICE > 0) return PLATE_SET_PRICE;
     return parseFloat((count * PLATE_UNIT_PRICE).toFixed(2));
   }
 
-  function priceSubline(count, totalPlates) {
+  function priceSub(count, total) {
     if (!count) return 'Choose at least one plate';
-    if (count === totalPlates && PLATE_SET_PRICE > 0) {
-      return 'Complete set price';
-    }
-    return count + ' plate' + (count !== 1 ? 's' : '') + ' &times; &pound;' + PLATE_UNIT_PRICE.toFixed(2) + ' each';
+    if (count === total && PLATE_SET_PRICE > 0) return 'Complete set price';
+    return count + ' plate' + (count !== 1 ? 's' : '') +
+      ' &times; &pound;' + PLATE_UNIT_PRICE.toFixed(2) + ' each';
   }
 
-  function selectedPlateIndexes(totalPlates) {
-    var selected = window._selectedPlates;
-    if (!selected || !selected.size) return [];
-    return Array.from(selected)
-      .filter(function(idx) { return idx >= 0 && idx < totalPlates; })
-      .sort(function(a, b) { return a - b; });
-  }
+  // ─── Basket integration ───────────────────────────────────────────────────
+  function addSelectionToBasket(p, plateNames) {
+    var indexes = Array.from(_selected).filter(function (i) {
+      return i >= 0 && i < _totalPlates;
+    }).sort(function (a, b) { return a - b; });
 
-  function addSelectionToBasket(p, plateNames, totalPlates) {
-    var indexes = selectedPlateIndexes(totalPlates);
     if (!indexes.length) {
       if (window.showToast) window.showToast('Select at least one plate');
       return false;
     }
 
-    var allSelected = indexes.length === totalPlates;
-    var price = currentSelectionPrice(indexes.length, totalPlates);
+    var allSelected = indexes.length === _totalPlates;
+    var price = calcPrice(indexes.length);
     var suffix = allSelected ? 'complete set' : indexes.length + ' plate selection';
     var selectionKey = allSelected ? 'all' : indexes.join('-');
 
@@ -849,9 +1007,9 @@
         priceMode: allSelected ? 'set' : 'individual',
         image: p.image || '',
         quantity: 1,
-        plateCount: totalPlates,
+        plateCount: _totalPlates,
         selectedPlateIndexes: indexes,
-        plates: indexes.map(function(idx) {
+        plates: indexes.map(function (idx) {
           return {
             index: idx,
             number: idx + 1,
@@ -864,89 +1022,23 @@
     return true;
   }
 
-  function renderLiveMockup(p, gridPositions, plateImages, selected, wallSourceImage) {
-    var mount = document.getElementById('plate-live-mockup-mount');
-    if (!mount) return;
-
-    var pixelPositions = gridPositions.map(function(pos) {
-      return gridToLivePixel(parseInt(pos.row, 10) || 0, parseInt(pos.col, 10) || 0);
-    });
-    var bounds = getLiveBounds(pixelPositions);
-    var safeW = Math.max(1, bounds.width);
-    var safeH = Math.max(1, bounds.height);
-    var availableW = Math.max(240, mount.clientWidth || 420) - 44;
-    var scale = Math.min(1.35, availableW / safeW, 310 / safeH);
-    var bg = wallSourceImage ? ' style="background-image:url(' + wallSourceImage.replace(/"/g, '%22') + ')"' : '';
-    var selectedIndexes = Array.from(selected).sort(function(a, b) { return a - b; });
-
-    var pieces = selectedIndexes.map(function(idx) {
-      var pos = pixelPositions[idx] || { x: 0, y: 0 };
-      var left = Math.round(pos.x - bounds.minX);
-      var top = Math.round(pos.y - bounds.minY);
-      var image = plateImages[idx] || p.image || '';
-      var innerStyle = '';
-      if (image) {
-        if (plateImages[idx]) {
-          innerStyle = 'background-image:url(' + image.replace(/"/g, '%22') + ');background-size:cover;background-position:center;';
-        } else {
-          innerStyle = 'background-image:url(' + image.replace(/"/g, '%22') + ');background-size:' + Math.round(safeW) + 'px ' + Math.round(safeH) + 'px;background-position:-' + left + 'px -' + top + 'px;';
-        }
-      }
-      return '<div class="plate-live-piece" style="left:' + left + 'px;top:' + top + 'px">' +
-        '<div class="plate-live-inner" style="' + innerStyle + '"></div>' +
-        '<span class="plate-live-number">' + (idx + 1) + '</span>' +
-      '</div>';
-    }).join('');
-
-    mount.innerHTML =
-      '<div class="plate-live-mockup' + (wallSourceImage ? ' has-wall' : '') + '"' + bg + '>' +
-        '<div class="plate-live-title">Live plate preview</div>' +
-        '<div class="plate-live-cluster" style="width:' + Math.round(safeW) + 'px;height:' + Math.round(safeH) + 'px;transform:translate(-50%,-50%) scale(' + scale.toFixed(3) + ')">' +
-          pieces +
-        '</div>' +
-      '</div>';
-  }
-
-  function gridToLivePixel(row, col) {
-    var hexH = 112;
-    var hexW = 97;
-    var colPitch = hexW;
-    var rowPitch = Math.round(hexH * 0.75);
-    var oddOffset = Math.round(colPitch / 2);
-    return {
-      x: col * colPitch + (row % 2 !== 0 ? oddOffset : 0),
-      y: row * rowPitch
-    };
-  }
-
-  function getLiveBounds(positions) {
-    if (!positions.length) return { minX: 0, minY: 0, width: 97, height: 112 };
-    var minX = Math.min.apply(null, positions.map(function(p) { return p.x; }));
-    var minY = Math.min.apply(null, positions.map(function(p) { return p.y; }));
-    var maxX = Math.max.apply(null, positions.map(function(p) { return p.x + 97; }));
-    var maxY = Math.max.apply(null, positions.map(function(p) { return p.y + 112; }));
-    return { minX: minX, minY: minY, width: maxX - minX, height: maxY - minY };
-  }
-
+  // ─── Auto layout (fallback if no plateMap) ────────────────────────────────
   function autoLayout(n) {
     var presets = {
-      1:[[0,0]],
-      2:[[0,0],[0,1]],
-      3:[[0,0],[0,1],[1,0]],
-      4:[[0,0],[0,1],[1,0],[1,1]],
-      5:[[0,1],[1,0],[1,1],[1,2],[2,1]],
-      6:[[0,0],[0,1],[0,2],[1,0],[1,1],[1,2]],
-      7:[[0,1],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]],
-      8:[[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1]],
-      9:[[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]],
+      1: [[0,0]],
+      2: [[0,0],[0,1]],
+      3: [[0,0],[0,1],[1,0]],
+      4: [[0,0],[0,1],[1,0],[1,1]],
+      5: [[0,1],[1,0],[1,1],[1,2],[2,1]],
+      6: [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2]],
+      7: [[0,1],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]],
+      8: [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1]],
+      9: [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]],
       10:[[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[1,3],[2,0],[2,1],[2,2]],
       11:[[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[1,3],[2,0],[2,1],[2,2],[2,3]],
       12:[[0,0],[0,1],[0,2],[0,3],[1,0],[1,1],[1,2],[1,3],[2,0],[2,1],[2,2],[2,3]]
     };
-    if (presets[n]) {
-      return presets[n].map(function(p) { return { row: p[0], col: p[1] }; });
-    }
-
+    if (presets[n]) return presets[n].map(function (p) { return { row: p[0], col: p[1] }; });
     var cols = Math.max(3, Math.ceil(Math.sqrt(n)));
     var positions = [], placed = 0, row = 0;
     while (placed < n) {
@@ -956,6 +1048,22 @@
       row++;
     }
     return positions;
+  }
+
+  // ─── Utility ──────────────────────────────────────────────────────────────
+  function esc(s) {
+    return String(s || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function encodeImgUrl(url) {
+    // Don't double-encode, just make it safe for CSS url()
+    return url.replace(/[()'"]/g, function (c) {
+      return { '(': '%28', ')': '%29', "'": '%27', '"': '%22' }[c];
+    });
   }
 
 })();
