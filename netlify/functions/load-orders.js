@@ -23,7 +23,7 @@ exports.handler = async (event) => {
 
     const { data, error } = await supabase
       .from('orders')
-      .select('ref,total,created_at,email,customer_name')
+      .select('ref,total,subtotal,discount,shipping_cost,shipping_method,promo_code,created_at,email,customer_name,items,address,delivery')
       .order('created_at', { ascending: false })
       .limit(300);
 

@@ -1,5 +1,11 @@
 const sharp = require('sharp');
 const { createClient } = require('@supabase/supabase-js');
+const {
+  inferPlateCount,
+  normalisePlateMap,
+  smartPlatePositions,
+  isMissingColumnError
+} = require('./plate-helpers');
 
 const DEFAULT_BUCKET = 'product-images';
 const HEX_H = 210;
@@ -16,6 +22,8 @@ const SHADOW_OFFSET_X = 10;
 const SHADOW_OFFSET_Y = 10;
 const SHADOW_BLUR = 6;
 const SHADOW_PAD = 20;
+const DEPTH_OFFSET_X = 5;
+const DEPTH_OFFSET_Y = 7;
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
@@ -78,7 +86,7 @@ exports.handler = async (event) => {
         if (uploadError) throw uploadError;
 
         const wallImage = `${process.env.SUPABASE_URL}/storage/v1/object/public/${bucket}/${storagePath}`;
-        await updateProductWallImage(supabase, product, wallImage);
+        await updateProductWallImage(supabase, product, wallImage, wallImageUrl);
 
         results.push({
           productId: product.id || product.slug,
@@ -88,7 +96,7 @@ exports.handler = async (event) => {
           success: true,
           storage_path: storagePath,
           wall_image: wallImage,
-          positions_source: getPanelMapPositions(product) ? 'panel_map' : 'auto'
+          positions_source: getStoredPlatePositions(product) ? 'plate_map' : 'auto'
         });
       } catch (err) {
         results.push({ productId: product.id || product.slug, slug: product.slug || null, name: product.name, success: false, error: err.message });
@@ -105,13 +113,7 @@ exports.handler = async (event) => {
 };
 
 function getPieceCount(product) {
-  const mapped = getPanelMapPositions(product);
-  if (mapped && mapped.length > 0) return mapped.length;
-  const direct = parseInt(product.pieces || product.panel_count || product.tile_count, 10);
-  if (Number.isFinite(direct) && direct > 0) return Math.min(direct, 24);
-  if (Array.isArray(product.panel_names) && product.panel_names.length) return Math.min(product.panel_names.length, 24);
-  if (Array.isArray(product.panelImages) && product.panelImages.length) return Math.min(product.panelImages.length, 24);
-  return 3;
+  return inferPlateCount(product);
 }
 
 async function getProductByIdentifier(supabase, identifier) {
@@ -133,18 +135,27 @@ async function getProductByIdentifier(supabase, identifier) {
     .maybeSingle();
 }
 
-async function updateProductWallImage(supabase, product, wallImage) {
+async function updateProductWallImage(supabase, product, wallImage, wallSourceImage) {
   const attempts = [];
   if (product.slug) attempts.push({ column: 'slug', value: product.slug });
   if (product.id !== undefined && product.id !== null) attempts.push({ column: 'id', value: product.id });
 
   let lastError = null;
   for (const attempt of attempts) {
-    const { data, error } = await supabase
+    const updatePayload = { wall_image: wallImage, wall_source_image: wallSourceImage || null };
+    let { data, error } = await supabase
       .from('products')
-      .update({ wall_image: wallImage })
+      .update(updatePayload)
       .eq(attempt.column, attempt.value)
       .select(attempt.column);
+
+    if (error && isMissingColumnError(error)) {
+      ({ data, error } = await supabase
+        .from('products')
+        .update({ wall_image: wallImage })
+        .eq(attempt.column, attempt.value)
+        .select(attempt.column));
+    }
 
     if (!error && data && data.length > 0) return data[0];
     if (error) lastError = error;
@@ -165,13 +176,13 @@ function safeStorageName(value) {
     .replace(/^-+|-+$/g, '') || 'product';
 }
 
-function getPanelMapPositions(product) {
-  const panelMap = product.panel_map || product.panelMap;
-  return panelMap && Array.isArray(panelMap.positions) ? panelMap.positions : null;
+function getStoredPlatePositions(product) {
+  const plateMap = product.plate_map || product.plateMap || product.panel_map || product.panelMap;
+  return plateMap && Array.isArray(plateMap.positions) ? plateMap.positions : null;
 }
 
 function getPositions(product) {
-  const mapped = getPanelMapPositions(product);
+  const mapped = getStoredPlatePositions(product);
   if (mapped && mapped.length > 0) {
     const positions = mapped
       .map(p => gridToPixel(parseInt(p.row, 10), parseInt(p.col, 10)))
@@ -217,6 +228,7 @@ async function generateMockup({ wallBuffer, productBuffer, positions, pieceCount
   const bounds = getBounds(tilePositions);
   const pieceImages = await createSlicedFramedPieces(productBuffer, tilePositions, bounds);
   const shadow = await createContactShadow();
+  const depth = await createDepthLayer();
   const highlight = await createWallContactHighlight();
   const composites = [];
 
@@ -224,6 +236,7 @@ async function generateMockup({ wallBuffer, productBuffer, positions, pieceCount
     const left = Math.round(ORIGIN_X + tilePositions[i].x);
     const top = Math.round(ORIGIN_Y + tilePositions[i].y);
     composites.push({ input: shadow, left: left - SHADOW_PAD + SHADOW_OFFSET_X, top: top - SHADOW_PAD + SHADOW_OFFSET_Y });
+    composites.push({ input: depth, left, top });
     composites.push({ input: pieceImages[i], left, top });
     composites.push({ input: highlight, left, top });
   }
@@ -237,19 +250,9 @@ async function generateMockup({ wallBuffer, productBuffer, positions, pieceCount
 }
 
 function autoHoneycomb(count) {
-  const cols = Math.max(2, Math.ceil(Math.sqrt(count)));
-  const result = [];
-  let placed = 0;
-  let row = 0;
-
-  while (placed < count) {
-    const rowCols = Math.min(cols, count - placed);
-    for (let col = 0; col < rowCols; col += 1) result.push(gridToPixel(row, col));
-    placed += rowCols;
-    row += 1;
-  }
-
-  return result;
+  return normalisePlateMap({ plate_map: { positions: smartPlatePositions(count) } }, count)
+    .positions
+    .map(pos => gridToPixel(pos.row, pos.col));
 }
 
 function getBounds(positions) {
@@ -333,14 +336,22 @@ async function createWallContactHighlight() {
   return sharp(Buffer.from(svg)).png().toBuffer();
 }
 
-function hexPoints(w, h) {
+async function createDepthLayer() {
+  const totalW = HEX_W + DEPTH_OFFSET_X;
+  const totalH = HEX_H + DEPTH_OFFSET_Y;
+  const pts = hexPoints(HEX_W, HEX_H, DEPTH_OFFSET_X, DEPTH_OFFSET_Y);
+  const svg = `<svg width="${totalW}" height="${totalH}" viewBox="0 0 ${totalW} ${totalH}" xmlns="http://www.w3.org/2000/svg"><polygon points="${pts}" fill="rgba(12,10,8,0.52)"/><polygon points="${pts}" fill="url(#edge)"/><defs><linearGradient id="edge" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="rgba(255,255,255,0.08)"/><stop offset="0.45" stop-color="rgba(0,0,0,0)"/><stop offset="1" stop-color="rgba(0,0,0,0.28)"/></linearGradient></defs></svg>`;
+  return sharp(Buffer.from(svg)).png().toBuffer();
+}
+
+function hexPoints(w, h, ox = 0, oy = 0) {
   return [
-    `${w * 0.5},0`,
-    `${w},${h * 0.25}`,
-    `${w},${h * 0.75}`,
-    `${w * 0.5},${h}`,
-    `0,${h * 0.75}`,
-    `0,${h * 0.25}`
+    `${ox + w * 0.5},${oy}`,
+    `${ox + w},${oy + h * 0.25}`,
+    `${ox + w},${oy + h * 0.75}`,
+    `${ox + w * 0.5},${oy + h}`,
+    `${ox},${oy + h * 0.75}`,
+    `${ox},${oy + h * 0.25}`
   ].join(' ');
 }
 
@@ -349,7 +360,7 @@ function hexMaskSvg(w, h) {
 }
 
 function hexStrokeSvg(w, h) {
-  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg"><polygon points="${hexPoints(w, h)}" fill="none" stroke="rgba(255,255,255,0.28)" stroke-width="1"/><polygon points="${hexPoints(w, h)}" fill="none" stroke="rgba(0,0,0,0.28)" stroke-width="1.2"/></svg>`;
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="surface" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="rgba(255,255,255,0.16)"/><stop offset="0.42" stop-color="rgba(255,255,255,0.02)"/><stop offset="1" stop-color="rgba(0,0,0,0.15)"/></linearGradient></defs><polygon points="${hexPoints(w, h)}" fill="url(#surface)"/><polygon points="${hexPoints(w, h)}" fill="none" stroke="rgba(255,255,255,0.34)" stroke-width="1"/><polygon points="${hexPoints(w, h)}" fill="none" stroke="rgba(0,0,0,0.32)" stroke-width="1.2"/></svg>`;
 }
 
 function isNoRowsError(error) {

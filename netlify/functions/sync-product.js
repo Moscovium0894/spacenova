@@ -9,7 +9,10 @@ exports.handler = async (event) => {
   }
 
   const stripeId = 'aether_' + product.slug;
-  const priceInPence = Math.round((product.price || 49.99) * 100);
+  const plateCount = product.plate_count || product.plateCount || product.pieces || 6;
+  const unitPrice = product.plate_unit_price || product.plateUnitPrice || null;
+  const setPrice = product.plate_set_price || product.plateSetPrice || product.price || 49.99;
+  const priceInPence = Math.round(setPrice * 100);
 
   // Create or update Stripe product
   try {
@@ -17,7 +20,13 @@ exports.handler = async (event) => {
       name: product.name,
       description: product.short || '',
       images: product.image ? [product.image] : [],
-      metadata: { slug: product.slug, pieces: String(product.pieces || 6) }
+      metadata: {
+        slug: product.slug,
+        pieces: String(plateCount),
+        plate_count: String(plateCount),
+        plate_unit_price: unitPrice == null ? '' : String(unitPrice),
+        plate_set_price: String(setPrice)
+      }
     });
   } catch (e) {
     await stripe.products.create({
@@ -25,7 +34,13 @@ exports.handler = async (event) => {
       name: product.name,
       description: product.short || '',
       images: product.image ? [product.image] : [],
-      metadata: { slug: product.slug, pieces: String(product.pieces || 6) }
+      metadata: {
+        slug: product.slug,
+        pieces: String(plateCount),
+        plate_count: String(plateCount),
+        plate_unit_price: unitPrice == null ? '' : String(unitPrice),
+        plate_set_price: String(setPrice)
+      }
     });
   }
 

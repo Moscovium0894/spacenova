@@ -156,7 +156,7 @@
       <div class="card">
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Name</th><th>Type</th><th>Category</th><th>Panels</th><th>Price</th><th>Status</th><th></th></tr></thead>
+            <thead><tr><th>Name</th><th>Type</th><th>Category</th><th>Plates</th><th>Price</th><th>Status</th><th></th></tr></thead>
             <tbody id="products-table-body"><tr><td colspan="7" style="text-align:center;padding:40px;color:var(--muted)">Loading…</td></tr></tbody>
           </table>
         </div>
@@ -176,7 +176,7 @@
         <div class="card-title">Collection products</div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Name</th><th>Category</th><th>Panels</th><th>Price</th><th>Status</th><th></th></tr></thead>
+            <thead><tr><th>Name</th><th>Category</th><th>Plates</th><th>Price</th><th>Status</th><th></th></tr></thead>
             <tbody id="collections-table-body"><tr><td colspan="6" style="text-align:center;padding:40px;color:var(--muted)">Loading…</td></tr></tbody>
           </table>
         </div>
@@ -283,7 +283,7 @@
 <!-- ══════════════════ SCRIPT ══════════════════ -->
 <script>
 /* ── GLOBALS ── */
-var catalogue={products:[],bundles:[],artifacts:[]};
+var catalogue={products:[],bundles:[]};
 var ordersData={orders:[],summary:{}};
 var adminPw='';
 var _allOrders=[];
@@ -292,6 +292,8 @@ var _allOrders=[];
 function gbp(n){var v=parseFloat(n)||0;return'£'+(v>=1000?(v/1000).toFixed(1)+'k':v.toFixed(0))}
 function gbpFull(n){return'£'+(parseFloat(n)||0).toFixed(2)}
 function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]})}
+function plateSelectionText(it){var idx=Array.isArray(it.selected_plate_indexes)?it.selected_plate_indexes:[];if(!idx.length&&Array.isArray(it.selectedPlateIndexes))idx=it.selectedPlateIndexes;if(it.is_full_set||it.isFullSet)return'complete set';if(!idx.length)return'';return'plates '+idx.map(function(n){return Number(n)+1}).join(', ')}
+function orderItemLabel(it){var label=(it.name||'?')+' x'+(it.qty||1);var plates=plateSelectionText(it);return plates?label+' ('+plates+')':label}
 function relDate(iso){if(!iso)return'—';var d=new Date(iso),now=Date.now(),diff=now-d.getTime();var mins=Math.floor(diff/60000),hrs=Math.floor(mins/60),days=Math.floor(hrs/24);if(days>14)return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});if(days>0)return days+'d ago';if(hrs>0)return hrs+'h ago';if(mins>0)return mins+'m ago';return'just now'}
 function toast(msg,type){var tc=document.getElementById('toast-container'),el=document.createElement('div');el.className='toast';el.textContent=msg;if(type==='danger')el.style.borderLeftColor='var(--danger)';else if(type==='info')el.style.borderLeftColor='var(--accent)';tc.appendChild(el);setTimeout(function(){el.remove()},2600)}
 
@@ -346,7 +348,7 @@ function refreshAll(){loadAll();toast('Refreshing…','info')}
 function loadCatalogue(){
   return fetch('/.netlify/functions/load-catalogue',{cache:'no-store'})
     .then(function(r){return r.json()})
-    .then(function(d){catalogue.products=d.products||[];catalogue.bundles=d.bundles||[];catalogue.artifacts=d.artifacts||[];catalogue.featuredSlugs=d.featuredSlugs||[]})
+    .then(function(d){catalogue.products=d.products||[];catalogue.bundles=d.bundles||[];catalogue.featuredSlugs=d.featuredSlugs||[]})
 }
 function loadOrders(){
   if(!adminPw)return Promise.resolve();
@@ -398,7 +400,7 @@ function renderRecentProducts(){
   var list=catalogue.products.slice(0,5);
   if(!list.length){el.innerHTML='<div class="empty"><div class="empty-icon">📦</div><p>No products</p></div>';return}
   el.innerHTML=list.map(function(p){
-    return'<div class="list-row">'+(p.image?'<img class="list-row-img" src="'+esc(p.image)+'" alt="" onerror="this.style.display=\'none\'"/>':'<div class="list-row-img"></div>')+'<div class="list-row-info"><div class="list-row-name">'+esc(p.name)+'</div><div class="list-row-sub">'+esc(p.category||'uncategorised')+' · '+(p.pieces||'?')+' panels</div></div><span class="tag '+(p.isCollection?'tag-gold':'tag-accent')+'">'+(p.isCollection?'Collection':'Series')+'</span><span style="font-family:var(--fd);font-size:1rem;color:var(--gold);margin-left:6px">'+gbpFull(p.price)+'</span></div>'
+    return'<div class="list-row">'+(p.image?'<img class="list-row-img" src="'+esc(p.image)+'" alt="" onerror="this.style.display=\'none\'"/>':'<div class="list-row-img"></div>')+'<div class="list-row-info"><div class="list-row-name">'+esc(p.name)+'</div><div class="list-row-sub">'+esc(p.category||'uncategorised')+' · '+(p.plateCount||p.pieces||'?')+' plates</div></div><span class="tag '+(p.isCollection?'tag-gold':'tag-accent')+'">'+(p.isCollection?'Collection':'Series')+'</span><span style="font-family:var(--fd);font-size:1rem;color:var(--gold);margin-left:6px">'+gbpFull(p.price)+'</span></div>'
   }).join('')
 }
 
@@ -451,7 +453,7 @@ function filterProductsTable(){
   if(!list.length){el.innerHTML='<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--muted)">No products found</td></tr>';return}
   el.innerHTML=list.map(function(p){
     var pub=p.isPublished!==false;
-    return'<tr><td><div style="display:flex;align-items:center;gap:10px">'+(p.image?'<img src="'+esc(p.image)+'" style="width:32px;height:32px;border-radius:7px;object-fit:cover;border:1px solid var(--border)" onerror="this.style.display=\'none\'"/>':'')+'<span>'+esc(p.name)+'</span></div></td><td><span class="tag '+(p.isCollection?'tag-gold':'tag-accent')+'">'+(p.isCollection?'Collection':'Series')+'</span></td><td class="td-mono">'+esc(p.category||'—')+'</td><td class="td-mono">'+esc(p.pieces||'?')+'</td><td style="font-family:var(--fd);font-size:.95rem;color:var(--gold)">'+gbpFull(p.price)+'</td><td><span class="tag '+(pub?'tag-success':'tag-muted')+'">'+(pub?'Live':'Draft')+'</span></td><td><a href="/admin/creator.html" class="btn btn-ghost btn-sm">Edit →</a></td></tr>'
+    return'<tr><td><div style="display:flex;align-items:center;gap:10px">'+(p.image?'<img src="'+esc(p.image)+'" style="width:32px;height:32px;border-radius:7px;object-fit:cover;border:1px solid var(--border)" onerror="this.style.display=\'none\'"/>':'')+'<span>'+esc(p.name)+'</span></div></td><td><span class="tag '+(p.isCollection?'tag-gold':'tag-accent')+'">'+(p.isCollection?'Collection':'Series')+'</span></td><td class="td-mono">'+esc(p.category||'—')+'</td><td class="td-mono">'+esc(p.plateCount||p.pieces||'?')+'</td><td style="font-family:var(--fd);font-size:.95rem;color:var(--gold)">'+gbpFull(p.price)+'</td><td><span class="tag '+(pub?'tag-success':'tag-muted')+'">'+(pub?'Live':'Draft')+'</span></td><td><a href="/admin/creator.html" class="btn btn-ghost btn-sm">Edit →</a></td></tr>'
   }).join('')
 }
 
@@ -460,7 +462,7 @@ function renderCollections(){
   var colProds=catalogue.products.filter(function(p){return p.isCollection});
   var tb=document.getElementById('collections-table-body');
   if(tb){if(!colProds.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--muted)">No collections</td></tr>'}
-  else{tb.innerHTML=colProds.map(function(p){var pub=p.isPublished!==false;return'<tr><td>'+esc(p.name)+'</td><td class="td-mono">'+esc(p.category||'—')+'</td><td class="td-mono">'+esc(p.pieces||'?')+'</td><td style="font-family:var(--fd);font-size:.95rem;color:var(--gold)">'+gbpFull(p.price)+'</td><td><span class="tag '+(pub?'tag-success':'tag-muted')+'">'+(pub?'Live':'Draft')+'</span></td><td><a href="/admin/creator.html" class="btn btn-ghost btn-sm">Edit →</a></td></tr>'}).join('')}}
+  else{tb.innerHTML=colProds.map(function(p){var pub=p.isPublished!==false;return'<tr><td>'+esc(p.name)+'</td><td class="td-mono">'+esc(p.category||'—')+'</td><td class="td-mono">'+esc(p.plateCount||p.pieces||'?')+'</td><td style="font-family:var(--fd);font-size:.95rem;color:var(--gold)">'+gbpFull(p.price)+'</td><td><span class="tag '+(pub?'tag-success':'tag-muted')+'">'+(pub?'Live':'Draft')+'</span></td><td><a href="/admin/creator.html" class="btn btn-ghost btn-sm">Edit →</a></td></tr>'}).join('')}}
   var bb=document.getElementById('bundles-table-body');
   if(bb){if(!catalogue.bundles.length){bb.innerHTML='<tr><td colspan="3" style="text-align:center;padding:40px;color:var(--muted)">No bundles</td></tr>'}
   else{bb.innerHTML=catalogue.bundles.map(function(b){var items=Array.isArray(b.items)?b.items.join(', '):'—';return'<tr><td>'+esc(b.name)+'</td><td style="font-family:var(--fd);font-size:.95rem;color:var(--gold)">'+gbpFull(b.price)+'</td><td class="td-mono" style="font-size:.72rem">'+esc(items)+'</td></tr>'}).join('')}}
@@ -476,7 +478,7 @@ function filterOrdersTable(){
   el.innerHTML=list.map(function(o){
     var addr=o.address||{};
     var shippingStr=addr.city?[addr.line1,addr.city,addr.postcode,addr.country].filter(Boolean).join(', '):'—';
-    var items=Array.isArray(o.items)?o.items.map(function(i){return(i.name||'?')+'×'+(i.qty||1)}).join(', '):'—';
+    var items=Array.isArray(o.items)?o.items.map(orderItemLabel).join(', '):'—';
     return'<tr style="cursor:pointer" onclick="showOrderDetail(\''+esc(o.ref)+'\')"><td class="td-mono" style="font-size:.7rem">'+esc(o.ref||'—')+'</td><td>'+esc(o.customer_name||'—')+'</td><td class="td-mono" style="font-size:.7rem">'+esc(o.email||'—')+'</td><td style="font-size:.78rem;color:var(--muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(items)+'">'+esc(items)+'</td><td style="font-family:var(--fd);font-size:.95rem;color:var(--gold)">'+gbpFull(o.total)+'</td><td class="td-mono">'+relDate(o.created_at)+'</td><td class="td-mono" style="font-size:.68rem;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(shippingStr)+'">'+esc(shippingStr||'—')+'</td><td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();showOrderDetail(\''+esc(o.ref)+'\')">View</button></td></tr>'
   }).join('')
 }
@@ -488,7 +490,7 @@ function showOrderDetail(ref){
   var addr=o.address||{};
   var items=Array.isArray(o.items)?o.items:[typeof o.items==='object'&&o.items?o.items:{}];
   var shippingHTML=Object.keys(addr).filter(function(k){return addr[k]}).map(function(k){return'<div class="order-detail-row"><strong>'+k+'</strong><span>'+esc(addr[k])+'</span></div>'}).join('');
-  var itemsHTML=items.map(function(it){return'<div class="order-detail-row"><strong>'+esc(it.name||'?')+'</strong><span>×'+(it.qty||1)+' — '+gbpFull((it.price||0)*(it.qty||1))+'</span></div>'}).join('');
+  var itemsHTML=items.map(function(it){var plates=plateSelectionText(it);return'<div class="order-detail-row"><strong>'+esc(it.name||'?')+(plates?'<br><small style="color:var(--muted);font-weight:400">'+esc(plates)+'</small>':'')+'</strong><span>x'+(it.qty||1)+' — '+gbpFull((it.price||0)*(it.qty||1))+'</span></div>'}).join('');
   document.getElementById('modal-body').innerHTML=
     '<div style="margin-bottom:16px"><div class="order-detail-row"><strong>Customer</strong><span>'+esc(o.customer_name||'—')+'</span></div><div class="order-detail-row"><strong>Email</strong><span>'+esc(o.email||'—')+'</span></div><div class="order-detail-row"><strong>Date</strong><span>'+relDate(o.created_at)+'</span></div><div class="order-detail-row"><strong>Total</strong><span style="color:var(--gold);font-family:var(--fd);font-size:1.1rem">'+gbpFull(o.total)+'</span></div>'+(o.promo_code?'<div class="order-detail-row"><strong>Promo</strong><span>'+esc(o.promo_code)+' (−'+gbpFull(o.discount||0)+')</span></div>':'')+'</div><div class="divider"></div><div style="font-family:var(--fm);font-size:.56rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Items</div>'+itemsHTML+(shippingHTML?'<div class="divider"></div><div style="font-family:var(--fm);font-size:.56rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Shipping address</div>'+shippingHTML:'');
   document.getElementById('order-modal').classList.add('open');

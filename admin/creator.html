@@ -97,10 +97,12 @@
           <input id="f-price" class="field" type="number" step="0.01" placeholder="229">
         </div>
         <div>
-          <label class="field-label" for="f-price-label">Price label</label>
-          <input id="f-price-label" class="field" type="text" placeholder="£189–£249">
+          <label class="field-label" for="f-plate-unit-price">Individual plate price</label>
+          <input id="f-plate-unit-price" class="field" type="number" step="0.01" placeholder="34.99">
         </div>
       </div>
+      <label class="field-label" for="f-price-label">Price label</label>
+      <input id="f-price-label" class="field" type="text" placeholder="GBP price range">
       <div class="field-grid two">
         <div>
           <label class="field-label" for="f-size">Display size</label>
@@ -112,7 +114,7 @@
         </div>
       </div>
       <label class="field-label" for="f-short">Short line</label>
-      <input id="f-short" class="field" type="text" placeholder="A premium hexagonal panel set">
+      <input id="f-short" class="field" type="text" placeholder="A premium hexagonal plate set">
       <label class="field-label" for="f-description">Description</label>
       <textarea id="f-description" class="field textarea" placeholder="Write the full product description..."></textarea>
       <label class="field-label" for="f-note">Note</label>
@@ -135,19 +137,19 @@
       <label class="field-label" for="f-wall-image">Wall preview URL</label>
       <input id="f-wall-image" class="field" type="url" placeholder="https://...">
       <div class="img-thumb-wrap" id="thumb-wall"><div class="img-thumb-empty">No image</div></div>
-      <label class="field-label" for="f-panel-hint">Panel hint text</label>
+      <label class="field-label" for="f-panel-hint">Plate hint text</label>
       <input id="f-panel-hint" class="field" type="text" placeholder="Select your arrangement below">
     </section>
 
-    <!-- Panels -->
+    <!-- Plates -->
     <section class="panel">
       <div class="panel-head">
-        <div><p class="eyebrow">Panels</p><h2>Arrangement</h2></div>
+        <div><p class="eyebrow">Plates</p><h2>Arrangement</h2></div>
         <button class="btn btn-ghost btn-sm" id="rebuild-panels-btn" type="button">Rebuild</button>
       </div>
       <div class="field-grid two">
         <div>
-          <label class="field-label" for="f-pieces">Panels</label>
+          <label class="field-label" for="f-pieces">Plates</label>
           <input id="f-pieces" class="field" type="number" min="1" max="24" value="6">
         </div>
         <div>
@@ -195,7 +197,7 @@
       <div class="view-tabs" id="view-tabs">
         <button class="view-tab is-active" data-view="main">Main</button>
         <button class="view-tab" data-view="wall">Wall</button>
-        <button class="view-tab" data-view="panels">Panels</button>
+        <button class="view-tab" data-view="panels">Plates</button>
       </div>
     </div>
 
@@ -219,14 +221,14 @@
           </div>
         </div>
 
-        <!-- Panels view: main image with hex tiles composited on top -->
+        <!-- Plates view: main image with hex plates composited on top -->
         <div class="preview-view" id="view-panels" style="display:none">
           <div class="panels-composite-wrap">
             <div class="panels-bg-layer" id="panels-bg-layer">
-              <div class="panels-bg-empty" id="panels-bg-empty">Add a main image to see panels composited on it.</div>
+              <div class="panels-bg-empty" id="panels-bg-empty">Add a main image to see plates composited on it.</div>
             </div>
             <div class="panels-hex-layer" id="panels-hex-layer"></div>
-            <div class="panels-overlay-label">Panel arrangement preview</div>
+            <div class="panels-overlay-label">Plate arrangement preview</div>
           </div>
         </div>
       </div>
@@ -249,14 +251,14 @@
         <div class="arrangement-head">
           <div>
             <p class="eyebrow">Arrangement</p>
-            <h3>Hex panel layout</h3>
+            <h3>Hex plate layout</h3>
           </div>
-          <span class="arrangement-count" id="arrangement-count">0 panels</span>
+          <span class="arrangement-count" id="arrangement-count">0 plates</span>
         </div>
         <div class="arrangement-wrap">
           <div id="hex-preview" class="hex-preview"></div>
         </div>
-        <p class="arrangement-hint">Each tile shows a cropped region of the main image. Individual panel image URLs override this.</p>
+        <p class="arrangement-hint">Each plate shows a cropped region of the main image. Individual plate image URLs override this.</p>
       </div>
 
     </div>
@@ -308,6 +310,7 @@
       category:     document.getElementById('f-category'),
       accent:       document.getElementById('f-accent'),
       price:        document.getElementById('f-price'),
+      unitPrice:    document.getElementById('f-plate-unit-price'),
       priceLabel:   document.getElementById('f-price-label'),
       size:         document.getElementById('f-size'),
       material:     document.getElementById('f-material'),
@@ -414,10 +417,10 @@
       var evt = (el.type === 'checkbox' || el.tagName === 'SELECT') ? 'change' : 'input';
       el.addEventListener(evt, function () {
         if (key === 'pieces') {
-          syncPriceFromPieces();
           ensurePanelArrays();
           rebuildPanelEditors();
         }
+        if (key === 'price' || key === 'unitPrice' || key === 'pieces') syncPriceLabel();
         if (key === 'layoutPreset') applyPresetLayout();
         if (key === 'name' && !E.f.slug.dataset.touched) {
           E.f.slug.value = slugify(E.f.name.value);
@@ -486,6 +489,7 @@
     E.f.category.value     = p.category || '';
     E.f.accent.value       = p.accent || '';
     E.f.price.value        = p.price || '';
+    E.f.unitPrice.value    = p.plateUnitPrice || '';
     E.f.priceLabel.value   = p.priceLabel || '';
     E.f.size.value         = p.size || '';
     E.f.material.value     = p.material || '';
@@ -498,13 +502,14 @@
     E.f.image.value        = p.image || '';
     E.f.wallImage.value    = p.wallImage || '';
     E.f.panelHint.value    = p.panelHint || '';
-    E.f.pieces.value       = parseInt(p.pieces, 10) || 1;
-    syncPriceFromPieces();
+    E.f.pieces.value       = parseInt(p.plateCount || p.pieces, 10) || 1;
+    syncPriceLabel();
 
-    state.panelNames     = Array.isArray(p.panelNames) ? p.panelNames.slice() : [];
-    state.panelImages    = Array.isArray(p.panelImages) ? p.panelImages.slice() : [];
-    state.panelPositions = (p.panelMap && Array.isArray(p.panelMap.positions))
-      ? p.panelMap.positions.map(function (x) { return { row: x.row, col: x.col }; })
+    state.panelNames     = Array.isArray(p.plateNames) ? p.plateNames.slice() : (Array.isArray(p.panelNames) ? p.panelNames.slice() : []);
+    state.panelImages    = Array.isArray(p.plateImages) ? p.plateImages.slice() : (Array.isArray(p.panelImages) ? p.panelImages.slice() : []);
+    var loadedMap = p.plateMap || p.panelMap || {};
+    state.panelPositions = (loadedMap && Array.isArray(loadedMap.positions))
+      ? loadedMap.positions.map(function (x) { return { row: parseInt(x.row, 10) || 0, col: parseInt(x.col, 10) || 0 }; })
       : [];
 
     ensurePanelArrays();
@@ -527,7 +532,9 @@
       else { el.value = ''; }
     });
     E.f.isCollection.checked = !!isCollection;
-    syncPriceFromPieces();
+    E.f.unitPrice.value = '34.99';
+    E.f.price.value = (6 * 34.99 * 0.9).toFixed(2);
+    syncPriceLabel();
     state.panelNames = [];
     state.panelImages = [];
     state.panelPositions = [];
@@ -541,20 +548,36 @@
   }
 
   /* ─── Panel arrays ─── */
-  function syncPriceFromPieces() {
+  function syncPriceLabel() {
     var count = Math.max(1, parseInt(E.f.pieces.value, 10) || 1);
-    var derivedPrice = Math.max(0, (count * 10) - 10);
-    E.f.price.value = derivedPrice.toFixed(2);
+    var setPrice = parseFloat(E.f.price.value || 0);
+    var unitPrice = parseFloat(E.f.unitPrice.value || 0);
+    if (!unitPrice && setPrice) {
+      unitPrice = setPrice / count;
+      E.f.unitPrice.value = unitPrice.toFixed(2);
+    }
+    if (!E.f.priceLabel.value && setPrice && unitPrice) {
+      E.f.priceLabel.value = 'Complete set GBP ' + setPrice.toFixed(2) + ' / GBP ' + unitPrice.toFixed(2) + ' per plate';
+    }
   }
 
   function ensurePanelArrays() {
     var count = Math.max(1, parseInt(E.f.pieces.value, 10) || 1);
+    var fallback = autoLayout(count);
     while (state.panelNames.length < count) state.panelNames.push('');
     while (state.panelImages.length < count) state.panelImages.push('');
-    while (state.panelPositions.length < count) state.panelPositions.push({ row: 0, col: state.panelPositions.length });
+    while (state.panelPositions.length < count) {
+      state.panelPositions.push(fallback[state.panelPositions.length] || { row: 0, col: state.panelPositions.length });
+    }
     state.panelNames = state.panelNames.slice(0, count);
     state.panelImages = state.panelImages.slice(0, count);
-    state.panelPositions = state.panelPositions.slice(0, count);
+    state.panelPositions = state.panelPositions.slice(0, count).map(function (pos, idx) {
+      var fallbackPos = fallback[idx] || { row: 0, col: idx };
+      return {
+        row: Number.isFinite(parseInt(pos && pos.row, 10)) ? parseInt(pos.row, 10) : fallbackPos.row,
+        col: Number.isFinite(parseInt(pos && pos.col, 10)) ? parseInt(pos.col, 10) : fallbackPos.col
+      };
+    });
   }
 
   function rebuildPanelEditors() {
@@ -565,7 +588,7 @@
       row.className = 'panel-row';
       row.innerHTML =
         '<div class="panel-index">' + (i + 1) + '</div>' +
-        '<input class="field pn" type="text" placeholder="Panel name">' +
+        '<input class="field pn" type="text" placeholder="Plate name">' +
         '<input class="field pi" type="url" placeholder="https://...">' +
         '<input class="field pr" type="number" step="1">' +
         '<input class="field pc" type="number" step="1">';
@@ -645,12 +668,34 @@
   }
 
   function autoLayout(count) {
-    var positions = [], cols = Math.max(2, Math.ceil(Math.sqrt(count)));
-    var placed = 0, r = 0;
-    while (placed < count) {
+    var presets = {
+      1:[[0,0]],
+      2:[[0,0],[0,1]],
+      3:[[0,0],[0,1],[1,0]],
+      4:[[0,0],[0,1],[1,0],[1,1]],
+      5:[[0,1],[1,0],[1,1],[1,2],[2,1]],
+      6:[[0,0],[0,1],[0,2],[1,0],[1,1],[1,2]],
+      7:[[0,1],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]],
+      8:[[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1]],
+      9:[[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]],
+      10:[[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[1,3],[2,0],[2,1],[2,2]],
+      11:[[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[1,3],[2,0],[2,1],[2,2],[2,3]],
+      12:[[0,0],[0,1],[0,2],[0,3],[1,0],[1,1],[1,2],[1,3],[2,0],[2,1],[2,2],[2,3]]
+    };
+    if (presets[count]) {
+      return presets[count].map(function (p) { return { row: p[0], col: p[1] }; });
+    }
+
+    var positions = [], cols = Math.max(3, Math.ceil(Math.sqrt(count)));
+    var rows = Math.ceil(count / cols);
+    var placed = 0;
+    for (var r = 0; r < rows && placed < count; r++) {
       var rowCols = Math.min(cols, count - placed);
-      for (var c = 0; c < rowCols; c++) { positions.push({ row: r, col: c }); placed++; }
-      r++;
+      var offset = Math.floor((cols - rowCols) / 2);
+      for (var c = 0; c < rowCols; c++) {
+        positions.push({ row: r, col: c + offset });
+        placed++;
+      }
     }
     return positions;
   }
@@ -685,7 +730,7 @@
     E.prev.description.textContent = description;
     E.prev.price.textContent       = '£' + price.toFixed(2);
     E.prev.priceLabel.textContent  = E.f.priceLabel.value || '';
-    E.prev.arrangementCount.textContent = count + ' panel' + (count === 1 ? '' : 's');
+    E.prev.arrangementCount.textContent = count + ' plate' + (count === 1 ? '' : 's');
 
     /* Meta pills */
     var pills = [];
@@ -919,34 +964,47 @@
   /* ─── Save / Sync ─── */
   function buildPayload() {
     ensurePanelArrays();
-    syncPriceFromPieces();
+    syncPriceLabel();
+    var pieces = Math.max(1, parseInt(E.f.pieces.value, 10) || 1);
+    var unitPrice = parseFloat(E.f.unitPrice.value || 0);
+    var setPrice = parseFloat(E.f.price.value || 0);
+    var plateMap = {
+      version: 2,
+      geometry: 'pointy_hex',
+      positions: state.panelPositions.map(function (p) {
+        return { row: parseInt(p.row,10)||0, col: parseInt(p.col,10)||0 };
+      }),
+      transforms: [],
+      mockup: {}
+    };
     return {
       slug:         E.f.slug.value.trim() || slugify(E.f.name.value),
       name:         E.f.name.value.trim(),
       category:     E.f.category.value.trim(),
-      price:        parseFloat(E.f.price.value || 0),
+      price:        setPrice,
       price_label:  E.f.priceLabel.value.trim(),
+      plate_count:  pieces,
+      plate_unit_price: unitPrice,
+      plate_set_price: setPrice,
       short:        E.f.short.value.trim(),
       description:  E.f.description.value.trim(),
       note:         E.f.note.value.trim(),
       accent:       E.f.accent.value.trim(),
       size:         E.f.size.value.trim(),
       material:     E.f.material.value.trim(),
-      pieces:       Math.max(1, parseInt(E.f.pieces.value, 10) || 1),
+      pieces:       pieces,
       panel_hint:   E.f.panelHint.value.trim(),
       image:        E.f.image.value.trim(),
       wall_image:   E.f.wallImage.value.trim(),
       is_collection: E.f.isCollection.checked,
       is_bundle:    E.f.isBundle.checked,
       is_published: E.f.isPublished.checked,
+      plate_names:  state.panelNames.slice(),
+      plate_images: state.panelImages.slice(),
+      plate_map:    plateMap,
       panel_names:  state.panelNames.slice(),
       panel_images: state.panelImages.slice(),
-      panel_map: {
-        positions: state.panelPositions.map(function (p) {
-          return { row: parseInt(p.row,10)||0, col: parseInt(p.col,10)||0 };
-        }),
-        transforms: []
-      }
+      panel_map:    plateMap
     };
   }
 

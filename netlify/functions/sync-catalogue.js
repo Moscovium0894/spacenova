@@ -1,4 +1,12 @@
 const { createClient } = require('@supabase/supabase-js');
+const {
+  inferPlateCount,
+  isMissingColumnError,
+  normalisePlateMap,
+  normaliseStringArray,
+  resolvePlatePricing,
+  stripAdvancedPlateFields
+} = require('./plate-helpers');
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -30,6 +38,59 @@ async function deleteMissingRows(table, key, keepValues) {
   if (result.error) throw result.error;
 }
 
+function buildProductPayload(product, now) {
+  const plateCount = inferPlateCount(product);
+  const plateMap = normalisePlateMap(product, plateCount);
+  const plateNames = normaliseStringArray(product, ['plate_names', 'plateNames', 'panel_names', 'panelNames'], plateCount);
+  const plateImages = normaliseStringArray(product, ['plate_images', 'plateImages', 'panel_images', 'panelImages'], plateCount);
+  const pricing = resolvePlatePricing(product, plateCount);
+
+  return {
+    slug:             product.slug,
+    name:             product.name,
+    category:         product.category || null,
+    price:            pricing.setPrice,
+    price_label:      product.priceLabel || product.price_label || null,
+    short:            product.short || null,
+    description:      product.description || null,
+    note:             product.note || null,
+    accent:           product.accent || null,
+    size:             product.size || null,
+    material:         product.material || null,
+    pieces:           plateCount,
+    plate_count:      plateCount,
+    plate_unit_price: pricing.unitPrice,
+    plate_set_price:  pricing.setPrice,
+    panel_hint:       product.panelHint || product.panel_hint || null,
+    image:            product.image || null,
+    wall_image:       product.wallImage || product.wall_image || null,
+    wall_source_image: product.wallSourceImage || product.wall_source_image || null,
+    is_collection:    !!product.isCollection || !!product.is_collection,
+    is_bundle:        !!product.isBundle || !!product.is_bundle,
+    is_published:     product.isPublished !== false && product.is_published !== false,
+    plate_names:      plateNames,
+    plate_images:     plateImages,
+    plate_map:        plateMap,
+    panel_names:      plateNames,
+    panel_images:     plateImages,
+    panel_map:        plateMap,
+    updated_at:       now
+  };
+}
+
+async function upsertProducts(payload) {
+  if (!payload.length) return;
+
+  const result = await supabase.from('products').upsert(payload, { onConflict: 'slug' });
+  if (!result.error) return;
+  if (!isMissingColumnError(result.error)) throw result.error;
+
+  console.warn('sync-catalogue: advanced plate columns missing, falling back to legacy product payload');
+  const legacyPayload = payload.map(stripAdvancedPlateFields);
+  const legacyResult = await supabase.from('products').upsert(legacyPayload, { onConflict: 'slug' });
+  if (legacyResult.error) throw legacyResult.error;
+}
+
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
@@ -40,7 +101,6 @@ exports.handler = async (event) => {
     const password = body.password;
     const products = Array.isArray(body.products) ? body.products : [];
     const bundles = Array.isArray(body.bundles) ? body.bundles : [];
-    const artifacts = Array.isArray(body.artifacts) ? body.artifacts : [];
     const wholesaleSources = Array.isArray(body.wholesaleSources) ? body.wholesaleSources : [];
     const featuredSlugs = Array.isArray(body.featuredSlugs) ? body.featuredSlugs : [];
     const config = body.config;
@@ -55,27 +115,9 @@ exports.handler = async (event) => {
 
     const now = new Date().toISOString();
 
-    const productPayload = products.map((product) => ({
-      slug: product.slug,
-      name: product.name,
-      category: product.category || null,
-      price: product.price ?? null,
-      price_label: product.priceLabel || null,
-      short: product.short || null,
-      description: product.description || null,
-      note: product.note || null,
-      accent: product.accent || null,
-      size: product.size || null,
-      material: product.material || null,
-      pieces: product.pieces || null,
-      panel_hint: product.panelHint || null,
-      image: product.image || null,
-      is_collection: !!product.isCollection,
-      panel_names: Array.isArray(product.panelNames) ? product.panelNames : [],
-      panel_images: Array.isArray(product.panelImages) ? product.panelImages : [],
-      panel_map: product.panelMap && typeof product.panelMap === 'object' ? product.panelMap : {},
-      updated_at: now
-    })).filter((product) => product.slug && product.name);
+    const productPayload = products
+      .map(product => buildProductPayload(product, now))
+      .filter(product => product.slug && product.name);
 
     const bundlePayload = bundles.map((bundle) => ({
       slug: bundle.slug,
@@ -85,15 +127,6 @@ exports.handler = async (event) => {
       text: bundle.text || null,
       updated_at: now
     })).filter((bundle) => bundle.slug && bundle.name && bundle.price);
-
-    const artifactPayload = artifacts.map((artifact) => ({
-      name: artifact.name,
-      category: artifact.category || null,
-      price: artifact.price ?? null,
-      description: artifact.description || artifact.desc || null,
-      image: artifact.image || null,
-      updated_at: now
-    })).filter((artifact) => artifact.name && artifact.price !== null);
 
     const wholesalePayload = wholesaleSources.map((source) => ({
       name: source.name,
@@ -109,10 +142,7 @@ exports.handler = async (event) => {
       updated_at: now
     }));
 
-    if (productPayload.length > 0) {
-      const result = await supabase.from('products').upsert(productPayload, { onConflict: 'slug' });
-      if (result.error) throw result.error;
-    }
+    await upsertProducts(productPayload);
     await deleteMissingRows('products', 'slug', productPayload.map((product) => product.slug));
 
     if (bundlePayload.length > 0) {
@@ -120,12 +150,6 @@ exports.handler = async (event) => {
       if (result.error) throw result.error;
     }
     await deleteMissingRows('bundles', 'slug', bundlePayload.map((bundle) => bundle.slug));
-
-    if (artifactPayload.length > 0) {
-      const result = await supabase.from('artifacts').upsert(artifactPayload, { onConflict: 'name' });
-      if (result.error) throw result.error;
-    }
-    await deleteMissingRows('artifacts', 'name', artifactPayload.map((artifact) => artifact.name));
 
     if (wholesalePayload.length > 0) {
       const result = await supabase.from('wholesale_sources').upsert(wholesalePayload, { onConflict: 'name' });
@@ -163,7 +187,6 @@ exports.handler = async (event) => {
         counts: {
           products: productPayload.length,
           bundles: bundlePayload.length,
-          artifacts: artifactPayload.length,
           wholesaleSources: wholesalePayload.length,
           featuredSlugs: featuredPayload.length
         }

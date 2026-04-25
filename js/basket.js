@@ -45,14 +45,33 @@
     qty = qty || 1;
     var existing = basket.find(function(i) { return i.id === product.id; });
     if (existing) {
+      if (!existing.qty) existing.qty = existing.quantity || 1;
       existing.qty += qty;
     } else {
-      basket.push({ id: product.id, name: product.name, price: parseFloat(product.price), image: product.image || '', qty: qty });
+      basket.push(normaliseBasketItem(product, qty));
     }
     saveBasket();
     render();
     openDrawer();
     showToast(product.name + ' added to basket');
+  }
+
+  function normaliseBasketItem(product, qty) {
+    return {
+      id: product.id,
+      productSlug: product.productSlug || product.slug || '',
+      name: product.name,
+      price: parseFloat(product.price),
+      image: product.image || '',
+      qty: qty,
+      plateCount: product.plateCount || null,
+      selectedPlateIndexes: Array.isArray(product.selectedPlateIndexes) ? product.selectedPlateIndexes.slice() : [],
+      plates: Array.isArray(product.plates) ? product.plates.slice() : [],
+      unitPrice: product.unitPrice || null,
+      setPrice: product.setPrice || null,
+      priceMode: product.priceMode || '',
+      isFullSet: !!product.isFullSet
+    };
   }
 
   function removeItem(id) {
@@ -69,6 +88,7 @@
   function changeQty(id, delta) {
     var item = basket.find(function(i) { return i.id === id; });
     if (!item) return;
+    if (!item.qty) item.qty = item.quantity || 1;
     item.qty += delta;
     if (item.qty < 1) item.qty = 1;
     saveBasket();
@@ -92,7 +112,7 @@
   if (overlay) overlay.addEventListener('click', closeDrawer);
 
   function calcSubtotal() {
-    return basket.reduce(function(s, i) { return s + i.price * i.qty; }, 0);
+    return basket.reduce(function(s, i) { return s + i.price * (i.qty || i.quantity || 1); }, 0);
   }
   function calcDiscount(subtotal) {
     if (!appliedPromo) return 0;
@@ -107,7 +127,7 @@
   function fmt(n) { return '\u00a3' + n.toFixed(2); }
 
   function render() {
-    var count = basket.reduce(function(s, i) { return s + i.qty; }, 0);
+    var count = basket.reduce(function(s, i) { return s + (i.qty || i.quantity || 1); }, 0);
     if (badgeNav) { badgeNav.textContent = count > 0 ? count : ''; badgeNav.style.display = count > 0 ? '' : 'none'; }
     if (badgeMp) { badgeMp.textContent = count > 0 ? count : ''; badgeMp.style.display = count > 0 ? '' : 'none'; }
 
@@ -119,12 +139,16 @@
     }
 
     body.innerHTML = basket.map(function(item) {
+      var plateLine = formatPlateLine(item);
+      var qty = item.qty || item.quantity || 1;
       return '<div class="basket-item" data-id="' + item.id + '">' +
         (item.image ? '<img class="bi-img" src="' + item.image + '" alt="' + item.name + '">' : '<div class="bi-img bi-img-placeholder"></div>') +
-        '<div class="bi-info"><div class="bi-name">' + item.name + '</div><div class="bi-price">' + fmt(item.price) + '</div></div>' +
+        '<div class="bi-info"><div class="bi-name">' + item.name + '</div>' +
+          (plateLine ? '<div class="bi-price" style="font-size:.68rem;color:var(--muted)">' + plateLine + '</div>' : '') +
+          '<div class="bi-price">' + fmt(item.price) + '</div></div>' +
         '<div class="bi-controls">' +
           '<button class="qty-btn qty-minus" data-id="' + item.id + '">&#8722;</button>' +
-          '<span class="qty-val">' + item.qty + '</span>' +
+          '<span class="qty-val">' + qty + '</span>' +
           '<button class="qty-btn qty-plus" data-id="' + item.id + '">+</button>' +
           '<button class="bi-remove" data-id="' + item.id + '" aria-label="Remove ' + item.name + ' from basket">Remove</button>' +
         '</div>' +
@@ -161,6 +185,16 @@
         ? 'Add ' + fmt(remaining) + ' more for free UK shipping'
         : '\u2713 You qualify for free UK shipping';
     }
+  }
+
+  function formatPlateLine(item) {
+    if (item.isFullSet && item.plateCount) return 'Complete set, ' + item.plateCount + ' plates';
+    var indexes = Array.isArray(item.selectedPlateIndexes) ? item.selectedPlateIndexes : [];
+    if (!indexes.length && Array.isArray(item.plates)) {
+      indexes = item.plates.map(function(p) { return p.index; }).filter(function(v) { return Number.isFinite(Number(v)); });
+    }
+    if (!indexes.length) return '';
+    return 'Plates ' + indexes.map(function(idx) { return Number(idx) + 1; }).join(', ');
   }
 
   if (promoApplyBtn) {

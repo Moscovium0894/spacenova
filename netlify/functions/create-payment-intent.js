@@ -1,5 +1,6 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const { createClient } = require('@supabase/supabase-js');
+const { inferPlateCount, resolvePlatePricing } = require('./plate-helpers');
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -113,6 +114,81 @@ function activeState(value) {
   return null;
 }
 
+function normalisePlateIndexes(item) {
+  if (Array.isArray(item.selectedPlateIndexes)) {
+    return item.selectedPlateIndexes.map(Number).filter(Number.isFinite);
+  }
+  if (Array.isArray(item.plates)) {
+    return item.plates
+      .map(plate => Number(plate && (plate.index ?? plate.number - 1)))
+      .filter(Number.isFinite);
+  }
+  return [];
+}
+
+function compactItem(item) {
+  const indexes = normalisePlateIndexes(item);
+  const plateToken = indexes.join(',');
+  const plateCount = Number(item.plateCount || 0) || '';
+  const priceMode = item.isFullSet ? 'set' : (item.priceMode || '');
+  return [
+    String(item.id || '').slice(0, 40),
+    Number(item.qty || item.quantity || 1),
+    Number(item.price || 0).toFixed(2),
+    String(item.name || '').replace(/[|:]/g, '').slice(0, 50),
+    plateToken,
+    plateCount,
+    String(priceMode).replace(/[|:]/g, '').slice(0, 16)
+  ].join('::');
+}
+
+async function priceItemsFromCatalogue(items) {
+  const slugs = Array.from(new Set(items
+    .map(item => item.productSlug || item.slug || '')
+    .filter(Boolean)));
+
+  if (!slugs.length) return items;
+
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .in('slug', slugs);
+
+    if (error) {
+      console.warn('priceItemsFromCatalogue DB error - using basket prices:', error.message || error);
+      return items;
+    }
+
+    const bySlug = {};
+    (data || []).forEach(product => { bySlug[product.slug] = product; });
+
+    return items.map(item => {
+      const slug = item.productSlug || item.slug || '';
+      const product = bySlug[slug];
+      if (!product) return item;
+
+      const plateCount = inferPlateCount(product);
+      const pricing = resolvePlatePricing(product, plateCount);
+      const selectedCount = normalisePlateIndexes(item).length;
+      const itemPrice = selectedCount && selectedCount < plateCount
+        ? selectedCount * pricing.unitPrice
+        : pricing.setPrice;
+
+      return {
+        ...item,
+        price: Number(itemPrice.toFixed(2)),
+        plateCount,
+        isFullSet: !selectedCount || selectedCount === plateCount,
+        priceMode: (!selectedCount || selectedCount === plateCount) ? 'set' : 'individual'
+      };
+    });
+  } catch (err) {
+    console.warn('priceItemsFromCatalogue fatal - using basket prices:', err.message || err);
+    return items;
+  }
+}
+
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') {
     return {
@@ -132,7 +208,7 @@ exports.handler = async (event) => {
 
   try {
     const data = JSON.parse(event.body || '{}');
-    const items = Array.isArray(data.items) ? data.items : [];
+    let items = Array.isArray(data.items) ? data.items : [];
     const promo = data.promo || null;
     const requestedMethod = data.shippingMethod || 'uk_standard';
 
@@ -148,6 +224,8 @@ exports.handler = async (event) => {
     const shippingMethod = shippingOptions[requestedMethod]
       ? requestedMethod
       : Object.keys(shippingOptions)[0] || 'uk_standard';
+
+    items = await priceItemsFromCatalogue(items);
 
     const subtotal = items.reduce((sum, item) => {
       return sum + Number(item.price || 0) * Number(item.qty || item.quantity || 1);
@@ -174,9 +252,7 @@ exports.handler = async (event) => {
     }
 
     const compactItems = items
-      .map(item =>
-        `${String(item.id || '').slice(0, 40)}::${Number(item.qty || item.quantity || 1)}::${Number(item.price || 0).toFixed(2)}::${String(item.name || '').replace(/[|:]/g, '').slice(0, 50)}`
-      )
+      .map(compactItem)
       .join('|')
       .slice(0, 500);
 
