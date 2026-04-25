@@ -1,112 +1,159 @@
-let mockupProducts = [];
+(function () {
+  'use strict';
 
-function esc(value) {
-  return String(value || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
+  var productSelect = null;
+  var wallUrlInput = null;
+  var generateOneBtn = null;
+  var generateAllBtn = null;
+  var resultsEl = null;
+  var products = [];
 
-async function loadProducts() {
-  try {
-    const res = await fetch('/.netlify/functions/load-catalogue', { cache: 'no-store' });
-    const data = await readJsonResponse(res);
+  document.addEventListener('DOMContentLoaded', function () {
+    productSelect = document.getElementById('productSelect');
+    wallUrlInput = document.getElementById('wallUrl');
+    generateOneBtn = document.getElementById('generateOne');
+    generateAllBtn = document.getElementById('generateAll');
+    resultsEl = document.getElementById('results');
 
-    mockupProducts = data.products || [];
-    const select = document.getElementById('productSelect');
+    if (!productSelect || !generateOneBtn || !generateAllBtn || !resultsEl) return;
 
-    select.innerHTML = mockupProducts.map(p => {
-      const value = p.slug || p.id || '';
-      return `<option value="${esc(value)}">${esc(p.name || value)}</option>`;
-    }).join('');
-
-    return mockupProducts;
-  } catch (err) {
-    console.error('Failed to load products', err);
-    return [];
-  }
-}
-
-async function readJsonResponse(res) {
-  const text = await res.text();
-  let data = {};
-  try {
-    data = text ? JSON.parse(text) : {};
-  } catch (err) {
-    const plain = text.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-    throw new Error(plain ? `Non-JSON response: ${plain.slice(0, 180)}` : err.message);
-  }
-  if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
-  return data;
-}
-
-function renderResults(results, intro) {
-  const resultsDiv = document.getElementById('results');
-  if (!results || !results.length) {
-    resultsDiv.innerHTML = intro || '<p>No mockup results returned.</p>';
-    return;
-  }
-
-  resultsDiv.innerHTML = (intro || '') + results.map(r => `
-    <div style="margin-bottom:20px;">
-      <strong>${esc(r.name || r.slug || r.productId || 'Product')}</strong><br/>
-      ${r.success || r.wall_image
-        ? `<img src="${esc(r.wall_image)}" style="max-width:100%;border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,0.15);"/>
-           <p style="color:#666;font-size:.85rem;margin-top:8px;">${esc(r.storage_path || '')}${r.positions_source ? ' - layout: ' + esc(r.positions_source) : ''}</p>`
-        : `<span style="color:red">Error: ${esc(r.error || 'Unknown error')}</span>`
+    generateOneBtn.addEventListener('click', function () {
+      var productId = productSelect.value;
+      if (!productId) {
+        showMessage('Please choose a product first.', 'error');
+        return;
       }
-    </div>
-  `).join('');
-}
-
-async function renderCurrentMockups(all, selected) {
-  await new Promise(resolve => setTimeout(resolve, 400));
-  const products = await loadProducts();
-  const visible = all
-    ? products
-    : products.filter(p => (p.slug || p.id || '') === selected);
-  const results = visible
-    .filter(p => p.wallImage)
-    .map(p => ({
-      success: true,
-      name: p.name,
-      slug: p.slug,
-      wall_image: p.wallImage
-    }));
-
-  if (results.length) {
-    renderResults(results, '<p style="color:#666">Saved mockups are shown below. The generator response was delayed or unreadable, but storage has the latest available URLs.</p>');
-  }
-}
-
-async function generate(all=false) {
-  const productId = document.getElementById('productSelect').value;
-  const wallUrl = document.getElementById('wallUrl').value;
-
-  const resultsDiv = document.getElementById('results');
-  resultsDiv.innerHTML = '<p>Generating mockups...</p>';
-
-  try {
-    const res = await fetch('/.netlify/functions/generate-mockup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ productId, all, wallImageUrl: wallUrl })
+      runMockup({ productId: productId });
     });
 
-    const data = await readJsonResponse(res);
-    renderResults(data.results || [], data.partialSuccess ? '<p style="color:#9a6b00">Some mockups finished and some failed.</p>' : '');
-  } catch (err) {
-    console.error('Generate mockups response error:', err);
-    resultsDiv.innerHTML = `<p style="color:#9a6b00">The generator response could not be read cleanly. Checking saved mockups...</p>`;
-    await renderCurrentMockups(all, productId);
-    if (resultsDiv.textContent.includes('Checking saved mockups')) {
-      resultsDiv.innerHTML = `<p style="color:red">Failed: ${esc(err.message)}</p>`;
-    }
+    generateAllBtn.addEventListener('click', function () {
+      runMockup({ all: true });
+    });
+
+    loadProducts();
+  });
+
+  function loadProducts() {
+    setBusy(true, 'Loading products...');
+
+    fetch('/.netlify/functions/load-products', { cache: 'no-store' })
+      .then(function (res) {
+        if (!res.ok) throw new Error('Could not load products (' + res.status + ')');
+        return res.json();
+      })
+      .then(function (data) {
+        products = Array.isArray(data) ? data : (Array.isArray(data.products) ? data.products : []);
+        populateProducts(products);
+        showMessage(products.length ? 'Products loaded. Choose one and generate away.' : 'No products found.', products.length ? 'success' : 'error');
+      })
+      .catch(function (err) {
+        populateProducts([]);
+        showMessage(err.message || 'Could not load products.', 'error');
+      })
+      .finally(function () {
+        setBusy(false);
+      });
   }
-}
 
-document.getElementById('generateOne').onclick = () => generate(false);
-document.getElementById('generateAll').onclick = () => generate(true);
+  function populateProducts(items) {
+    productSelect.innerHTML = '';
 
-loadProducts();
+    var placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = items.length ? 'Select a product...' : 'No products available';
+    productSelect.appendChild(placeholder);
+
+    items
+      .slice()
+      .sort(function (a, b) { return getName(a).localeCompare(getName(b)); })
+      .forEach(function (product) {
+        var id = product.slug || product.id || product.name;
+        if (!id) return;
+        var option = document.createElement('option');
+        option.value = id;
+        option.textContent = getName(product);
+        productSelect.appendChild(option);
+      });
+  }
+
+  function runMockup(payload) {
+    var wallImageUrl = (wallUrlInput && wallUrlInput.value || '').trim();
+    if (wallImageUrl) payload.wallImageUrl = wallImageUrl;
+
+    setBusy(true, payload.all ? 'Generating all mockups...' : 'Generating selected mockup...');
+
+    fetch('/.netlify/functions/generate-mockup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+      .then(function (res) {
+        return res.json().catch(function () { return {}; }).then(function (data) {
+          if (!res.ok) throw new Error(data.error || 'Mockup generation failed (' + res.status + ')');
+          return data;
+        });
+      })
+      .then(function (data) {
+        renderResults(data);
+      })
+      .catch(function (err) {
+        showMessage(err.message || 'Mockup generation failed.', 'error');
+      })
+      .finally(function () {
+        setBusy(false);
+      });
+  }
+
+  function renderResults(data) {
+    var rows = Array.isArray(data.results) ? data.results : [];
+    if (!rows.length) {
+      showMessage(data.error || 'No results returned.', 'error');
+      return;
+    }
+
+    var ok = rows.filter(function (row) { return row.success; }).length;
+    var html = '<h2>' + ok + ' of ' + rows.length + ' mockup' + (rows.length === 1 ? '' : 's') + ' generated</h2>';
+
+    rows.forEach(function (row) {
+      var status = row.success ? 'success' : 'error';
+      html += '<div class="mockup-result mockup-result-' + status + '">';
+      html += '<h3>' + escapeHtml(row.name || row.slug || row.productId || 'Product') + '</h3>';
+      html += '<p>' + (row.success ? 'Generated ' + (row.pieces || 0) + ' plates from ' + escapeHtml(row.positions_source || 'auto') + ' layout.' : escapeHtml(row.error || 'Failed')) + '</p>';
+      if (row.wall_image) {
+        html += '<p><a href="' + escapeAttr(row.wall_image) + '" target="_blank" rel="noopener">Open generated mockup</a></p>';
+        html += '<img src="' + escapeAttr(row.wall_image) + '" alt="Generated wall mockup for ' + escapeAttr(row.name || 'product') + '">';
+      }
+      html += '</div>';
+    });
+
+    resultsEl.innerHTML = html;
+  }
+
+  function showMessage(message, type) {
+    resultsEl.innerHTML = '<div class="mockup-message mockup-message-' + (type || 'info') + '">' + escapeHtml(message) + '</div>';
+  }
+
+  function setBusy(isBusy, message) {
+    generateOneBtn.disabled = isBusy;
+    generateAllBtn.disabled = isBusy;
+    productSelect.disabled = isBusy;
+    if (message) showMessage(message, 'info');
+  }
+
+  function getName(product) {
+    return product.name || product.title || product.slug || product.id || 'Untitled product';
+  }
+
+  function escapeHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function escapeAttr(value) {
+    return escapeHtml(value);
+  }
+}());
