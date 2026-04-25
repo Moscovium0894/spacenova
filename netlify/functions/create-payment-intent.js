@@ -3,10 +3,9 @@ const { createClient } = require('@supabase/supabase-js');
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY
 );
 
-/* Hardcoded fallback in case the DB is unreachable */
 const FALLBACK_SHIPPING = {
   uk_standard:    { label: 'UK Standard',    amount: 4.99,  freeThreshold: 150 },
   uk_express:     { label: 'UK Express',      amount: 9.99,  freeThreshold: null },
@@ -19,23 +18,21 @@ async function getShippingOptions() {
   try {
     const { data, error } = await supabase
       .from('shipping_options')
-      .select('key, label, price, free_threshold')
-      .eq('active', true)
-      .order('sort_order', { ascending: true });
+      .select('*');
 
-    if (error || !data || !data.length) return FALLBACK_SHIPPING;
+    if (error) {
+      console.warn('getShippingOptions DB error - using fallback:', error.message || error);
+      return FALLBACK_SHIPPING;
+    }
 
     const map = {};
-    data.forEach(o => {
-      map[o.key] = {
-        label:         o.label,
-        amount:        parseFloat(o.price),
-        freeThreshold: o.free_threshold ? parseFloat(o.free_threshold) : null
-      };
+    normaliseShippingOptions(data || []).forEach(option => {
+      map[option.key] = option;
     });
-    return map;
+
+    return Object.keys(map).length ? map : FALLBACK_SHIPPING;
   } catch (e) {
-    console.warn('getShippingOptions DB error — using fallback:', e.message);
+    console.warn('getShippingOptions fatal DB error - using fallback:', e.message);
     return FALLBACK_SHIPPING;
   }
 }
@@ -49,6 +46,71 @@ function computeDiscount(subtotal, promo) {
   if (promo.type === 'percent') return subtotal * (Number(promo.value || 0) / 100);
   if (promo.type === 'fixed') return Math.min(Number(promo.value || 0), subtotal);
   return 0;
+}
+
+function normaliseShippingOptions(rawRows) {
+  const rows = rawRows.map((row, index) => ({
+    key: cleanKey(getField(row, ['key', 'shipping_key', 'method_key', 'method', 'code', 'slug', 'id']), index),
+    label: getField(row, ['label', 'name', 'service', 'method', 'title']),
+    amount: moneyOr(getField(row, ['price', 'amount', 'cost', 'shipping_price', 'rate']), 0),
+    freeThreshold: nullableMoney(getField(row, ['free_threshold', 'freeThreshold', 'free_over', 'free_shipping_threshold', 'free_delivery_threshold'])),
+    sortOrder: numberOr(getField(row, ['sort_order', 'sortOrder', 'order', 'position', 'display_order']), index),
+    active: activeState(getField(row, ['active', 'is_active', 'enabled', 'published', 'is_published']))
+  })).filter(row => row.key && row.label);
+
+  const hasActiveValues = rows.some(row => row.active !== null);
+  const activeRows = hasActiveValues ? rows.filter(row => row.active !== false) : rows;
+  if (hasActiveValues && activeRows.length === 0 && rows.length > 0) {
+    console.warn('getShippingOptions: active flag filtered every row, returning all options');
+  }
+
+  return (activeRows.length ? activeRows : rows)
+    .sort((a, b) => a.sortOrder - b.sortOrder || a.label.localeCompare(b.label))
+    .map(({ key, label, amount, freeThreshold }) => ({
+      key,
+      label,
+      amount,
+      freeThreshold
+    }));
+}
+
+function getField(row, names) {
+  for (const name of names) {
+    if (Object.prototype.hasOwnProperty.call(row, name) && row[name] !== null && row[name] !== undefined && row[name] !== '') {
+      return row[name];
+    }
+  }
+  return null;
+}
+
+function cleanKey(value, fallbackIndex) {
+  const raw = value == null ? `shipping_${fallbackIndex + 1}` : String(value);
+  return raw.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+}
+
+function moneyOr(value, fallback) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function nullableMoney(value) {
+  if (value === null || value === undefined || value === '') return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+function numberOr(value, fallback) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function activeState(value) {
+  if (value === true || value === false) return value;
+  if (value === null || value === undefined || value === '') return null;
+  const normalised = String(value).trim().toLowerCase();
+  if (['true', '1', 'yes', 'y'].includes(normalised)) return true;
+  if (['false', '0', 'no', 'n'].includes(normalised)) return false;
+  return null;
 }
 
 exports.handler = async (event) => {
@@ -82,26 +144,25 @@ exports.handler = async (event) => {
       };
     }
 
-    /* Fetch shipping options from DB */
     const shippingOptions = await getShippingOptions();
-    const shippingMethod  = shippingOptions[requestedMethod]
+    const shippingMethod = shippingOptions[requestedMethod]
       ? requestedMethod
       : Object.keys(shippingOptions)[0] || 'uk_standard';
 
     const subtotal = items.reduce((sum, item) => {
-      return sum + Number(item.price || 0) * Number(item.qty || 0);
+      return sum + Number(item.price || 0) * Number(item.qty || item.quantity || 1);
     }, 0);
 
-    const discount          = computeDiscount(subtotal, promo);
+    const discount = computeDiscount(subtotal, promo);
     const discountedSubtotal = Math.max(0, subtotal - discount);
 
     const selectedShipping = shippingOptions[shippingMethod];
-    const shippingCost     =
+    const shippingCost =
       selectedShipping.freeThreshold && discountedSubtotal >= selectedShipping.freeThreshold
         ? 0
         : selectedShipping.amount;
 
-    const total  = discountedSubtotal + shippingCost;
+    const total = discountedSubtotal + shippingCost;
     const amount = toPence(total);
 
     if (!amount || amount < 50) {
@@ -114,20 +175,20 @@ exports.handler = async (event) => {
 
     const compactItems = items
       .map(item =>
-        `${String(item.id || '').slice(0, 40)}::${Number(item.qty || 0)}::${Number(item.price || 0).toFixed(2)}::${String(item.name || '').replace(/[|:]/g, '').slice(0, 50)}`
+        `${String(item.id || '').slice(0, 40)}::${Number(item.qty || item.quantity || 1)}::${Number(item.price || 0).toFixed(2)}::${String(item.name || '').replace(/[|:]/g, '').slice(0, 50)}`
       )
       .join('|')
       .slice(0, 500);
 
     const metadata = {
-      items:            compactItems,
-      subtotal:         subtotal.toFixed(2),
-      discount:         discount.toFixed(2),
-      shipping_cost:    shippingCost.toFixed(2),
-      shipping_method:  shippingMethod,
-      shipping_label:   selectedShipping.label,
-      total:            total.toFixed(2),
-      promo_code:       promo && promo.code ? String(promo.code) : ''
+      items: compactItems,
+      subtotal: subtotal.toFixed(2),
+      discount: discount.toFixed(2),
+      shipping_cost: shippingCost.toFixed(2),
+      shipping_method: shippingMethod,
+      shipping_label: selectedShipping.label,
+      total: total.toFixed(2),
+      promo_code: promo && promo.code ? String(promo.code) : ''
     };
 
     const paymentIntent = await stripe.paymentIntents.create({

@@ -6,6 +6,7 @@ const supabase = createClient(
 
 function normaliseProduct(p) {
   return {
+    id:           p.id != null ? String(p.id) : p.slug,
     slug:         p.slug,
     name:         p.name,
     category:     p.category,

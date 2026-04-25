@@ -2,7 +2,7 @@ const { createClient } = require('@supabase/supabase-js');
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY  // public read — no auth needed
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY
 );
 
 exports.handler = async (event) => {
@@ -13,64 +13,64 @@ exports.handler = async (event) => {
   const headers = {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
-    'Cache-Control': 'public, max-age=120, stale-while-revalidate=300'
+    'Cache-Control': 'no-store, max-age=0'
   };
 
   try {
-    let { data, error } = await queryShippingOptions(true);
+    const { data, error } = await supabase
+      .from('shipping_options')
+      .select('*');
 
     if (error) {
-      console.warn('load-shipping-options: active option query failed, retrying without active filter:', error.message || error);
-      ({ data, error } = await queryShippingOptions(false));
-    } else if (!data || data.length === 0) {
-      console.warn('load-shipping-options: no active options, falling back to all');
-      ({ data, error } = await queryShippingOptions(false));
-    }
-
-    if (error || !data || data.length === 0) {
       console.error('load-shipping-options error:', error);
-      return { statusCode: 200, headers, body: JSON.stringify({ options: defaultShippingOptions() }) };
+      return { statusCode: 200, headers, body: JSON.stringify({ options: defaultShippingOptions(), source: 'fallback' }) };
     }
 
-    const options = (data || []).map(o => ({
-      key:           o.key,
-      label:         o.label,
-      description:   o.description || '',
-      price:         parseFloat(o.price),
-      freeThreshold: o.free_threshold != null ? parseFloat(o.free_threshold) : null,
-      region:        o.region
-    }));
+    const options = normaliseShippingOptions(data || []);
+    if (!options.length) {
+      console.warn('load-shipping-options: no database options found, using defaults');
+      return { statusCode: 200, headers, body: JSON.stringify({ options: defaultShippingOptions(), source: 'fallback' }) };
+    }
 
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({ options })
+      body: JSON.stringify({ options, source: 'database' })
     };
   } catch (err) {
     console.error('load-shipping-options fatal:', err);
-    return { statusCode: 200, headers, body: JSON.stringify({ options: defaultShippingOptions() }) };
+    return { statusCode: 200, headers, body: JSON.stringify({ options: defaultShippingOptions(), source: 'fallback' }) };
   }
 };
 
-async function queryShippingOptions(filterActive, includeSortOrder = true) {
-  const selectColumns = includeSortOrder
-    ? 'key, label, description, price, free_threshold, region, sort_order'
-    : 'key, label, description, price, free_threshold, region';
+function normaliseShippingOptions(rawRows) {
+  const rows = rawRows.map((row, index) => ({
+    key: cleanKey(getField(row, ['key', 'shipping_key', 'method_key', 'method', 'code', 'slug', 'id']), index),
+    label: getField(row, ['label', 'name', 'service', 'method', 'title']),
+    description: getField(row, ['description', 'delivery', 'delivery_time', 'estimated_time', 'eta', 'time']) || '',
+    price: moneyOr(getField(row, ['price', 'amount', 'cost', 'shipping_price', 'rate']), 0),
+    freeThreshold: nullableMoney(getField(row, ['free_threshold', 'freeThreshold', 'free_over', 'free_shipping_threshold', 'free_delivery_threshold'])),
+    region: getField(row, ['region', 'zone', 'country_group', 'destination', 'area']) || 'Worldwide',
+    sortOrder: numberOr(getField(row, ['sort_order', 'sortOrder', 'order', 'position', 'display_order']), index),
+    active: activeState(getField(row, ['active', 'is_active', 'enabled', 'published', 'is_published']))
+  })).filter(row => row.key && row.label);
 
-  let query = supabase
-    .from('shipping_options')
-    .select(selectColumns);
-
-  if (filterActive) query = query.eq('active', true);
-  if (includeSortOrder) query = query.order('sort_order', { ascending: true });
-
-  const result = await query;
-  if (result.error && includeSortOrder && isMissingColumnError(result.error, 'sort_order')) {
-    console.warn('load-shipping-options: sort_order unavailable, retrying without sort_order');
-    return queryShippingOptions(filterActive, false);
+  const hasActiveValues = rows.some(row => row.active !== null);
+  const activeRows = hasActiveValues ? rows.filter(row => row.active !== false) : rows;
+  if (hasActiveValues && activeRows.length === 0 && rows.length > 0) {
+    console.warn('load-shipping-options: active flag filtered every row, returning all options');
   }
 
-  return result;
+  return (activeRows.length ? activeRows : rows)
+    .sort((a, b) => a.sortOrder - b.sortOrder || a.label.localeCompare(b.label))
+    .map(({ key, label, description, price, freeThreshold, region }) => ({
+      key,
+      label,
+      description,
+      price,
+      freeThreshold,
+      region
+    }));
 }
 
 function defaultShippingOptions() {
@@ -83,7 +83,41 @@ function defaultShippingOptions() {
   ];
 }
 
-function isMissingColumnError(error, column) {
-  const message = String((error && (error.message || error.details || error.hint || error.code)) || '');
-  return message.toLowerCase().includes(column.toLowerCase());
+function getField(row, names) {
+  for (const name of names) {
+    if (Object.prototype.hasOwnProperty.call(row, name) && row[name] !== null && row[name] !== undefined && row[name] !== '') {
+      return row[name];
+    }
+  }
+  return null;
+}
+
+function cleanKey(value, fallbackIndex) {
+  const raw = value == null ? `shipping_${fallbackIndex + 1}` : String(value);
+  return raw.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+}
+
+function moneyOr(value, fallback) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function nullableMoney(value) {
+  if (value === null || value === undefined || value === '') return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+function numberOr(value, fallback) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function activeState(value) {
+  if (value === true || value === false) return value;
+  if (value === null || value === undefined || value === '') return null;
+  const normalised = String(value).trim().toLowerCase();
+  if (['true', '1', 'yes', 'y'].includes(normalised)) return true;
+  if (['false', '0', 'no', 'n'].includes(normalised)) return false;
+  return null;
 }
