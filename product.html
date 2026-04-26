@@ -14,6 +14,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
   <style>
     /* ══ PRODUCT GALLERY ══ */
+    .product-media {
+      min-width: 0;
+      overflow: hidden;
+    }
     .pg-wrap {
       position: relative;
       border-radius: var(--r);
@@ -21,6 +25,9 @@
       border: 1px solid var(--border);
       background: var(--bg1);
       isolation: isolate;
+      /* Prevent the gallery from overflowing its column */
+      width: 100%;
+      box-sizing: border-box;
     }
     .pg-track {
       display: flex;
@@ -40,11 +47,13 @@
       scroll-snap-stop: always;
       position: relative;
       aspect-ratio: 4/3;
+      overflow: hidden;
     }
     .pg-slide img {
       width: 100%;
       height: 100%;
       object-fit: cover;
+      object-position: center center;
       display: block;
       -webkit-user-drag: none;
       user-select: none;
@@ -127,6 +136,8 @@
       overflow-x: auto;
       scrollbar-width: none;
       padding-bottom: 2px;
+      width: 100%;
+      box-sizing: border-box;
     }
     .pg-thumbs::-webkit-scrollbar { display: none; }
     .pg-thumb {
@@ -147,22 +158,12 @@
     .pg-wrap.single ~ .pg-thumbs { display: none; }
 
     /* ══ INTERACTIVE PLATE PREVIEW ══ */
-    /*
-     * Pointy-top hex geometry (gap-free):
-     *   HEX_H = 112px  (full height)
-     *   HEX_W = HEX_H × √3/2 ≈ 97px
-     *   ROW_PITCH = HEX_H × 0.75 = 84px   (rows interlock perfectly)
-     *   COL_PITCH = HEX_W = 97px           (columns touch edge-to-edge)
-     *   ODD_ROW_OFFSET = HEX_W / 2 ≈ 48.5px
-     *
-     * All values in CSS/JS must match these exactly to prevent gaps.
-     */
     :root {
       --hex-h: 112px;
-      --hex-w: 97px;          /* HEX_H × sin(60°) */
-      --hex-row-pitch: 84px;  /* HEX_H × 0.75 — vertical distance between row origins */
-      --hex-col-pitch: 97px;  /* = HEX_W, cols touch side-to-side */
-      --hex-odd-offset: 48px; /* HEX_W / 2, half-step for alternating rows */
+      --hex-w: 97px;
+      --hex-row-pitch: 84px;
+      --hex-col-pitch: 97px;
+      --hex-odd-offset: 48px;
     }
 
     .plate-preview-wrap {
@@ -172,11 +173,9 @@
       overflow: hidden;
       background: #f5efe5;
       position: relative;
+      width: 100%;
+      box-sizing: border-box;
     }
-    .plate-preview-wrap.has-wall {
-      background-image: none !important;
-    }
-    /* Subtle vignette/depth overlay */
     .plate-preview-wrap::after {
       display: none;
     }
@@ -225,21 +224,16 @@
       min-height: 280px;
       position: relative;
       z-index: 2;
+      overflow: visible;
+      box-sizing: border-box;
+      width: 100%;
     }
 
-    /* The cluster of hex pieces */
     .plate-cluster {
       position: relative;
-      /* width/height set by JS to fit the grid */
+      flex-shrink: 0;
     }
 
-    /*
-     * Individual plate piece.
-     * The image/gloss layers carry the hex clip so the outline can sit
-     * on the true edge without being cut off.
-     * Positioned absolutely within .plate-cluster.
-     * Width/height set inline by JS (97×112 base, scaled).
-     */
     .plate-piece {
       position: absolute;
       cursor: pointer;
@@ -254,7 +248,6 @@
     }
     .plate-piece:active { transform: scale(0.97) translateZ(0); }
 
-    /* The photographic fill layer */
     .plate-piece-inner {
       position: absolute;
       inset: 0;
@@ -279,7 +272,6 @@
       object-fit: cover;
     }
 
-    /* Surface gloss */
     .plate-piece-gloss {
       position: absolute;
       inset: 0;
@@ -295,7 +287,6 @@
       z-index: 2;
     }
 
-    /* Orange selection outline — shown when SELECTED */
     .plate-piece-outline {
       position: absolute;
       inset: 0;
@@ -312,21 +303,18 @@
       vector-effect: non-scaling-stroke;
     }
 
-    /* Unselected overlay — dims the plate */
     .plate-piece.is-unselected .plate-piece-inner {
       opacity: 0;
     }
     .plate-piece.is-unselected .plate-piece-gloss {
       background: transparent;
     }
-    /* Unselected: show dashed outline */
     .plate-piece.is-unselected .plate-piece-outline polygon {
       stroke: rgba(212,120,15,.55);
       stroke-width: 2;
       stroke-dasharray: 4 4;
     }
 
-    /* Selected: accent border + subtle glow */
     .plate-piece.is-selected .plate-piece-outline polygon {
       stroke: var(--accent);
       stroke-width: 3;
@@ -335,7 +323,6 @@
       filter: drop-shadow(0 0 6px rgba(212,120,15,.35));
     }
 
-    /* Plate number label */
     .plate-piece-num {
       position: absolute;
       bottom: 12px;
@@ -349,14 +336,6 @@
       text-shadow: 0 1px 4px rgba(0,0,0,.8);
       pointer-events: none;
       white-space: nowrap;
-    }
-
-    /* Drop shadow for the whole cluster */
-    .plate-cluster-shadow {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
     }
 
     /* ══ FOOTER BAR BELOW PREVIEW ══ */
@@ -431,6 +410,19 @@
       border-radius: 999px;
       padding: 4px 12px;
       white-space: nowrap;
+    }
+    /* Bundle saving badge */
+    .bundle-saving-badge {
+      display: inline-block;
+      font-family: var(--fm);
+      font-size: .58rem;
+      letter-spacing: .06em;
+      color: #fff;
+      background: var(--accent);
+      border-radius: 999px;
+      padding: 3px 10px;
+      margin-left: 8px;
+      vertical-align: middle;
     }
   </style>
 </head>
@@ -543,26 +535,18 @@
   'use strict';
 
   // ─── Hex geometry constants (pointy-top, gap-free) ───────────────────────
-  // These must match the CSS :root variables and the mockup generator.
-  //
-  //   HEX_H       = full height of one hex tile
-  //   HEX_W       = HEX_H × sin(60°) = HEX_H × √3/2
-  //   ROW_PITCH   = HEX_H × 0.75  (rows interlock: each row overlaps by H/4)
-  //   COL_PITCH   = HEX_W          (columns share a full edge, zero gap)
-  //   ODD_OFFSET  = HEX_W / 2      (odd rows shift right by half a column)
-  //
   var HEX_H = 112;
   var HEX_W = 97;
   var ROW_PITCH = 84;
   var COL_PITCH = 97;
   var ODD_OFFSET = 48;
 
-  // Pricing
+  // Pricing — set from product data
   var PLATE_UNIT_PRICE = 34.99;
-  var PLATE_SET_PRICE = 0;
+  var PLATE_BUNDLE_PRICE = 0;  // full-set bundle price (clean number from DB)
 
   // ─── State ──────────────────────────────────────────────────────────────
-  var _selected = new Set();   // Set of plate indexes that are selected
+  var _selected = new Set();
   var _totalPlates = 0;
 
   // ─── DOM ready ──────────────────────────────────────────────────────────
@@ -600,16 +584,25 @@
     document.getElementById('bc-name').textContent = p.name;
 
     _totalPlates = parseInt(p.plateCount || p.pieces, 10) || 0;
-    PLATE_SET_PRICE = parseFloat(p.plateSetPrice || p.price || 0);
-    PLATE_UNIT_PRICE = parseFloat(p.plateUnitPrice || 0) ||
-      (_totalPlates > 0 ? parseFloat((PLATE_SET_PRICE / _totalPlates).toFixed(2)) : 34.99);
+
+    // Bundle price = p.price (clean rounded number from DB)
+    PLATE_BUNDLE_PRICE = parseFloat(p.price || 0);
+
+    // Unit price: use explicit plateUnitPrice, or fall back to 34.99
+    PLATE_UNIT_PRICE = parseFloat(p.plateUnitPrice || 34.99);
+
+    // Calculate the saving when buying all
+    var fullUnitTotal = parseFloat((_totalPlates * PLATE_UNIT_PRICE).toFixed(2));
+    var bundleSaving = _totalPlates > 0
+      ? parseFloat((fullUnitTotal - PLATE_BUNDLE_PRICE).toFixed(2))
+      : 0;
 
     var wallImage = p.wallImage || null;
-    var plateImages = Array.isArray(p.plateImages) ? p.plateImages
-      : (Array.isArray(p.panelImages) ? p.panelImages : []);
-    var plateNames = Array.isArray(p.plateNames) ? p.plateNames
-      : (Array.isArray(p.panelNames) ? p.panelNames : []);
-    var plateMap = p.plateMap || p.panelMap || {};
+
+    // Only use plateImages / plateMap (panel* fields removed)
+    var plateImages = Array.isArray(p.plateImages) ? p.plateImages : [];
+    var plateNames = Array.isArray(p.plateNames) ? p.plateNames : [];
+    var plateMap = (typeof p.plateMap === 'object' && p.plateMap) ? p.plateMap : {};
     var positions = Array.isArray(plateMap.positions) ? plateMap.positions : [];
     if (!positions.length) positions = autoLayout(_totalPlates);
     var plateTransforms = normalisePlateTransforms(plateMap.transforms, _totalPlates);
@@ -618,10 +611,15 @@
     _selected.clear();
     for (var i = 0; i < _totalPlates; i++) _selected.add(i);
 
-    // Gallery images: main product photo + wall mockup
+    // Gallery images
     var galleryImages = [];
     if (p.image) galleryImages.push({ src: p.image, alt: p.name });
     if (wallImage) galleryImages.push({ src: wallImage, alt: p.name + ' on wall' });
+
+    // Build saving badge HTML
+    var savingBadge = (bundleSaving > 0 && _totalPlates > 1)
+      ? '<span class="bundle-saving-badge">Save &pound;' + bundleSaving.toFixed(0) + ' with full set</span>'
+      : '';
 
     document.getElementById('product-content').innerHTML =
       '<div class="product-hero">' +
@@ -637,13 +635,16 @@
           '<p class="product-tagline">' + esc(p.short || '') + '</p>' +
           '<div class="product-price-row">' +
             '<span class="product-price-main" id="dynamic-price">&pound;' +
-              PLATE_SET_PRICE.toFixed(2) +
+              PLATE_BUNDLE_PRICE.toFixed(2) +
             '</span>' +
+            savingBadge +
             (p.priceLabel ? '<span class="product-price-range">' + esc(p.priceLabel) + '</span>' : '') +
           '</div>' +
           '<p style="color:var(--muted);font-family:var(--fm);font-size:.68rem;letter-spacing:.06em;margin-bottom:16px">' +
-            '&pound;' + PLATE_UNIT_PRICE.toFixed(2) +
-            ' per individual plate &mdash; complete set &pound;' + PLATE_SET_PRICE.toFixed(2) +
+            '&pound;' + PLATE_UNIT_PRICE.toFixed(2) + ' per individual plate' +
+            (_totalPlates > 1 && bundleSaving > 0
+              ? ' &mdash; full set &pound;' + PLATE_BUNDLE_PRICE.toFixed(2) + ' (save &pound;' + bundleSaving.toFixed(0) + ')'
+              : '') +
           '</p>' +
           '<p style="color:var(--muted);font-size:.9rem;margin-bottom:24px;line-height:1.75">' +
             esc(p.description || '') +
@@ -658,7 +659,7 @@
       '</div>';
 
     initGallery(galleryImages);
-    buildInteractivePreview(p, positions, plateImages, plateNames, plateTransforms);
+    buildInteractivePreview(p, positions, plateImages, plateNames, plateTransforms, bundleSaving);
 
     document.getElementById('add-to-basket-btn').addEventListener('click', function () {
       addSelectionToBasket(p, plateNames);
@@ -681,7 +682,7 @@
     var isSingle = images.length === 1;
     var slides = images.map(function (img, i) {
       return '<div class="pg-slide">' +
-        '<img src="' + img.src + '" alt="' + esc(img.alt || '') + '"' + (i ? ' loading="lazy"' : '') + '>' +
+        '<img src="' + escapeAttr(img.src) + '" alt="' + esc(img.alt || '') + '"' + (i ? ' loading="lazy"' : '') + '>' +
         (i === 1 ? '<div class="wall-hint">Wall preview</div>' : '') +
       '</div>';
     }).join('');
@@ -705,7 +706,7 @@
       '<div class="pg-thumbs" id="pg-thumbs">' +
         images.map(function (img, i) {
           return '<button class="pg-thumb' + (i ? '' : ' active') + '" data-idx="' + i + '">' +
-            '<img src="' + img.src + '" alt="" loading="lazy">' +
+            '<img src="' + escapeAttr(img.src) + '" alt="" loading="lazy">' +
           '</button>';
         }).join('') +
       '</div>';
@@ -777,11 +778,7 @@
   }
 
   // ─── Interactive Preview ──────────────────────────────────────────────────
-  //
-  // Replaces both the old hex selector and the old live mockup.
-  // The preview IS the selector: click a plate to toggle its selection.
-  //
-  function buildInteractivePreview(p, positions, plateImages, plateNames, plateTransforms) {
+  function buildInteractivePreview(p, positions, plateImages, plateNames, plateTransforms, bundleSaving) {
     var mount = document.getElementById('preview-mount');
     if (!mount || !_totalPlates || !positions.length) return;
 
@@ -790,29 +787,27 @@
       return gridToPixel(parseInt(pos.row, 10) || 0, parseInt(pos.col, 10) || 0);
     });
 
-    // Bounding box of all tiles
     var bounds = getBounds(pixelPos);
 
-    // Scale to fit available width (~420px container, with padding)
-    var maxW = 400;
+    // Scale to fit available container width responsively
+    var stageEl = null; // measured after mount
+    var maxW = 380;
     var maxH = 320;
-    var scaleW = maxW / bounds.w;
-    var scaleH = maxH / bounds.h;
+    var scaleW = maxW / (bounds.w || 1);
+    var scaleH = maxH / (bounds.h || 1);
     var scale = Math.min(1.0, scaleW, scaleH);
 
-    var clusterW = bounds.w * scale;
-    var clusterH = bounds.h * scale;
+    var clusterW = Math.ceil(bounds.w * scale);
+    var clusterH = Math.ceil(bounds.h * scale);
     var tileW = HEX_W * scale;
     var tileH = HEX_H * scale;
 
-    // Build the HTML
     var tilesHtml = positions.map(function (pos, idx) {
       var px = pixelPos[idx];
       var left = (px.x - bounds.minX) * scale;
       var top = (px.y - bounds.minY) * scale;
 
       var fill = platePreviewFill(p, plateImages, idx, px, bounds, scale, plateTransforms && plateTransforms[idx]);
-
       var name = plateNames[idx] || ('Plate ' + (idx + 1));
 
       return '<div class="plate-piece is-selected" data-idx="' + idx + '" ' +
@@ -833,16 +828,16 @@
           '<span class="plate-preview-label">Preview</span>' +
           '<span class="plate-preview-hint">Tap plates to select</span>' +
         '</div>' +
-        '<div class="plate-preview-stage">' +
+        '<div class="plate-preview-stage" id="plate-stage">' +
           '<div class="plate-cluster" id="plate-cluster" ' +
-            'style="width:' + cssPx(clusterW) + ';height:' + cssPx(clusterH) + ';position:relative;">' +
+            'style="width:' + cssPx(clusterW) + ';height:' + cssPx(clusterH) + ';">' +
             tilesHtml +
           '</div>' +
         '</div>' +
         '<div class="plate-preview-footer">' +
           '<div>' +
-            '<div class="plate-preview-price" id="preview-price">&pound;' + PLATE_SET_PRICE.toFixed(2) + '</div>' +
-            '<div class="plate-preview-price-sub" id="preview-price-sub">' + priceSub(_totalPlates, _totalPlates) + '</div>' +
+            '<div class="plate-preview-price" id="preview-price">&pound;' + PLATE_BUNDLE_PRICE.toFixed(2) + '</div>' +
+            '<div class="plate-preview-price-sub" id="preview-price-sub">' + priceSub(_totalPlates, _totalPlates, bundleSaving) + '</div>' +
           '</div>' +
           '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
             '<span class="plate-count-chip" id="preview-count">' + _totalPlates + ' of ' + _totalPlates + ' selected</span>' +
@@ -854,34 +849,58 @@
         '</div>' +
       '</div>';
 
+    // Rescale cluster to actual rendered stage width
+    requestAnimationFrame(function () {
+      var stage = document.getElementById('plate-stage');
+      var cluster = document.getElementById('plate-cluster');
+      if (stage && cluster) {
+        var availW = stage.clientWidth - 48; // subtract left+right padding (24px each)
+        if (availW > 0 && availW < maxW) {
+          var newScale = availW / (bounds.w || 1);
+          newScale = Math.min(newScale, scale); // never upscale beyond original
+          var newClusterW = Math.ceil(bounds.w * newScale);
+          var newClusterH = Math.ceil(bounds.h * newScale);
+          cluster.style.width = cssPx(newClusterW);
+          cluster.style.height = cssPx(newClusterH);
+          // Reposition tiles
+          var pieces = cluster.querySelectorAll('.plate-piece');
+          pieces.forEach(function (piece, idx) {
+            var px = pixelPos[idx];
+            piece.style.left = cssPx((px.x - bounds.minX) * newScale);
+            piece.style.top  = cssPx((px.y - bounds.minY) * newScale);
+            piece.style.width  = cssPx(HEX_W * newScale);
+            piece.style.height = cssPx(HEX_H * newScale);
+          });
+        }
+      }
+    });
+
     // Wire up tile click/keyboard toggles
     var cluster = document.getElementById('plate-cluster');
     cluster.addEventListener('click', function (e) {
       var piece = e.target.closest('.plate-piece');
       if (!piece) return;
-      var idx = parseInt(piece.dataset.idx, 10);
-      togglePlate(idx);
+      togglePlate(parseInt(piece.dataset.idx, 10), bundleSaving);
     });
     cluster.addEventListener('keydown', function (e) {
       if (e.key !== 'Enter' && e.key !== ' ') return;
       var piece = e.target.closest('.plate-piece');
       if (!piece) return;
       e.preventDefault();
-      togglePlate(parseInt(piece.dataset.idx, 10));
+      togglePlate(parseInt(piece.dataset.idx, 10), bundleSaving);
     });
 
     document.getElementById('prev-sel-all').addEventListener('click', function () {
       for (var i = 0; i < _totalPlates; i++) _selected.add(i);
-      updatePreview();
+      updatePreview(bundleSaving);
     });
     document.getElementById('prev-clear').addEventListener('click', function () {
       _selected.clear();
-      updatePreview();
+      updatePreview(bundleSaving);
     });
 
-    // Expose global for basket
     window._selectedPlates = _selected;
-    updatePreview();
+    updatePreview(bundleSaving);
   }
 
   function platePreviewFill(product, plateImages, idx, pixelPos, bounds, scale, transform) {
@@ -947,21 +966,20 @@
     }
   }
 
-  function togglePlate(idx) {
+  function togglePlate(idx, bundleSaving) {
     if (_selected.has(idx)) {
       _selected.delete(idx);
     } else {
       _selected.add(idx);
     }
     window._selectedPlates = _selected;
-    updatePreview();
+    updatePreview(bundleSaving);
   }
 
-  function updatePreview() {
+  function updatePreview(bundleSaving) {
     var cluster = document.getElementById('plate-cluster');
     if (!cluster) return;
 
-    // Update each tile's visual state
     cluster.querySelectorAll('.plate-piece').forEach(function (piece) {
       var idx = parseInt(piece.dataset.idx, 10);
       var sel = _selected.has(idx);
@@ -972,7 +990,6 @@
 
     var count = _selected.size;
 
-    // Update price
     var priceEl = document.getElementById('preview-price');
     var subEl = document.getElementById('preview-price-sub');
     var countEl = document.getElementById('preview-count');
@@ -980,11 +997,10 @@
 
     var price = calcPrice(count);
     if (priceEl) priceEl.textContent = '\u00a3' + price.toFixed(2);
-    if (subEl) subEl.innerHTML = priceSub(count, _totalPlates);
+    if (subEl) subEl.innerHTML = priceSub(count, _totalPlates, bundleSaving || 0);
     if (countEl) countEl.textContent = count + ' of ' + _totalPlates + ' selected';
     if (dynPrice) dynPrice.textContent = '\u00a3' + price.toFixed(2);
 
-    // Update Add to Basket button label
     var addBtn = document.getElementById('add-to-basket-btn');
     if (addBtn) {
       addBtn.textContent = count > 0
@@ -994,9 +1010,6 @@
   }
 
   // ─── Geometry helpers ─────────────────────────────────────────────────────
-
-  // Convert grid [row, col] to pixel position (top-left of tile bounding box)
-  // using gap-free pointy-top hex geometry.
   function gridToPixel(row, col) {
     return {
       x: col * COL_PITCH + (row % 2 !== 0 ? ODD_OFFSET : 0),
@@ -1019,13 +1032,17 @@
   // ─── Pricing helpers ──────────────────────────────────────────────────────
   function calcPrice(count) {
     if (!count) return 0;
-    if (count === _totalPlates && PLATE_SET_PRICE > 0) return PLATE_SET_PRICE;
+    // Full set = bundle price; individual plates = unit price each
+    if (count === _totalPlates && PLATE_BUNDLE_PRICE > 0) return PLATE_BUNDLE_PRICE;
     return parseFloat((count * PLATE_UNIT_PRICE).toFixed(2));
   }
 
-  function priceSub(count, total) {
+  function priceSub(count, total, saving) {
     if (!count) return 'Choose at least one plate';
-    if (count === total && PLATE_SET_PRICE > 0) return 'Complete set price';
+    if (count === total && PLATE_BUNDLE_PRICE > 0) {
+      var s = parseFloat(saving || 0);
+      return 'Full set' + (s > 0 ? ' &mdash; you save &pound;' + s.toFixed(0) : '');
+    }
     return count + ' plate' + (count !== 1 ? 's' : '') +
       ' &times; &pound;' + PLATE_UNIT_PRICE.toFixed(2) + ' each';
   }
@@ -1053,7 +1070,7 @@
         name: p.name + ' (' + suffix + ')',
         price: price,
         unitPrice: PLATE_UNIT_PRICE,
-        setPrice: PLATE_SET_PRICE,
+        setPrice: PLATE_BUNDLE_PRICE,
         priceMode: allSelected ? 'set' : 'individual',
         image: p.image || '',
         quantity: 1,
