@@ -126,10 +126,10 @@ function inferPlateCount(record) {
   );
   if (explicit > 0) return clampPlateCount(explicit);
 
-  const names = firstArray(record, ['panel_names', 'panelNames', 'plate_names', 'plateNames']);
+  const names = firstArray(record, ['plate_names', 'plateNames', 'panel_names', 'panelNames']);
   if (names.length) return clampPlateCount(names.length);
 
-  const images = firstArray(record, ['panel_images', 'panelImages', 'plate_images', 'plateImages']);
+  const images = firstArray(record, ['plate_images', 'plateImages', 'panel_images', 'panelImages']);
   if (images.length) return clampPlateCount(images.length);
 
   return 3;

@@ -192,7 +192,9 @@
       <div class="inline-actions">
         <button class="btn btn-primary" id="save-btn" type="button">Save</button>
         <button class="btn btn-ghost" id="sync-btn" type="button">Sync</button>
+        <button class="btn btn-ghost" id="export-png-btn" type="button">Export PNGs</button>
       </div>
+      <div class="export-results" id="export-results"></div>
     </section>
 
   </aside>
@@ -351,6 +353,7 @@
     E.previewStage = document.getElementById('preview-stage');
     E.panelList    = document.getElementById('panel-list');
     E.bundlePanel  = document.getElementById('bundle-panel');
+    E.exportResults = document.getElementById('export-results');
 
     E.f = {
       name:         document.getElementById('f-name'),
@@ -452,6 +455,7 @@
     document.getElementById('sort-layout-btn').addEventListener('click', tidyPositions);
     document.getElementById('save-btn').addEventListener('click', saveProduct);
     document.getElementById('sync-btn').addEventListener('click', syncProduct);
+    document.getElementById('export-png-btn').addEventListener('click', exportPlatePNGs);
     document.getElementById('preview-toggle').addEventListener('click', function () {
       E.previewStage.classList.toggle('is-open');
     });
@@ -1315,20 +1319,7 @@
   function getUsablePlateImage(plateImages, idx, mainImage) {
     var image = (plateImages[idx] || '').trim();
     if (!image || sameImageUrl(image, mainImage)) return '';
-    if (!(E.f.isCollection.checked || E.f.isBundle.checked)) return '';
-    var uniqueCustom = uniquePlateImages(plateImages, mainImage);
-    if (uniqueCustom.length < 2 && plateImages.length > 1) return '';
     return image;
-  }
-
-  function uniquePlateImages(plateImages, mainImage) {
-    var seen = {};
-    (plateImages || []).forEach(function (img) {
-      img = (img || '').trim();
-      if (!img || sameImageUrl(img, mainImage)) return;
-      seen[normaliseImageUrl(img)] = img;
-    });
-    return Object.keys(seen).map(function (key) { return seen[key]; });
   }
 
   function sameImageUrl(a, b) {
@@ -1337,7 +1328,13 @@
   }
 
   function normaliseImageUrl(value) {
-    return String(value || '').trim().replace(/\/+$/, '').toLowerCase();
+    var raw = String(value || '').trim();
+    try {
+      var url = new URL(raw, window.location.origin);
+      return (url.origin + url.pathname).replace(/\/+$/, '').toLowerCase();
+    } catch (err) {
+      return raw.split(/[?#]/)[0].replace(/\/+$/, '').toLowerCase();
+    }
   }
 
   function hexPoints(x, y) {
@@ -1357,6 +1354,15 @@
       .replace(/"/g, '&quot;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
+  }
+
+  function escapeHtml(value) {
+    return String(value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
   
   function groupByRow() {
@@ -1495,6 +1501,55 @@
     .then(function (r) { return parseJsonResponse(r).then(function (body) { if (!r.ok) throw makeRequestError(r, body); return body; }); })
     .then(function () { setStatus('Catalogue maps synced', 'success'); return loadProductCatalogue(); })
     .catch(function (err) { setStatus((err && err.message) || 'Sync failed', 'error'); });
+  }
+
+  function exportPlatePNGs() {
+    var payload = buildPayload();
+    if (!payload.slug || !payload.name) { setStatus('Name and slug are required before export', 'error'); return; }
+    if (!payload.image && !payload.plate_images.some(function (url) { return String(url || '').trim(); })) {
+      setStatus('Add a main image or individual plate images before export', 'error');
+      return;
+    }
+
+    if (E.exportResults) E.exportResults.innerHTML = '<p>Exporting plate PNGs...</p>';
+    setStatus('Exporting plate PNGs...', 'saving');
+    requestJson('/.netlify/functions/export-plates', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-password': getAdminPassword() },
+      body: JSON.stringify({ password: getAdminPassword(), product: payload })
+    })
+    .then(function (body) {
+      if (!body || body.ok !== true) {
+        throw new Error((body && (body.error || body.message)) || 'Export failed');
+      }
+      renderExportResults(body);
+      setStatus('Exported ' + ((body.files || []).length) + ' plate PNGs', 'success');
+    })
+    .catch(function (err) {
+      if (E.exportResults) E.exportResults.innerHTML = '<p class="export-error">' + escapeHtml((err && err.message) || 'Export failed') + '</p>';
+      setStatus((err && err.message) || 'Export failed', 'error');
+    });
+  }
+
+  function renderExportResults(data) {
+    if (!E.exportResults) return;
+    var files = Array.isArray(data.files) ? data.files : [];
+    if (!files.length) {
+      E.exportResults.innerHTML = '<p>No PNG files returned.</p>';
+      return;
+    }
+    var dims = data.dimensions || {};
+    E.exportResults.innerHTML =
+      '<p>Frame-safe transparent PNGs: ' +
+        (dims.exportedWidth || '?') + ' x ' + (dims.exportedHeight || '?') +
+        ' px, 5 mm frame inset.</p>' +
+      '<div class="export-link-grid">' +
+        files.map(function (file) {
+          return '<a href="' + escapeHtml(file.url) + '" target="_blank" rel="noopener" download="' + escapeHtml(file.filename || '') + '">' +
+            escapeHtml(file.filename || ('Plate ' + ((file.index || 0) + 1))) +
+          '</a>';
+        }).join('') +
+      '</div>';
   }
 
   function ensureProductHasPlateMap(product) {

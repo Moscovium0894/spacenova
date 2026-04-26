@@ -192,7 +192,7 @@ function safeStorageName(value) {
 }
 
 function getStoredPlatePositions(product) {
-  const maps = [product.panel_map, product.panelMap, product.plate_map, product.plateMap]
+  const maps = [product.plate_map, product.plateMap, product.panel_map, product.panelMap]
     .filter(map => map && typeof map === 'object' && !Array.isArray(map) && Array.isArray(map.positions));
   const map = maps.find(item => item.positions.length > 0);
   return map ? map.positions : null;
@@ -487,8 +487,17 @@ function clampNumber(value, min, max, fallback) {
 }
 
 function sameImageUrl(a, b) {
-  const normalise = value => normaliseUrl(value).replace(/\/+$/, '').toLowerCase();
-  return !!a && !!b && normalise(a) === normalise(b);
+  return !!a && !!b && imageIdentity(a) === imageIdentity(b);
+}
+
+function imageIdentity(value) {
+  const raw = normaliseUrl(value);
+  try {
+    const url = new URL(raw);
+    return `${url.origin}${url.pathname}`.replace(/\/+$/, '').toLowerCase();
+  } catch (err) {
+    return String(raw || '').split(/[?#]/)[0].replace(/\/+$/, '').toLowerCase();
+  }
 }
 
 async function createContactShadow() {

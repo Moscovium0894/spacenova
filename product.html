@@ -929,21 +929,7 @@
   function getUsablePlateImage(product, plateImages, idx, mainImage) {
     var image = (plateImages[idx] || '').trim();
     if (!image || sameImageUrl(image, mainImage)) return '';
-    var isCollection = !!(product && (product.isCollection || product.isBundle || product.collection || product.type === 'collection'));
-    if (!isCollection) return '';
-    var uniqueCustom = uniquePlateImages(plateImages, mainImage);
-    if (uniqueCustom.length < 2 && plateImages.length > 1) return '';
     return image;
-  }
-
-  function uniquePlateImages(plateImages, mainImage) {
-    var seen = {};
-    (plateImages || []).forEach(function (img) {
-      img = (img || '').trim();
-      if (!img || sameImageUrl(img, mainImage)) return;
-      seen[normaliseImageUrl(img)] = img;
-    });
-    return Object.keys(seen).map(function (key) { return seen[key]; });
   }
 
   function sameImageUrl(a, b) {
@@ -952,7 +938,13 @@
   }
 
   function normaliseImageUrl(value) {
-    return String(value || '').trim().replace(/\/+$/, '').toLowerCase();
+    var raw = String(value || '').trim();
+    try {
+      var url = new URL(raw, window.location.origin);
+      return (url.origin + url.pathname).replace(/\/+$/, '').toLowerCase();
+    } catch (err) {
+      return raw.split(/[?#]/)[0].replace(/\/+$/, '').toLowerCase();
+    }
   }
 
   function togglePlate(idx) {

@@ -237,6 +237,34 @@ img { display: block; max-width: 100%; }
 
 /* ─── Inline actions ─── */
 .inline-actions, .panel-editor-toolbar { display: flex; flex-wrap: wrap; gap: 10px; }
+.export-results {
+  margin-top: 12px;
+  font-family: var(--fm);
+  font-size: .62rem;
+  letter-spacing: .04em;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.export-results:empty { display: none; }
+.export-error { color: var(--danger); }
+.export-link-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+  margin-top: 8px;
+}
+.export-link-grid a {
+  display: block;
+  min-width: 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.66);
+  color: var(--accent);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 /* ─── Image thumb in rail ─── */
 .img-thumb-wrap {
