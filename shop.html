@@ -163,6 +163,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   var allProducts = [];
+  var dealsBySlug = {};
   var activeFilter = 'all';
   var activeSort = 'default';
 
@@ -172,6 +173,10 @@ document.addEventListener('DOMContentLoaded', function() {
       allProducts = (d.products || [])
         .filter(function(p) { return p.isPublished !== false; })
         .concat((d.bundles || []).filter(function(b) { return b.isPublished !== false; }));
+      dealsBySlug = (d.deals || []).reduce(function(map, deal) {
+        if (deal && deal.product_slug) map[deal.product_slug] = deal;
+        return map;
+      }, {});
       applyFilters();
     })
     .catch(function() {
@@ -224,6 +229,13 @@ document.addEventListener('DOMContentLoaded', function() {
     return (str || '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
+  function getActiveDealBadge(slug) {
+    var deal = dealsBySlug[slug];
+    if (!deal || !deal.badge) return '';
+    if (deal.expires_at && new Date(deal.expires_at).getTime() < Date.now()) return '';
+    return String(deal.badge);
+  }
+
   function renderGrid(products) {
     var grid = document.getElementById('shop-grid');
     if (!products.length) {
@@ -251,7 +263,12 @@ document.addEventListener('DOMContentLoaded', function() {
         '<div class="card-body">' +
           '<h3>' + esc(p.name) + '</h3>' +
           '<p class="muted">' + desc + '</p>' +
-          '<div class="price">&pound;' + parseFloat(p.price || 0).toFixed(2) + '</div>' +
+          '<div class="card-price-row">' +
+            '<div class="price">&pound;' + parseFloat(p.price || 0).toFixed(2) + '</div>' +
+            (getActiveDealBadge(p.slug || p.id)
+              ? '<span class="card-deal-badge">' + esc(getActiveDealBadge(p.slug || p.id)) + '</span>'
+              : '') +
+          '</div>' +
         '</div>' +
       '</a>';
     }).join('');
