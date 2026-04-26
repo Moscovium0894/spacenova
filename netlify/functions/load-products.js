@@ -38,6 +38,7 @@ function normaliseProduct(p) {
     image:           p.image,
     wallImage:       p.wall_image || null,
     wallSourceImage: p.wall_source_image || null,
+    updatedAt:       p.updated_at || null,
     isCollection:    !!p.is_collection,
     isBundle:        !!p.is_bundle,
     isPublished:     p.is_published !== false,

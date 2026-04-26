@@ -39,6 +39,7 @@ function normaliseProduct(p) {
     image:          p.image,
     wallImage:      p.wall_image || null,
     wallSourceImage: p.wall_source_image || null,
+    updatedAt:      p.updated_at || null,
     isCollection:   !!p.is_collection,
     isBundle:       !!p.is_bundle,
     isPublished:    p.is_published !== false,
@@ -51,13 +52,48 @@ function normaliseProduct(p) {
   };
 }
 
-function normaliseBundle(b) {
+function normaliseBundleItem(item) {
+  if (typeof item === 'string') return { slug: item, label: item };
+  if (item && typeof item === 'object') {
+    return {
+      slug: item.slug || item.id || item.productSlug || item.name || '',
+      label: item.name || item.label || item.slug || item.id || ''
+    };
+  }
+  return { slug: '', label: '' };
+}
+
+function normaliseBundle(b, productLookup) {
+  const items = (Array.isArray(b.items) ? b.items : [])
+    .map(normaliseBundleItem)
+    .filter(item => item.slug || item.label);
+  const matchedProducts = items
+    .map(item => productLookup[item.slug])
+    .filter(Boolean);
+  const firstProduct = matchedProducts[0] || null;
+  const price = Number.parseFloat(b.price || 0) || 0;
+
   return {
-    slug:  b.slug,
-    name:  b.name,
-    price: b.price,
-    items: Array.isArray(b.items) ? b.items : [],
-    text:  b.text || null
+    id:            b.slug,
+    slug:          b.slug,
+    name:          b.name,
+    price,
+    priceLabel:    price ? 'Bundle price' : '',
+    short:         b.text || '',
+    description:   b.text || (items.length ? `Includes ${items.map(item => item.label || item.slug).join(', ')}` : ''),
+    image:         firstProduct && firstProduct.image ? firstProduct.image : '',
+    wallImage:     firstProduct && firstProduct.wallImage ? firstProduct.wallImage : null,
+    isCollection:  true,
+    isBundle:      true,
+    isPublished:   true,
+    items,
+    itemSlugs:     items.map(item => item.slug).filter(Boolean),
+    itemNames:     items.map(item => {
+      const product = productLookup[item.slug];
+      return (product && product.name) || item.label || item.slug;
+    }).filter(Boolean),
+    text:          b.text || null,
+    recordType:    'bundle'
   };
 }
 
@@ -100,6 +136,11 @@ exports.handler = async (event) => {
     }
 
     const products = (productsRes.data || []).map(normaliseProduct);
+    const productLookup = {};
+    products.forEach(product => {
+      if (product.slug) productLookup[product.slug] = product;
+      if (product.id) productLookup[product.id] = product;
+    });
     const featuredSlugs = featuredRows
       .sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0))
       .map(row => row.slug)
@@ -110,11 +151,11 @@ exports.handler = async (event) => {
       headers: {
         'Content-Type':                'application/json',
         'Access-Control-Allow-Origin': '*',
-        'Cache-Control':               'public, max-age=30, stale-while-revalidate=60'
+        'Cache-Control':               'no-store, max-age=0'
       },
       body: JSON.stringify({
         products,
-        bundles: bundles.map(normaliseBundle),
+        bundles: bundles.map(bundle => normaliseBundle(bundle, productLookup)),
         featuredSlugs
       })
     };

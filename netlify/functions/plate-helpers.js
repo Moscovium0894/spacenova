@@ -29,16 +29,35 @@ function clampPlateCount(value) {
   return Math.max(1, Math.min(MAX_PLATES, toInt(value, 1)));
 }
 
-function firstArray(record, names) {
-  for (const name of names) {
-    if (Array.isArray(record && record[name])) return record[name];
+function arrayFromField(value) {
+  if (Array.isArray(value)) return value;
+  if (value && typeof value === 'object') {
+    if (Array.isArray(value.images)) return value.images;
+    if (Array.isArray(value.items)) return value.items;
+    return Object.keys(value)
+      .sort((a, b) => toInt(a, 0) - toInt(b, 0))
+      .map(key => value[key]);
   }
   return [];
 }
 
+function hasUsefulArrayValue(value) {
+  return value !== null && value !== undefined && String(value).trim() !== '';
+}
+
+function firstArray(record, names) {
+  const arrays = [];
+  for (const name of names) {
+    const arr = arrayFromField(record && record[name]);
+    if (arr.length) arrays.push(arr);
+  }
+  return arrays.find(arr => arr.some(hasUsefulArrayValue)) || arrays[0] || [];
+}
+
 function firstMap(record) {
-  const candidates = [record && record.plate_map, record && record.plateMap, record && record.panel_map, record && record.panelMap];
-  return candidates.find(map => map && typeof map === 'object' && !Array.isArray(map) && Array.isArray(map.positions)) || null;
+  const candidates = [record && record.plate_map, record && record.plateMap, record && record.panel_map, record && record.panelMap]
+    .filter(map => map && typeof map === 'object' && !Array.isArray(map) && Array.isArray(map.positions));
+  return candidates.find(map => map.positions.length > 0) || candidates[0] || null;
 }
 
 function normalisePositions(positions) {
@@ -48,6 +67,30 @@ function normalisePositions(positions) {
       col: toInt(pos && pos.col, 0)
     }))
     .filter(pos => Number.isFinite(pos.row) && Number.isFinite(pos.col));
+}
+
+function clampNumber(value, min, max, fallback) {
+  const n = toNumber(value, fallback);
+  return Math.max(min, Math.min(max, n));
+}
+
+function normaliseTransforms(transforms, count) {
+  const safeCount = clampPlateCount(count);
+  const source = Array.isArray(transforms) ? transforms : [];
+  const result = [];
+
+  for (let i = 0; i < safeCount; i += 1) {
+    const item = source[i] && typeof source[i] === 'object' ? source[i] : {};
+    const fit = item.fit === 'cover' ? 'cover' : 'contain';
+    result.push({
+      fit,
+      x: clampNumber(item.x ?? item.positionX, 0, 100, 50),
+      y: clampNumber(item.y ?? item.positionY, 0, 100, 50),
+      scale: clampNumber(item.scale ?? item.zoom, 0.2, 3, 1)
+    });
+  }
+
+  return result;
 }
 
 function smartPlatePositions(count) {
@@ -102,7 +145,7 @@ function normalisePlateMap(record, count) {
     version: 2,
     geometry: 'pointy_hex',
     positions,
-    transforms: Array.isArray(sourceMap && sourceMap.transforms) ? sourceMap.transforms : [],
+    transforms: normaliseTransforms(sourceMap && sourceMap.transforms, safeCount),
     mockup: (sourceMap && sourceMap.mockup && typeof sourceMap.mockup === 'object') ? sourceMap.mockup : {}
   };
 }
@@ -130,7 +173,7 @@ function resolvePlatePricing(record, count) {
 
 function isMissingColumnError(error) {
   const text = `${error && error.code ? error.code : ''} ${error && error.message ? error.message : ''}`;
-  return /PGRST204|schema cache|column|plate_count|plate_unit_price|plate_set_price|plate_names|plate_images|plate_map|wall_source_image/i.test(text);
+  return /PGRST204|schema cache|column|plate_count|plate_unit_price|plate_set_price|plate_names|plate_images|plate_map|panel_names|panel_images|panel_map|wall_source_image|is_bundle/i.test(text);
 }
 
 function stripAdvancedPlateFields(payload) {
@@ -142,6 +185,10 @@ function stripAdvancedPlateFields(payload) {
     'plate_names',
     'plate_images',
     'plate_map',
+    'panel_names',
+    'panel_images',
+    'panel_map',
+    'is_bundle',
     'wall_source_image'
   ].forEach(key => delete copy[key]);
   return copy;
@@ -153,6 +200,7 @@ module.exports = {
   inferPlateCount,
   isMissingColumnError,
   normalisePlateMap,
+  normaliseTransforms,
   normaliseStringArray,
   resolvePlatePricing,
   smartPlatePositions,

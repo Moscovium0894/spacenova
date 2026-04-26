@@ -124,6 +124,17 @@
         <label class="toggle-row"><input id="f-is-bundle" type="checkbox"><span>Bundle</span></label>
         <label class="toggle-row"><input id="f-is-published" type="checkbox" checked><span>Published</span></label>
       </div>
+      <div id="bundle-panel" style="display:none;margin-top:14px">
+        <div class="panel-head" style="padding:0;margin-bottom:10px">
+          <div><p class="eyebrow">Bundle</p><h2>Bundle details</h2></div>
+        </div>
+        <label class="field-label" for="f-bundle-price">Bundle price</label>
+        <input id="f-bundle-price" class="field" type="text" placeholder="199.00">
+        <label class="field-label" for="f-bundle-items">Included product slugs</label>
+        <textarea id="f-bundle-items" class="field textarea" placeholder="one-product-slug&#10;another-product-slug"></textarea>
+        <label class="field-label" for="f-bundle-text">Bundle text</label>
+        <textarea id="f-bundle-text" class="field textarea" placeholder="Short description shown on bundle cards."></textarea>
+      </div>
     </section>
 
     <!-- Imagery -->
@@ -168,7 +179,7 @@
         <button class="btn btn-ghost btn-sm" id="sort-layout-btn" type="button">Tidy rows</button>
       </div>
       <div class="panel-list-head">
-        <span>#</span><span>Name</span><span>Image URL</span><span>Row</span><span>Col</span>
+        <span>#</span><span>Name</span><span>Image URL</span><span>Fit</span><span>Zoom</span><span>X</span><span>Y</span><span>Row</span><span>Col</span>
       </div>
       <div id="panel-list" class="panel-list"></div>
     </section>
@@ -181,7 +192,9 @@
       <div class="inline-actions">
         <button class="btn btn-primary" id="save-btn" type="button">Save</button>
         <button class="btn btn-ghost" id="sync-btn" type="button">Sync</button>
+        <button class="btn btn-ghost" id="export-png-btn" type="button">Export PNGs</button>
       </div>
+      <div class="export-results" id="export-results"></div>
     </section>
 
   </aside>
@@ -258,6 +271,32 @@
         <div class="arrangement-wrap">
           <div id="hex-preview" class="hex-preview"></div>
         </div>
+        <div class="plate-customizer" id="plate-customizer">
+          <div class="plate-customizer-head">
+            <div>
+              <p class="eyebrow">Selected plate</p>
+              <h4 id="custom-plate-title">Plate 1</h4>
+            </div>
+            <span id="custom-plate-coords">Row 0 / Col 0</span>
+          </div>
+          <div class="field-grid four">
+            <label class="mini-field">Fit
+              <select id="custom-fit" class="field field-select">
+                <option value="contain">Contain</option>
+                <option value="cover">Cover</option>
+              </select>
+            </label>
+            <label class="mini-field">Zoom
+              <input id="custom-zoom" class="field" type="range" min="0.2" max="3" step="0.05">
+            </label>
+            <label class="mini-field">X
+              <input id="custom-x" class="field" type="range" min="0" max="100" step="1">
+            </label>
+            <label class="mini-field">Y
+              <input id="custom-y" class="field" type="range" min="0" max="100" step="1">
+            </label>
+          </div>
+        </div>
         <p class="arrangement-hint">Each plate shows a cropped region of the main image. Individual plate image URLs override this.</p>
       </div>
 
@@ -277,6 +316,8 @@
     panelNames: [],
     panelImages: [],
     panelPositions: [],
+    panelTransforms: [],
+    activePanel: 0,
     activeView: 'main',
     isSaving: false
   };
@@ -311,6 +352,8 @@
     E.productSel   = document.getElementById('product-select');
     E.previewStage = document.getElementById('preview-stage');
     E.panelList    = document.getElementById('panel-list');
+    E.bundlePanel  = document.getElementById('bundle-panel');
+    E.exportResults = document.getElementById('export-results');
 
     E.f = {
       name:         document.getElementById('f-name'),
@@ -328,6 +371,9 @@
       isCollection: document.getElementById('f-is-collection'),
       isBundle:     document.getElementById('f-is-bundle'),
       isPublished:  document.getElementById('f-is-published'),
+      bundlePrice:  document.getElementById('f-bundle-price'),
+      bundleItems:  document.getElementById('f-bundle-items'),
+      bundleText:   document.getElementById('f-bundle-text'),
       image:        document.getElementById('f-image'),
       wallImage:    document.getElementById('f-wall-image'),
       panelHint:    document.getElementById('f-panel-hint'),
@@ -354,7 +400,13 @@
       arrangementCount: document.getElementById('arrangement-count'),
       hexPreview:       document.getElementById('hex-preview'),
       thumbMain:        document.getElementById('thumb-main'),
-      thumbWall:        document.getElementById('thumb-wall')
+      thumbWall:        document.getElementById('thumb-wall'),
+      customTitle:      document.getElementById('custom-plate-title'),
+      customCoords:     document.getElementById('custom-plate-coords'),
+      customFit:        document.getElementById('custom-fit'),
+      customZoom:       document.getElementById('custom-zoom'),
+      customX:          document.getElementById('custom-x'),
+      customY:          document.getElementById('custom-y')
     };
 
     E.views = {
@@ -403,6 +455,7 @@
     document.getElementById('sort-layout-btn').addEventListener('click', tidyPositions);
     document.getElementById('save-btn').addEventListener('click', saveProduct);
     document.getElementById('sync-btn').addEventListener('click', syncProduct);
+    document.getElementById('export-png-btn').addEventListener('click', exportPlatePNGs);
     document.getElementById('preview-toggle').addEventListener('click', function () {
       E.previewStage.classList.toggle('is-open');
     });
@@ -430,6 +483,7 @@
         }
         if (key === 'price' || key === 'unitPrice' || key === 'pieces') syncPriceLabel();
         if (key === 'layoutPreset') applyPresetLayout();
+        if (key === 'isBundle') updateBundlePanel();
         if (key === 'name' && !E.f.slug.dataset.touched) {
           E.f.slug.value = slugify(E.f.name.value);
         }
@@ -440,6 +494,23 @@
     });
 
     E.f.slug.addEventListener('input', function () { E.f.slug.dataset.touched = '1'; });
+    bindPlateCustomizer();
+  }
+
+  function bindPlateCustomizer() {
+    if (!E.prev.customFit) return;
+    E.prev.customFit.addEventListener('change', function () {
+      updateActivePanelTransform({ fit: E.prev.customFit.value });
+    });
+    E.prev.customZoom.addEventListener('input', function () {
+      updateActivePanelTransform({ scale: clampNumber(E.prev.customZoom.value, 0.2, 3, 1) });
+    });
+    E.prev.customX.addEventListener('input', function () {
+      updateActivePanelTransform({ x: clampNumber(E.prev.customX.value, 0, 100, 50) });
+    });
+    E.prev.customY.addEventListener('input', function () {
+      updateActivePanelTransform({ y: clampNumber(E.prev.customY.value, 0, 100, 50) });
+    });
   }
 
   /* ─── Load products ─── */
@@ -476,22 +547,33 @@
   }
 
   function fetchProducts() {
-    return requestJson('/.netlify/functions/load-products', { cache: 'no-store' })
-      .then(extractProducts);
+    return Promise.all([
+      requestJson('/.netlify/functions/load-products', { cache: 'no-store' }),
+      requestJson('/.netlify/functions/load-catalogue', { cache: 'no-store' }).catch(function () { return { bundles: [] }; })
+    ]).then(function (results) {
+      return extractProductList(results[0])
+        .concat(Array.isArray(results[1].bundles) ? results[1].bundles : [])
+        .filter(Boolean)
+        .map(normaliseProductPayload);
+    });
   }
 
   function extractProducts(data) {
+    return extractProductList(data).filter(Boolean).map(normaliseProductPayload);
+  }
+
+  function extractProductList(data) {
     var list = [];
     if (Array.isArray(data)) {
       list = data;
     } else if (data && Array.isArray(data.products)) {
-      list = data.products;
+      list = data.products.concat(Array.isArray(data.bundles) ? data.bundles : []);
     } else if (data && Array.isArray(data.data)) {
       list = data.data;
     } else {
       throw new Error('Product response did not include a product list');
     }
-    return list.filter(Boolean).map(normaliseProductPayload);
+    return list;
   }
 
   function populateSelect() {
@@ -520,6 +602,7 @@
     var p = findProduct(id);
     if (!p) return false;
     state.currentId = productKey(p);
+    state.activePanel = 0;
     E.productSel.value = state.currentId;
 
     E.f.name.value         = p.name || '';
@@ -538,6 +621,9 @@
     E.f.isCollection.checked = !!p.isCollection;
     E.f.isBundle.checked   = !!p.isBundle;
     E.f.isPublished.checked = p.isPublished !== false;
+    E.f.bundlePrice.value  = p.isBundle ? (p.bundlePrice || p.price || '') : '';
+    E.f.bundleItems.value  = Array.isArray(p.bundleItems) ? p.bundleItems.join('\n') : '';
+    E.f.bundleText.value   = p.bundleText || p.text || '';
     E.f.image.value        = p.image || '';
     E.f.wallImage.value    = p.wallImage || '';
     E.f.panelHint.value    = p.panelHint || '';
@@ -550,8 +636,12 @@
     state.panelPositions = (loadedMap && Array.isArray(loadedMap.positions))
       ? loadedMap.positions.map(function (x) { return { row: parseInt(x.row, 10) || 0, col: parseInt(x.col, 10) || 0 }; })
       : [];
+    state.panelTransforms = (loadedMap && Array.isArray(loadedMap.transforms))
+      ? loadedMap.transforms.map(normalisePanelTransform)
+      : [];
 
     ensurePanelArrays();
+    updateBundlePanel();
     rebuildPanelEditors();
     updateThumb('main', p.image || '');
     updateThumb('wall', p.wallImage || '');
@@ -563,6 +653,7 @@
   function createBlank(isCollection) {
     loadSeq++;
     state.currentId = null;
+    state.activePanel = 0;
     E.productSel.value = '';
     E.f.slug.dataset.touched = '';
     Object.keys(E.f).forEach(function (k) {
@@ -579,12 +670,14 @@
     state.panelNames = [];
     state.panelImages = [];
     state.panelPositions = [];
+    state.panelTransforms = [];
     ensurePanelArrays();
     applyPresetLayout();
     rebuildPanelEditors();
     updateThumb('main', '');
     updateThumb('wall', '');
     renderPreview();
+    updateBundlePanel();
     setStatus('New draft', 'ready');
   }
 
@@ -607,11 +700,13 @@
     var fallback = autoLayout(count);
     while (state.panelNames.length < count) state.panelNames.push('');
     while (state.panelImages.length < count) state.panelImages.push('');
+    while (state.panelTransforms.length < count) state.panelTransforms.push(defaultPanelTransform());
     while (state.panelPositions.length < count) {
       state.panelPositions.push(fallback[state.panelPositions.length] || { row: 0, col: state.panelPositions.length });
     }
     state.panelNames = state.panelNames.slice(0, count);
     state.panelImages = state.panelImages.slice(0, count);
+    state.panelTransforms = state.panelTransforms.slice(0, count).map(normalisePanelTransform);
     state.panelPositions = state.panelPositions.slice(0, count).map(function (pos, idx) {
       var fallbackPos = fallback[idx] || { row: 0, col: idx };
       return {
@@ -631,21 +726,38 @@
         '<div class="panel-index">' + (i + 1) + '</div>' +
         '<input class="field pn" type="text" placeholder="Plate name">' +
         '<input class="field pi" type="url" placeholder="https://...">' +
+        '<select class="field pf"><option value="contain">Contain</option><option value="cover">Cover</option></select>' +
+        '<input class="field pz" type="number" min="0.2" max="3" step="0.05" title="Zoom">' +
+        '<input class="field px" type="number" min="0" max="100" step="1" title="Horizontal position">' +
+        '<input class="field py" type="number" min="0" max="100" step="1" title="Vertical position">' +
         '<input class="field pr" type="number" step="1">' +
         '<input class="field pc" type="number" step="1">';
 
       var nameIn  = row.querySelector('.pn');
       var imgIn   = row.querySelector('.pi');
+      var fitIn   = row.querySelector('.pf');
+      var zoomIn  = row.querySelector('.pz');
+      var xIn     = row.querySelector('.px');
+      var yIn     = row.querySelector('.py');
       var rowIn   = row.querySelector('.pr');
       var colIn   = row.querySelector('.pc');
+      var transform = normalisePanelTransform(state.panelTransforms[i]);
 
       nameIn.value = state.panelNames[i] || '';
       imgIn.value  = state.panelImages[i] || '';
+      fitIn.value   = transform.fit;
+      zoomIn.value  = transform.scale;
+      xIn.value     = transform.x;
+      yIn.value     = transform.y;
       rowIn.value  = pos.row;
       colIn.value  = pos.col;
 
       nameIn.addEventListener('input', function () { state.panelNames[i] = nameIn.value; renderPreview(); });
-      imgIn.addEventListener('input',  function () { state.panelImages[i] = imgIn.value; renderPreview(); });
+      imgIn.addEventListener('input',  function () { state.panelImages[i] = imgIn.value; state.panelTransforms[i] = normalisePanelTransform(state.panelTransforms[i]); renderPreview(); });
+      fitIn.addEventListener('change', function () { state.panelTransforms[i].fit = fitIn.value; renderPreview(); });
+      zoomIn.addEventListener('input', function () { state.panelTransforms[i].scale = clampNumber(zoomIn.value, 0.2, 3, 1); renderPreview(); });
+      xIn.addEventListener('input',    function () { state.panelTransforms[i].x = clampNumber(xIn.value, 0, 100, 50); renderPreview(); });
+      yIn.addEventListener('input',    function () { state.panelTransforms[i].y = clampNumber(yIn.value, 0, 100, 50); renderPreview(); });
       rowIn.addEventListener('input',  function () { state.panelPositions[i].row = parseInt(rowIn.value, 10) || 0; renderPreview(); });
       colIn.addEventListener('input',  function () { state.panelPositions[i].col = parseInt(colIn.value, 10) || 0; renderPreview(); });
 
@@ -698,13 +810,14 @@
       return { row: parseInt(p.row,10)||0, col: parseInt(p.col,10)||0, idx: idx };
     }).sort(function (a, b) { return a.row !== b.row ? a.row - b.row : a.col - b.col; });
 
-    var nn = [], ni = [], np = [];
+    var nn = [], ni = [], nt = [], np = [];
     sorted.forEach(function (item) {
       nn.push(state.panelNames[item.idx] || '');
       ni.push(state.panelImages[item.idx] || '');
+      nt.push(normalisePanelTransform(state.panelTransforms[item.idx]));
       np.push({ row: item.row, col: item.col });
     });
-    state.panelNames = nn; state.panelImages = ni; state.panelPositions = np;
+    state.panelNames = nn; state.panelImages = ni; state.panelTransforms = nt; state.panelPositions = np;
     rebuildPanelEditors();
   }
 
@@ -761,7 +874,7 @@
     var wallImage   = E.f.wallImage.value.trim();
     var shortLine   = E.f.short.value.trim() || 'Add a short product line.';
     var description = E.f.description.value.trim() || 'Your description will appear here.';
-    var price       = parseFloat(E.f.price.value || 0);
+    var price       = parseFloat((isBundle && E.f.bundlePrice.value) || E.f.price.value || 0);
     var count       = Math.max(1, parseInt(E.f.pieces.value, 10) || 1);
 
     E.prev.title.textContent       = name;
@@ -814,6 +927,7 @@
 
     /* Arrangement card hex grid */
     renderHexGrid();
+    syncPlateCustomizer();
   }
 
    /* ── Panels composite: main image + hex outlines ── */
@@ -956,7 +1070,8 @@
 
     pixelPositions.forEach(function (pos, idx) {
       var hex = document.createElement('div');
-      hex.className = 'hex-cell-preview';
+      hex.className = 'hex-cell-preview' + (idx === state.activePanel ? ' is-selected' : '');
+      hex.dataset.idx = idx;
       hex.style.position = 'absolute';
       hex.style.left = Math.round(pos.x - bounds.minX) + 'px';
       hex.style.top = Math.round(pos.y - bounds.minY) + 'px';
@@ -966,7 +1081,7 @@
       hex.style.background = 'transparent';
       hex.style.overflow = 'visible';
 
-      var fill = platePreviewFill(mainImage, state.panelImages, idx, pixelPositions, bounds);
+      var fill = platePreviewFill(mainImage, state.panelImages, idx, pixelPositions, bounds, state.panelTransforms[idx]);
       var inner = document.createElement('div');
       inner.style.cssText = 'position:absolute;inset:0;clip-path:' + HEX_CLIP + ';overflow:hidden;' + fill.style;
       inner.innerHTML = fill.html;
@@ -976,7 +1091,49 @@
       label.textContent = idx + 1;
       hex.appendChild(inner);
       hex.appendChild(label);
+      hex.addEventListener('click', function () { selectPanel(idx); });
+      bindDraggableHex(hex, idx, pixelPositions, bounds);
       wrap.appendChild(hex);
+    });
+  }
+
+  function bindDraggableHex(hex, idx, pixelPositions, bounds) {
+    hex.addEventListener('pointerdown', function (event) {
+      if (event.button !== undefined && event.button !== 0) return;
+      event.preventDefault();
+      selectPanel(idx, true);
+
+      var startX = event.clientX;
+      var startY = event.clientY;
+      var startPos = pixelPositions[idx] || gridToPreviewPixel(0, idx);
+      var snapped = state.panelPositions[idx] || { row: 0, col: idx };
+      var moved = false;
+      hex.classList.add('is-dragging');
+      hex.setPointerCapture(event.pointerId);
+
+      function move(e) {
+        var target = { x: startPos.x + e.clientX - startX, y: startPos.y + e.clientY - startY };
+        snapped = nearestFreeGridPosition(target.x, target.y, idx);
+        var preview = gridToPreviewPixel(snapped.row, snapped.col);
+        hex.style.left = Math.round(preview.x - bounds.minX) + 'px';
+        hex.style.top = Math.round(preview.y - bounds.minY) + 'px';
+        moved = true;
+      }
+
+      function up() {
+        hex.classList.remove('is-dragging');
+        hex.removeEventListener('pointermove', move);
+        hex.removeEventListener('pointerup', up);
+        hex.removeEventListener('pointercancel', up);
+        if (moved) {
+          state.panelPositions[idx] = snapped;
+          rebuildPanelEditors();
+        }
+      }
+
+      hex.addEventListener('pointermove', move);
+      hex.addEventListener('pointerup', up);
+      hex.addEventListener('pointercancel', up);
     });
   }
 
@@ -1035,6 +1192,31 @@
     };
   }
 
+  function nearestFreeGridPosition(x, y, ignoreIdx) {
+    var maxRow = 0, maxCol = 0;
+    state.panelPositions.forEach(function (pos) {
+      maxRow = Math.max(maxRow, parseInt(pos.row, 10) || 0);
+      maxCol = Math.max(maxCol, parseInt(pos.col, 10) || 0);
+    });
+
+    var best = null;
+    for (var r = 0; r <= maxRow + 5; r++) {
+      for (var c = 0; c <= maxCol + 5; c++) {
+        if (isGridOccupied(r, c, ignoreIdx)) continue;
+        var px = gridToPreviewPixel(r, c);
+        var distance = Math.pow(px.x - x, 2) + Math.pow(px.y - y, 2);
+        if (!best || distance < best.distance) best = { row: r, col: c, distance: distance };
+      }
+    }
+    return best ? { row: best.row, col: best.col } : { row: 0, col: 0 };
+  }
+
+  function isGridOccupied(row, col, ignoreIdx) {
+    return state.panelPositions.some(function (pos, idx) {
+      return idx !== ignoreIdx && (parseInt(pos.row, 10) || 0) === row && (parseInt(pos.col, 10) || 0) === col;
+    });
+  }
+
   function getPreviewBounds(positions) {
     if (!positions.length) return { minX: 0, minY: 0, width: HEX_W, height: HEX_H };
     var minX = Math.min.apply(null, positions.map(function (p) { return p.x; }));
@@ -1044,13 +1226,14 @@
     return { minX: minX, minY: minY, width: maxX - minX, height: maxY - minY };
   }
 
-  function platePreviewFill(sourceImage, plateImages, idx, pixelPositions, bounds) {
+  function platePreviewFill(sourceImage, plateImages, idx, pixelPositions, bounds, transform) {
     var mainImage = (sourceImage || '').trim();
     var plateImage = getUsablePlateImage(plateImages, idx, mainImage);
     if (plateImage) {
+      var t = normalisePanelTransform(transform);
       return {
-        style: '',
-        html: '<img src="' + escapeSvgAttr(plateImage) + '" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;max-width:none;pointer-events:none;user-select:none;">'
+        style: 'background:#050505;',
+        html: '<img src="' + escapeSvgAttr(plateImage) + '" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:' + t.fit + ';object-position:' + t.x + '% ' + t.y + '%;transform:scale(' + t.scale + ');transform-origin:' + t.x + '% ' + t.y + '%;display:block;max-width:none;pointer-events:none;user-select:none;">'
       };
     }
     if (!mainImage) return { style: 'background:#222;', html: '' };
@@ -1066,23 +1249,77 @@
     };
   }
 
+  function defaultPanelTransform() {
+    return { fit: 'contain', scale: 1, x: 50, y: 50 };
+  }
+
+  function selectPanel(idx, skipRender) {
+    ensurePanelArrays();
+    state.activePanel = Math.max(0, Math.min(state.panelPositions.length - 1, parseInt(idx, 10) || 0));
+    if (!skipRender) renderPreview();
+    else syncPlateCustomizer();
+  }
+
+  function updateActivePanelTransform(patch) {
+    ensurePanelArrays();
+    var idx = Math.max(0, Math.min(state.panelTransforms.length - 1, state.activePanel || 0));
+    var current = normalisePanelTransform(state.panelTransforms[idx]);
+    Object.keys(patch || {}).forEach(function (key) { current[key] = patch[key]; });
+    state.panelTransforms[idx] = normalisePanelTransform(current);
+    renderPreview();
+  }
+
+  function syncPlateCustomizer() {
+    if (!E.prev.customFit) return;
+    ensurePanelArrays();
+    var idx = Math.max(0, Math.min(state.panelPositions.length - 1, state.activePanel || 0));
+    state.activePanel = idx;
+    var transform = normalisePanelTransform(state.panelTransforms[idx]);
+    var pos = state.panelPositions[idx] || { row: 0, col: 0 };
+    var name = state.panelNames[idx] || ('Plate ' + (idx + 1));
+    E.prev.customTitle.textContent = name;
+    E.prev.customCoords.textContent = 'Row ' + (parseInt(pos.row, 10) || 0) + ' / Col ' + (parseInt(pos.col, 10) || 0);
+    E.prev.customFit.value = transform.fit;
+    E.prev.customZoom.value = transform.scale;
+    E.prev.customX.value = transform.x;
+    E.prev.customY.value = transform.y;
+  }
+
+  function normalisePanelTransform(value) {
+    value = value && typeof value === 'object' ? value : {};
+    return {
+      fit: value.fit === 'cover' ? 'cover' : 'contain',
+      scale: clampNumber(value.scale != null ? value.scale : value.zoom, 0.2, 3, 1),
+      x: clampNumber(value.x != null ? value.x : value.positionX, 0, 100, 50),
+      y: clampNumber(value.y != null ? value.y : value.positionY, 0, 100, 50)
+    };
+  }
+
+  function clampNumber(value, min, max, fallback) {
+    var n = parseFloat(value);
+    return Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : fallback;
+  }
+
+  function updateBundlePanel() {
+    if (!E.bundlePanel) return;
+    var show = !!(E.f && E.f.isBundle && E.f.isBundle.checked);
+    E.bundlePanel.style.display = show ? '' : 'none';
+    if (show && E.f.bundlePrice && !E.f.bundlePrice.value) {
+      E.f.bundlePrice.value = E.f.price.value || '';
+    }
+  }
+
+  function splitBundleItems(value) {
+    return String(value || '')
+      .split(/[\n,]+/)
+      .map(function (item) { return item.trim(); })
+      .filter(Boolean);
+  }
+
   function getUsablePlateImage(plateImages, idx, mainImage) {
     var image = (plateImages[idx] || '').trim();
     if (!image || sameImageUrl(image, mainImage)) return '';
-    if (!(E.f.isCollection.checked || E.f.isBundle.checked)) return '';
-    var uniqueCustom = uniquePlateImages(plateImages, mainImage);
-    if (uniqueCustom.length < 2 && plateImages.length > 1) return '';
     return image;
-  }
-
-  function uniquePlateImages(plateImages, mainImage) {
-    var seen = {};
-    (plateImages || []).forEach(function (img) {
-      img = (img || '').trim();
-      if (!img || sameImageUrl(img, mainImage)) return;
-      seen[normaliseImageUrl(img)] = img;
-    });
-    return Object.keys(seen).map(function (key) { return seen[key]; });
   }
 
   function sameImageUrl(a, b) {
@@ -1091,7 +1328,13 @@
   }
 
   function normaliseImageUrl(value) {
-    return String(value || '').trim().replace(/\/+$/, '').toLowerCase();
+    var raw = String(value || '').trim();
+    try {
+      var url = new URL(raw, window.location.origin);
+      return (url.origin + url.pathname).replace(/\/+$/, '').toLowerCase();
+    } catch (err) {
+      return raw.split(/[?#]/)[0].replace(/\/+$/, '').toLowerCase();
+    }
   }
 
   function hexPoints(x, y) {
@@ -1111,6 +1354,15 @@
       .replace(/"/g, '&quot;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
+  }
+
+  function escapeHtml(value) {
+    return String(value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
   
   function groupByRow() {
@@ -1136,12 +1388,15 @@
       positions: state.panelPositions.map(function (p) {
         return { row: parseInt(p.row,10)||0, col: parseInt(p.col,10)||0 };
       }),
-      transforms: [],
+      transforms: state.panelTransforms.map(normalisePanelTransform),
       mockup: {}
     };
+    var slug = E.f.slug.value.trim() || slugify(E.f.name.value);
+    var name = E.f.name.value.trim();
+    var isBundle = E.f.isBundle.checked;
     return {
-      slug:         E.f.slug.value.trim() || slugify(E.f.name.value),
-      name:         E.f.name.value.trim(),
+      slug:         slug,
+      name:         name,
       category:     E.f.category.value.trim(),
       price:        setPrice,
       price_label:  E.f.priceLabel.value.trim(),
@@ -1159,14 +1414,21 @@
       image:        E.f.image.value.trim(),
       wall_image:   E.f.wallImage.value.trim(),
       is_collection: E.f.isCollection.checked,
-      is_bundle:    E.f.isBundle.checked,
+      isBundle:     isBundle,
       is_published: E.f.isPublished.checked,
       plate_names:  state.panelNames.slice(),
       plate_images: state.panelImages.slice(),
       plate_map:    plateMap,
       panel_names:  state.panelNames.slice(),
       panel_images: state.panelImages.slice(),
-      panel_map:    plateMap
+      panel_map:    plateMap,
+      bundle: {
+        slug: slug,
+        name: name,
+        price: (E.f.bundlePrice.value || E.f.price.value || '').trim(),
+        items: splitBundleItems(E.f.bundleItems.value),
+        text: E.f.bundleText.value.trim() || E.f.short.value.trim()
+      }
     };
   }
 
@@ -1217,15 +1479,99 @@
 
   function syncProduct() {
     var payload = buildPayload();
-    setStatus('Syncing…', 'saving');
-    fetch('/.netlify/functions/sync-product', {
+    var products = state.products
+      .filter(function (product) { return !(product.isBundle || product.recordType === 'bundle'); })
+      .map(ensureProductHasPlateMap);
+    var found = false;
+    products = products.map(function (product) {
+      if (productKey(product) === payload.slug) {
+        found = true;
+        return payload;
+      }
+      return product;
+    });
+    if (!found && !payload.isBundle) products.push(payload);
+
+    setStatus('Syncing catalogue maps...', 'saving');
+    fetch('/.netlify/functions/sync-catalogue', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-admin-password': getAdminPassword() },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({ password: getAdminPassword(), products: products, preserveMissing: true })
     })
-    .then(function (r) { return r.json(); })
-    .then(function () { setStatus('Synced', 'success'); })
-    .catch(function () { setStatus('Sync failed', 'error'); });
+    .then(function (r) { return parseJsonResponse(r).then(function (body) { if (!r.ok) throw makeRequestError(r, body); return body; }); })
+    .then(function () { setStatus('Catalogue maps synced', 'success'); return loadProductCatalogue(); })
+    .catch(function (err) { setStatus((err && err.message) || 'Sync failed', 'error'); });
+  }
+
+  function exportPlatePNGs() {
+    var payload = buildPayload();
+    if (!payload.slug || !payload.name) { setStatus('Name and slug are required before export', 'error'); return; }
+    if (!payload.image && !payload.plate_images.some(function (url) { return String(url || '').trim(); })) {
+      setStatus('Add a main image or individual plate images before export', 'error');
+      return;
+    }
+
+    if (E.exportResults) E.exportResults.innerHTML = '<p>Exporting plate PNGs...</p>';
+    setStatus('Exporting plate PNGs...', 'saving');
+    requestJson('/.netlify/functions/export-plates', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-password': getAdminPassword() },
+      body: JSON.stringify({ password: getAdminPassword(), product: payload })
+    })
+    .then(function (body) {
+      if (!body || body.ok !== true) {
+        throw new Error((body && (body.error || body.message)) || 'Export failed');
+      }
+      renderExportResults(body);
+      setStatus('Exported ' + ((body.files || []).length) + ' plate PNGs', 'success');
+    })
+    .catch(function (err) {
+      if (E.exportResults) E.exportResults.innerHTML = '<p class="export-error">' + escapeHtml((err && err.message) || 'Export failed') + '</p>';
+      setStatus((err && err.message) || 'Export failed', 'error');
+    });
+  }
+
+  function renderExportResults(data) {
+    if (!E.exportResults) return;
+    var files = Array.isArray(data.files) ? data.files : [];
+    if (!files.length) {
+      E.exportResults.innerHTML = '<p>No PNG files returned.</p>';
+      return;
+    }
+    var dims = data.dimensions || {};
+    E.exportResults.innerHTML =
+      '<p>Frame-safe transparent PNGs: ' +
+        (dims.exportedWidth || '?') + ' x ' + (dims.exportedHeight || '?') +
+        ' px, 5 mm frame inset.</p>' +
+      '<div class="export-link-grid">' +
+        files.map(function (file) {
+          return '<a href="' + escapeHtml(file.url) + '" target="_blank" rel="noopener" download="' + escapeHtml(file.filename || '') + '">' +
+            escapeHtml(file.filename || ('Plate ' + ((file.index || 0) + 1))) +
+          '</a>';
+        }).join('') +
+      '</div>';
+  }
+
+  function ensureProductHasPlateMap(product) {
+    var copy = {};
+    Object.keys(product || {}).forEach(function (key) { copy[key] = product[key]; });
+    var count = Math.max(1, parseInt(copy.plateCount || copy.plate_count || copy.pieces, 10) || 1);
+    var map = copy.plateMap || copy.plate_map || copy.panelMap || copy.panel_map || {};
+    var hasPositions = map && Array.isArray(map.positions) && map.positions.length > 0;
+    if (!hasPositions) {
+      map = {
+        version: 2,
+        geometry: 'pointy_hex',
+        positions: autoLayout(count),
+        transforms: [],
+        mockup: {}
+      };
+    }
+    copy.plateMap = map;
+    copy.panelMap = map;
+    copy.plate_map = map;
+    copy.panel_map = map;
+    return copy;
   }
 
   /* ─── Helpers ─── */
@@ -1273,10 +1619,15 @@
     });
 
     var plateCount = parseInt(withDefault(readField(product, ['plateCount', 'plate_count', 'pieces']), 1), 10) || 1;
-    var plateNames = arrayCopy(readField(product, ['plateNames', 'plate_names', 'panelNames', 'panel_names']));
-    var plateImages = arrayCopy(readField(product, ['plateImages', 'plate_images', 'panelImages', 'panel_images']));
-    var plateMap = withDefault(readField(product, ['plateMap', 'plate_map', 'panelMap', 'panel_map']), {});
+    var plateNames = readBestArray(product, ['plateNames', 'plate_names', 'panelNames', 'panel_names']);
+    var plateImages = readBestArray(product, ['plateImages', 'plate_images', 'panelImages', 'panel_images']);
+    var plateMap = readBestMap(product, ['plateMap', 'plate_map', 'panelMap', 'panel_map']);
     if (!plateMap || typeof plateMap !== 'object') plateMap = {};
+    var isBundle = !!withDefault(readField(product, ['isBundle', 'is_bundle']), false);
+    var bundleItems = arrayCopy(readField(product, ['bundleItems', 'itemSlugs', 'items']));
+    bundleItems = bundleItems.map(function (item) {
+      return typeof item === 'string' ? item : (item && (item.slug || item.id || item.label || item.name)) || '';
+    }).filter(Boolean);
 
     normalised.id = readField(product, ['id']);
     normalised.slug = withDefault(readField(product, ['slug']), '');
@@ -1299,11 +1650,14 @@
     normalised.wallImage = withDefault(readField(product, ['wallImage', 'wall_image']), '');
     normalised.wallSourceImage = withDefault(readField(product, ['wallSourceImage', 'wall_source_image']), '');
     normalised.isCollection = !!withDefault(readField(product, ['isCollection', 'is_collection']), false);
-    normalised.isBundle = !!withDefault(readField(product, ['isBundle', 'is_bundle']), false);
+    normalised.isBundle = isBundle;
     normalised.isPublished = withDefault(readField(product, ['isPublished', 'is_published']), true) !== false;
     normalised.plateNames = plateNames;
     normalised.plateImages = plateImages;
     normalised.plateMap = plateMap;
+    normalised.bundlePrice = withDefault(readField(product, ['bundlePrice', 'price']), '');
+    normalised.bundleItems = bundleItems;
+    normalised.bundleText = withDefault(readField(product, ['bundleText', 'text', 'short', 'description']), '');
     normalised.panelNames = plateNames;
     normalised.panelImages = plateImages;
     normalised.panelMap = plateMap;
@@ -1317,6 +1671,43 @@
       }
     }
     return undefined;
+  }
+
+  function readBestArray(source, keys) {
+    var arrays = [];
+    keys.forEach(function (key) {
+      if (!source || !Object.prototype.hasOwnProperty.call(source, key)) return;
+      var arr = arrayFromField(source[key]);
+      if (arr.length) arrays.push(arr);
+    });
+    return (arrays.find(function (arr) {
+      return arr.some(function (value) {
+        return value !== undefined && value !== null && String(value).trim() !== '';
+      });
+    }) || arrays[0] || []).slice();
+  }
+
+  function arrayFromField(value) {
+    if (Array.isArray(value)) return value;
+    if (value && typeof value === 'object') {
+      if (Array.isArray(value.images)) return value.images;
+      if (Array.isArray(value.items)) return value.items;
+      return Object.keys(value)
+        .sort(function (a, b) { return (parseInt(a, 10) || 0) - (parseInt(b, 10) || 0); })
+        .map(function (key) { return value[key]; });
+    }
+    return [];
+  }
+
+  function readBestMap(source, keys) {
+    var maps = [];
+    keys.forEach(function (key) {
+      var map = source && source[key];
+      if (map && typeof map === 'object' && !Array.isArray(map) && Array.isArray(map.positions)) {
+        maps.push(map);
+      }
+    });
+    return maps.find(function (map) { return map.positions.length > 0; }) || maps[0] || {};
   }
 
   function withDefault(value, fallback) {

@@ -42,15 +42,51 @@ function buildPayload(product) {
     wall_image:       product.wall_image || product.wallImage || null,
     wall_source_image: product.wall_source_image || product.wallSourceImage || null,
     is_collection:    !!product.is_collection || !!product.isCollection,
-    is_bundle:        !!product.is_bundle || !!product.isBundle,
     is_published:     product.is_published !== false && product.isPublished !== false,
-    plate_names:      plateNames,
-    plate_images:     plateImages,
+    plate_names:      nullIfBlankArray(plateNames),
+    plate_images:     nullIfBlankArray(plateImages),
     plate_map:        plateMap,
-    panel_names:      plateNames,
-    panel_images:     plateImages,
+    panel_names:      nullIfBlankArray(plateNames),
+    panel_images:     nullIfBlankArray(plateImages),
     panel_map:        plateMap,
     updated_at:       new Date().toISOString()
+  };
+}
+
+function nullIfBlankArray(values) {
+  const cleaned = (Array.isArray(values) ? values : [])
+    .map(value => (value == null ? '' : String(value).trim()));
+  return cleaned.some(Boolean) ? cleaned : null;
+}
+
+function splitBundleItems(value) {
+  if (Array.isArray(value)) return value.map(item => {
+    if (typeof item === 'string') return item.trim();
+    if (item && typeof item === 'object') return item.slug || item.id || item.name || '';
+    return '';
+  }).filter(Boolean);
+
+  return String(value || '')
+    .split(/[\n,]+/)
+    .map(item => item.trim())
+    .filter(Boolean);
+}
+
+function buildBundlePayload(product) {
+  const bundle = product.bundle && typeof product.bundle === 'object' ? product.bundle : {};
+  const slug = String(bundle.slug || product.slug || '').trim();
+  const name = String(bundle.name || product.name || '').trim();
+  const price = String(bundle.price || product.bundle_price || product.bundlePrice || product.price || '').trim();
+  const items = splitBundleItems(bundle.items || product.bundle_items || product.bundleItems);
+  const text = String(bundle.text || product.bundle_text || product.bundleText || product.short || product.description || '').trim();
+
+  return {
+    slug,
+    name,
+    price,
+    items,
+    text: text || null,
+    updated_at: new Date().toISOString()
   };
 }
 
@@ -66,6 +102,12 @@ async function upsertProduct(payload) {
   return supabase
     .from('products')
     .upsert(stripAdvancedPlateFields(payload), { onConflict: 'slug' });
+}
+
+async function upsertBundle(payload) {
+  return supabase
+    .from('bundles')
+    .upsert(payload, { onConflict: 'slug' });
 }
 
 exports.handler = async (event) => {
@@ -96,7 +138,20 @@ exports.handler = async (event) => {
       };
     }
 
-    const { error } = await upsertProduct(buildPayload(product));
+    const isBundle = !!product.is_bundle || !!product.isBundle;
+    const bundlePayload = isBundle ? buildBundlePayload(product) : null;
+
+    if (isBundle && (!bundlePayload.slug || !bundlePayload.name || !bundlePayload.price)) {
+      return {
+        statusCode: 400,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: 'Missing required bundle fields (slug, name, price)' })
+      };
+    }
+
+    const { error } = isBundle
+      ? await upsertBundle(bundlePayload)
+      : await upsertProduct(buildPayload(product));
 
     if (error) {
       console.error('save-product supabase error:', error);
@@ -110,7 +165,7 @@ exports.handler = async (event) => {
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ok: true, slug: product.slug })
+      body: JSON.stringify({ ok: true, slug: product.slug, type: isBundle ? 'bundle' : 'product' })
     };
   } catch (err) {
     console.error('save-product fatal:', err);

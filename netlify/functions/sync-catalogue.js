@@ -66,16 +66,21 @@ function buildProductPayload(product, now) {
     wall_image:       product.wallImage || product.wall_image || null,
     wall_source_image: product.wallSourceImage || product.wall_source_image || null,
     is_collection:    !!product.isCollection || !!product.is_collection,
-    is_bundle:        !!product.isBundle || !!product.is_bundle,
     is_published:     product.isPublished !== false && product.is_published !== false,
-    plate_names:      plateNames,
-    plate_images:     plateImages,
+    plate_names:      nullIfBlankArray(plateNames),
+    plate_images:     nullIfBlankArray(plateImages),
     plate_map:        plateMap,
-    panel_names:      plateNames,
-    panel_images:     plateImages,
+    panel_names:      nullIfBlankArray(plateNames),
+    panel_images:     nullIfBlankArray(plateImages),
     panel_map:        plateMap,
     updated_at:       now
   };
+}
+
+function nullIfBlankArray(values) {
+  const cleaned = (Array.isArray(values) ? values : [])
+    .map(value => (value == null ? '' : String(value).trim()));
+  return cleaned.some(Boolean) ? cleaned : null;
 }
 
 async function upsertProducts(payload) {
@@ -99,10 +104,14 @@ exports.handler = async (event) => {
   try {
     const body = JSON.parse(event.body || '{}');
     const password = body.password;
-    const products = Array.isArray(body.products) ? body.products : [];
-    const bundles = Array.isArray(body.bundles) ? body.bundles : [];
-    const wholesaleSources = Array.isArray(body.wholesaleSources) ? body.wholesaleSources : [];
-    const featuredSlugs = Array.isArray(body.featuredSlugs) ? body.featuredSlugs : [];
+    const hasProducts = Array.isArray(body.products);
+    const hasBundles = Array.isArray(body.bundles);
+    const hasWholesaleSources = Array.isArray(body.wholesaleSources);
+    const hasFeaturedSlugs = Array.isArray(body.featuredSlugs);
+    const products = hasProducts ? body.products : [];
+    const bundles = hasBundles ? body.bundles : [];
+    const wholesaleSources = hasWholesaleSources ? body.wholesaleSources : [];
+    const featuredSlugs = hasFeaturedSlugs ? body.featuredSlugs : [];
     const config = body.config;
 
     if (!process.env.ADMIN_PASSWORD || password !== process.env.ADMIN_PASSWORD) {
@@ -142,27 +151,41 @@ exports.handler = async (event) => {
       updated_at: now
     }));
 
-    await upsertProducts(productPayload);
-    await deleteMissingRows('products', 'slug', productPayload.map((product) => product.slug));
-
-    if (bundlePayload.length > 0) {
-      const result = await supabase.from('bundles').upsert(bundlePayload, { onConflict: 'slug' });
-      if (result.error) throw result.error;
+    if (hasProducts) {
+      await upsertProducts(productPayload);
+      if (!body.preserveMissing) {
+        await deleteMissingRows('products', 'slug', productPayload.map((product) => product.slug));
+      }
     }
-    await deleteMissingRows('bundles', 'slug', bundlePayload.map((bundle) => bundle.slug));
 
-    if (wholesalePayload.length > 0) {
-      const result = await supabase.from('wholesale_sources').upsert(wholesalePayload, { onConflict: 'name' });
-      if (result.error) throw result.error;
+    if (hasBundles) {
+      if (bundlePayload.length > 0) {
+        const result = await supabase.from('bundles').upsert(bundlePayload, { onConflict: 'slug' });
+        if (result.error) throw result.error;
+      }
+      if (!body.preserveMissing) {
+        await deleteMissingRows('bundles', 'slug', bundlePayload.map((bundle) => bundle.slug));
+      }
     }
-    await deleteMissingRows('wholesale_sources', 'name', wholesalePayload.map((source) => source.name));
 
-    const clearFeatured = await supabase.from('featured_slugs').delete().not('id', 'is', null);
-    if (clearFeatured.error) throw clearFeatured.error;
+    if (hasWholesaleSources) {
+      if (wholesalePayload.length > 0) {
+        const result = await supabase.from('wholesale_sources').upsert(wholesalePayload, { onConflict: 'name' });
+        if (result.error) throw result.error;
+      }
+      if (!body.preserveMissing) {
+        await deleteMissingRows('wholesale_sources', 'name', wholesalePayload.map((source) => source.name));
+      }
+    }
 
-    if (featuredPayload.length > 0) {
-      const result = await supabase.from('featured_slugs').insert(featuredPayload);
-      if (result.error) throw result.error;
+    if (hasFeaturedSlugs) {
+      const clearFeatured = await supabase.from('featured_slugs').delete().not('id', 'is', null);
+      if (clearFeatured.error) throw clearFeatured.error;
+
+      if (featuredPayload.length > 0) {
+        const result = await supabase.from('featured_slugs').insert(featuredPayload);
+        if (result.error) throw result.error;
+      }
     }
 
     if (config && typeof config === 'object' && !Array.isArray(config)) {
