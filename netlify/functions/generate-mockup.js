@@ -1,4 +1,5 @@
 const sharp = require('sharp');
+const crypto = require('crypto');
 const { createClient } = require('@supabase/supabase-js');
 const {
   inferPlateCount,
@@ -73,7 +74,7 @@ exports.handler = async (event) => {
         const positions = getPositions(product);
         const pieceCount = positions.length;
         const productBuffer = await fetchBuffer(imageUrl);
-        const plateImages = normaliseStringArray(product, ['panel_images', 'panelImages', 'plate_images', 'plateImages'], pieceCount);
+        const plateImages = normaliseStringArray(product, ['plate_images', 'plateImages', 'panel_images', 'panelImages'], pieceCount);
         const plateTransforms = getPlateTransforms(product, pieceCount);
         const mockupBuffer = await generateMockup({
           wallBuffer,
@@ -85,17 +86,21 @@ exports.handler = async (event) => {
         });
         const productKey = getProductKey(product);
         const storagePath = `mockups/${safeStorageName(productKey)}-mockup.png`;
+        await removeOldMockups(supabase, bucket, product, storagePath);
 
         const { error: uploadError } = await supabase.storage
           .from(bucket)
           .upload(storagePath, mockupBuffer, {
             contentType: 'image/png',
+            cacheControl: '0',
             upsert: true
           });
 
         if (uploadError) throw uploadError;
 
-        const wallImage = `${process.env.SUPABASE_URL}/storage/v1/object/public/${bucket}/${storagePath}`;
+        const version = crypto.createHash('sha1').update(mockupBuffer).digest('hex').slice(0, 12);
+        const wallImageBase = `${process.env.SUPABASE_URL}/storage/v1/object/public/${bucket}/${storagePath}`;
+        const wallImage = `${wallImageBase}?v=${version}`;
         await updateProductWallImage(supabase, product, wallImage, wallImageUrl);
 
         results.push({
@@ -191,6 +196,53 @@ function getStoredPlatePositions(product) {
     .filter(map => map && typeof map === 'object' && !Array.isArray(map) && Array.isArray(map.positions));
   const map = maps.find(item => item.positions.length > 0);
   return map ? map.positions : null;
+}
+
+async function removeOldMockups(supabase, bucket, product, nextPath) {
+  const safeKeys = Array.from(new Set([
+    getProductKey(product),
+    product && product.slug,
+    product && product.id,
+    product && product.name
+  ].map(safeStorageName).filter(Boolean)));
+  const paths = new Set([nextPath]);
+
+  const existingWallPath = storagePathFromUrl(product.wall_image || product.wallImage, bucket);
+  if (existingWallPath && existingWallPath.startsWith('mockups/')) paths.add(existingWallPath);
+
+  for (const key of safeKeys) {
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .list('mockups', { limit: 1000, search: key });
+
+    if (!error && Array.isArray(data)) {
+      data.forEach(item => {
+        const name = item && item.name;
+        if (!name) return;
+        if (name === `${key}-mockup.png` || name.startsWith(`${key}-mockup-`) || name.startsWith(`${key}-`)) {
+          paths.add(`mockups/${name}`);
+        }
+      });
+    }
+  }
+
+  if (!paths.size) return;
+  const { error: removeError } = await supabase.storage.from(bucket).remove(Array.from(paths));
+  if (removeError) console.warn('generate-mockup: could not remove old mockup objects:', removeError.message || removeError);
+}
+
+function storagePathFromUrl(value, bucket) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  try {
+    const url = new URL(raw);
+    const marker = `/storage/v1/object/public/${bucket}/`;
+    const idx = url.pathname.indexOf(marker);
+    if (idx === -1) return '';
+    return decodeURIComponent(url.pathname.slice(idx + marker.length));
+  } catch (err) {
+    return '';
+  }
 }
 
 function getPositions(product) {

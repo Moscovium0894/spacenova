@@ -166,7 +166,7 @@ document.addEventListener('DOMContentLoaded', function() {
   var activeFilter = 'all';
   var activeSort = 'default';
 
-  fetch('/.netlify/functions/load-catalogue')
+  fetch('/.netlify/functions/load-catalogue', { cache: 'no-store' })
     .then(function(r) { return r.json(); })
     .then(function(d) {
       allProducts = (d.products || [])

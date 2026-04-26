@@ -51,7 +51,7 @@
 <script src="/js/card-flick.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  fetch('/.netlify/functions/load-catalogue')
+  fetch('/.netlify/functions/load-catalogue', { cache: 'no-store' })
     .then(r => r.json())
     .then(d => {
       const products = (d.products || [])

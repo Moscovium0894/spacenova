@@ -575,7 +575,7 @@
       return;
     }
 
-    fetch('/.netlify/functions/load-catalogue')
+    fetch('/.netlify/functions/load-catalogue', { cache: 'no-store' })
       .then(function (r) { return r.json(); })
       .then(function (d) {
         var p = (d.products || []).find(function (x) {

@@ -55,7 +55,7 @@ function firstArray(record, names) {
 }
 
 function firstMap(record) {
-  const candidates = [record && record.panel_map, record && record.panelMap, record && record.plate_map, record && record.plateMap]
+  const candidates = [record && record.plate_map, record && record.plateMap, record && record.panel_map, record && record.panelMap]
     .filter(map => map && typeof map === 'object' && !Array.isArray(map) && Array.isArray(map.positions));
   return candidates.find(map => map.positions.length > 0) || candidates[0] || null;
 }

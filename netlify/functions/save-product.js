@@ -16,8 +16,8 @@ const supabase = createClient(
 function buildPayload(product) {
   const plateCount = inferPlateCount(product);
   const plateMap = normalisePlateMap(product, plateCount);
-  const plateNames = normaliseStringArray(product, ['panel_names', 'panelNames', 'plate_names', 'plateNames'], plateCount);
-  const plateImages = normaliseStringArray(product, ['panel_images', 'panelImages', 'plate_images', 'plateImages'], plateCount);
+  const plateNames = normaliseStringArray(product, ['plate_names', 'plateNames', 'panel_names', 'panelNames'], plateCount);
+  const plateImages = normaliseStringArray(product, ['plate_images', 'plateImages', 'panel_images', 'panelImages'], plateCount);
   const pricing = resolvePlatePricing(product, plateCount);
   const parsedPrice = Number.isFinite(pricing.setPrice) ? pricing.setPrice : 0;
 
@@ -43,14 +43,20 @@ function buildPayload(product) {
     wall_source_image: product.wall_source_image || product.wallSourceImage || null,
     is_collection:    !!product.is_collection || !!product.isCollection,
     is_published:     product.is_published !== false && product.isPublished !== false,
-    plate_names:      plateNames,
-    plate_images:     plateImages,
+    plate_names:      nullIfBlankArray(plateNames),
+    plate_images:     nullIfBlankArray(plateImages),
     plate_map:        plateMap,
-    panel_names:      plateNames,
-    panel_images:     plateImages,
+    panel_names:      nullIfBlankArray(plateNames),
+    panel_images:     nullIfBlankArray(plateImages),
     panel_map:        plateMap,
     updated_at:       new Date().toISOString()
   };
+}
+
+function nullIfBlankArray(values) {
+  const cleaned = (Array.isArray(values) ? values : [])
+    .map(value => (value == null ? '' : String(value).trim()));
+  return cleaned.some(Boolean) ? cleaned : null;
 }
 
 function splitBundleItems(value) {
