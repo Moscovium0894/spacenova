@@ -61,30 +61,50 @@ exports.handler = async (event) => {
   }
 
   try {
-    const { paymentIntentId } = JSON.parse(event.body || '{}');
-    if (!paymentIntentId) {
-      return { statusCode: 400, body: JSON.stringify({ ok: false, error: 'Missing paymentIntentId' }) };
+    const { paymentIntentId, checkoutSessionId } = JSON.parse(event.body || '{}');
+    if (!paymentIntentId && !checkoutSessionId) {
+      return { statusCode: 400, body: JSON.stringify({ ok: false, error: 'Missing paymentIntentId or checkoutSessionId' }) };
     }
 
-    const pi = await stripe.paymentIntents.retrieve(paymentIntentId);
-    if (!pi || pi.status !== 'succeeded') {
-      return { statusCode: 400, body: JSON.stringify({ ok: false, error: 'Payment not completed' }) };
+    let resolvedPaymentIntentId = paymentIntentId;
+    if (resolvedPaymentIntentId && !String(resolvedPaymentIntentId).startsWith('pi_')) {
+      return { statusCode: 400, body: JSON.stringify({ ok: false, error: 'Invalid paymentIntentId' }) };
+    }
+
+    if (!resolvedPaymentIntentId && checkoutSessionId) {
+      if (!String(checkoutSessionId).startsWith('cs_')) {
+        return { statusCode: 400, body: JSON.stringify({ ok: false, error: 'Invalid checkoutSessionId' }) };
+      }
+      const session = await stripe.checkout.sessions.retrieve(checkoutSessionId);
+      const sessionPaymentIntent = session && session.payment_intent;
+      resolvedPaymentIntentId = sessionPaymentIntent
+        ? String(typeof sessionPaymentIntent === 'string' ? sessionPaymentIntent : sessionPaymentIntent.id)
+        : '';
+    }
+
+    if (!resolvedPaymentIntentId) {
+      return { statusCode: 400, body: JSON.stringify({ ok: false, error: 'No payment intent found' }) };
+    }
+
+    const pi = await stripe.paymentIntents.retrieve(resolvedPaymentIntentId, { expand: ['charges.data.billing_details'] });
+    if (!pi || !['succeeded', 'processing', 'requires_capture'].includes(pi.status)) {
+      return { statusCode: 400, body: JSON.stringify({ ok: false, error: 'Payment not completed', status: pi && pi.status }) };
     }
 
     const shipping = pi.shipping || {};
     const shippingAddress = shipping.address || {};
     const metadata = pi.metadata || {};
 
+    const charge = pi.charges && Array.isArray(pi.charges.data) ? pi.charges.data[0] : null;
+    const billing = (charge && charge.billing_details) || {};
+
     const payload = {
       ref: pi.id,
-      stripe_payment_id: pi.id,
       customer_name: shipping.name || null,
-      email: pi.receipt_email || null,
+      email: pi.receipt_email || billing.email || metadata.customer_email || null,
       items: parseItems(metadata.items),
-      subtotal: parseAmount(metadata.subtotal, pi.amount),
       discount: parseAmount(metadata.discount, 0),
-      shipping_cost: parseAmount(metadata.shipping_cost, 0),
-      shipping_method: metadata.shipping_label || metadata.shipping_method || null,
+      shipping_type: metadata.shipping_label || metadata.shipping_method || null,
       delivery: {
         full_name: shipping.name || null,
         address1: shippingAddress.line1 || null,

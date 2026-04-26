@@ -9,11 +9,6 @@
   "icons": [
     {
       "src": "/Spacenovafavicon.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/Spacenovafavicon.png",
       "sizes": "512x512",
       "type": "image/png"
     }

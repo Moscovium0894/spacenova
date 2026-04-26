@@ -653,7 +653,15 @@ body.drawer-open { overflow: hidden; }
 .success-orbit {
   position: relative; width: 110px; height: 110px;
   display: flex; align-items: center; justify-content: center;
-  margin-bottom: 32px;
+  margin: 0 auto 32px;
+}
+.success-planet {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.92), rgba(255,255,255,.52) 22%, rgba(212,120,15,.3) 48%, rgba(212,120,15,.08) 100%);
+  border: 1px solid rgba(212,120,15,.18);
+  box-shadow: 0 0 0 6px rgba(212,120,15,.05);
 }
 .success-ring {
   position: absolute; inset: 0; border-radius: 50%;
@@ -670,7 +678,7 @@ body.drawer-open { overflow: hidden; }
   width: 64px; height: 64px; border-radius: 50%;
   background: rgba(26,158,64,.08); border: 1px solid rgba(26,158,64,.22);
   color: var(--success); font-size: 1.6rem; display: flex;
-  align-items: center; justify-content: center; margin-bottom: 24px;
+  align-items: center; justify-content: center; margin: 0 auto 24px;
 }
 .success-title {
   font-family: var(--fd); font-size: clamp(2rem,5vw,3.2rem);
@@ -681,7 +689,7 @@ body.drawer-open { overflow: hidden; }
   max-width: 420px; margin-bottom: 28px;
 }
 .success-divider {
-  width: 48px; height: 1px; background: var(--border2); margin-bottom: 28px;
+  width: 48px; height: 1px; background: var(--border2); margin: 0 auto 28px;
 }
 .success-actions {
   display: flex; gap: 12px; flex-wrap: wrap;
