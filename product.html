@@ -612,6 +612,7 @@
     var plateMap = p.plateMap || p.panelMap || {};
     var positions = Array.isArray(plateMap.positions) ? plateMap.positions : [];
     if (!positions.length) positions = autoLayout(_totalPlates);
+    var plateTransforms = normalisePlateTransforms(plateMap.transforms, _totalPlates);
 
     // Select all by default
     _selected.clear();
@@ -657,7 +658,7 @@
       '</div>';
 
     initGallery(galleryImages);
-    buildInteractivePreview(p, positions, plateImages, plateNames);
+    buildInteractivePreview(p, positions, plateImages, plateNames, plateTransforms);
 
     document.getElementById('add-to-basket-btn').addEventListener('click', function () {
       addSelectionToBasket(p, plateNames);
@@ -780,7 +781,7 @@
   // Replaces both the old hex selector and the old live mockup.
   // The preview IS the selector: click a plate to toggle its selection.
   //
-  function buildInteractivePreview(p, positions, plateImages, plateNames) {
+  function buildInteractivePreview(p, positions, plateImages, plateNames, plateTransforms) {
     var mount = document.getElementById('preview-mount');
     if (!mount || !_totalPlates || !positions.length) return;
 
@@ -810,7 +811,7 @@
       var left = (px.x - bounds.minX) * scale;
       var top = (px.y - bounds.minY) * scale;
 
-      var fill = platePreviewFill(p, plateImages, idx, px, bounds, scale);
+      var fill = platePreviewFill(p, plateImages, idx, px, bounds, scale, plateTransforms && plateTransforms[idx]);
 
       var name = plateNames[idx] || ('Plate ' + (idx + 1));
 
@@ -883,13 +884,14 @@
     updatePreview();
   }
 
-  function platePreviewFill(product, plateImages, idx, pixelPos, bounds, scale) {
+  function platePreviewFill(product, plateImages, idx, pixelPos, bounds, scale, transform) {
     var mainImage = ((product && product.image) || '').trim();
     var plateImage = getUsablePlateImage(product, plateImages, idx, mainImage);
     if (plateImage) {
+      var t = normalisePlateTransform(transform);
       return {
-        style: '',
-        html: '<img class="plate-piece-full-img" src="' + escapeAttr(plateImage) + '" alt="">'
+        style: 'background:#050505;',
+        html: '<img class="plate-piece-full-img" src="' + escapeAttr(plateImage) + '" alt="" style="object-fit:' + t.fit + ';object-position:' + t.x + '% ' + t.y + '%;transform:scale(' + t.scale + ');transform-origin:' + t.x + '% ' + t.y + '%;">'
       };
     }
     if (!mainImage) return { style: 'background:#222;', html: '' };
@@ -902,6 +904,25 @@
         'width:' + cssPx(Math.max(1, bounds.w * displayScale)) + ';' +
         'height:' + cssPx(Math.max(1, bounds.h * displayScale)) + ';' +
         'left:-' + cssPx(tileLeft) + ';top:-' + cssPx(tileTop) + ';">'
+    };
+  }
+
+  function normalisePlateTransforms(transforms, count) {
+    var result = [];
+    transforms = Array.isArray(transforms) ? transforms : [];
+    for (var i = 0; i < count; i++) {
+      result.push(normalisePlateTransform(transforms[i]));
+    }
+    return result;
+  }
+
+  function normalisePlateTransform(value) {
+    value = value && typeof value === 'object' ? value : {};
+    return {
+      fit: value.fit === 'cover' ? 'cover' : 'contain',
+      scale: clampNumber(value.scale != null ? value.scale : value.zoom, 0.2, 3, 1),
+      x: clampNumber(value.x != null ? value.x : value.positionX, 0, 100, 50),
+      y: clampNumber(value.y != null ? value.y : value.positionY, 0, 100, 50)
     };
   }
 
@@ -1089,6 +1110,11 @@
   // ─── Utility ──────────────────────────────────────────────────────────────
   function cssPx(value) {
     return (Math.round((Number(value) || 0) * 1000) / 1000) + 'px';
+  }
+
+  function clampNumber(value, min, max, fallback) {
+    var n = parseFloat(value);
+    return Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : fallback;
   }
 
   function esc(s) {

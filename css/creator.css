@@ -248,7 +248,7 @@ img { display: block; max-width: 100%; }
 /* ─── Panel list ─── */
 .panel-list-head {
   display: grid;
-  grid-template-columns: 46px 1fr 1.5fr 72px 72px;
+  grid-template-columns: 46px 1fr 1.4fr 86px 72px 64px 64px 64px 64px;
   gap: 9px; margin-bottom: 9px;
   font-family: var(--fm); font-size: .58rem;
   letter-spacing: .12em; text-transform: uppercase; color: var(--muted);
@@ -256,7 +256,7 @@ img { display: block; max-width: 100%; }
 .panel-list { display: flex; flex-direction: column; gap: 9px; }
 .panel-row {
   display: grid;
-  grid-template-columns: 46px 1fr 1.5fr 72px 72px;
+  grid-template-columns: 46px 1fr 1.4fr 86px 72px 64px 64px 64px 64px;
   gap: 9px; align-items: center;
   padding: 10px 12px;
   border-radius: 14px;
@@ -440,10 +440,9 @@ img { display: block; max-width: 100%; }
   .topbar-actions { width: 100%; justify-content: flex-end; }
   .field-grid.two, .toggle-grid { grid-template-columns: 1fr; }
   .panel-list-head, .panel-row { grid-template-columns: 36px 1fr 1fr; }
-  .panel-list-head span:nth-child(4),
-  .panel-list-head span:nth-child(5),
-  .panel-row input:nth-child(4),
-  .panel-row input:nth-child(5) { display: none; }
+  .panel-list-head span:nth-child(n+4),
+  .panel-row input:nth-child(n+4),
+  .panel-row select:nth-child(n+4) { display: none; }
   .view-tabs { flex-wrap: wrap; }
   .hex-cell-composite { width: 52px; height: 60px; margin-bottom: -14px; }
   .panels-hex-layer .hex-row.offset { margin-left: 28px; }

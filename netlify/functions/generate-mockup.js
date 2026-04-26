@@ -3,6 +3,7 @@ const { createClient } = require('@supabase/supabase-js');
 const {
   inferPlateCount,
   normalisePlateMap,
+  normaliseStringArray,
   smartPlatePositions,
   isMissingColumnError
 } = require('./plate-helpers');
@@ -72,7 +73,16 @@ exports.handler = async (event) => {
         const positions = getPositions(product);
         const pieceCount = positions.length;
         const productBuffer = await fetchBuffer(imageUrl);
-        const mockupBuffer = await generateMockup({ wallBuffer, productBuffer, positions });
+        const plateImages = normaliseStringArray(product, ['plate_images', 'plateImages', 'panel_images', 'panelImages'], pieceCount);
+        const plateTransforms = getPlateTransforms(product, pieceCount);
+        const mockupBuffer = await generateMockup({
+          wallBuffer,
+          productBuffer,
+          productImageUrl: imageUrl,
+          positions,
+          plateImages,
+          plateTransforms
+        });
         const productKey = getProductKey(product);
         const storagePath = `mockups/${safeStorageName(productKey)}-mockup.png`;
 
@@ -220,13 +230,17 @@ async function fetchBuffer(url) {
   return Buffer.from(await res.arrayBuffer());
 }
 
-async function generateMockup({ wallBuffer, productBuffer, positions, pieceCount }) {
+async function generateMockup({ wallBuffer, productBuffer, productImageUrl, positions, pieceCount, plateImages, plateTransforms }) {
   const wallMeta = await sharp(wallBuffer).metadata();
   const wallWidth = wallMeta.width || 1200;
   const wallHeight = wallMeta.height || 800;
   const tilePositions = Array.isArray(positions) && positions.length ? positions : autoHoneycomb(pieceCount || 3);
   const bounds = getBounds(tilePositions);
-  const pieceImages = await createSlicedFramedPieces(productBuffer, tilePositions, bounds);
+  const pieceImages = await createSlicedFramedPieces(productBuffer, tilePositions, bounds, {
+    productImageUrl,
+    plateImages,
+    plateTransforms
+  });
   const shadow = await createContactShadow();
   const depth = await createDepthLayer();
   const highlight = await createWallContactHighlight();
@@ -263,7 +277,7 @@ function getBounds(positions) {
   return { minX, minY, width: maxX - minX, height: maxY - minY };
 }
 
-async function createSlicedFramedPieces(productBuffer, positions, bounds) {
+async function createSlicedFramedPieces(productBuffer, positions, bounds, options = {}) {
   const innerW = HEX_W - FRAME_WIDTH * 2;
   const innerH = HEX_H - FRAME_WIDTH * 2;
   const canvasW = Math.max(HEX_W, Math.round(bounds.width));
@@ -276,19 +290,38 @@ async function createSlicedFramedPieces(productBuffer, positions, bounds) {
   const outerMask = Buffer.from(hexMaskSvg(HEX_W, HEX_H));
   const innerMask = Buffer.from(hexMaskSvg(innerW, innerH));
   const pieces = [];
+  const imageCache = new Map();
 
-  for (const pos of positions) {
+  for (let i = 0; i < positions.length; i += 1) {
+    const pos = positions[i];
     const cropLeft = Math.max(0, Math.round(pos.x - bounds.minX));
     const cropTop = Math.max(0, Math.round(pos.y - bounds.minY));
     const safeLeft = Math.min(cropLeft, Math.max(0, canvasW - HEX_W));
     const safeTop = Math.min(cropTop, Math.max(0, canvasH - HEX_H));
+    const individualUrl = getIndividualPlateImage(options.plateImages && options.plateImages[i], options.productImageUrl);
+    let slice;
 
-    const slice = await sharp(imageCanvas)
-      .extract({ left: safeLeft, top: safeTop, width: HEX_W, height: HEX_H })
-      .resize(innerW, innerH, { fit: 'cover' })
-      .composite([{ input: innerMask, blend: 'dest-in' }])
-      .png()
-      .toBuffer();
+    if (individualUrl) {
+      let individualBuffer = imageCache.get(individualUrl);
+      if (!individualBuffer) {
+        individualBuffer = await fetchBuffer(individualUrl);
+        imageCache.set(individualUrl, individualBuffer);
+      }
+      slice = await createIndividualPlateSlice(
+        individualBuffer,
+        innerW,
+        innerH,
+        innerMask,
+        normaliseTransform(options.plateTransforms && options.plateTransforms[i])
+      );
+    } else {
+      slice = await sharp(imageCanvas)
+        .extract({ left: safeLeft, top: safeTop, width: HEX_W, height: HEX_H })
+        .resize(innerW, innerH, { fit: 'cover' })
+        .composite([{ input: innerMask, blend: 'dest-in' }])
+        .png()
+        .toBuffer();
+    }
 
     const frame = await sharp({
       create: {
@@ -314,6 +347,98 @@ async function createSlicedFramedPieces(productBuffer, positions, bounds) {
   }
 
   return pieces;
+}
+
+async function createIndividualPlateSlice(sourceBuffer, innerW, innerH, innerMask, transform) {
+  const meta = await sharp(sourceBuffer).metadata();
+  const sourceW = meta.width || innerW;
+  const sourceH = meta.height || innerH;
+  const fit = transform.fit === 'cover' ? 'cover' : 'contain';
+  const baseScale = fit === 'cover'
+    ? Math.max(innerW / sourceW, innerH / sourceH)
+    : Math.min(innerW / sourceW, innerH / sourceH);
+  const resizeScale = baseScale * transform.scale;
+  const resizedW = Math.max(1, Math.round(sourceW * resizeScale));
+  const resizedH = Math.max(1, Math.round(sourceH * resizeScale));
+  const positionX = transform.x / 100;
+  const positionY = transform.y / 100;
+
+  let overlay = await sharp(sourceBuffer)
+    .rotate()
+    .resize(resizedW, resizedH, { fit: 'fill', withoutEnlargement: false })
+    .png()
+    .toBuffer();
+
+  let overlayW = resizedW;
+  let overlayH = resizedH;
+  let left = 0;
+  let top = 0;
+
+  if (overlayW > innerW || overlayH > innerH) {
+    const cropLeft = overlayW > innerW ? Math.round((overlayW - innerW) * positionX) : 0;
+    const cropTop = overlayH > innerH ? Math.round((overlayH - innerH) * positionY) : 0;
+    const extractW = Math.min(innerW, overlayW);
+    const extractH = Math.min(innerH, overlayH);
+    overlay = await sharp(overlay)
+      .extract({
+        left: Math.max(0, Math.min(cropLeft, overlayW - extractW)),
+        top: Math.max(0, Math.min(cropTop, overlayH - extractH)),
+        width: extractW,
+        height: extractH
+      })
+      .png()
+      .toBuffer();
+    overlayW = extractW;
+    overlayH = extractH;
+  }
+
+  if (overlayW < innerW) left = Math.round((innerW - overlayW) * positionX);
+  if (overlayH < innerH) top = Math.round((innerH - overlayH) * positionY);
+
+  return sharp({
+    create: {
+      width: innerW,
+      height: innerH,
+      channels: 4,
+      background: '#050505'
+    }
+  })
+    .composite([
+      { input: overlay, left, top },
+      { input: innerMask, blend: 'dest-in' }
+    ])
+    .png()
+    .toBuffer();
+}
+
+function getPlateTransforms(product, count) {
+  return normalisePlateMap(product, count).transforms;
+}
+
+function getIndividualPlateImage(value, mainImageUrl) {
+  const url = normaliseUrl(value);
+  if (!url || sameImageUrl(url, mainImageUrl)) return '';
+  return url;
+}
+
+function normaliseTransform(transform) {
+  const item = transform && typeof transform === 'object' ? transform : {};
+  return {
+    fit: item.fit === 'cover' ? 'cover' : 'contain',
+    x: clampNumber(item.x ?? item.positionX, 0, 100, 50),
+    y: clampNumber(item.y ?? item.positionY, 0, 100, 50),
+    scale: clampNumber(item.scale ?? item.zoom, 0.2, 3, 1)
+  };
+}
+
+function clampNumber(value, min, max, fallback) {
+  const n = Number(value);
+  return Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : fallback;
+}
+
+function sameImageUrl(a, b) {
+  const normalise = value => normaliseUrl(value).replace(/\/+$/, '').toLowerCase();
+  return !!a && !!b && normalise(a) === normalise(b);
 }
 
 async function createContactShadow() {

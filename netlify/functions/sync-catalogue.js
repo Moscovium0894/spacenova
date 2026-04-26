@@ -66,7 +66,6 @@ function buildProductPayload(product, now) {
     wall_image:       product.wallImage || product.wall_image || null,
     wall_source_image: product.wallSourceImage || product.wall_source_image || null,
     is_collection:    !!product.isCollection || !!product.is_collection,
-    is_bundle:        !!product.isBundle || !!product.is_bundle,
     is_published:     product.isPublished !== false && product.is_published !== false,
     plate_names:      plateNames,
     plate_images:     plateImages,

@@ -50,6 +50,30 @@ function normalisePositions(positions) {
     .filter(pos => Number.isFinite(pos.row) && Number.isFinite(pos.col));
 }
 
+function clampNumber(value, min, max, fallback) {
+  const n = toNumber(value, fallback);
+  return Math.max(min, Math.min(max, n));
+}
+
+function normaliseTransforms(transforms, count) {
+  const safeCount = clampPlateCount(count);
+  const source = Array.isArray(transforms) ? transforms : [];
+  const result = [];
+
+  for (let i = 0; i < safeCount; i += 1) {
+    const item = source[i] && typeof source[i] === 'object' ? source[i] : {};
+    const fit = item.fit === 'cover' ? 'cover' : 'contain';
+    result.push({
+      fit,
+      x: clampNumber(item.x ?? item.positionX, 0, 100, 50),
+      y: clampNumber(item.y ?? item.positionY, 0, 100, 50),
+      scale: clampNumber(item.scale ?? item.zoom, 0.2, 3, 1)
+    });
+  }
+
+  return result;
+}
+
 function smartPlatePositions(count) {
   const safeCount = clampPlateCount(count);
   const preset = PRESET_POSITIONS[safeCount];
@@ -102,7 +126,7 @@ function normalisePlateMap(record, count) {
     version: 2,
     geometry: 'pointy_hex',
     positions,
-    transforms: Array.isArray(sourceMap && sourceMap.transforms) ? sourceMap.transforms : [],
+    transforms: normaliseTransforms(sourceMap && sourceMap.transforms, safeCount),
     mockup: (sourceMap && sourceMap.mockup && typeof sourceMap.mockup === 'object') ? sourceMap.mockup : {}
   };
 }
@@ -130,7 +154,7 @@ function resolvePlatePricing(record, count) {
 
 function isMissingColumnError(error) {
   const text = `${error && error.code ? error.code : ''} ${error && error.message ? error.message : ''}`;
-  return /PGRST204|schema cache|column|plate_count|plate_unit_price|plate_set_price|plate_names|plate_images|plate_map|wall_source_image/i.test(text);
+  return /PGRST204|schema cache|column|plate_count|plate_unit_price|plate_set_price|plate_names|plate_images|plate_map|panel_names|panel_images|panel_map|wall_source_image|is_bundle/i.test(text);
 }
 
 function stripAdvancedPlateFields(payload) {
@@ -142,6 +166,10 @@ function stripAdvancedPlateFields(payload) {
     'plate_names',
     'plate_images',
     'plate_map',
+    'panel_names',
+    'panel_images',
+    'panel_map',
+    'is_bundle',
     'wall_source_image'
   ].forEach(key => delete copy[key]);
   return copy;
@@ -153,6 +181,7 @@ module.exports = {
   inferPlateCount,
   isMissingColumnError,
   normalisePlateMap,
+  normaliseTransforms,
   normaliseStringArray,
   resolvePlatePricing,
   smartPlatePositions,

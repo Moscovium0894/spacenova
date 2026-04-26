@@ -102,6 +102,11 @@
       <button class="filter-pill" data-filter="series">Series</button>
       <button class="filter-pill" data-filter="collection">Collections</button>
       <button class="filter-pill" data-filter="bundle">Bundles</button>
+      <select class="filter-pill shop-sort" id="sort-select" aria-label="Sort products">
+        <option value="default">Sort</option>
+        <option value="price-asc">Price low to high</option>
+        <option value="price-desc">Price high to low</option>
+      </select>
     </div>
     <div class="grid" id="shop-grid">
       <!-- Skeleton placeholders while loading -->
@@ -158,12 +163,16 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   var allProducts = [];
+  var activeFilter = 'all';
+  var activeSort = 'default';
 
   fetch('/.netlify/functions/load-catalogue')
     .then(function(r) { return r.json(); })
     .then(function(d) {
-      allProducts = (d.products || []).filter(function(p) { return p.isPublished !== false; });
-      renderGrid(allProducts);
+      allProducts = (d.products || [])
+        .filter(function(p) { return p.isPublished !== false; })
+        .concat((d.bundles || []).filter(function(b) { return b.isPublished !== false; }));
+      applyFilters();
     })
     .catch(function() {
       document.getElementById('shop-grid').innerHTML =
@@ -201,6 +210,16 @@ document.addEventListener('DOMContentLoaded', function() {
     '</div>';
   }
 
+  function bundleIncludes(p) {
+    var names = Array.isArray(p.itemNames) && p.itemNames.length
+      ? p.itemNames
+      : (Array.isArray(p.items) ? p.items.map(function(item) { return item.label || item.slug || item; }) : []);
+    if (!names.length) return '';
+    return '<div class="bundle-includes">' + names.slice(0, 5).map(function(name) {
+      return '<span>' + esc(String(name)) + '</span>';
+    }).join('') + '</div>';
+  }
+
   function esc(str) {
     return (str || '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
@@ -213,6 +232,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     grid.innerHTML = products.map(function(p) {
       var desc = (p.description || '').substring(0, 80) + ((p.description || '').length > 80 ? '\u2026' : '');
+      if (p.isBundle || p.recordType === 'bundle') {
+        return '<article class="card bundle-card">' +
+          cardMedia(p) +
+          '<div class="bundle-card-inner">' +
+            '<h3>' + esc(p.name) + '</h3>' +
+            '<p class="muted">' + desc + '</p>' +
+            '<div class="price">&pound;' + parseFloat(p.price || 0).toFixed(2) + '</div>' +
+          '</div>' +
+          bundleIncludes(p) +
+          '<div class="card-actions">' +
+            '<button class="btn btn-primary btn-sm bundle-add-btn" type="button" data-slug="' + esc(p.slug || p.id) + '">Add bundle</button>' +
+          '</div>' +
+        '</article>';
+      }
       return '<a class="card card-link" href="/product.html?slug=' + (p.slug || p.id) + '">' +
         cardMedia(p) +
         '<div class="card-body">' +
@@ -222,19 +255,54 @@ document.addEventListener('DOMContentLoaded', function() {
         '</div>' +
       '</a>';
     }).join('');
+    grid.querySelectorAll('.bundle-add-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var bundle = allProducts.find(function(item) { return (item.slug || item.id) === btn.dataset.slug; });
+        if (!bundle || !window.addToBasket) return;
+        window.addToBasket({
+          id: 'bundle-' + (bundle.slug || bundle.id),
+          slug: bundle.slug || bundle.id,
+          name: bundle.name,
+          price: parseFloat(bundle.price || 0),
+          image: bundle.image || '',
+          quantity: 1
+        });
+      });
+    });
     if (window.initCardFlickGalleries) window.initCardFlickGalleries(grid);
   }
 
+  function sorted(items) {
+    var copy = items.slice();
+    if (activeSort === 'price-asc') {
+      copy.sort(function(a, b) { return parseFloat(a.price || 0) - parseFloat(b.price || 0); });
+    } else if (activeSort === 'price-desc') {
+      copy.sort(function(a, b) { return parseFloat(b.price || 0) - parseFloat(a.price || 0); });
+    }
+    return copy;
+  }
+
+  function applyFilters() {
+    var items;
+    if (activeFilter === 'all') items = allProducts;
+    else if (activeFilter === 'bundle') items = allProducts.filter(function(p) { return p.isBundle || p.recordType === 'bundle'; });
+    else if (activeFilter === 'collection') items = allProducts.filter(function(p) { return p.isCollection && !p.isBundle && p.recordType !== 'bundle'; });
+    else items = allProducts.filter(function(p) { return !p.isCollection && !p.isBundle && p.recordType !== 'bundle'; });
+    renderGrid(sorted(items));
+  }
+
   document.getElementById('filter-bar').addEventListener('click', function(e) {
-    var pill = e.target.closest('.filter-pill');
+    var pill = e.target.closest('.filter-pill[data-filter]');
     if (!pill) return;
-    document.querySelectorAll('.filter-pill').forEach(function(p) { p.classList.remove('active'); });
+    document.querySelectorAll('.filter-pill[data-filter]').forEach(function(p) { p.classList.remove('active'); });
     pill.classList.add('active');
-    var f = pill.dataset.filter;
-    if (f === 'all')        renderGrid(allProducts);
-    else if (f === 'bundle')     renderGrid(allProducts.filter(function(p) { return p.isBundle; }));
-    else if (f === 'collection') renderGrid(allProducts.filter(function(p) { return p.isCollection && !p.isBundle; }));
-    else                         renderGrid(allProducts.filter(function(p) { return !p.isCollection && !p.isBundle; }));
+    activeFilter = pill.dataset.filter;
+    applyFilters();
+  });
+
+  document.getElementById('sort-select').addEventListener('change', function() {
+    activeSort = this.value;
+    applyFilters();
   });
 });
 </script>

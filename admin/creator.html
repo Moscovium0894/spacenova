@@ -124,6 +124,17 @@
         <label class="toggle-row"><input id="f-is-bundle" type="checkbox"><span>Bundle</span></label>
         <label class="toggle-row"><input id="f-is-published" type="checkbox" checked><span>Published</span></label>
       </div>
+      <div id="bundle-panel" style="display:none;margin-top:14px">
+        <div class="panel-head" style="padding:0;margin-bottom:10px">
+          <div><p class="eyebrow">Bundle</p><h2>Bundle details</h2></div>
+        </div>
+        <label class="field-label" for="f-bundle-price">Bundle price</label>
+        <input id="f-bundle-price" class="field" type="text" placeholder="199.00">
+        <label class="field-label" for="f-bundle-items">Included product slugs</label>
+        <textarea id="f-bundle-items" class="field textarea" placeholder="one-product-slug&#10;another-product-slug"></textarea>
+        <label class="field-label" for="f-bundle-text">Bundle text</label>
+        <textarea id="f-bundle-text" class="field textarea" placeholder="Short description shown on bundle cards."></textarea>
+      </div>
     </section>
 
     <!-- Imagery -->
@@ -168,7 +179,7 @@
         <button class="btn btn-ghost btn-sm" id="sort-layout-btn" type="button">Tidy rows</button>
       </div>
       <div class="panel-list-head">
-        <span>#</span><span>Name</span><span>Image URL</span><span>Row</span><span>Col</span>
+        <span>#</span><span>Name</span><span>Image URL</span><span>Fit</span><span>Zoom</span><span>X</span><span>Y</span><span>Row</span><span>Col</span>
       </div>
       <div id="panel-list" class="panel-list"></div>
     </section>
@@ -277,6 +288,7 @@
     panelNames: [],
     panelImages: [],
     panelPositions: [],
+    panelTransforms: [],
     activeView: 'main',
     isSaving: false
   };
@@ -311,6 +323,7 @@
     E.productSel   = document.getElementById('product-select');
     E.previewStage = document.getElementById('preview-stage');
     E.panelList    = document.getElementById('panel-list');
+    E.bundlePanel  = document.getElementById('bundle-panel');
 
     E.f = {
       name:         document.getElementById('f-name'),
@@ -328,6 +341,9 @@
       isCollection: document.getElementById('f-is-collection'),
       isBundle:     document.getElementById('f-is-bundle'),
       isPublished:  document.getElementById('f-is-published'),
+      bundlePrice:  document.getElementById('f-bundle-price'),
+      bundleItems:  document.getElementById('f-bundle-items'),
+      bundleText:   document.getElementById('f-bundle-text'),
       image:        document.getElementById('f-image'),
       wallImage:    document.getElementById('f-wall-image'),
       panelHint:    document.getElementById('f-panel-hint'),
@@ -430,6 +446,7 @@
         }
         if (key === 'price' || key === 'unitPrice' || key === 'pieces') syncPriceLabel();
         if (key === 'layoutPreset') applyPresetLayout();
+        if (key === 'isBundle') updateBundlePanel();
         if (key === 'name' && !E.f.slug.dataset.touched) {
           E.f.slug.value = slugify(E.f.name.value);
         }
@@ -476,7 +493,7 @@
   }
 
   function fetchProducts() {
-    return requestJson('/.netlify/functions/load-products', { cache: 'no-store' })
+    return requestJson('/.netlify/functions/load-catalogue', { cache: 'no-store' })
       .then(extractProducts);
   }
 
@@ -485,7 +502,7 @@
     if (Array.isArray(data)) {
       list = data;
     } else if (data && Array.isArray(data.products)) {
-      list = data.products;
+      list = data.products.concat(Array.isArray(data.bundles) ? data.bundles : []);
     } else if (data && Array.isArray(data.data)) {
       list = data.data;
     } else {
@@ -538,6 +555,9 @@
     E.f.isCollection.checked = !!p.isCollection;
     E.f.isBundle.checked   = !!p.isBundle;
     E.f.isPublished.checked = p.isPublished !== false;
+    E.f.bundlePrice.value  = p.isBundle ? (p.bundlePrice || p.price || '') : '';
+    E.f.bundleItems.value  = Array.isArray(p.bundleItems) ? p.bundleItems.join('\n') : '';
+    E.f.bundleText.value   = p.bundleText || p.text || '';
     E.f.image.value        = p.image || '';
     E.f.wallImage.value    = p.wallImage || '';
     E.f.panelHint.value    = p.panelHint || '';
@@ -550,8 +570,12 @@
     state.panelPositions = (loadedMap && Array.isArray(loadedMap.positions))
       ? loadedMap.positions.map(function (x) { return { row: parseInt(x.row, 10) || 0, col: parseInt(x.col, 10) || 0 }; })
       : [];
+    state.panelTransforms = (loadedMap && Array.isArray(loadedMap.transforms))
+      ? loadedMap.transforms.map(normalisePanelTransform)
+      : [];
 
     ensurePanelArrays();
+    updateBundlePanel();
     rebuildPanelEditors();
     updateThumb('main', p.image || '');
     updateThumb('wall', p.wallImage || '');
@@ -579,12 +603,14 @@
     state.panelNames = [];
     state.panelImages = [];
     state.panelPositions = [];
+    state.panelTransforms = [];
     ensurePanelArrays();
     applyPresetLayout();
     rebuildPanelEditors();
     updateThumb('main', '');
     updateThumb('wall', '');
     renderPreview();
+    updateBundlePanel();
     setStatus('New draft', 'ready');
   }
 
@@ -607,11 +633,13 @@
     var fallback = autoLayout(count);
     while (state.panelNames.length < count) state.panelNames.push('');
     while (state.panelImages.length < count) state.panelImages.push('');
+    while (state.panelTransforms.length < count) state.panelTransforms.push(defaultPanelTransform());
     while (state.panelPositions.length < count) {
       state.panelPositions.push(fallback[state.panelPositions.length] || { row: 0, col: state.panelPositions.length });
     }
     state.panelNames = state.panelNames.slice(0, count);
     state.panelImages = state.panelImages.slice(0, count);
+    state.panelTransforms = state.panelTransforms.slice(0, count).map(normalisePanelTransform);
     state.panelPositions = state.panelPositions.slice(0, count).map(function (pos, idx) {
       var fallbackPos = fallback[idx] || { row: 0, col: idx };
       return {
@@ -631,21 +659,38 @@
         '<div class="panel-index">' + (i + 1) + '</div>' +
         '<input class="field pn" type="text" placeholder="Plate name">' +
         '<input class="field pi" type="url" placeholder="https://...">' +
+        '<select class="field pf"><option value="contain">Contain</option><option value="cover">Cover</option></select>' +
+        '<input class="field pz" type="number" min="0.2" max="3" step="0.05" title="Zoom">' +
+        '<input class="field px" type="number" min="0" max="100" step="1" title="Horizontal position">' +
+        '<input class="field py" type="number" min="0" max="100" step="1" title="Vertical position">' +
         '<input class="field pr" type="number" step="1">' +
         '<input class="field pc" type="number" step="1">';
 
       var nameIn  = row.querySelector('.pn');
       var imgIn   = row.querySelector('.pi');
+      var fitIn   = row.querySelector('.pf');
+      var zoomIn  = row.querySelector('.pz');
+      var xIn     = row.querySelector('.px');
+      var yIn     = row.querySelector('.py');
       var rowIn   = row.querySelector('.pr');
       var colIn   = row.querySelector('.pc');
+      var transform = normalisePanelTransform(state.panelTransforms[i]);
 
       nameIn.value = state.panelNames[i] || '';
       imgIn.value  = state.panelImages[i] || '';
+      fitIn.value   = transform.fit;
+      zoomIn.value  = transform.scale;
+      xIn.value     = transform.x;
+      yIn.value     = transform.y;
       rowIn.value  = pos.row;
       colIn.value  = pos.col;
 
       nameIn.addEventListener('input', function () { state.panelNames[i] = nameIn.value; renderPreview(); });
-      imgIn.addEventListener('input',  function () { state.panelImages[i] = imgIn.value; renderPreview(); });
+      imgIn.addEventListener('input',  function () { state.panelImages[i] = imgIn.value; state.panelTransforms[i] = normalisePanelTransform(state.panelTransforms[i]); renderPreview(); });
+      fitIn.addEventListener('change', function () { state.panelTransforms[i].fit = fitIn.value; renderPreview(); });
+      zoomIn.addEventListener('input', function () { state.panelTransforms[i].scale = clampNumber(zoomIn.value, 0.2, 3, 1); renderPreview(); });
+      xIn.addEventListener('input',    function () { state.panelTransforms[i].x = clampNumber(xIn.value, 0, 100, 50); renderPreview(); });
+      yIn.addEventListener('input',    function () { state.panelTransforms[i].y = clampNumber(yIn.value, 0, 100, 50); renderPreview(); });
       rowIn.addEventListener('input',  function () { state.panelPositions[i].row = parseInt(rowIn.value, 10) || 0; renderPreview(); });
       colIn.addEventListener('input',  function () { state.panelPositions[i].col = parseInt(colIn.value, 10) || 0; renderPreview(); });
 
@@ -698,13 +743,14 @@
       return { row: parseInt(p.row,10)||0, col: parseInt(p.col,10)||0, idx: idx };
     }).sort(function (a, b) { return a.row !== b.row ? a.row - b.row : a.col - b.col; });
 
-    var nn = [], ni = [], np = [];
+    var nn = [], ni = [], nt = [], np = [];
     sorted.forEach(function (item) {
       nn.push(state.panelNames[item.idx] || '');
       ni.push(state.panelImages[item.idx] || '');
+      nt.push(normalisePanelTransform(state.panelTransforms[item.idx]));
       np.push({ row: item.row, col: item.col });
     });
-    state.panelNames = nn; state.panelImages = ni; state.panelPositions = np;
+    state.panelNames = nn; state.panelImages = ni; state.panelTransforms = nt; state.panelPositions = np;
     rebuildPanelEditors();
   }
 
@@ -761,7 +807,7 @@
     var wallImage   = E.f.wallImage.value.trim();
     var shortLine   = E.f.short.value.trim() || 'Add a short product line.';
     var description = E.f.description.value.trim() || 'Your description will appear here.';
-    var price       = parseFloat(E.f.price.value || 0);
+    var price       = parseFloat((isBundle && E.f.bundlePrice.value) || E.f.price.value || 0);
     var count       = Math.max(1, parseInt(E.f.pieces.value, 10) || 1);
 
     E.prev.title.textContent       = name;
@@ -966,7 +1012,7 @@
       hex.style.background = 'transparent';
       hex.style.overflow = 'visible';
 
-      var fill = platePreviewFill(mainImage, state.panelImages, idx, pixelPositions, bounds);
+      var fill = platePreviewFill(mainImage, state.panelImages, idx, pixelPositions, bounds, state.panelTransforms[idx]);
       var inner = document.createElement('div');
       inner.style.cssText = 'position:absolute;inset:0;clip-path:' + HEX_CLIP + ';overflow:hidden;' + fill.style;
       inner.innerHTML = fill.html;
@@ -1044,13 +1090,14 @@
     return { minX: minX, minY: minY, width: maxX - minX, height: maxY - minY };
   }
 
-  function platePreviewFill(sourceImage, plateImages, idx, pixelPositions, bounds) {
+  function platePreviewFill(sourceImage, plateImages, idx, pixelPositions, bounds, transform) {
     var mainImage = (sourceImage || '').trim();
     var plateImage = getUsablePlateImage(plateImages, idx, mainImage);
     if (plateImage) {
+      var t = normalisePanelTransform(transform);
       return {
-        style: '',
-        html: '<img src="' + escapeSvgAttr(plateImage) + '" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;max-width:none;pointer-events:none;user-select:none;">'
+        style: 'background:#050505;',
+        html: '<img src="' + escapeSvgAttr(plateImage) + '" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:' + t.fit + ';object-position:' + t.x + '% ' + t.y + '%;transform:scale(' + t.scale + ');transform-origin:' + t.x + '% ' + t.y + '%;display:block;max-width:none;pointer-events:none;user-select:none;">'
       };
     }
     if (!mainImage) return { style: 'background:#222;', html: '' };
@@ -1064,6 +1111,41 @@
         'height:' + Math.round(Math.max(1, bounds.height)) + 'px;' +
         'left:-' + tileLeft + 'px;top:-' + tileTop + 'px;">'
     };
+  }
+
+  function defaultPanelTransform() {
+    return { fit: 'contain', scale: 1, x: 50, y: 50 };
+  }
+
+  function normalisePanelTransform(value) {
+    value = value && typeof value === 'object' ? value : {};
+    return {
+      fit: value.fit === 'cover' ? 'cover' : 'contain',
+      scale: clampNumber(value.scale != null ? value.scale : value.zoom, 0.2, 3, 1),
+      x: clampNumber(value.x != null ? value.x : value.positionX, 0, 100, 50),
+      y: clampNumber(value.y != null ? value.y : value.positionY, 0, 100, 50)
+    };
+  }
+
+  function clampNumber(value, min, max, fallback) {
+    var n = parseFloat(value);
+    return Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : fallback;
+  }
+
+  function updateBundlePanel() {
+    if (!E.bundlePanel) return;
+    var show = !!(E.f && E.f.isBundle && E.f.isBundle.checked);
+    E.bundlePanel.style.display = show ? '' : 'none';
+    if (show && E.f.bundlePrice && !E.f.bundlePrice.value) {
+      E.f.bundlePrice.value = E.f.price.value || '';
+    }
+  }
+
+  function splitBundleItems(value) {
+    return String(value || '')
+      .split(/[\n,]+/)
+      .map(function (item) { return item.trim(); })
+      .filter(Boolean);
   }
 
   function getUsablePlateImage(plateImages, idx, mainImage) {
@@ -1136,12 +1218,15 @@
       positions: state.panelPositions.map(function (p) {
         return { row: parseInt(p.row,10)||0, col: parseInt(p.col,10)||0 };
       }),
-      transforms: [],
+      transforms: state.panelTransforms.map(normalisePanelTransform),
       mockup: {}
     };
+    var slug = E.f.slug.value.trim() || slugify(E.f.name.value);
+    var name = E.f.name.value.trim();
+    var isBundle = E.f.isBundle.checked;
     return {
-      slug:         E.f.slug.value.trim() || slugify(E.f.name.value),
-      name:         E.f.name.value.trim(),
+      slug:         slug,
+      name:         name,
       category:     E.f.category.value.trim(),
       price:        setPrice,
       price_label:  E.f.priceLabel.value.trim(),
@@ -1159,14 +1244,21 @@
       image:        E.f.image.value.trim(),
       wall_image:   E.f.wallImage.value.trim(),
       is_collection: E.f.isCollection.checked,
-      is_bundle:    E.f.isBundle.checked,
+      isBundle:     isBundle,
       is_published: E.f.isPublished.checked,
       plate_names:  state.panelNames.slice(),
       plate_images: state.panelImages.slice(),
       plate_map:    plateMap,
       panel_names:  state.panelNames.slice(),
       panel_images: state.panelImages.slice(),
-      panel_map:    plateMap
+      panel_map:    plateMap,
+      bundle: {
+        slug: slug,
+        name: name,
+        price: (E.f.bundlePrice.value || E.f.price.value || '').trim(),
+        items: splitBundleItems(E.f.bundleItems.value),
+        text: E.f.bundleText.value.trim() || E.f.short.value.trim()
+      }
     };
   }
 
@@ -1221,7 +1313,7 @@
     fetch('/.netlify/functions/sync-product', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-admin-password': getAdminPassword() },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({ password: getAdminPassword(), product: payload })
     })
     .then(function (r) { return r.json(); })
     .then(function () { setStatus('Synced', 'success'); })
@@ -1277,6 +1369,11 @@
     var plateImages = arrayCopy(readField(product, ['plateImages', 'plate_images', 'panelImages', 'panel_images']));
     var plateMap = withDefault(readField(product, ['plateMap', 'plate_map', 'panelMap', 'panel_map']), {});
     if (!plateMap || typeof plateMap !== 'object') plateMap = {};
+    var isBundle = !!withDefault(readField(product, ['isBundle', 'is_bundle']), false);
+    var bundleItems = arrayCopy(readField(product, ['bundleItems', 'itemSlugs', 'items']));
+    bundleItems = bundleItems.map(function (item) {
+      return typeof item === 'string' ? item : (item && (item.slug || item.id || item.label || item.name)) || '';
+    }).filter(Boolean);
 
     normalised.id = readField(product, ['id']);
     normalised.slug = withDefault(readField(product, ['slug']), '');
@@ -1299,11 +1396,14 @@
     normalised.wallImage = withDefault(readField(product, ['wallImage', 'wall_image']), '');
     normalised.wallSourceImage = withDefault(readField(product, ['wallSourceImage', 'wall_source_image']), '');
     normalised.isCollection = !!withDefault(readField(product, ['isCollection', 'is_collection']), false);
-    normalised.isBundle = !!withDefault(readField(product, ['isBundle', 'is_bundle']), false);
+    normalised.isBundle = isBundle;
     normalised.isPublished = withDefault(readField(product, ['isPublished', 'is_published']), true) !== false;
     normalised.plateNames = plateNames;
     normalised.plateImages = plateImages;
     normalised.plateMap = plateMap;
+    normalised.bundlePrice = withDefault(readField(product, ['bundlePrice', 'price']), '');
+    normalised.bundleItems = bundleItems;
+    normalised.bundleText = withDefault(readField(product, ['bundleText', 'text', 'short', 'description']), '');
     normalised.panelNames = plateNames;
     normalised.panelImages = plateImages;
     normalised.panelMap = plateMap;
