@@ -92,14 +92,11 @@ exports.handler = async (event) => {
 
     const payload = {
       ref: pi.id,
-      stripe_payment_id: pi.id,
       customer_name: shipping.name || null,
       email: pi.receipt_email || billing.email || metadata.customer_email || null,
       items: parseItems(metadata.items),
-      subtotal: parseAmount(metadata.subtotal, pi.amount),
       discount: parseAmount(metadata.discount, 0),
-      shipping_cost: parseAmount(metadata.shipping_cost, 0),
-      shipping_method: metadata.shipping_label || metadata.shipping_method || null,
+      shipping_type: metadata.shipping_label || metadata.shipping_method || null,
       delivery: {
         full_name: shipping.name || null,
         address1: shippingAddress.line1 || null,
