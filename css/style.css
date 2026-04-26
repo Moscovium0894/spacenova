@@ -1650,3 +1650,29 @@ body.panel-open { overflow: hidden; }
 @media (hover: hover) {
   .card:hover .card-media:not(.card-has-wall) img { transform: scale(1.06); }
 }
+
+/* ── Card price row (price left, deal badge right) ── */
+.card-price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+/* ── Deal badge shown on product cards ── */
+.card-deal-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: #c0392b;
+  color: #fff;
+  font-family: var(--fm);
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
+}

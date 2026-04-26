@@ -116,14 +116,15 @@ exports.handler = async (event) => {
   }
 
   try {
-    const [productsRes, bundles, featuredRows] = await Promise.all([
+    const [productsRes, bundles, featuredRows, dealsRows] = await Promise.all([
       supabase
         .from('products')
         .select('*')
         .eq('is_published', true)
         .order('created_at', { ascending: false }),
       queryOptional('bundles', '*', 'name'),
-      queryOptional('featured_slugs', 'slug, sort_order', 'sort_order')
+      queryOptional('featured_slugs', 'slug, sort_order', 'sort_order'),
+      queryOptional('deals', 'slug, title, subtitle, badge, type, value, applies_to, product_slug, expires_at, sort_order', 'sort_order')
     ]);
 
     if (productsRes.error) {
@@ -156,6 +157,7 @@ exports.handler = async (event) => {
       body: JSON.stringify({
         products,
         bundles: bundles.map(bundle => normaliseBundle(bundle, productLookup)),
+        deals: dealsRows,
         featuredSlugs
       })
     };
