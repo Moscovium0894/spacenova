@@ -411,18 +411,26 @@
       padding: 4px 12px;
       white-space: nowrap;
     }
-    /* Bundle saving badge */
-    .bundle-saving-badge {
-      display: inline-block;
+    .product-price-original {
       font-family: var(--fm);
-      font-size: .58rem;
-      letter-spacing: .06em;
+      font-size: .7rem;
+      color: var(--muted);
+      text-decoration: line-through;
+      margin-left: 10px;
+      letter-spacing: .04em;
+    }
+    .product-deal-subtitle {
+      display: inline-block;
+      margin-top: 10px;
+      margin-bottom: 16px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: #b3261e;
       color: #fff;
-      background: var(--accent);
-      border-radius: 999px;
-      padding: 3px 10px;
-      margin-left: 8px;
-      vertical-align: middle;
+      font-family: var(--fm);
+      font-size: .7rem;
+      letter-spacing: .05em;
+      line-height: 1.4;
     }
   </style>
 </head>
@@ -570,7 +578,8 @@
             '<p style="color:var(--muted)">Product not found.</p>';
           return;
         }
-        renderProduct(p);
+        var deal = getActiveProductDeal(d.deals || [], p.slug || p.id);
+        renderProduct(p, deal);
       })
       .catch(function () {
         document.getElementById('product-content').innerHTML =
@@ -579,23 +588,47 @@
   });
 
   // ─── Main render ─────────────────────────────────────────────────────────
-  function renderProduct(p) {
+  function getActiveProductDeal(deals, productSlug) {
+    return (deals || []).find(function (deal) {
+      if (!deal) return false;
+      if (deal.active === false) return false;
+      if (deal.product_slug !== productSlug) return false;
+      if (deal.expires_at && new Date(deal.expires_at).getTime() < Date.now()) return false;
+      return true;
+    }) || null;
+  }
+
+  function getDealPrice(basePrice, deal) {
+    var price = parseFloat(basePrice || 0);
+    if (!deal) return price;
+
+    var value = parseFloat(deal.value || 0);
+
+    if (deal.type === 'percent' && value > 0) {
+      return Math.max(0, parseFloat((price * (1 - value / 100)).toFixed(2)));
+    }
+
+    if (deal.type === 'fixed' && value > 0) {
+      return Math.max(0, parseFloat((price - value).toFixed(2)));
+    }
+
+    return price;
+  }
+
+  function renderProduct(p, deal) {
     document.title = p.name + ' — SPACENOVA';
     document.getElementById('bc-name').textContent = p.name;
 
     _totalPlates = parseInt(p.plateCount || p.pieces, 10) || 0;
 
-    // Bundle price = p.price (clean rounded number from DB)
-    PLATE_BUNDLE_PRICE = parseFloat(p.price || 0);
+    // Bundle price = p.price (clean rounded number from DB), potentially discounted by deal
+    var baseBundlePrice = parseFloat(p.price || 0);
+    PLATE_BUNDLE_PRICE = getDealPrice(p.price, deal);
 
     // Unit price: use explicit plateUnitPrice, or fall back to 34.99
     PLATE_UNIT_PRICE = parseFloat(p.plateUnitPrice || 34.99);
 
-    // Calculate the saving when buying all
-    var fullUnitTotal = parseFloat((_totalPlates * PLATE_UNIT_PRICE).toFixed(2));
-    var bundleSaving = _totalPlates > 0
-      ? parseFloat((fullUnitTotal - PLATE_BUNDLE_PRICE).toFixed(2))
-      : 0;
+    var hasPriceDiscount = PLATE_BUNDLE_PRICE < baseBundlePrice;
 
     var wallImage = p.wallImage || null;
 
@@ -616,11 +649,6 @@
     if (p.image) galleryImages.push({ src: p.image, alt: p.name });
     if (wallImage) galleryImages.push({ src: wallImage, alt: p.name + ' on wall' });
 
-    // Build saving badge HTML
-    var savingBadge = (bundleSaving > 0 && _totalPlates > 1)
-      ? '<span class="bundle-saving-badge">Save &pound;' + bundleSaving.toFixed(0) + ' with full set</span>'
-      : '';
-
     document.getElementById('product-content').innerHTML =
       '<div class="product-hero">' +
         '<div class="product-media">' +
@@ -637,13 +665,18 @@
             '<span class="product-price-main" id="dynamic-price">&pound;' +
               PLATE_BUNDLE_PRICE.toFixed(2) +
             '</span>' +
-            savingBadge +
+            (hasPriceDiscount
+              ? '<span class="product-price-original">&pound;' + baseBundlePrice.toFixed(2) + '</span>'
+              : '') +
             (p.priceLabel ? '<span class="product-price-range">' + esc(p.priceLabel) + '</span>' : '') +
           '</div>' +
+          (deal && deal.subtitle
+            ? '<div class="product-deal-subtitle">' + esc(deal.subtitle) + '</div>'
+            : '') +
           '<p style="color:var(--muted);font-family:var(--fm);font-size:.68rem;letter-spacing:.06em;margin-bottom:16px">' +
             '&pound;' + PLATE_UNIT_PRICE.toFixed(2) + ' per individual plate' +
-            (_totalPlates > 1 && bundleSaving > 0
-              ? ' &mdash; full set &pound;' + PLATE_BUNDLE_PRICE.toFixed(2) + ' (save &pound;' + bundleSaving.toFixed(0) + ')'
+            (_totalPlates > 1
+              ? ' &mdash; full set &pound;' + PLATE_BUNDLE_PRICE.toFixed(2)
               : '') +
           '</p>' +
           '<p style="color:var(--muted);font-size:.9rem;margin-bottom:24px;line-height:1.75">' +
@@ -659,7 +692,7 @@
       '</div>';
 
     initGallery(galleryImages);
-    buildInteractivePreview(p, positions, plateImages, plateNames, plateTransforms, bundleSaving);
+    buildInteractivePreview(p, positions, plateImages, plateNames, plateTransforms);
 
     document.getElementById('add-to-basket-btn').addEventListener('click', function () {
       addSelectionToBasket(p, plateNames);
@@ -778,7 +811,7 @@
   }
 
   // ─── Interactive Preview ──────────────────────────────────────────────────
-  function buildInteractivePreview(p, positions, plateImages, plateNames, plateTransforms, bundleSaving) {
+  function buildInteractivePreview(p, positions, plateImages, plateNames, plateTransforms) {
     var mount = document.getElementById('preview-mount');
     if (!mount || !_totalPlates || !positions.length) return;
 
@@ -837,7 +870,7 @@
         '<div class="plate-preview-footer">' +
           '<div>' +
             '<div class="plate-preview-price" id="preview-price">&pound;' + PLATE_BUNDLE_PRICE.toFixed(2) + '</div>' +
-            '<div class="plate-preview-price-sub" id="preview-price-sub">' + priceSub(_totalPlates, _totalPlates, bundleSaving) + '</div>' +
+            '<div class="plate-preview-price-sub" id="preview-price-sub">' + priceSub(_totalPlates, _totalPlates) + '</div>' +
           '</div>' +
           '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
             '<span class="plate-count-chip" id="preview-count">' + _totalPlates + ' of ' + _totalPlates + ' selected</span>' +
@@ -880,27 +913,27 @@
     cluster.addEventListener('click', function (e) {
       var piece = e.target.closest('.plate-piece');
       if (!piece) return;
-      togglePlate(parseInt(piece.dataset.idx, 10), bundleSaving);
+      togglePlate(parseInt(piece.dataset.idx, 10));
     });
     cluster.addEventListener('keydown', function (e) {
       if (e.key !== 'Enter' && e.key !== ' ') return;
       var piece = e.target.closest('.plate-piece');
       if (!piece) return;
       e.preventDefault();
-      togglePlate(parseInt(piece.dataset.idx, 10), bundleSaving);
+      togglePlate(parseInt(piece.dataset.idx, 10));
     });
 
     document.getElementById('prev-sel-all').addEventListener('click', function () {
       for (var i = 0; i < _totalPlates; i++) _selected.add(i);
-      updatePreview(bundleSaving);
+      updatePreview();
     });
     document.getElementById('prev-clear').addEventListener('click', function () {
       _selected.clear();
-      updatePreview(bundleSaving);
+      updatePreview();
     });
 
     window._selectedPlates = _selected;
-    updatePreview(bundleSaving);
+    updatePreview();
   }
 
   function platePreviewFill(product, plateImages, idx, pixelPos, bounds, scale, transform) {
@@ -966,17 +999,17 @@
     }
   }
 
-  function togglePlate(idx, bundleSaving) {
+  function togglePlate(idx) {
     if (_selected.has(idx)) {
       _selected.delete(idx);
     } else {
       _selected.add(idx);
     }
     window._selectedPlates = _selected;
-    updatePreview(bundleSaving);
+    updatePreview();
   }
 
-  function updatePreview(bundleSaving) {
+  function updatePreview() {
     var cluster = document.getElementById('plate-cluster');
     if (!cluster) return;
 
@@ -997,7 +1030,7 @@
 
     var price = calcPrice(count);
     if (priceEl) priceEl.textContent = '\u00a3' + price.toFixed(2);
-    if (subEl) subEl.innerHTML = priceSub(count, _totalPlates, bundleSaving || 0);
+    if (subEl) subEl.innerHTML = priceSub(count, _totalPlates);
     if (countEl) countEl.textContent = count + ' of ' + _totalPlates + ' selected';
     if (dynPrice) dynPrice.textContent = '\u00a3' + price.toFixed(2);
 
@@ -1037,11 +1070,10 @@
     return parseFloat((count * PLATE_UNIT_PRICE).toFixed(2));
   }
 
-  function priceSub(count, total, saving) {
+  function priceSub(count, total) {
     if (!count) return 'Choose at least one plate';
     if (count === total && PLATE_BUNDLE_PRICE > 0) {
-      var s = parseFloat(saving || 0);
-      return 'Full set' + (s > 0 ? ' &mdash; you save &pound;' + s.toFixed(0) : '');
+      return 'Full set';
     }
     return count + ' plate' + (count !== 1 ? 's' : '') +
       ' &times; &pound;' + PLATE_UNIT_PRICE.toFixed(2) + ' each';
