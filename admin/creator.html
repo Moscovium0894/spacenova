@@ -1365,9 +1365,9 @@
     });
 
     var plateCount = parseInt(withDefault(readField(product, ['plateCount', 'plate_count', 'pieces']), 1), 10) || 1;
-    var plateNames = arrayCopy(readField(product, ['plateNames', 'plate_names', 'panelNames', 'panel_names']));
-    var plateImages = arrayCopy(readField(product, ['plateImages', 'plate_images', 'panelImages', 'panel_images']));
-    var plateMap = withDefault(readField(product, ['plateMap', 'plate_map', 'panelMap', 'panel_map']), {});
+    var plateNames = readBestArray(product, ['panelNames', 'panel_names', 'plateNames', 'plate_names']);
+    var plateImages = readBestArray(product, ['panelImages', 'panel_images', 'plateImages', 'plate_images']);
+    var plateMap = readBestMap(product, ['panelMap', 'panel_map', 'plateMap', 'plate_map']);
     if (!plateMap || typeof plateMap !== 'object') plateMap = {};
     var isBundle = !!withDefault(readField(product, ['isBundle', 'is_bundle']), false);
     var bundleItems = arrayCopy(readField(product, ['bundleItems', 'itemSlugs', 'items']));
@@ -1417,6 +1417,43 @@
       }
     }
     return undefined;
+  }
+
+  function readBestArray(source, keys) {
+    var arrays = [];
+    keys.forEach(function (key) {
+      if (!source || !Object.prototype.hasOwnProperty.call(source, key)) return;
+      var arr = arrayFromField(source[key]);
+      if (arr.length) arrays.push(arr);
+    });
+    return (arrays.find(function (arr) {
+      return arr.some(function (value) {
+        return value !== undefined && value !== null && String(value).trim() !== '';
+      });
+    }) || arrays[0] || []).slice();
+  }
+
+  function arrayFromField(value) {
+    if (Array.isArray(value)) return value;
+    if (value && typeof value === 'object') {
+      if (Array.isArray(value.images)) return value.images;
+      if (Array.isArray(value.items)) return value.items;
+      return Object.keys(value)
+        .sort(function (a, b) { return (parseInt(a, 10) || 0) - (parseInt(b, 10) || 0); })
+        .map(function (key) { return value[key]; });
+    }
+    return [];
+  }
+
+  function readBestMap(source, keys) {
+    var maps = [];
+    keys.forEach(function (key) {
+      var map = source && source[key];
+      if (map && typeof map === 'object' && !Array.isArray(map) && Array.isArray(map.positions)) {
+        maps.push(map);
+      }
+    });
+    return maps.find(function (map) { return map.positions.length > 0; }) || maps[0] || {};
   }
 
   function withDefault(value, fallback) {

@@ -73,7 +73,7 @@ exports.handler = async (event) => {
         const positions = getPositions(product);
         const pieceCount = positions.length;
         const productBuffer = await fetchBuffer(imageUrl);
-        const plateImages = normaliseStringArray(product, ['plate_images', 'plateImages', 'panel_images', 'panelImages'], pieceCount);
+        const plateImages = normaliseStringArray(product, ['panel_images', 'panelImages', 'plate_images', 'plateImages'], pieceCount);
         const plateTransforms = getPlateTransforms(product, pieceCount);
         const mockupBuffer = await generateMockup({
           wallBuffer,
@@ -187,20 +187,18 @@ function safeStorageName(value) {
 }
 
 function getStoredPlatePositions(product) {
-  const plateMap = product.plate_map || product.plateMap || product.panel_map || product.panelMap;
-  return plateMap && Array.isArray(plateMap.positions) ? plateMap.positions : null;
+  const maps = [product.panel_map, product.panelMap, product.plate_map, product.plateMap]
+    .filter(map => map && typeof map === 'object' && !Array.isArray(map) && Array.isArray(map.positions));
+  const map = maps.find(item => item.positions.length > 0);
+  return map ? map.positions : null;
 }
 
 function getPositions(product) {
-  const mapped = getStoredPlatePositions(product);
-  if (mapped && mapped.length > 0) {
-    const positions = mapped
-      .map(p => gridToPixel(parseInt(p.row, 10), parseInt(p.col, 10)))
-      .filter(p => Number.isFinite(p.x) && Number.isFinite(p.y));
-    if (positions.length > 0) return positions;
-  }
-
-  return autoHoneycomb(getPieceCount(product));
+  const plateMap = normalisePlateMap(product, getPieceCount(product));
+  const positions = plateMap.positions
+    .map(p => gridToPixel(parseInt(p.row, 10), parseInt(p.col, 10)))
+    .filter(p => Number.isFinite(p.x) && Number.isFinite(p.y));
+  return positions.length > 0 ? positions : autoHoneycomb(getPieceCount(product));
 }
 
 function gridToPixel(row, col) {

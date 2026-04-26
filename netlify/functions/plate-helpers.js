@@ -29,16 +29,35 @@ function clampPlateCount(value) {
   return Math.max(1, Math.min(MAX_PLATES, toInt(value, 1)));
 }
 
-function firstArray(record, names) {
-  for (const name of names) {
-    if (Array.isArray(record && record[name])) return record[name];
+function arrayFromField(value) {
+  if (Array.isArray(value)) return value;
+  if (value && typeof value === 'object') {
+    if (Array.isArray(value.images)) return value.images;
+    if (Array.isArray(value.items)) return value.items;
+    return Object.keys(value)
+      .sort((a, b) => toInt(a, 0) - toInt(b, 0))
+      .map(key => value[key]);
   }
   return [];
 }
 
+function hasUsefulArrayValue(value) {
+  return value !== null && value !== undefined && String(value).trim() !== '';
+}
+
+function firstArray(record, names) {
+  const arrays = [];
+  for (const name of names) {
+    const arr = arrayFromField(record && record[name]);
+    if (arr.length) arrays.push(arr);
+  }
+  return arrays.find(arr => arr.some(hasUsefulArrayValue)) || arrays[0] || [];
+}
+
 function firstMap(record) {
-  const candidates = [record && record.plate_map, record && record.plateMap, record && record.panel_map, record && record.panelMap];
-  return candidates.find(map => map && typeof map === 'object' && !Array.isArray(map) && Array.isArray(map.positions)) || null;
+  const candidates = [record && record.panel_map, record && record.panelMap, record && record.plate_map, record && record.plateMap]
+    .filter(map => map && typeof map === 'object' && !Array.isArray(map) && Array.isArray(map.positions));
+  return candidates.find(map => map.positions.length > 0) || candidates[0] || null;
 }
 
 function normalisePositions(positions) {
@@ -107,10 +126,10 @@ function inferPlateCount(record) {
   );
   if (explicit > 0) return clampPlateCount(explicit);
 
-  const names = firstArray(record, ['plate_names', 'plateNames', 'panel_names', 'panelNames']);
+  const names = firstArray(record, ['panel_names', 'panelNames', 'plate_names', 'plateNames']);
   if (names.length) return clampPlateCount(names.length);
 
-  const images = firstArray(record, ['plate_images', 'plateImages', 'panel_images', 'panelImages']);
+  const images = firstArray(record, ['panel_images', 'panelImages', 'plate_images', 'plateImages']);
   if (images.length) return clampPlateCount(images.length);
 
   return 3;

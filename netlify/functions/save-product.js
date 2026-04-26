@@ -16,8 +16,8 @@ const supabase = createClient(
 function buildPayload(product) {
   const plateCount = inferPlateCount(product);
   const plateMap = normalisePlateMap(product, plateCount);
-  const plateNames = normaliseStringArray(product, ['plate_names', 'plateNames', 'panel_names', 'panelNames'], plateCount);
-  const plateImages = normaliseStringArray(product, ['plate_images', 'plateImages', 'panel_images', 'panelImages'], plateCount);
+  const plateNames = normaliseStringArray(product, ['panel_names', 'panelNames', 'plate_names', 'plateNames'], plateCount);
+  const plateImages = normaliseStringArray(product, ['panel_images', 'panelImages', 'plate_images', 'plateImages'], plateCount);
   const pricing = resolvePlatePricing(product, plateCount);
   const parsedPrice = Number.isFinite(pricing.setPrice) ? pricing.setPrice : 0;
 
