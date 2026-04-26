@@ -6,7 +6,9 @@
   <meta name="description" content="Order confirmed — SPACENOVA">
   <meta name="theme-color" content="#000000">
   <title>Order Confirmed — SPACENOVA</title>
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="512x512" href="/Spacenovafavicon.png">
+  <link rel="shortcut icon" href="/favicon.ico">
   <link rel="apple-touch-icon" href="/Spacenovafavicon.png">
   <link rel="manifest" href="/site.webmanifest">
   <link rel="stylesheet" href="/css/style.css">
@@ -50,7 +52,7 @@
     </div>
     <div class="success-check">&#10003;</div>
     <h1 class="success-title">Order Confirmed</h1>
-    <p class="success-sub">Thank you for your order. You’ll receive a confirmation email shortly with tracking details once your print is dispatched.</p>
+    <p class="success-sub">Thank you for your order. You’ll receive a confirmation email shortly, with tracking details once your premium acrylic reverse-printed piece is dispatched.</p>
     <div class="success-divider"></div>
     <div class="success-actions">
       <a class="btn btn-primary" href="/shop.html">Continue Shopping</a>
@@ -64,7 +66,14 @@
   try { localStorage.removeItem('sn_basket'); } catch(e) {}
   var params = new URLSearchParams(window.location.search);
   var paymentIntentId = params.get('payment_intent');
-  var checkoutSessionId = params.get('session') || params.get('session_id');
+  var paymentIntentSecret = params.get('payment_intent_client_secret') || '';
+  if (!paymentIntentId && paymentIntentSecret.indexOf('pi_') === 0) {
+    paymentIntentId = paymentIntentSecret.split('_secret_')[0];
+  }
+
+  var rawSessionId = params.get('session_id') || params.get('session') || '';
+  var checkoutSessionId = rawSessionId.indexOf('cs_') === 0 ? rawSessionId : '';
+
   if (!paymentIntentId && !checkoutSessionId) return;
 
   var alreadySent = false;
@@ -73,6 +82,10 @@
     try {
       if (ref) localStorage.setItem('sn_last_saved_order_ref', ref);
     } catch (e) {}
+  }
+
+  function wait(ms) {
+    return new Promise(function(resolve) { setTimeout(resolve, ms); });
   }
 
   function sendSaveOrder() {
@@ -85,26 +98,41 @@
     var body = JSON.stringify(payload);
     var saved = false;
 
-    fetch('/.netlify/functions/save-order', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: body
-    })
-      .then(function (r) { return r.json(); })
-      .then(function (d) {
-        if (d && d.ok) {
-          saved = true;
-          markSaved(d.ref);
-        }
-      })
-      .catch(function(err) {
-        console.warn('save-order fallback failed:', err);
-      });
+    (async function () {
+      var attempts = 0;
+      while (attempts < 4 && !saved) {
+        attempts += 1;
+        try {
+          var r = await fetch('/.netlify/functions/save-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: body
+          });
+          var d = await r.json().catch(function () { return {}; });
+          if (r.ok && d && d.ok) {
+            saved = true;
+            markSaved(d.ref);
+            return;
+          }
+        } catch (err) {}
 
-    window.addEventListener('pagehide', function () {
-      if (saved || !navigator.sendBeacon) return;
-      navigator.sendBeacon('/.netlify/functions/save-order', new Blob([body], { type: 'application/json' }));
-    }, { once: true });
+        await wait(500 * attempts);
+      }
+
+      if (!saved) {
+        console.warn('save-order failed after retries');
+      }
+    })()
+      .catch(function(err) {
+        console.warn('save-order request failed:', err);
+      })
+      .finally(function () {
+        if (saved) return;
+        window.addEventListener('pagehide', function () {
+          if (!navigator.sendBeacon) return;
+          navigator.sendBeacon('/.netlify/functions/save-order', body);
+        }, { once: true });
+      });
   }
 
   sendSaveOrder();

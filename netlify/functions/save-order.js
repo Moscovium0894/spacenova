@@ -67,10 +67,18 @@ exports.handler = async (event) => {
     }
 
     let resolvedPaymentIntentId = paymentIntentId;
+    if (resolvedPaymentIntentId && !String(resolvedPaymentIntentId).startsWith('pi_')) {
+      return { statusCode: 400, body: JSON.stringify({ ok: false, error: 'Invalid paymentIntentId' }) };
+    }
+
     if (!resolvedPaymentIntentId && checkoutSessionId) {
+      if (!String(checkoutSessionId).startsWith('cs_')) {
+        return { statusCode: 400, body: JSON.stringify({ ok: false, error: 'Invalid checkoutSessionId' }) };
+      }
       const session = await stripe.checkout.sessions.retrieve(checkoutSessionId);
-      resolvedPaymentIntentId = session && session.payment_intent
-        ? String(session.payment_intent)
+      const sessionPaymentIntent = session && session.payment_intent;
+      resolvedPaymentIntentId = sessionPaymentIntent
+        ? String(typeof sessionPaymentIntent === 'string' ? sessionPaymentIntent : sessionPaymentIntent.id)
         : '';
     }
 
@@ -78,9 +86,9 @@ exports.handler = async (event) => {
       return { statusCode: 400, body: JSON.stringify({ ok: false, error: 'No payment intent found' }) };
     }
 
-    const pi = await stripe.paymentIntents.retrieve(resolvedPaymentIntentId);
-    if (!pi || pi.status !== 'succeeded') {
-      return { statusCode: 400, body: JSON.stringify({ ok: false, error: 'Payment not completed' }) };
+    const pi = await stripe.paymentIntents.retrieve(resolvedPaymentIntentId, { expand: ['charges.data.billing_details'] });
+    if (!pi || !['succeeded', 'processing', 'requires_capture'].includes(pi.status)) {
+      return { statusCode: 400, body: JSON.stringify({ ok: false, error: 'Payment not completed', status: pi && pi.status }) };
     }
 
     const shipping = pi.shipping || {};
