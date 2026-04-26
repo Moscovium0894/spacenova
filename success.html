@@ -62,15 +62,52 @@
 <script>
 (function () {
   try { localStorage.removeItem('sn_basket'); } catch(e) {}
-  var paymentIntentId = new URLSearchParams(window.location.search).get('payment_intent');
-  if (!paymentIntentId) return;
-  fetch('/.netlify/functions/save-order', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ paymentIntentId: paymentIntentId })
-  }).catch(function(err) {
-    console.warn('save-order fallback failed:', err);
-  });
+  var params = new URLSearchParams(window.location.search);
+  var paymentIntentId = params.get('payment_intent');
+  var checkoutSessionId = params.get('session') || params.get('session_id');
+  if (!paymentIntentId && !checkoutSessionId) return;
+
+  var alreadySent = false;
+
+  function markSaved(ref) {
+    try {
+      if (ref) localStorage.setItem('sn_last_saved_order_ref', ref);
+    } catch (e) {}
+  }
+
+  function sendSaveOrder() {
+    if (alreadySent) return;
+    alreadySent = true;
+
+    var payload = paymentIntentId
+      ? { paymentIntentId: paymentIntentId }
+      : { checkoutSessionId: checkoutSessionId };
+    var body = JSON.stringify(payload);
+    var saved = false;
+
+    fetch('/.netlify/functions/save-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: body
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d && d.ok) {
+          saved = true;
+          markSaved(d.ref);
+        }
+      })
+      .catch(function(err) {
+        console.warn('save-order fallback failed:', err);
+      });
+
+    window.addEventListener('pagehide', function () {
+      if (saved || !navigator.sendBeacon) return;
+      navigator.sendBeacon('/.netlify/functions/save-order', new Blob([body], { type: 'application/json' }));
+    }, { once: true });
+  }
+
+  sendSaveOrder();
 })();
 </script>
 <script src="/js/nav.js"></script>

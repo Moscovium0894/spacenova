@@ -61,12 +61,24 @@ exports.handler = async (event) => {
   }
 
   try {
-    const { paymentIntentId } = JSON.parse(event.body || '{}');
-    if (!paymentIntentId) {
-      return { statusCode: 400, body: JSON.stringify({ ok: false, error: 'Missing paymentIntentId' }) };
+    const { paymentIntentId, checkoutSessionId } = JSON.parse(event.body || '{}');
+    if (!paymentIntentId && !checkoutSessionId) {
+      return { statusCode: 400, body: JSON.stringify({ ok: false, error: 'Missing paymentIntentId or checkoutSessionId' }) };
     }
 
-    const pi = await stripe.paymentIntents.retrieve(paymentIntentId);
+    let resolvedPaymentIntentId = paymentIntentId;
+    if (!resolvedPaymentIntentId && checkoutSessionId) {
+      const session = await stripe.checkout.sessions.retrieve(checkoutSessionId);
+      resolvedPaymentIntentId = session && session.payment_intent
+        ? String(session.payment_intent)
+        : '';
+    }
+
+    if (!resolvedPaymentIntentId) {
+      return { statusCode: 400, body: JSON.stringify({ ok: false, error: 'No payment intent found' }) };
+    }
+
+    const pi = await stripe.paymentIntents.retrieve(resolvedPaymentIntentId);
     if (!pi || pi.status !== 'succeeded') {
       return { statusCode: 400, body: JSON.stringify({ ok: false, error: 'Payment not completed' }) };
     }
@@ -75,16 +87,16 @@ exports.handler = async (event) => {
     const shippingAddress = shipping.address || {};
     const metadata = pi.metadata || {};
 
+    const charge = pi.charges && Array.isArray(pi.charges.data) ? pi.charges.data[0] : null;
+    const billing = (charge && charge.billing_details) || {};
+
     const payload = {
       ref: pi.id,
-      stripe_payment_id: pi.id,
       customer_name: shipping.name || null,
-      email: pi.receipt_email || null,
+      email: pi.receipt_email || billing.email || metadata.customer_email || null,
       items: parseItems(metadata.items),
-      subtotal: parseAmount(metadata.subtotal, pi.amount),
       discount: parseAmount(metadata.discount, 0),
-      shipping_cost: parseAmount(metadata.shipping_cost, 0),
-      shipping_method: metadata.shipping_label || metadata.shipping_method || null,
+      shipping_type: metadata.shipping_label || metadata.shipping_method || null,
       delivery: {
         full_name: shipping.name || null,
         address1: shippingAddress.line1 || null,
