@@ -42,6 +42,10 @@
   }
 
   function addItem(product, qty) {
+    if (product && product.inStock === false) {
+      showToast((product.name || 'This item') + ' is out of stock');
+      return;
+    }
     qty = qty || 1;
     var existing = basket.find(function(i) { return i.id === product.id; });
     if (existing) {
@@ -70,7 +74,8 @@
       unitPrice: product.unitPrice || null,
       setPrice: product.setPrice || null,
       priceMode: product.priceMode || '',
-      isFullSet: !!product.isFullSet
+      isFullSet: !!product.isFullSet,
+      inStock: product.inStock !== false
     };
   }
 
@@ -141,15 +146,16 @@
     body.innerHTML = basket.map(function(item) {
       var plateLine = formatPlateLine(item);
       var qty = item.qty || item.quantity || 1;
+      var outOfStock = item.inStock === false;
       return '<div class="basket-item" data-id="' + item.id + '">' +
         (item.image ? '<img class="bi-img" src="' + item.image + '" alt="' + item.name + '">' : '<div class="bi-img bi-img-placeholder"></div>') +
         '<div class="bi-info"><div class="bi-name">' + item.name + '</div>' +
           (plateLine ? '<div class="bi-price" style="font-size:.68rem;color:var(--muted)">' + plateLine + '</div>' : '') +
-          '<div class="bi-price">' + fmt(item.price) + '</div></div>' +
+          '<div class="bi-price">' + (outOfStock ? 'Out of stock' : fmt(item.price)) + '</div></div>' +
         '<div class="bi-controls">' +
-          '<button class="qty-btn qty-minus" data-id="' + item.id + '">&#8722;</button>' +
+          '<button class="qty-btn qty-minus" data-id="' + item.id + '"' + (outOfStock ? ' disabled aria-disabled="true"' : '') + '>&#8722;</button>' +
           '<span class="qty-val">' + qty + '</span>' +
-          '<button class="qty-btn qty-plus" data-id="' + item.id + '">+</button>' +
+          '<button class="qty-btn qty-plus" data-id="' + item.id + '"' + (outOfStock ? ' disabled aria-disabled="true"' : '') + '>+</button>' +
           '<button class="bi-remove" data-id="' + item.id + '" aria-label="Remove ' + item.name + ' from basket">Remove</button>' +
         '</div>' +
       '</div>';
@@ -185,6 +191,56 @@
         ? 'Add ' + fmt(remaining) + ' more for free UK shipping'
         : '\u2713 You qualify for free UK shipping';
     }
+    updateCheckoutState();
+  }
+
+  function updateCheckoutState() {
+    var hasOutOfStock = basket.some(function(item) { return item.inStock === false; });
+    var checkoutLinks = document.querySelectorAll('#basket-footer a[href="/checkout.html"]');
+    checkoutLinks.forEach(function(link) {
+      if (hasOutOfStock) {
+        link.classList.add('is-disabled');
+        link.setAttribute('aria-disabled', 'true');
+        link.setAttribute('tabindex', '-1');
+        link.title = 'Remove out of stock items to continue';
+      } else {
+        link.classList.remove('is-disabled');
+        link.removeAttribute('aria-disabled');
+        link.removeAttribute('tabindex');
+        link.removeAttribute('title');
+      }
+    });
+    if (freeShippingNote && hasOutOfStock) {
+      freeShippingNote.textContent = 'Remove out of stock items to continue to checkout';
+    }
+  }
+
+  async function refreshStockStatuses() {
+    if (!basket.length) return;
+    try {
+      var res = await fetch('/.netlify/functions/load-catalogue', { cache: 'no-store' });
+      if (!res.ok) return;
+      var data = await res.json();
+      var lookup = {};
+      (data.products || []).forEach(function(product) {
+        lookup[product.slug] = product.inStock !== false;
+      });
+      (data.bundles || []).forEach(function(bundle) {
+        lookup[bundle.slug] = bundle.inStock !== false;
+      });
+      var changed = false;
+      basket.forEach(function(item) {
+        var slug = item.productSlug || item.slug || '';
+        if (!slug || !Object.prototype.hasOwnProperty.call(lookup, slug)) return;
+        var inStock = lookup[slug];
+        if (item.inStock !== inStock) {
+          item.inStock = inStock;
+          changed = true;
+        }
+      });
+      if (changed) saveBasket();
+      render();
+    } catch (err) {}
   }
 
   function formatPlateLine(item) {
@@ -249,4 +305,5 @@
   };
 
   render();
+  refreshStockStatuses();
 })();

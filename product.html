@@ -675,6 +675,9 @@
           (deal && deal.subtitle
             ? '<div class="product-deal-subtitle">' + esc(deal.subtitle) + '</div>'
             : '') +
+          (isOutOfStock
+            ? '<div class="notice" style="margin-bottom:16px;background:#f0eeea;color:#5a5550;border-color:#d7d2cb">Out of stock — this item cannot be added to basket right now.</div>'
+            : '') +
           '<p style="color:var(--muted);font-family:var(--fm);font-size:.68rem;letter-spacing:.06em;margin-bottom:16px">' +
             '&pound;' + PLATE_UNIT_PRICE.toFixed(2) + ' per individual plate' +
             (_totalPlates > 1
@@ -685,8 +688,8 @@
             esc(p.description || '') +
           '</p>' +
           '<div class="product-actions">' +
-            '<button class="btn btn-primary" id="add-to-basket-btn">Add to Basket</button>' +
-            '<a class="btn btn-ghost" id="buy-now-btn" href="/checkout.html">Buy Now</a>' +
+            '<button class="btn btn-primary" id="add-to-basket-btn"' + (isOutOfStock ? ' disabled aria-disabled="true"' : '') + '>' + (isOutOfStock ? 'Out of Stock' : 'Add to Basket') + '</button>' +
+            '<a class="btn btn-ghost' + (isOutOfStock ? ' is-disabled' : '') + '" id="buy-now-btn" href="/checkout.html"' + (isOutOfStock ? ' aria-disabled="true" tabindex="-1"' : '') + '>' + (isOutOfStock ? 'Unavailable' : 'Buy Now') + '</a>' +
           '</div>' +
           '<div class="notice" style="margin-top:20px">Free UK shipping on orders over &pound;150. Dispatched within 2&ndash;3 business days.</div>' +
           (p.note ? '<p style="color:var(--muted);font-size:.83rem;margin-top:14px;line-height:1.7">' + esc(p.note) + '</p>' : '') +
@@ -700,6 +703,11 @@
       addSelectionToBasket(p, plateNames);
     });
     document.getElementById('buy-now-btn').addEventListener('click', function (e) {
+      if (p.inStock === false) {
+        e.preventDefault();
+        if (window.showToast) window.showToast('This item is out of stock');
+        return;
+      }
       e.preventDefault();
       if (addSelectionToBasket(p, plateNames)) {
         setTimeout(function () { window.location.href = '/checkout.html'; }, 180);
@@ -1083,6 +1091,10 @@
 
   // ─── Basket integration ───────────────────────────────────────────────────
   function addSelectionToBasket(p, plateNames) {
+    if (p.inStock === false) {
+      if (window.showToast) window.showToast('This item is out of stock');
+      return false;
+    }
     var indexes = Array.from(_selected).filter(function (i) {
       return i >= 0 && i < _totalPlates;
     }).sort(function (a, b) { return a - b; });
@@ -1117,7 +1129,8 @@
             name: plateNames[idx] || ('Plate ' + (idx + 1))
           };
         }),
-        isFullSet: allSelected
+        isFullSet: allSelected,
+        inStock: p.inStock !== false
       });
     }
     return true;
@@ -1176,3 +1189,4 @@
 </script>
 </body>
 </html>
+    var isOutOfStock = p.inStock === false;
