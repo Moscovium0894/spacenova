@@ -151,6 +151,7 @@
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px">
           <button class="btn btn-primary btn-sm" type="button" id="export-all-btn">Export all</button>
           <button class="btn btn-ghost btn-sm" type="button" id="export-selected-btn" disabled>Export selected</button>
+          <button class="btn btn-ghost btn-sm" type="button" id="sync-assets-btn">Sync assets</button>
           <span id="export-status" style="font-family:var(--fm);font-size:.62rem;color:var(--muted)"></span>
         </div>
         <div class="divider"></div>
@@ -158,7 +159,6 @@
           <input id="export-filter-text" placeholder="Filter folders/products…" oninput="renderExportTree()" style="flex:1;min-width:220px;padding:8px 14px;background:var(--bg1);border:1px solid var(--border2);border-radius:999px;font:inherit;font-size:.84rem;outline:none">
           <label class="export-chip"><input type="checkbox" id="export-filter-main" checked onchange="renderExportTree()"> Main</label>
           <label class="export-chip"><input type="checkbox" id="export-filter-plates" checked onchange="renderExportTree()"> Plates</label>
-          <label class="export-chip"><input type="checkbox" id="export-filter-exports" checked onchange="renderExportTree()"> Exports</label>
           <label class="export-chip"><input type="checkbox" id="export-filter-mockups" checked onchange="renderExportTree()"> Mockups</label>
         </div>
         <div id="export-tree" class="export-tree"></div>
@@ -321,6 +321,24 @@ function plateSelectionText(it){var idx=Array.isArray(it.selected_plate_indexes)
 function orderItemLabel(it){var label=(it.name||'?')+' x'+(it.qty||1);var plates=plateSelectionText(it);return plates?label+' ('+plates+')':label}
 function relDate(iso){if(!iso)return'—';var d=new Date(iso),now=Date.now(),diff=now-d.getTime();var mins=Math.floor(diff/60000),hrs=Math.floor(mins/60),days=Math.floor(hrs/24);if(days>14)return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});if(days>0)return days+'d ago';if(hrs>0)return hrs+'h ago';if(mins>0)return mins+'m ago';return'just now'}
 function toast(msg,type){var tc=document.getElementById('toast-container'),el=document.createElement('div');el.className='toast';el.textContent=msg;if(type==='danger')el.style.borderLeftColor='var(--danger)';else if(type==='info')el.style.borderLeftColor='var(--accent)';tc.appendChild(el);setTimeout(function(){el.remove()},2600)}
+function fetchJsonSafe(url,options){
+  return fetch(url,options||{}).then(function(r){
+    return r.text().then(function(t){
+      var body=null;
+      try{body=t?JSON.parse(t):null}catch(e){
+        var snippet=(t||'').slice(0,220).replace(/\\s+/g,' ').trim();
+        var msg='Unexpected response ('+r.status+')';
+        if(snippet)msg+=': '+snippet;
+        var err=new Error(msg);err.status=r.status;err.text=t;throw err;
+      }
+      if(!r.ok){
+        var m=body&&(body.error||body.message);
+        var err2=new Error(m||('Request failed ('+r.status+')'));err2.status=r.status;err2.body=body;throw err2;
+      }
+      return body;
+    });
+  });
+}
 
 /* ── AUTH ── */
 function unlockAdmin(){
@@ -328,7 +346,7 @@ function unlockAdmin(){
   var err=document.getElementById('auth-err');
   err.style.display='none';
   fetch('/.netlify/functions/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw})})
-    .then(function(r){return r.json()})
+    /* fetchJsonSafe already parsed JSON */
     .then(function(d){
       if(d.ok){adminPw=pw;sessionStorage.setItem('admin','1');sessionStorage.setItem('admin_pw',pw);document.getElementById('auth-screen').style.display='none';loadAll();}
       else{err.style.display='block';document.getElementById('auth-pw').value='';}
@@ -372,13 +390,13 @@ function refreshAll(){loadAll();toast('Refreshing…','info')}
 
 function loadCatalogue(){
   return fetch('/.netlify/functions/load-catalogue',{cache:'no-store'})
-    .then(function(r){return r.json()})
+    /* fetchJsonSafe already parsed JSON */
     .then(function(d){catalogue.products=d.products||[];catalogue.bundles=d.bundles||[];catalogue.featuredSlugs=d.featuredSlugs||[]})
 }
 function loadOrders(){
   if(!adminPw)return Promise.resolve();
   return fetch('/.netlify/functions/load-orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:adminPw})})
-    .then(function(r){return r.json()})
+    /* fetchJsonSafe already parsed JSON */
     .then(function(d){if(d.ok){_allOrders=d.recentOrders||[];ordersData.orders=_allOrders;ordersData.summary=d.summary||{}}})
     .catch(function(e){console.warn('Orders load err:',e)})
 }
@@ -490,8 +508,10 @@ function initExports(){
   exportInitDone=true;
   var allBtn=document.getElementById('export-all-btn');
   var selBtn=document.getElementById('export-selected-btn');
+  var syncBtn=document.getElementById('sync-assets-btn');
   if(allBtn)allBtn.addEventListener('click',function(){runExportAll()});
   if(selBtn)selBtn.addEventListener('click',function(){runExportSelected()});
+  if(syncBtn)syncBtn.addEventListener('click',function(){runSyncAssets()});
   var tree=document.getElementById('export-tree');
   if(tree){
     tree.addEventListener('change',handleExportTreeChange);
@@ -503,8 +523,7 @@ function ensureExportManifest(force){
   if(exportManifestPromise&&!force)return exportManifestPromise;
   if(!adminPw)return Promise.reject(new Error('Missing admin password'));
   setExportStatus('Loading export tree…');
-  exportManifestPromise=fetch('/.netlify/functions/asset-manifest',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:adminPw})})
-    .then(function(r){return r.json()})
+  exportManifestPromise=fetchJsonSafe('/.netlify/functions/asset-manifest',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:adminPw})})
     .then(function(d){
       if(!d||!d.ok)throw new Error((d&&d.error)||'Manifest error');
       exportManifest=d;
@@ -535,12 +554,13 @@ function buildExportTree(){
     var kids=[];
     if(p.mainImage)kids.push(node(basePath+'/main','Main image','file',[],{url:p.mainImage,zipPath:basePath+'/main'+ext(p.mainImage,'.jpg')},'main'));
     (p.plates||[]).forEach(function(pl){
-      var nm=seg(pl.name||('plate-'+String(pl.index+1)));var zp=basePath+'/plate-images/'+String(pl.index+1).padStart(2,'0')+'-'+nm+ext(pl.url,'.png');
+      var nm=seg(pl.name||('plate-'+String(pl.index+1)));var zp=basePath+'/plates/'+String(pl.index+1).padStart(2,'0')+'-'+nm+ext(pl.url,'.png');
       kids.push(node(zp,pl.name||('Plate '+(pl.index+1)),'file',[],{url:pl.url,zipPath:zp},'plates'));
     });
     (p.exported||[]).forEach(function(ex){
-      var zp=basePath+'/plate-exports/'+(ex.filename||('export-'+Math.random()+'.png'));
-      kids.push(node(zp,ex.filename||'export','file',[],{url:ex.url,zipPath:zp},'exports'));
+      var fn=(ex.filename||('export-'+Math.random()+'.png'));
+      var zp=basePath+'/plates/export-'+fn;
+      kids.push(node(zp,fn,'file',[],{url:ex.url,zipPath:zp},'plates'));
     });
     return node(basePath,p.name||p.slug,'product',kids,null,'');
   }
@@ -563,9 +583,8 @@ function exportFilters(){
   var q=(document.getElementById('export-filter-text')||{}).value||'';
   var showMain=(document.getElementById('export-filter-main')||{}).checked!==false;
   var showPlates=(document.getElementById('export-filter-plates')||{}).checked!==false;
-  var showExports=(document.getElementById('export-filter-exports')||{}).checked!==false;
   var showMockups=(document.getElementById('export-filter-mockups')||{}).checked!==false;
-  return{q:q.trim().toLowerCase(),k:{main:showMain,plates:showPlates,exports:showExports,mockups:showMockups}};
+  return{q:q.trim().toLowerCase(),k:{main:showMain,plates:showPlates,mockups:showMockups}};
 }
 function renderExportTree(){
   var host=document.getElementById('export-tree');if(!host)return;
@@ -574,7 +593,6 @@ function renderExportTree(){
   function kindAllowed(kind){
     if(kind==='main')return f.k.main;
     if(kind==='plates')return f.k.plates;
-    if(kind==='exports')return f.k.exports;
     if(kind==='mockups')return f.k.mockups;
     return true;
   }
@@ -639,7 +657,7 @@ function handleExportTreeChange(e){
   var n=exportTreeIndex[id];
   var checked=cb.checked;
   var f=exportFilters();
-  var allow=function(kind){if(kind==='main')return f.k.main;if(kind==='plates')return f.k.plates;if(kind==='exports')return f.k.exports;if(kind==='mockups')return f.k.mockups;return true;};
+  var allow=function(kind){if(kind==='main')return f.k.main;if(kind==='plates')return f.k.plates;if(kind==='mockups')return f.k.mockups;return true;};
   var fileIds=collectFileIds(n,[],allow);
   fileIds.forEach(function(fid){if(checked)exportSelected.add(fid);else exportSelected.delete(fid);});
   renderExportTree();
@@ -658,8 +676,8 @@ function downloadUrl(url,filename){
 function runExportAll(){
   if(!adminPw)return;
   setExportStatus('Building ZIP…');
-  fetch('/.netlify/functions/export-assets',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:adminPw,mode:'all',filename:'spacenova-export-all.zip'})})
-    .then(function(r){return r.json()})
+  fetchJsonSafe('/.netlify/functions/export-assets',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:adminPw,mode:'all',filename:'spacenova-export-all.zip'})})
+    /* fetchJsonSafe already parsed JSON */
     .then(function(d){
       if(!d||!d.ok)throw new Error((d&&d.error)||'Export failed');
       setExportStatus('Downloading…');
@@ -676,8 +694,8 @@ function runExportSelected(){
   exportSelected.forEach(function(id){var n=exportTreeIndex[id];if(n&&n.entry&&n.entry.url&&n.entry.zipPath)entries.push(n.entry);});
   if(!entries.length){toast('No assets selected','danger');return;}
   setExportStatus('Building ZIP…');
-  fetch('/.netlify/functions/export-assets',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:adminPw,mode:'selection',entries:entries,filename:'spacenova-export-selected.zip'})})
-    .then(function(r){return r.json()})
+  fetchJsonSafe('/.netlify/functions/export-assets',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:adminPw,mode:'selection',entries:entries,filename:'spacenova-export-selected.zip'})})
+    /* fetchJsonSafe already parsed JSON */
     .then(function(d){
       if(!d||!d.ok)throw new Error((d&&d.error)||'Export failed');
       setExportStatus('Downloading…');
@@ -686,6 +704,58 @@ function runExportSelected(){
       setExportStatus('');
     })
     .catch(function(err){setExportStatus('Export failed');toast((err&&err.message)||'Export failed','danger');});
+}
+
+function runSyncAssets(){
+  if(!adminPw)return;
+  var syncBtn=document.getElementById('sync-assets-btn');
+  if(syncBtn)syncBtn.disabled=true;
+  setExportStatus('Syncing assetsâ€¦');
+  toast('Sync started â€” this can take a while','info');
+
+  fetchJsonSafe('/.netlify/functions/load-products',{cache:'no-store'})
+    .then(function(list){
+      var products=Array.isArray(list)?list:(Array.isArray(list.products)?list.products:[]);
+      products=products.filter(function(p){return p&&p.slug});
+      if(!products.length)throw new Error('No products found');
+
+      var i=0;
+      function step(){
+        if(i>=products.length){
+          setExportStatus('Refreshing treeâ€¦');
+          return ensureExportManifest(true)
+            .then(function(){seedExportExpanded();renderExportTree();})
+            .then(function(){setExportStatus('Sync complete');toast('Sync complete','info');setTimeout(function(){setExportStatus('');},2000);});
+        }
+
+        var p=products[i++];
+        setExportStatus('Syncing '+i+' of '+products.length+': '+(p.name||p.slug));
+
+        return fetchJsonSafe('/.netlify/functions/export-plates',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','x-admin-password':adminPw},
+          body:JSON.stringify({password:adminPw,product:p})
+        })
+          .catch(function(e){console.warn('export-plates failed',p.slug,e);})
+          .then(function(){
+            return fetch('/.netlify/functions/generate-mockup',{
+              method:'POST',
+              headers:{'Content-Type':'application/json'},
+              body:JSON.stringify({productId:p.slug})
+            }).then(function(r){return r.json().catch(function(){return {}}).then(function(d){if(!r.ok)throw new Error((d&&d.error)||('Mockup failed ('+r.status+')'));return d;});});
+          })
+          .catch(function(e){console.warn('generate-mockup failed',p.slug,e);})
+          .then(function(){return new Promise(function(res){setTimeout(res,120);});})
+          .then(step);
+      }
+
+      return step().finally(function(){if(syncBtn)syncBtn.disabled=false;});
+    })
+    .catch(function(err){
+      if(syncBtn)syncBtn.disabled=false;
+      setExportStatus('Sync failed');
+      toast((err&&err.message)||'Sync failed','danger');
+    });
 }
 
 function renderCollections(){

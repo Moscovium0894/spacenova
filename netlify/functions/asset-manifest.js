@@ -24,7 +24,7 @@ exports.handler = async (event) => {
     const [productsRes, bundlesRes, mockupsRes] = await Promise.all([
       supabase.from('products').select('*').order('created_at', { ascending: false }),
       supabase.from('bundles').select('*').order('name', { ascending: true }),
-      supabase.storage.from(bucket).list('mockups', { limit: 1000 })
+      listAllObjects(supabase, bucket, 'mockups')
     ]);
 
     if (productsRes.error) {
@@ -40,13 +40,14 @@ exports.handler = async (event) => {
       if (p && p.slug) productLookup[p.slug] = p;
     });
 
-    const mockups = Array.isArray(mockupsRes.data)
-      ? mockupsRes.data.map((item) => ({
-          name: item.name,
-          storagePath: `mockups/${item.name}`,
-          url: publicObjectUrl(process.env.SUPABASE_URL, bucket, `mockups/${item.name}`),
-        }))
-      : [];
+    const mockupsList = Array.isArray(mockupsRes) ? mockupsRes : [];
+    const mockups = mockupsList
+      .map((item) => ({
+        name: item.name,
+        storagePath: `mockups/${item.name}`,
+        url: publicObjectUrl(process.env.SUPABASE_URL, bucket, `mockups/${item.name}`),
+      }))
+      .filter((x) => x.name);
 
     const manifestProducts = [];
     for (const p of products) {
@@ -65,14 +66,12 @@ exports.handler = async (event) => {
 
       let exported = [];
       try {
-        const listRes = await supabase.storage.from(bucket).list(`exports/${slug}`, { limit: 1000 });
-        exported = Array.isArray(listRes.data)
-          ? listRes.data.map((item) => ({
-              filename: item.name,
-              storagePath: `exports/${slug}/${item.name}`,
-              url: publicObjectUrl(process.env.SUPABASE_URL, bucket, `exports/${slug}/${item.name}`),
-            }))
-          : [];
+        const objects = await listAllObjects(supabase, bucket, `exports/${slug}`);
+        exported = objects.map((item) => ({
+          filename: item.name,
+          storagePath: `exports/${slug}/${item.name}`,
+          url: publicObjectUrl(process.env.SUPABASE_URL, bucket, `exports/${slug}/${item.name}`),
+        })).filter((x) => x.filename);
       } catch (err) {
         exported = [];
       }
@@ -151,6 +150,23 @@ function normaliseArray(value) {
 
 function publicObjectUrl(supabaseUrl, bucket, storagePath) {
   return `${supabaseUrl}/storage/v1/object/public/${bucket}/${storagePath}`;
+}
+
+async function listAllObjects(supabase, bucket, path) {
+  const items = [];
+  const limit = 1000;
+  let offset = 0;
+
+  while (true) {
+    const { data, error } = await supabase.storage.from(bucket).list(path, { limit, offset });
+    if (error) throw error;
+    const page = Array.isArray(data) ? data : [];
+    items.push(...page);
+    if (page.length < limit) break;
+    offset += page.length;
+  }
+
+  return items;
 }
 
 function json(statusCode, body) {

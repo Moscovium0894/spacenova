@@ -142,7 +142,7 @@ async function buildAllEntries({ supabase, bucket, includeBundles }) {
   const [productsRes, bundlesRes, mockupsRes] = await Promise.all([
     supabase.from('products').select('*').order('created_at', { ascending: false }),
     includeBundles ? supabase.from('bundles').select('*').order('name', { ascending: true }) : Promise.resolve({ data: [] }),
-    supabase.storage.from(bucket).list('mockups', { limit: 1000 }),
+    listAllObjects(supabase, bucket, 'mockups'),
   ]);
 
   if (productsRes.error) throw productsRes.error;
@@ -157,16 +157,15 @@ async function buildAllEntries({ supabase, bucket, includeBundles }) {
   const entries = [];
 
   // Mockups folder (all)
-  if (Array.isArray(mockupsRes.data)) {
-    for (const item of mockupsRes.data) {
-      const name = item.name;
-      if (!name) continue;
-      const storagePath = `mockups/${name}`;
-      entries.push({
-        url: `${process.env.SUPABASE_URL}/storage/v1/object/public/${bucket}/${storagePath}`,
-        zipPath: `mockups/${name}`,
-      });
-    }
+  const mockups = Array.isArray(mockupsRes) ? mockupsRes : [];
+  for (const item of mockups) {
+    const name = item.name;
+    if (!name) continue;
+    const storagePath = `mockups/${name}`;
+    entries.push({
+      url: `${process.env.SUPABASE_URL}/storage/v1/object/public/${bucket}/${storagePath}`,
+      zipPath: `mockups/${name}`,
+    });
   }
 
   // Products (series + collections)
@@ -191,23 +190,21 @@ async function buildAllEntries({ supabase, bucket, includeBundles }) {
       const name = safeSegment(plateNames[i] || `plate-${String(i + 1).padStart(2, '0')}`);
       entries.push({
         url,
-        zipPath: `${typeFolder}/${slug}/plate-images/${String(i + 1).padStart(2, '0')}-${name}${extensionFromUrl(url, '.png')}`,
+        zipPath: `${typeFolder}/${slug}/plates/${String(i + 1).padStart(2, '0')}-${name}${extensionFromUrl(url, '.png')}`,
       });
     }
 
     // Exported plate PNGs (creator export)
     try {
-      const listRes = await supabase.storage.from(bucket).list(`exports/${slug}`, { limit: 1000 });
-      if (Array.isArray(listRes.data)) {
-        for (const item of listRes.data) {
-          const file = item.name;
-          if (!file) continue;
-          const storagePath = `exports/${slug}/${file}`;
-          entries.push({
-            url: `${process.env.SUPABASE_URL}/storage/v1/object/public/${bucket}/${storagePath}`,
-            zipPath: `${typeFolder}/${slug}/plate-exports/${file}`,
-          });
-        }
+      const objects = await listAllObjects(supabase, bucket, `exports/${slug}`);
+      for (const item of objects) {
+        const file = item.name;
+        if (!file) continue;
+        const storagePath = `exports/${slug}/${file}`;
+        entries.push({
+          url: `${process.env.SUPABASE_URL}/storage/v1/object/public/${bucket}/${storagePath}`,
+          zipPath: `${typeFolder}/${slug}/plates/export-${file}`,
+        });
       }
     } catch (err) {
       // ignore
@@ -247,22 +244,20 @@ async function buildAllEntries({ supabase, bucket, includeBundles }) {
           const name = safeSegment(plateNames[i] || `plate-${String(i + 1).padStart(2, '0')}`);
           entries.push({
             url,
-            zipPath: `bundles/${bundleSlug}/${itemSlug}/plate-images/${String(i + 1).padStart(2, '0')}-${name}${extensionFromUrl(url, '.png')}`,
+            zipPath: `bundles/${bundleSlug}/${itemSlug}/plates/${String(i + 1).padStart(2, '0')}-${name}${extensionFromUrl(url, '.png')}`,
           });
         }
 
         try {
-          const listRes = await supabase.storage.from(bucket).list(`exports/${itemSlug}`, { limit: 1000 });
-          if (Array.isArray(listRes.data)) {
-            for (const item of listRes.data) {
-              const file = item.name;
-              if (!file) continue;
-              const storagePath = `exports/${itemSlug}/${file}`;
-              entries.push({
-                url: `${process.env.SUPABASE_URL}/storage/v1/object/public/${bucket}/${storagePath}`,
-                zipPath: `bundles/${bundleSlug}/${itemSlug}/plate-exports/${file}`,
-              });
-            }
+          const objects = await listAllObjects(supabase, bucket, `exports/${itemSlug}`);
+          for (const item of objects) {
+            const file = item.name;
+            if (!file) continue;
+            const storagePath = `exports/${itemSlug}/${file}`;
+            entries.push({
+              url: `${process.env.SUPABASE_URL}/storage/v1/object/public/${bucket}/${storagePath}`,
+              zipPath: `bundles/${bundleSlug}/${itemSlug}/plates/export-${file}`,
+            });
           }
         } catch (err) {
           // ignore
@@ -272,6 +267,21 @@ async function buildAllEntries({ supabase, bucket, includeBundles }) {
   }
 
   return dedupeByPath(entries);
+}
+
+async function listAllObjects(supabase, bucket, path) {
+  const items = [];
+  const limit = 1000;
+  let offset = 0;
+  while (true) {
+    const { data, error } = await supabase.storage.from(bucket).list(path, { limit, offset });
+    if (error) throw error;
+    const page = Array.isArray(data) ? data : [];
+    items.push(...page);
+    if (page.length < limit) break;
+    offset += page.length;
+  }
+  return items;
 }
 
 function safeSegment(value) {
