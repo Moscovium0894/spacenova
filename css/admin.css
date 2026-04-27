@@ -225,6 +225,21 @@ tbody td:first-child { color: var(--text); font-weight: 600; }
 .promo-status-off { color: var(--muted);   font-family: var(--fm); font-size: .62rem; }
 
 /* ── RESPONSIVE ── */
+/* Exports */
+.export-chip{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:999px;border:1.5px solid var(--border2);background:var(--bg1);font-family:var(--fm);font-size:.62rem;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);cursor:pointer;user-select:none}
+.export-chip input{accent-color:var(--accent)}
+.export-tree{border:1px solid var(--border);border-radius:var(--rs);background:var(--bg1);padding:6px;max-height:420px;overflow:auto}
+.export-node{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:10px}
+.export-node:hover{background:rgba(0,0,0,.03)}
+.export-tw{width:24px;height:24px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.8);cursor:pointer;color:var(--muted);display:grid;place-items:center;flex-shrink:0}
+.export-tw:hover{background:#fff;border-color:var(--border2);color:var(--text)}
+.export-tw-sp{width:24px;height:24px;flex-shrink:0}
+.export-cb{width:16px;height:16px;accent-color:var(--accent)}
+.export-label{display:flex;flex-direction:column;min-width:0;flex:1;gap:2px}
+.export-name{font-weight:700;font-size:.86rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.export-sub{font-family:var(--fm);font-size:.58rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.export-kind{font-family:var(--fm);font-size:.54rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:2px 8px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,.6);flex-shrink:0}
+
 @media (max-width: 960px) {
   .layout { grid-template-columns: 1fr; }
   .sidebar { display: none; }

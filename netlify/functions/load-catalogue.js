@@ -75,6 +75,10 @@ function normaliseBundle(b, productLookup) {
     ? matchedProducts.every(product => product.inStock !== false)
     : true;
   const firstProduct = matchedProducts[0] || null;
+  const itemImages = matchedProducts
+    .map(p => p && p.image)
+    .filter(Boolean)
+    .slice(0, 4);
   const price = Number.parseFloat(b.price || 0) || 0;
 
   return {
@@ -97,6 +101,7 @@ function normaliseBundle(b, productLookup) {
       const product = productLookup[item.slug];
       return (product && product.name) || item.label || item.slug;
     }).filter(Boolean),
+    itemImages,
     text:          b.text || null,
     recordType:    'bundle'
   };

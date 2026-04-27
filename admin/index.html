@@ -145,6 +145,24 @@
         </div>
         <a href="/admin/creator.html" class="btn btn-primary btn-sm">+ New product</a>
       </div>
+      <div class="card" id="export-card" style="margin-bottom:16px">
+        <div class="card-title">Exports</div>
+        <div class="notice notice-info">Export downloads a single ZIP containing main images, plate images, creator-exported plate PNGs, and mockups.</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px">
+          <button class="btn btn-primary btn-sm" type="button" id="export-all-btn">Export all</button>
+          <button class="btn btn-ghost btn-sm" type="button" id="export-selected-btn" disabled>Export selected</button>
+          <span id="export-status" style="font-family:var(--fm);font-size:.62rem;color:var(--muted)"></span>
+        </div>
+        <div class="divider"></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
+          <input id="export-filter-text" placeholder="Filter folders/products…" oninput="renderExportTree()" style="flex:1;min-width:220px;padding:8px 14px;background:var(--bg1);border:1px solid var(--border2);border-radius:999px;font:inherit;font-size:.84rem;outline:none">
+          <label class="export-chip"><input type="checkbox" id="export-filter-main" checked onchange="renderExportTree()"> Main</label>
+          <label class="export-chip"><input type="checkbox" id="export-filter-plates" checked onchange="renderExportTree()"> Plates</label>
+          <label class="export-chip"><input type="checkbox" id="export-filter-exports" checked onchange="renderExportTree()"> Exports</label>
+          <label class="export-chip"><input type="checkbox" id="export-filter-mockups" checked onchange="renderExportTree()"> Mockups</label>
+        </div>
+        <div id="export-tree" class="export-tree"></div>
+      </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
         <input id="product-search" placeholder="Search products…" oninput="filterProductsTable()" style="flex:1;min-width:180px;padding:8px 14px;background:var(--bg1);border:1px solid var(--border2);border-radius:999px;font:inherit;font-size:.84rem;outline:none">
         <select id="product-filter" onchange="filterProductsTable()" style="padding:8px 14px;background:var(--bg1);border:1px solid var(--border2);border-radius:999px;font:inherit;font-size:.82rem;outline:none;color:var(--text2)">
@@ -287,6 +305,13 @@ var catalogue={products:[],bundles:[]};
 var ordersData={orders:[],summary:{}};
 var adminPw='';
 var _allOrders=[];
+var exportManifest=null;
+var exportManifestPromise=null;
+var exportTreeIndex=null;
+var exportTreeRoots=null;
+var exportSelected=new Set();
+var exportExpanded=new Set();
+var exportInitDone=false;
 
 /* ── HELPERS ── */
 function gbp(n){var v=parseFloat(n)||0;return'£'+(v>=1000?(v/1000).toFixed(1)+'k':v.toFixed(0))}
@@ -359,7 +384,7 @@ function loadOrders(){
 }
 
 /* ── RENDER ALL ── */
-function renderAll(){renderMetrics();renderRecentProducts();renderRecentOrders();renderCategoryChart();renderQuickStats();renderPopularChart('popular-chart');renderProductsTable();}
+function renderAll(){renderMetrics();renderRecentProducts();renderRecentOrders();renderCategoryChart();renderQuickStats();renderPopularChart('popular-chart');initExports();renderProductsTable();}
 
 /* ── METRICS ── */
 function renderMetrics(){
@@ -458,6 +483,211 @@ function filterProductsTable(){
 }
 
 /* ── COLLECTIONS ── */
+/* â”€â”€ EXPORTS â”€â”€ */
+function setExportStatus(msg){var el=document.getElementById('export-status');if(el)el.textContent=msg||'';}
+function initExports(){
+  if(exportInitDone)return;
+  exportInitDone=true;
+  var allBtn=document.getElementById('export-all-btn');
+  var selBtn=document.getElementById('export-selected-btn');
+  if(allBtn)allBtn.addEventListener('click',function(){runExportAll()});
+  if(selBtn)selBtn.addEventListener('click',function(){runExportSelected()});
+  var tree=document.getElementById('export-tree');
+  if(tree){
+    tree.addEventListener('change',handleExportTreeChange);
+    tree.addEventListener('click',handleExportTreeClick);
+  }
+  ensureExportManifest().then(function(){seedExportExpanded();renderExportTree();}).catch(function(e){setExportStatus('Export manifest failed');console.warn(e);});
+}
+function ensureExportManifest(force){
+  if(exportManifestPromise&&!force)return exportManifestPromise;
+  if(!adminPw)return Promise.reject(new Error('Missing admin password'));
+  setExportStatus('Loading export tree…');
+  exportManifestPromise=fetch('/.netlify/functions/asset-manifest',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:adminPw})})
+    .then(function(r){return r.json()})
+    .then(function(d){
+      if(!d||!d.ok)throw new Error((d&&d.error)||'Manifest error');
+      exportManifest=d;
+      buildExportTree();
+      setExportStatus('');
+      return d;
+    });
+  return exportManifestPromise;
+}
+function seedExportExpanded(){
+  if(exportExpanded.size)return;
+  exportExpanded.add('root-series');exportExpanded.add('root-collections');exportExpanded.add('root-bundles');exportExpanded.add('root-mockups');
+}
+function seg(s){return String(s||'').toLowerCase().trim().replace(/[^a-z0-9_-]+/g,'-').replace(/^-+|-+$/g,'')||'item'}
+function ext(url,fallback){
+  try{var u=new URL(url);var m=u.pathname.match(/\\.([a-z0-9]{1,5})$/i);if(m)return'.'+m[1].toLowerCase()}catch(e){var m2=String(url||'').split(/[?#]/)[0].match(/\\.([a-z0-9]{1,5})$/i);if(m2)return'.'+m2[1].toLowerCase()}
+  return fallback||'.jpg';
+}
+function node(id,label,type,children,entry,kind){return{id:id,label:label,type:type,children:children||[],entry:entry||null,kind:kind||''};}
+function indexTree(n,idx){idx[n.id]=n;(n.children||[]).forEach(function(c){indexTree(c,idx)});}
+function buildExportTree(){
+  exportTreeIndex={};
+  var products=Array.isArray(exportManifest.products)?exportManifest.products:[];
+  var bundles=Array.isArray(exportManifest.bundles)?exportManifest.bundles:[];
+  var mockups=Array.isArray(exportManifest.mockups)?exportManifest.mockups:[];
+  var bySlug={};products.forEach(function(p){bySlug[p.slug]=p});
+  function productNode(p,basePath){
+    var kids=[];
+    if(p.mainImage)kids.push(node(basePath+'/main','Main image','file',[],{url:p.mainImage,zipPath:basePath+'/main'+ext(p.mainImage,'.jpg')},'main'));
+    (p.plates||[]).forEach(function(pl){
+      var nm=seg(pl.name||('plate-'+String(pl.index+1)));var zp=basePath+'/plate-images/'+String(pl.index+1).padStart(2,'0')+'-'+nm+ext(pl.url,'.png');
+      kids.push(node(zp,pl.name||('Plate '+(pl.index+1)),'file',[],{url:pl.url,zipPath:zp},'plates'));
+    });
+    (p.exported||[]).forEach(function(ex){
+      var zp=basePath+'/plate-exports/'+(ex.filename||('export-'+Math.random()+'.png'));
+      kids.push(node(zp,ex.filename||'export','file',[],{url:ex.url,zipPath:zp},'exports'));
+    });
+    return node(basePath,p.name||p.slug,'product',kids,null,'');
+  }
+  var seriesKids=products.filter(function(p){return p.type==='series'}).map(function(p){return productNode(p,'series/'+p.slug)});
+  var collectionKids=products.filter(function(p){return p.type==='collection'}).map(function(p){return productNode(p,'collections/'+p.slug)});
+  var bundleKids=bundles.map(function(b){
+    var bkids=(b.itemSlugs||[]).map(function(s){var p=bySlug[s];return p?productNode(p,'bundles/'+b.slug+'/'+s):node('bundles/'+b.slug+'/'+s,s,'product',[],null,'')});
+    return node('bundles/'+b.slug,b.name||b.slug,'folder',bkids,null,'');
+  });
+  var mockupKids=mockups.map(function(m){var zp='mockups/'+(m.name||'mockup.png');return node(zp,m.name||'mockup','file',[],{url:m.url,zipPath:zp},'mockups')});
+  exportTreeRoots=[
+    node('root-collections','Collections','folder',collectionKids,null,''),
+    node('root-bundles','Bundles','folder',bundleKids,null,''),
+    node('root-series','Series','folder',seriesKids,null,''),
+    node('root-mockups','Mockups','folder',mockupKids,null,'')
+  ];
+  exportTreeRoots.forEach(function(r){indexTree(r,exportTreeIndex)});
+}
+function exportFilters(){
+  var q=(document.getElementById('export-filter-text')||{}).value||'';
+  var showMain=(document.getElementById('export-filter-main')||{}).checked!==false;
+  var showPlates=(document.getElementById('export-filter-plates')||{}).checked!==false;
+  var showExports=(document.getElementById('export-filter-exports')||{}).checked!==false;
+  var showMockups=(document.getElementById('export-filter-mockups')||{}).checked!==false;
+  return{q:q.trim().toLowerCase(),k:{main:showMain,plates:showPlates,exports:showExports,mockups:showMockups}};
+}
+function renderExportTree(){
+  var host=document.getElementById('export-tree');if(!host)return;
+  if(!exportTreeRoots){ensureExportManifest().then(function(){seedExportExpanded();renderExportTree();});return;}
+  var f=exportFilters();
+  function kindAllowed(kind){
+    if(kind==='main')return f.k.main;
+    if(kind==='plates')return f.k.plates;
+    if(kind==='exports')return f.k.exports;
+    if(kind==='mockups')return f.k.mockups;
+    return true;
+  }
+  function matches(n){
+    if(!f.q)return true;
+    var t=(n.label+' '+n.id).toLowerCase();
+    return t.indexOf(f.q)>=0;
+  }
+  function nodeState(n){
+    if(n.type==='file'){return{total:1,selected:exportSelected.has(n.id)?1:0}}
+    var total=0,selected=0;
+    (n.children||[]).forEach(function(c){
+      if(c.type==='file'&&!kindAllowed(c.kind))return;
+      var s=nodeState(c);total+=s.total;selected+=s.selected;
+    });
+    return{total:total,selected:selected};
+  }
+  function renderNode(n,depth){
+    var isFile=n.type==='file';
+    if(isFile&&!kindAllowed(n.kind))return null;
+    var kids=[];
+    (n.children||[]).forEach(function(c){var r=renderNode(c,depth+1);if(r)kids.push(r)});
+    var visible=matches(n)||kids.length>0;
+    if(!visible)return null;
+    var state=nodeState(n);
+    var checked=state.total>0&&state.selected===state.total;
+    var ind=state.total>0&&state.selected>0&&state.selected<state.total;
+    var canToggle=(n.type==='folder'||n.type==='product')&&(n.children||[]).length>0;
+    var expanded=exportExpanded.has(n.id);
+    var row='<div class="export-node" data-id="'+esc(n.id)+'" style="padding-left:'+(8+depth*16)+'px">' +
+      (canToggle?'<button class="export-tw" type="button" data-act="tw" data-id="'+esc(n.id)+'">'+(expanded?'▾':'▸')+'</button>':'<span class="export-tw-sp"></span>') +
+      '<input class="export-cb" type="checkbox" data-id="'+esc(n.id)+'" '+(checked?'checked':'')+' '+(ind?'data-ind=\"1\"':'')+'>' +
+      '<div class="export-label"><span class="export-name">'+esc(n.label)+'</span>' +
+        (isFile?'<span class="export-sub">'+esc(n.id.split('/').slice(-1)[0])+'</span>':'<span class="export-sub">'+state.selected+'/'+state.total+'</span>') +
+      '</div>' +
+      (isFile?'<span class="export-kind">'+n.kind+'</span>':'') +
+    '</div>';
+    var childHtml='';
+    if(canToggle&&expanded){childHtml=kids.map(function(k){return k.html}).join('')}
+    return{html:row+childHtml};
+  }
+  var htmlParts=[];
+  exportTreeRoots.forEach(function(r){var rendered=renderNode(r,0);if(rendered)htmlParts.push(rendered.html)});
+  host.innerHTML=htmlParts.join('')||'<div class="empty" style="padding:22px"><div class="empty-icon">⭳</div><p>No matching items</p></div>';
+  host.querySelectorAll('input[data-ind="1"]').forEach(function(cb){cb.indeterminate=true;});
+  updateExportSelectedBtn();
+}
+function updateExportSelectedBtn(){
+  var btn=document.getElementById('export-selected-btn');if(!btn)return;
+  btn.disabled=exportSelected.size===0;
+  btn.textContent=exportSelected.size?('Export selected ('+exportSelected.size+')'):'Export selected';
+}
+function collectFileIds(n,acc,allowKind){
+  acc=acc||[];
+  if(n.type==='file'){if(!allowKind||allowKind(n.kind))acc.push(n.id);return acc;}
+  (n.children||[]).forEach(function(c){collectFileIds(c,acc,allowKind)});
+  return acc;
+}
+function handleExportTreeChange(e){
+  var cb=e.target.closest&&e.target.closest('.export-cb');if(!cb)return;
+  var id=cb.getAttribute('data-id');if(!id||!exportTreeIndex||!exportTreeIndex[id])return;
+  var n=exportTreeIndex[id];
+  var checked=cb.checked;
+  var f=exportFilters();
+  var allow=function(kind){if(kind==='main')return f.k.main;if(kind==='plates')return f.k.plates;if(kind==='exports')return f.k.exports;if(kind==='mockups')return f.k.mockups;return true;};
+  var fileIds=collectFileIds(n,[],allow);
+  fileIds.forEach(function(fid){if(checked)exportSelected.add(fid);else exportSelected.delete(fid);});
+  renderExportTree();
+}
+function handleExportTreeClick(e){
+  var tw=e.target.closest&&e.target.closest('[data-act="tw"]');
+  if(!tw)return;
+  var id=tw.getAttribute('data-id');if(!id)return;
+  if(exportExpanded.has(id))exportExpanded.delete(id);else exportExpanded.add(id);
+  renderExportTree();
+}
+function downloadUrl(url,filename){
+  var a=document.createElement('a');a.href=url;a.download=filename||'';a.rel='noopener';a.style.display='none';
+  document.body.appendChild(a);a.click();setTimeout(function(){a.remove()},50);
+}
+function runExportAll(){
+  if(!adminPw)return;
+  setExportStatus('Building ZIP…');
+  fetch('/.netlify/functions/export-assets',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:adminPw,mode:'all',filename:'spacenova-export-all.zip'})})
+    .then(function(r){return r.json()})
+    .then(function(d){
+      if(!d||!d.ok)throw new Error((d&&d.error)||'Export failed');
+      setExportStatus('Downloading…');
+      downloadUrl(d.url,d.filename);
+      toast('Export ready: '+d.filename,'info');
+      setExportStatus('');
+    })
+    .catch(function(err){setExportStatus('Export failed');toast((err&&err.message)||'Export failed','danger');});
+}
+function runExportSelected(){
+  if(!adminPw||!exportSelected.size)return;
+  if(!exportTreeIndex)return;
+  var entries=[];
+  exportSelected.forEach(function(id){var n=exportTreeIndex[id];if(n&&n.entry&&n.entry.url&&n.entry.zipPath)entries.push(n.entry);});
+  if(!entries.length){toast('No assets selected','danger');return;}
+  setExportStatus('Building ZIP…');
+  fetch('/.netlify/functions/export-assets',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:adminPw,mode:'selection',entries:entries,filename:'spacenova-export-selected.zip'})})
+    .then(function(r){return r.json()})
+    .then(function(d){
+      if(!d||!d.ok)throw new Error((d&&d.error)||'Export failed');
+      setExportStatus('Downloading…');
+      downloadUrl(d.url,d.filename);
+      toast('Export ready: '+d.filename,'info');
+      setExportStatus('');
+    })
+    .catch(function(err){setExportStatus('Export failed');toast((err&&err.message)||'Export failed','danger');});
+}
+
 function renderCollections(){
   var colProds=catalogue.products.filter(function(p){return p.isCollection});
   var tb=document.getElementById('collections-table-body');

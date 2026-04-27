@@ -342,6 +342,27 @@ button { font-family: inherit; }
   object-fit: cover;
 }
 
+.card-media.bundle-media { overflow: hidden; }
+.bundle-media-grid {
+  width: 100%;
+  aspect-ratio: 4/3;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 2px;
+  background: var(--border);
+  border-radius: var(--r) var(--r) 0 0;
+  overflow: hidden;
+}
+.bundle-media-grid img,
+.bundle-media-empty {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  background: linear-gradient(180deg, rgba(0,0,0,.05), rgba(0,0,0,.02));
+}
+
 .badge-row {
   position: absolute;
   bottom: 10px;
