@@ -42,6 +42,7 @@ function buildPayload(product) {
     wall_image:       product.wall_image || product.wallImage || null,
     wall_source_image: product.wall_source_image || product.wallSourceImage || null,
     is_collection:    !!product.is_collection || !!product.isCollection,
+    in_stock:         product.in_stock !== false && product.inStock !== false,
     is_published:     product.is_published !== false && product.isPublished !== false,
     plate_names:      nullIfBlankArray(plateNames),
     plate_images:     nullIfBlankArray(plateImages),

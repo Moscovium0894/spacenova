@@ -147,7 +147,7 @@ async function priceItemsFromCatalogue(items) {
     .map(item => item.productSlug || item.slug || '')
     .filter(Boolean)));
 
-  if (!slugs.length) return items;
+  if (!slugs.length) return { items, outOfStockItems: [] };
 
   try {
     const { data, error } = await supabase
@@ -157,16 +157,23 @@ async function priceItemsFromCatalogue(items) {
 
     if (error) {
       console.warn('priceItemsFromCatalogue DB error - using basket prices:', error.message || error);
-      return items;
+      return { items, outOfStockItems: [] };
     }
 
     const bySlug = {};
     (data || []).forEach(product => { bySlug[product.slug] = product; });
 
-    return items.map(item => {
+    const outOfStockItems = [];
+    const pricedItems = items.map(item => {
       const slug = item.productSlug || item.slug || '';
       const product = bySlug[slug];
       if (!product) return item;
+      if (product.in_stock === false) {
+        outOfStockItems.push({
+          slug,
+          name: product.name || item.name || slug
+        });
+      }
 
       const plateCount = inferPlateCount(product);
       const pricing = resolvePlatePricing(product, plateCount);
@@ -183,9 +190,10 @@ async function priceItemsFromCatalogue(items) {
         priceMode: (!selectedCount || selectedCount === plateCount) ? 'set' : 'individual'
       };
     });
+    return { items: pricedItems, outOfStockItems };
   } catch (err) {
     console.warn('priceItemsFromCatalogue fatal - using basket prices:', err.message || err);
-    return items;
+    return { items, outOfStockItems: [] };
   }
 }
 
@@ -225,7 +233,19 @@ exports.handler = async (event) => {
       ? requestedMethod
       : Object.keys(shippingOptions)[0] || 'uk_standard';
 
-    items = await priceItemsFromCatalogue(items);
+    const priced = await priceItemsFromCatalogue(items);
+    items = priced.items;
+    if (priced.outOfStockItems.length) {
+      return {
+        statusCode: 409,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        body: JSON.stringify({
+          error: 'Some items in your basket are out of stock.',
+          code: 'OUT_OF_STOCK',
+          outOfStockItems: priced.outOfStockItems
+        })
+      };
+    }
 
     const subtotal = items.reduce((sum, item) => {
       return sum + Number(item.price || 0) * Number(item.qty || item.quantity || 1);

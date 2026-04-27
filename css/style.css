@@ -220,6 +220,7 @@ button { font-family: inherit; }
 .btn-gold:hover { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(154,122,58,.35); filter: brightness(1.08); }
 .btn-ghost { background: transparent; color: var(--text2); border: 1.5px solid var(--border2); }
 .btn-ghost:hover { background: var(--surface); color: var(--text); border-color: var(--border3); }
+.btn.is-disabled { opacity: .5; cursor: not-allowed; pointer-events: none; }
 .btn-sm { padding: 8px 18px; font-size: .7rem; }
 .btn:disabled { opacity: .5; cursor: not-allowed; transform: none !important; }
 .btn:active:not(:disabled) { transform: scale(.97) !important; }
@@ -421,6 +422,22 @@ button { font-family: inherit; }
 .bundle-includes span { font-family: var(--fm); font-size: .61rem; letter-spacing: .06em; color: var(--muted); display: flex; align-items: center; gap: 9px; }
 .bundle-includes span::before { content: '→'; color: var(--gold); }
 .bundle-card .card-actions { padding: 14px 22px; border-top: 1px solid var(--border); margin: 0; }
+
+.out-of-stock-card {
+  filter: grayscale(1);
+  opacity: 0.65;
+}
+.out-of-stock-card:hover {
+  transform: none;
+  box-shadow: none;
+}
+.out-of-stock-card .price {
+  color: #6f6a63;
+  font-size: 1.35rem;
+  font-family: var(--fm);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
 
 /* ══════════════════════════════════════════
    FILTER BAR
