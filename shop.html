@@ -186,6 +186,20 @@ document.addEventListener('DOMContentLoaded', function() {
       (p.isBundle ? 'Bundle' : p.isCollection ? 'Collection' : 'Series') +
       '</span></div>';
 
+    if (p.isBundle && Array.isArray(p.itemImages) && p.itemImages.length) {
+      var imgs = p.itemImages.slice(0, 4);
+      while (imgs.length < 4) imgs.push('');
+      return '<div class="card-media bundle-media">' +
+        '<div class="bundle-media-grid">' +
+          imgs.map(function (url, idx) {
+            if (!url) return '<div class="bundle-media-empty" aria-hidden="true"></div>';
+            return '<img src="' + url + '" alt="' + esc(p.name) + ' — image ' + (idx + 1) + '" loading="lazy">';
+          }).join('') +
+        '</div>' +
+        badge +
+      '</div>';
+    }
+
     if (!p.image) {
       return '<div class="card-media">' +
         '<div class="card-media-placeholder"></div>' + badge +

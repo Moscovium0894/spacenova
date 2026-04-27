@@ -132,6 +132,29 @@
         <input id="f-bundle-price" class="field" type="text" placeholder="199.00">
         <label class="field-label" for="f-bundle-items">Included product slugs</label>
         <textarea id="f-bundle-items" class="field textarea" placeholder="one-product-slug&#10;another-product-slug"></textarea>
+        <div class="bundle-builder" id="bundle-builder" aria-label="Bundle builder">
+          <div class="bundle-builder-top">
+            <div class="bundle-builder-title">
+              Drag &amp; drop builder
+              <span class="bundle-builder-sub">Drag series/collections into the bundle, reorder, remove.</span>
+            </div>
+            <input id="bundle-library-search" class="field bundle-builder-search" type="text" placeholder="Search catalogueâ€¦">
+          </div>
+          <div class="bundle-builder-grid">
+            <div class="bundle-builder-col">
+              <div class="bundle-builder-col-head">Series &amp; collections</div>
+              <div class="bundle-library-list" id="bundle-library-list"></div>
+            </div>
+            <div class="bundle-builder-col">
+              <div class="bundle-builder-col-head">Bundle contents</div>
+              <div class="bundle-drop-zone" id="bundle-drop-zone">
+                <div class="bundle-drop-hint" id="bundle-drop-hint">Drop products hereâ€¦</div>
+                <div class="bundle-drop-list" id="bundle-drop-list"></div>
+              </div>
+              <div class="bundle-builder-note">You can still edit the slug list above if you prefer.</div>
+            </div>
+          </div>
+        </div>
         <label class="field-label" for="f-bundle-text">Bundle text</label>
         <textarea id="f-bundle-text" class="field textarea" placeholder="Short description shown on bundle cards."></textarea>
       </div>
@@ -353,6 +376,12 @@
     E.previewStage = document.getElementById('preview-stage');
     E.panelList    = document.getElementById('panel-list');
     E.bundlePanel  = document.getElementById('bundle-panel');
+    E.bundleBuilder = document.getElementById('bundle-builder');
+    E.bundleLibrarySearch = document.getElementById('bundle-library-search');
+    E.bundleLibraryList = document.getElementById('bundle-library-list');
+    E.bundleDropZone = document.getElementById('bundle-drop-zone');
+    E.bundleDropHint = document.getElementById('bundle-drop-hint');
+    E.bundleDropList = document.getElementById('bundle-drop-list');
     E.exportResults = document.getElementById('export-results');
 
     E.f = {
@@ -484,6 +513,7 @@
         if (key === 'price' || key === 'unitPrice' || key === 'pieces') syncPriceLabel();
         if (key === 'layoutPreset') applyPresetLayout();
         if (key === 'isBundle') updateBundlePanel();
+        if (key === 'bundleItems') renderBundleBuilder();
         if (key === 'name' && !E.f.slug.dataset.touched) {
           E.f.slug.value = slugify(E.f.name.value);
         }
@@ -495,6 +525,82 @@
 
     E.f.slug.addEventListener('input', function () { E.f.slug.dataset.touched = '1'; });
     bindPlateCustomizer();
+    bindBundleBuilder();
+  }
+
+  function bindBundleBuilder() {
+    if (E.bundleLibrarySearch) {
+      E.bundleLibrarySearch.addEventListener('input', function () { renderBundleBuilder(); });
+    }
+
+    if (E.bundleLibraryList) {
+      E.bundleLibraryList.addEventListener('dragstart', function (e) {
+        var item = e.target.closest('.bundle-lib-item');
+        if (!item) return;
+        var slug = item.getAttribute('data-slug') || '';
+        if (!slug) return;
+        e.dataTransfer.setData('text/plain', JSON.stringify({ slug: slug, from: 'library' }));
+        e.dataTransfer.effectAllowed = 'copy';
+      });
+    }
+
+    if (E.bundleDropZone) {
+      E.bundleDropZone.addEventListener('dragover', function (e) {
+        if (!E.f.isBundle.checked) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+        E.bundleDropZone.classList.add('is-dragover');
+      });
+
+      E.bundleDropZone.addEventListener('dragleave', function () {
+        E.bundleDropZone.classList.remove('is-dragover');
+      });
+
+      E.bundleDropZone.addEventListener('drop', function (e) {
+        if (!E.f.isBundle.checked) return;
+        e.preventDefault();
+        E.bundleDropZone.classList.remove('is-dragover');
+        applyBundleDrop(e);
+      });
+    }
+
+    if (E.bundleDropList) {
+      E.bundleDropList.addEventListener('dragstart', function (e) {
+        var item = e.target.closest('.bundle-drop-item');
+        if (!item) return;
+        var slug = item.getAttribute('data-slug') || '';
+        var idx = parseInt(item.getAttribute('data-idx') || '', 10);
+        if (!slug || !Number.isFinite(idx)) return;
+        e.dataTransfer.setData('text/plain', JSON.stringify({ slug: slug, from: 'bundle', index: idx }));
+        e.dataTransfer.effectAllowed = 'move';
+      });
+
+      E.bundleDropList.addEventListener('dragover', function (e) {
+        if (!E.f.isBundle.checked) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        var over = e.target.closest('.bundle-drop-item');
+        E.bundleDropList.querySelectorAll('.bundle-drop-item').forEach(function (el) {
+          el.classList.toggle('is-over', el === over);
+        });
+      });
+
+      E.bundleDropList.addEventListener('drop', function (e) {
+        if (!E.f.isBundle.checked) return;
+        e.preventDefault();
+        E.bundleDropList.querySelectorAll('.bundle-drop-item').forEach(function (el) { el.classList.remove('is-over'); });
+        applyBundleDrop(e);
+      });
+
+      E.bundleDropList.addEventListener('click', function (e) {
+        var btn = e.target.closest('.bundle-drop-remove');
+        if (!btn) return;
+        var slug = btn.getAttribute('data-slug') || '';
+        if (!slug) return;
+        var items = getBundleItems().filter(function (s) { return s !== slug; });
+        setBundleItems(items);
+      });
+    }
   }
 
   function bindPlateCustomizer() {
@@ -539,6 +645,7 @@
         if (seq !== loadSeq) return { stale: true, products: state.products };
         state.products = products;
         populateSelect();
+        if (state.currentId) E.productSel.value = state.currentId;
         return { stale: false, products: state.products };
       }, function (err) {
         if (seq !== loadSeq) return { stale: true, products: state.products, error: err };
@@ -1307,6 +1414,8 @@
     if (show && E.f.bundlePrice && !E.f.bundlePrice.value) {
       E.f.bundlePrice.value = E.f.price.value || '';
     }
+    if (E.bundleBuilder) E.bundleBuilder.style.display = show ? '' : 'none';
+    if (show) renderBundleBuilder();
   }
 
   function splitBundleItems(value) {
@@ -1314,6 +1423,135 @@
       .split(/[\n,]+/)
       .map(function (item) { return item.trim(); })
       .filter(Boolean);
+  }
+
+  function getBundleItems() {
+    if (!E.f || !E.f.bundleItems) return [];
+    return splitBundleItems(E.f.bundleItems.value);
+  }
+
+  function setBundleItems(items) {
+    if (!E.f || !E.f.bundleItems) return;
+    var next = (Array.isArray(items) ? items : []).map(function (x) { return String(x || '').trim(); }).filter(Boolean);
+    E.f.bundleItems.value = next.join('\n');
+    renderBundleBuilder();
+    renderPreview();
+  }
+
+  function findCatalogueProduct(slug) {
+    var target = String(slug || '').trim();
+    if (!target) return null;
+    for (var i = 0; i < state.products.length; i++) {
+      var p = state.products[i];
+      if (!p) continue;
+      if (String(p.slug || p.id || '') === target) return p;
+    }
+    return null;
+  }
+
+  function renderBundleBuilder() {
+    if (!E.bundleBuilder || !E.f || !E.f.isBundle) return;
+    if (!E.f.isBundle.checked) return;
+
+    var query = (E.bundleLibrarySearch && E.bundleLibrarySearch.value ? E.bundleLibrarySearch.value : '')
+      .trim()
+      .toLowerCase();
+
+    var candidates = state.products
+      .filter(function (p) { return p && !(p.isBundle || p.recordType === 'bundle'); })
+      .filter(function (p) { return !!(p.slug || p.id); })
+      .filter(function (p) {
+        if (!query) return true;
+        var name = String(p.name || '').toLowerCase();
+        var slug = String(p.slug || p.id || '').toLowerCase();
+        var cat = String(p.category || '').toLowerCase();
+        return name.indexOf(query) >= 0 || slug.indexOf(query) >= 0 || cat.indexOf(query) >= 0;
+      });
+
+    if (E.bundleLibraryList) {
+      E.bundleLibraryList.innerHTML = candidates.length
+        ? candidates.map(function (p) {
+            var key = String(p.slug || p.id || '');
+            var type = p.isCollection ? 'Collection' : 'Series';
+            var thumb = p.image ? '<img src="' + escapeHtml(p.image) + '" alt="">' : '<div class="bundle-lib-thumb-empty"></div>';
+            return '<div class="bundle-lib-item" draggable="true" data-slug="' + escapeHtml(key) + '">' +
+              '<div class="bundle-lib-thumb">' + thumb + '</div>' +
+              '<div class="bundle-lib-meta">' +
+                '<div class="bundle-lib-name">' + escapeHtml(p.name || key) + '</div>' +
+                '<div class="bundle-lib-sub">' +
+                  '<span class="bundle-lib-tag">' + escapeHtml(type) + '</span>' +
+                  '<span class="bundle-lib-slug">' + escapeHtml(key) + '</span>' +
+                '</div>' +
+              '</div>' +
+            '</div>';
+          }).join('')
+        : '<div class="bundle-empty">No matching products.</div>';
+    }
+
+    var items = getBundleItems();
+    if (E.bundleDropHint) E.bundleDropHint.style.display = items.length ? 'none' : '';
+
+    if (E.bundleDropList) {
+      E.bundleDropList.innerHTML = items.length
+        ? items.map(function (slug, idx) {
+            var p = findCatalogueProduct(slug);
+            var label = (p && p.name) ? p.name : slug;
+            var thumb = (p && p.image)
+              ? '<img src="' + escapeHtml(p.image) + '" alt="">'
+              : '<div class="bundle-drop-thumb-empty"></div>';
+            return '<div class="bundle-drop-item" draggable="true" data-slug="' + escapeHtml(slug) + '" data-idx="' + idx + '">' +
+              '<div class="bundle-drop-handle" aria-hidden="true">&#8942;&#8942;</div>' +
+              '<div class="bundle-drop-thumb">' + thumb + '</div>' +
+              '<div class="bundle-drop-meta">' +
+                '<div class="bundle-drop-name">' + escapeHtml(label) + '</div>' +
+                '<div class="bundle-drop-slug">' + escapeHtml(slug) + '</div>' +
+              '</div>' +
+              '<button class="bundle-drop-remove" type="button" data-slug="' + escapeHtml(slug) + '" aria-label="Remove">&times;</button>' +
+            '</div>';
+          }).join('')
+        : '';
+    }
+  }
+
+  function parseDragPayload(e) {
+    var raw = (e && e.dataTransfer && e.dataTransfer.getData) ? e.dataTransfer.getData('text/plain') : '';
+    if (!raw) return null;
+    try {
+      var parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object') return parsed;
+    } catch (err) {}
+    return { slug: raw, from: 'library' };
+  }
+
+  function applyBundleDrop(e) {
+    var payload = parseDragPayload(e);
+    if (!payload || !payload.slug) return;
+
+    var items = getBundleItems();
+    var slug = String(payload.slug || '').trim();
+    if (!slug) return;
+
+    var targetItem = e.target && e.target.closest ? e.target.closest('.bundle-drop-item') : null;
+    var dropIndex = targetItem ? parseInt(targetItem.getAttribute('data-idx') || '', 10) : items.length;
+    if (!Number.isFinite(dropIndex) || dropIndex < 0) dropIndex = items.length;
+
+    if (payload.from === 'bundle' && Number.isFinite(payload.index)) {
+      var fromIndex = payload.index;
+      if (fromIndex >= 0 && fromIndex < items.length) {
+        var moved = items.splice(fromIndex, 1)[0];
+        if (fromIndex < dropIndex) dropIndex -= 1;
+        slug = moved || slug;
+      }
+    } else {
+      var existingIndex = items.indexOf(slug);
+      if (existingIndex >= 0) {
+        items.splice(existingIndex, 1);
+        if (existingIndex < dropIndex) dropIndex -= 1;
+      }
+    }
+
+    items.splice(Math.min(dropIndex, items.length), 0, slug);
+    setBundleItems(items);
   }
 
   function getUsablePlateImage(plateImages, idx, mainImage) {
@@ -1394,6 +1632,9 @@
     var slug = E.f.slug.value.trim() || slugify(E.f.name.value);
     var name = E.f.name.value.trim();
     var isBundle = E.f.isBundle.checked;
+    var bundleItems = splitBundleItems(E.f.bundleItems.value);
+    var bundleText = E.f.bundleText.value.trim() || E.f.short.value.trim();
+    var bundlePrice = (E.f.bundlePrice.value || E.f.price.value || '').trim();
     return {
       slug:         slug,
       name:         name,
@@ -1422,12 +1663,18 @@
       panel_names:  state.panelNames.slice(),
       panel_images: state.panelImages.slice(),
       panel_map:    plateMap,
+      bundleItems:  bundleItems,
+      bundleText:   bundleText,
+      bundlePrice:  bundlePrice,
+      bundle_items: bundleItems,
+      bundle_text:  bundleText,
+      bundle_price: bundlePrice,
       bundle: {
         slug: slug,
         name: name,
-        price: (E.f.bundlePrice.value || E.f.price.value || '').trim(),
-        items: splitBundleItems(E.f.bundleItems.value),
-        text: E.f.bundleText.value.trim() || E.f.short.value.trim()
+        price: bundlePrice,
+        items: bundleItems,
+        text: bundleText
       }
     };
   }
@@ -1451,22 +1698,26 @@
       if (!body || body.ok !== true) {
         throw new Error((body && (body.error || body.message)) || 'Save was not confirmed by the server');
       }
-      setStatus('Saved, refreshing...', 'saving');
+      // Apply local copy immediately so the UI never "snaps back" to stale data
+      // while the refreshed catalogue request is in flight.
+      upsertProduct(payload);
+      populateSelect();
+      state.currentId = payload.slug;
+      E.productSel.value = state.currentId;
+      loadProduct(payload.slug);
+      setStatus('Saved', 'success');
+
+      // Refresh catalogue in the background, but preserve the just-saved record
+      // if the fetch returns an older snapshot.
       return loadProductCatalogue()
         .then(function (result) {
           if (result.stale) return;
-          if (!findProduct(payload.slug)) {
-            upsertProduct(payload);
-            populateSelect();
-          }
-          loadProduct(payload.slug);
-          setStatus('Saved', 'success');
-        })
-        .catch(function () {
           upsertProduct(payload);
           populateSelect();
-          loadProduct(payload.slug);
-          setStatus('Saved; using local copy until reload works', 'success');
+          if (state.currentId) E.productSel.value = state.currentId;
+        })
+        .catch(function () {
+          // Keep local copy; user can refresh later.
         });
     })
     .then(function () {
@@ -1543,13 +1794,62 @@
       '<p>Frame-safe transparent PNGs: ' +
         (dims.exportedWidth || '?') + ' x ' + (dims.exportedHeight || '?') +
         ' px, 5 mm frame inset.</p>' +
-      '<div class="export-link-grid">' +
+      '<div class="export-file-list">' +
         files.map(function (file) {
-          return '<a href="' + escapeHtml(file.url) + '" target="_blank" rel="noopener" download="' + escapeHtml(file.filename || '') + '">' +
+          return '<div class="export-file-item">' +
             escapeHtml(file.filename || ('Plate ' + ((file.index || 0) + 1))) +
-          '</a>';
+          '</div>';
         }).join('') +
-      '</div>';
+      '</div>' +
+      '<p class="export-note">Downloading all PNGs… If your browser blocks multiple downloads, allow downloads for this site and click Export again.</p>';
+
+    downloadAllExportFiles(files);
+  }
+
+  function downloadAllExportFiles(files) {
+    if (!Array.isArray(files) || !files.length) return;
+    var i = 0;
+    function next() {
+      if (i >= files.length) return;
+      var file = files[i++];
+      downloadExportFile(file && file.url, file && file.filename);
+      setTimeout(next, 250);
+    }
+    next();
+  }
+
+  function downloadExportFile(url, filename) {
+    var safeUrl = String(url || '').trim();
+    if (!safeUrl) return;
+    var name = String(filename || '').trim();
+
+    // Prefer blob download to avoid navigation; fall back to <a download>.
+    fetch(safeUrl, { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error('Download failed'); return r.blob(); })
+      .then(function (blob) {
+        var objUrl = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = objUrl;
+        a.download = name || '';
+        a.rel = 'noopener';
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function () {
+          URL.revokeObjectURL(objUrl);
+          a.remove();
+        }, 2000);
+      })
+      .catch(function () {
+        var a = document.createElement('a');
+        a.href = safeUrl;
+        a.download = name || '';
+        a.rel = 'noopener';
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function () { a.remove(); }, 50);
+      });
   }
 
   function ensureProductHasPlateMap(product) {
