@@ -147,7 +147,7 @@
       </div>
       <div class="card" id="export-card" style="margin-bottom:16px">
         <div class="card-title">Exports</div>
-        <div class="notice notice-info">Export downloads a single ZIP containing main images, plate images, creator-exported plate PNGs, and mockups.</div>
+        <div class="notice notice-info">Sync assets rebuilds the storage folders, then exports download the same folder tree shown below.</div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px">
           <button class="btn btn-primary btn-sm" type="button" id="export-all-btn">Export all</button>
           <button class="btn btn-ghost btn-sm" type="button" id="export-selected-btn" disabled>Export selected</button>
@@ -326,7 +326,7 @@ function fetchJsonSafe(url,options){
     return r.text().then(function(t){
       var body=null;
       try{body=t?JSON.parse(t):null}catch(e){
-        var snippet=(t||'').slice(0,220).replace(/\\s+/g,' ').trim();
+        var snippet=(t||'').slice(0,220).replace(/\s+/g,' ').trim();
         var msg='Unexpected response ('+r.status+')';
         if(snippet)msg+=': '+snippet;
         var err=new Error(msg);err.status=r.status;err.text=t;throw err;
@@ -345,8 +345,7 @@ function unlockAdmin(){
   var pw=document.getElementById('auth-pw').value;
   var err=document.getElementById('auth-err');
   err.style.display='none';
-  fetch('/.netlify/functions/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw})})
-    /* fetchJsonSafe already parsed JSON */
+  fetchJsonSafe('/.netlify/functions/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw})})
     .then(function(d){
       if(d.ok){adminPw=pw;sessionStorage.setItem('admin','1');sessionStorage.setItem('admin_pw',pw);document.getElementById('auth-screen').style.display='none';loadAll();}
       else{err.style.display='block';document.getElementById('auth-pw').value='';}
@@ -389,14 +388,12 @@ function loadAll(){
 function refreshAll(){loadAll();toast('Refreshing…','info')}
 
 function loadCatalogue(){
-  return fetch('/.netlify/functions/load-catalogue',{cache:'no-store'})
-    /* fetchJsonSafe already parsed JSON */
+  return fetchJsonSafe('/.netlify/functions/load-catalogue',{cache:'no-store'})
     .then(function(d){catalogue.products=d.products||[];catalogue.bundles=d.bundles||[];catalogue.featuredSlugs=d.featuredSlugs||[]})
 }
 function loadOrders(){
   if(!adminPw)return Promise.resolve();
-  return fetch('/.netlify/functions/load-orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:adminPw})})
-    /* fetchJsonSafe already parsed JSON */
+  return fetchJsonSafe('/.netlify/functions/load-orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:adminPw})})
     .then(function(d){if(d.ok){_allOrders=d.recentOrders||[];ordersData.orders=_allOrders;ordersData.summary=d.summary||{}}})
     .catch(function(e){console.warn('Orders load err:',e)})
 }
@@ -511,7 +508,7 @@ function initExports(){
   var syncBtn=document.getElementById('sync-assets-btn');
   if(allBtn)allBtn.addEventListener('click',function(){runExportAll()});
   if(selBtn)selBtn.addEventListener('click',function(){runExportSelected()});
-  if(syncBtn)syncBtn.addEventListener('click',function(){runSyncAssets()});
+  if(syncBtn)syncBtn.addEventListener('click',function(){runSyncAssetsStorage()});
   var tree=document.getElementById('export-tree');
   if(tree){
     tree.addEventListener('change',handleExportTreeChange);
@@ -527,8 +524,9 @@ function ensureExportManifest(force){
     .then(function(d){
       if(!d||!d.ok)throw new Error((d&&d.error)||'Manifest error');
       exportManifest=d;
+      exportSelected.clear();
       buildExportTree();
-      setExportStatus('');
+      setExportStatus(d.needsSync?'Run Sync assets first':'');
       return d;
     });
   return exportManifestPromise;
@@ -549,28 +547,30 @@ function buildExportTree(){
   var products=Array.isArray(exportManifest.products)?exportManifest.products:[];
   var bundles=Array.isArray(exportManifest.bundles)?exportManifest.bundles:[];
   var mockups=Array.isArray(exportManifest.mockups)?exportManifest.mockups:[];
-  var bySlug={};products.forEach(function(p){bySlug[p.slug]=p});
-  function productNode(p,basePath){
-    var kids=[];
-    if(p.mainImage)kids.push(node(basePath+'/main','Main image','file',[],{url:p.mainImage,zipPath:basePath+'/main'+ext(p.mainImage,'.jpg')},'main'));
-    (p.plates||[]).forEach(function(pl){
-      var nm=seg(pl.name||('plate-'+String(pl.index+1)));var zp=basePath+'/plates/'+String(pl.index+1).padStart(2,'0')+'-'+nm+ext(pl.url,'.png');
-      kids.push(node(zp,pl.name||('Plate '+(pl.index+1)),'file',[],{url:pl.url,zipPath:zp},'plates'));
-    });
-    (p.exported||[]).forEach(function(ex){
-      var fn=(ex.filename||('export-'+Math.random()+'.png'));
-      var zp=basePath+'/plates/export-'+fn;
-      kids.push(node(zp,fn,'file',[],{url:ex.url,zipPath:zp},'plates'));
-    });
-    return node(basePath,p.name||p.slug,'product',kids,null,'');
+  function fileNode(entry){
+    if(!entry)return null;
+    var storagePath=entry.storagePath||entry.zipPath||'';
+    if(!storagePath)return null;
+    var kind=entry.kind||(/\/plates\//.test(storagePath)?'plates':(storagePath.indexOf('mockups/')===0?'mockups':'main'));
+    return node(storagePath,entry.label||storagePath.split('/').pop(),'file',[],{storagePath:storagePath,zipPath:entry.zipPath||storagePath},kind);
   }
-  var seriesKids=products.filter(function(p){return p.type==='series'}).map(function(p){return productNode(p,'series/'+p.slug)});
-  var collectionKids=products.filter(function(p){return p.type==='collection'}).map(function(p){return productNode(p,'collections/'+p.slug)});
+  function productNode(p){
+    var root=p.root||((p.type==='collection'?'collections':'series')+'/'+p.slug);
+    var kids=(Array.isArray(p.files)?p.files:[]).map(fileNode).filter(Boolean);
+    return node(root,p.name||p.slug,'product',kids,null,'');
+  }
+  function bundleProductNode(p){
+    var root=p.root||p.slug;
+    var kids=(Array.isArray(p.files)?p.files:[]).map(fileNode).filter(Boolean);
+    return node(root,p.name||p.slug,'product',kids,null,'');
+  }
+  var seriesKids=products.filter(function(p){return p.type==='series'}).map(productNode);
+  var collectionKids=products.filter(function(p){return p.type==='collection'}).map(productNode);
   var bundleKids=bundles.map(function(b){
-    var bkids=(b.itemSlugs||[]).map(function(s){var p=bySlug[s];return p?productNode(p,'bundles/'+b.slug+'/'+s):node('bundles/'+b.slug+'/'+s,s,'product',[],null,'')});
-    return node('bundles/'+b.slug,b.name||b.slug,'folder',bkids,null,'');
+    var bkids=(Array.isArray(b.products)?b.products:[]).map(bundleProductNode);
+    return node(b.root||('bundles/'+b.slug),b.name||b.slug,'folder',bkids,null,'');
   });
-  var mockupKids=mockups.map(function(m){var zp='mockups/'+(m.name||'mockup.png');return node(zp,m.name||'mockup','file',[],{url:m.url,zipPath:zp},'mockups')});
+  var mockupKids=mockups.map(fileNode).filter(Boolean);
   exportTreeRoots=[
     node('root-collections','Collections','folder',collectionKids,null,''),
     node('root-bundles','Bundles','folder',bundleKids,null,''),
@@ -589,6 +589,11 @@ function exportFilters(){
 function renderExportTree(){
   var host=document.getElementById('export-tree');if(!host)return;
   if(!exportTreeRoots){ensureExportManifest().then(function(){seedExportExpanded();renderExportTree();});return;}
+  if(exportManifest&&exportManifest.needsSync){
+    host.innerHTML='<div class="empty" style="padding:22px"><div class="empty-icon">⭳</div><p>Run Sync assets first to build the storage export tree.</p></div>';
+    updateExportSelectedBtn();
+    return;
+  }
   var f=exportFilters();
   function kindAllowed(kind){
     if(kind==='main')return f.k.main;
@@ -641,8 +646,12 @@ function renderExportTree(){
   updateExportSelectedBtn();
 }
 function updateExportSelectedBtn(){
-  var btn=document.getElementById('export-selected-btn');if(!btn)return;
-  btn.disabled=exportSelected.size===0;
+  var btn=document.getElementById('export-selected-btn');
+  var allBtn=document.getElementById('export-all-btn');
+  var needs=!!(exportManifest&&exportManifest.needsSync);
+  if(allBtn)allBtn.disabled=needs;
+  if(!btn)return;
+  btn.disabled=needs||exportSelected.size===0;
   btn.textContent=exportSelected.size?('Export selected ('+exportSelected.size+')'):'Export selected';
 }
 function collectFileIds(n,acc,allowKind){
@@ -675,6 +684,7 @@ function downloadUrl(url,filename){
 }
 function runExportAll(){
   if(!adminPw)return;
+  if(exportManifest&&exportManifest.needsSync){toast('Run Sync assets first','danger');return;}
   setExportStatus('Building ZIP…');
   fetchJsonSafe('/.netlify/functions/export-assets',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:adminPw,mode:'all',filename:'spacenova-export-all.zip'})})
     /* fetchJsonSafe already parsed JSON */
@@ -689,9 +699,10 @@ function runExportAll(){
 }
 function runExportSelected(){
   if(!adminPw||!exportSelected.size)return;
+  if(exportManifest&&exportManifest.needsSync){toast('Run Sync assets first','danger');return;}
   if(!exportTreeIndex)return;
   var entries=[];
-  exportSelected.forEach(function(id){var n=exportTreeIndex[id];if(n&&n.entry&&n.entry.url&&n.entry.zipPath)entries.push(n.entry);});
+  exportSelected.forEach(function(id){var n=exportTreeIndex[id];if(n&&n.entry&&n.entry.storagePath&&n.entry.zipPath)entries.push(n.entry);});
   if(!entries.length){toast('No assets selected','danger');return;}
   setExportStatus('Building ZIP…');
   fetchJsonSafe('/.netlify/functions/export-assets',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:adminPw,mode:'selection',entries:entries,filename:'spacenova-export-selected.zip'})})
@@ -707,6 +718,7 @@ function runExportSelected(){
 }
 
 function runSyncAssets(){
+  return runSyncAssetsStorage();
   if(!adminPw)return;
   var syncBtn=document.getElementById('sync-assets-btn');
   if(syncBtn)syncBtn.disabled=true;
@@ -756,6 +768,76 @@ function runSyncAssets(){
       setExportStatus('Sync failed');
       toast((err&&err.message)||'Sync failed','danger');
     });
+}
+
+function runSyncAssetsStorage(){
+  if(!adminPw)return;
+  var syncBtn=document.getElementById('sync-assets-btn');
+  if(syncBtn)syncBtn.disabled=true;
+  setExportStatus('Syncing assets...');
+  toast('Sync started - this can take a while','info');
+
+  function callSync(payload){
+    payload=payload||{};
+    payload.password=adminPw;
+    return fetchJsonSafe('/.netlify/functions/sync-assets',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-admin-password':adminPw},
+      body:JSON.stringify(payload)
+    });
+  }
+
+  fetchJsonSafe('/.netlify/functions/load-products',{cache:'no-store'})
+    .then(function(list){
+      var products=Array.isArray(list)?list:(Array.isArray(list.products)?list.products:[]);
+      products=products.filter(function(p){return p&&p.slug});
+      if(!products.length)throw new Error('No products found');
+
+      var failed=[];
+      var i=0;
+      function step(){
+        if(i>=products.length){
+          setExportStatus('Syncing bundles...');
+          return callSync({scope:'bundles'})
+            .then(function(d){
+              var bundleFails=d&&d.result&&Array.isArray(d.result.failures)?d.result.failures:[];
+              bundleFails.forEach(function(f){failed.push({slug:f.slug||f.bundle||'bundle',error:f.error||'Bundle sync failed'});});
+            })
+            .catch(function(e){failed.push({slug:'bundles',error:(e&&e.message)||'Bundle sync failed'});})
+            .then(function(){
+              setExportStatus('Writing asset manifest...');
+              return callSync({scope:'manifest'});
+            })
+            .then(function(){
+              exportManifestPromise=null;
+              setExportStatus('Refreshing tree...');
+              return ensureExportManifest(true);
+            })
+            .then(function(){seedExportExpanded();renderExportTree();})
+            .then(function(){
+              var msg=failed.length?('Sync complete with '+failed.length+' failed'):'Sync complete';
+              setExportStatus(msg);
+              toast(msg,failed.length?'danger':'info');
+              if(failed.length)console.warn('Sync asset failures',failed);
+              setTimeout(function(){if(!failed.length)setExportStatus('');},2500);
+            });
+        }
+
+        var p=products[i++];
+        setExportStatus('Syncing '+i+' of '+products.length+': '+(p.name||p.slug));
+        return callSync({scope:'product',productSlug:p.slug})
+          .catch(function(e){failed.push({slug:p.slug,error:(e&&e.message)||'Product sync failed'});console.warn('sync-assets failed',p.slug,e);})
+          .then(function(){return new Promise(function(res){setTimeout(res,120);});})
+          .then(step);
+      }
+
+      return step();
+    })
+    .catch(function(err){
+      setExportStatus('Sync failed');
+      toast((err&&err.message)||'Sync failed','danger');
+    })
+    .finally(function(){if(syncBtn)syncBtn.disabled=false;});
 }
 
 function renderCollections(){

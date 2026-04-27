@@ -2,8 +2,18 @@ const archiver = require('archiver');
 const crypto = require('crypto');
 const { PassThrough } = require('stream');
 const { createClient } = require('@supabase/supabase-js');
+const {
+  downloadStorageBuffer,
+  downloadStorageText,
+  getBucket,
+  getPassword,
+  json,
+  publicObjectUrl,
+  safeFilename,
+  safeZipPath
+} = require('./asset-helpers');
 
-const DEFAULT_BUCKET = 'product-images';
+const MANIFEST_PATH = 'asset-manifest.json';
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
@@ -22,30 +32,29 @@ exports.handler = async (event) => {
     }
 
     const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
-    const bucket = process.env.SUPABASE_BUCKET || DEFAULT_BUCKET;
-
+    const bucket = getBucket();
     const mode = String(body.mode || 'all').trim().toLowerCase();
     const requestedFilename = String(body.filename || '').trim();
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const filename = safeFilename(requestedFilename || `spacenova-export-${timestamp}.zip`);
-
     const explicitEntries = Array.isArray(body.entries) ? body.entries : null;
+
     const entries = explicitEntries
       ? sanitiseEntries(explicitEntries)
-      : await buildAllEntries({ supabase, bucket, includeBundles: mode !== 'products-only' });
+      : await manifestEntries({ supabase, bucket, mode });
 
     if (!entries.length) {
-      return json(400, { ok: false, error: 'No assets selected' });
+      return json(400, { ok: false, error: 'No assets selected. Run Sync assets first if the export tree is empty.' });
     }
 
-    const { buffer, skipped } = await buildZip(entries);
+    const { buffer, skipped } = await buildZip({ supabase, bucket, entries });
     const hash = crypto.createHash('sha1').update(buffer).digest('hex').slice(0, 12);
     const storagePath = `downloads/${filename}`;
 
     const upload = await supabase.storage.from(bucket).upload(storagePath, buffer, {
       contentType: 'application/zip',
       cacheControl: '0',
-      upsert: true,
+      upsert: true
     });
     if (upload.error) throw upload.error;
 
@@ -56,49 +65,40 @@ exports.handler = async (event) => {
       fileCount: entries.length,
       skipped,
       storagePath,
-      url: `${process.env.SUPABASE_URL}/storage/v1/object/public/${bucket}/${storagePath}?v=${hash}`,
+      url: publicObjectUrl(process.env.SUPABASE_URL, bucket, storagePath, hash)
     });
   } catch (err) {
     console.error('export-assets fatal:', err);
-    return json(500, { ok: false, error: err.message || 'Failed to export assets' });
+    const missingManifest = isMissingManifestError(err);
+    return json(missingManifest ? 409 : 500, {
+      ok: false,
+      needsSync: missingManifest || undefined,
+      error: missingManifest ? 'Run Sync assets first' : (err.message || 'Failed to export assets')
+    });
   }
 };
 
-function getPassword(event, body) {
-  return (
-    (event.headers &&
-      (event.headers['x-admin-password'] || event.headers['X-Admin-Password'])) ||
-    body.password ||
-    ''
-  );
-}
-
-function safeFilename(value) {
-  const cleaned = String(value || 'export.zip')
-    .trim()
-    .replace(/[\\/:*?"<>|]+/g, '-')
-    .replace(/\s+/g, '-');
-  return cleaned.toLowerCase().endsWith('.zip') ? cleaned : `${cleaned}.zip`;
-}
-
-function safeZipPath(value) {
-  const raw = String(value || '').replace(/\\/g, '/');
-  const parts = raw
-    .split('/')
-    .map((p) => p.trim())
-    .filter(Boolean)
-    .filter((p) => p !== '.' && p !== '..');
-  return parts.join('/');
+async function manifestEntries({ supabase, bucket, mode }) {
+  const manifest = JSON.parse(await downloadStorageText(supabase, bucket, MANIFEST_PATH));
+  const files = Array.isArray(manifest.files) ? manifest.files : [];
+  const filtered = files.filter(entry => {
+    const storagePath = safeZipPath(entry && entry.storagePath);
+    if (!storagePath || storagePath === MANIFEST_PATH || storagePath.startsWith('downloads/')) return false;
+    if (mode === 'products-only' && storagePath.startsWith('bundles/')) return false;
+    return true;
+  });
+  return sanitiseEntries(filtered);
 }
 
 function sanitiseEntries(entries) {
   const out = [];
   for (const entry of entries) {
     if (!entry || typeof entry !== 'object') continue;
-    const url = String(entry.url || '').trim();
-    const zipPath = safeZipPath(entry.zipPath || entry.path || entry.name || '');
-    if (!url || !zipPath) continue;
-    out.push({ url, zipPath });
+    const storagePath = safeZipPath(entry.storagePath || entry.path || '');
+    const zipPath = safeZipPath(entry.zipPath || storagePath);
+    if (!storagePath || !zipPath) continue;
+    if (storagePath === MANIFEST_PATH || storagePath.startsWith('downloads/')) continue;
+    out.push({ storagePath, zipPath });
   }
   return dedupeByPath(out);
 }
@@ -114,192 +114,14 @@ function dedupeByPath(entries) {
   return out;
 }
 
-function normaliseArray(value) {
-  if (Array.isArray(value)) return value;
-  if (!value) return [];
-  if (typeof value === 'string') {
-    return value
-      .split(/[\n,]+/)
-      .map((x) => x.trim())
-      .filter(Boolean);
-  }
-  return [];
-}
-
-function extensionFromUrl(url, fallback) {
-  try {
-    const u = new URL(url);
-    const match = u.pathname.match(/\.([a-z0-9]{1,5})$/i);
-    if (match) return `.${match[1].toLowerCase()}`;
-  } catch (err) {
-    const match = String(url || '').split(/[?#]/)[0].match(/\.([a-z0-9]{1,5})$/i);
-    if (match) return `.${match[1].toLowerCase()}`;
-  }
-  return fallback || '.jpg';
-}
-
-async function buildAllEntries({ supabase, bucket, includeBundles }) {
-  const [productsRes, bundlesRes, mockupsRes] = await Promise.all([
-    supabase.from('products').select('*').order('created_at', { ascending: false }),
-    includeBundles ? supabase.from('bundles').select('*').order('name', { ascending: true }) : Promise.resolve({ data: [] }),
-    listAllObjects(supabase, bucket, 'mockups'),
-  ]);
-
-  if (productsRes.error) throw productsRes.error;
-  const products = productsRes.data || [];
-  const bundles = (bundlesRes && !bundlesRes.error ? bundlesRes.data : []) || [];
-
-  const productLookup = {};
-  products.forEach((p) => {
-    if (p && p.slug) productLookup[p.slug] = p;
-  });
-
-  const entries = [];
-
-  // Mockups folder (all)
-  const mockups = Array.isArray(mockupsRes) ? mockupsRes : [];
-  for (const item of mockups) {
-    const name = item.name;
-    if (!name) continue;
-    const storagePath = `mockups/${name}`;
-    entries.push({
-      url: `${process.env.SUPABASE_URL}/storage/v1/object/public/${bucket}/${storagePath}`,
-      zipPath: `mockups/${name}`,
-    });
-  }
-
-  // Products (series + collections)
-  for (const p of products) {
-    const slug = String(p.slug || '').trim();
-    if (!slug) continue;
-    const typeFolder = p.is_collection ? 'collections' : 'series';
-
-    const mainImageUrl = String(p.image || '').trim();
-    if (mainImageUrl) {
-      entries.push({
-        url: mainImageUrl,
-        zipPath: `${typeFolder}/${slug}/main${extensionFromUrl(mainImageUrl, '.jpg')}`,
-      });
-    }
-
-    const plateNames = normaliseArray(p.plate_names);
-    const plateImages = normaliseArray(p.plate_images);
-    for (let i = 0; i < plateImages.length; i += 1) {
-      const url = String(plateImages[i] || '').trim();
-      if (!url) continue;
-      const name = safeSegment(plateNames[i] || `plate-${String(i + 1).padStart(2, '0')}`);
-      entries.push({
-        url,
-        zipPath: `${typeFolder}/${slug}/plates/${String(i + 1).padStart(2, '0')}-${name}${extensionFromUrl(url, '.png')}`,
-      });
-    }
-
-    // Exported plate PNGs (creator export)
-    try {
-      const objects = await listAllObjects(supabase, bucket, `exports/${slug}`);
-      for (const item of objects) {
-        const file = item.name;
-        if (!file) continue;
-        const storagePath = `exports/${slug}/${file}`;
-        entries.push({
-          url: `${process.env.SUPABASE_URL}/storage/v1/object/public/${bucket}/${storagePath}`,
-          zipPath: `${typeFolder}/${slug}/plates/export-${file}`,
-        });
-      }
-    } catch (err) {
-      // ignore
-    }
-  }
-
-  // Bundles -> nested product folders
-  if (includeBundles) {
-    for (const b of bundles) {
-      const bundleSlug = String(b.slug || '').trim();
-      if (!bundleSlug) continue;
-      const itemSlugs = normaliseArray(b.items)
-        .map((item) => {
-          if (typeof item === 'string') return item.trim();
-          if (item && typeof item === 'object') return String(item.slug || item.id || item.name || '').trim();
-          return '';
-        })
-        .filter(Boolean);
-
-      for (const itemSlug of itemSlugs) {
-        const p = productLookup[itemSlug];
-        if (!p) continue;
-
-        const mainImageUrl = String(p.image || '').trim();
-        if (mainImageUrl) {
-          entries.push({
-            url: mainImageUrl,
-            zipPath: `bundles/${bundleSlug}/${itemSlug}/main${extensionFromUrl(mainImageUrl, '.jpg')}`,
-          });
-        }
-
-        const plateNames = normaliseArray(p.plate_names);
-        const plateImages = normaliseArray(p.plate_images);
-        for (let i = 0; i < plateImages.length; i += 1) {
-          const url = String(plateImages[i] || '').trim();
-          if (!url) continue;
-          const name = safeSegment(plateNames[i] || `plate-${String(i + 1).padStart(2, '0')}`);
-          entries.push({
-            url,
-            zipPath: `bundles/${bundleSlug}/${itemSlug}/plates/${String(i + 1).padStart(2, '0')}-${name}${extensionFromUrl(url, '.png')}`,
-          });
-        }
-
-        try {
-          const objects = await listAllObjects(supabase, bucket, `exports/${itemSlug}`);
-          for (const item of objects) {
-            const file = item.name;
-            if (!file) continue;
-            const storagePath = `exports/${itemSlug}/${file}`;
-            entries.push({
-              url: `${process.env.SUPABASE_URL}/storage/v1/object/public/${bucket}/${storagePath}`,
-              zipPath: `bundles/${bundleSlug}/${itemSlug}/plates/export-${file}`,
-            });
-          }
-        } catch (err) {
-          // ignore
-        }
-      }
-    }
-  }
-
-  return dedupeByPath(entries);
-}
-
-async function listAllObjects(supabase, bucket, path) {
-  const items = [];
-  const limit = 1000;
-  let offset = 0;
-  while (true) {
-    const { data, error } = await supabase.storage.from(bucket).list(path, { limit, offset });
-    if (error) throw error;
-    const page = Array.isArray(data) ? data : [];
-    items.push(...page);
-    if (page.length < limit) break;
-    offset += page.length;
-  }
-  return items;
-}
-
-function safeSegment(value) {
-  return String(value || '')
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9_-]+/g, '-')
-    .replace(/^-+|-+$/g, '') || 'item';
-}
-
-async function buildZip(entries) {
+async function buildZip({ supabase, bucket, entries }) {
   const archive = archiver('zip', { zlib: { level: 9 } });
   const output = new PassThrough();
   const chunks = [];
   const skipped = [];
 
   const done = new Promise((resolve, reject) => {
-    output.on('data', (chunk) => chunks.push(chunk));
+    output.on('data', chunk => chunks.push(chunk));
     output.on('end', resolve);
     output.on('error', reject);
     archive.on('error', reject);
@@ -309,17 +131,23 @@ async function buildZip(entries) {
 
   for (const entry of entries) {
     try {
-      const buffer = await fetchBuffer(entry.url);
+      const buffer = await downloadStorageBuffer(supabase, bucket, entry.storagePath);
       archive.append(buffer, { name: entry.zipPath });
     } catch (err) {
-      skipped.push({ zipPath: entry.zipPath, url: entry.url, error: err.message || String(err) });
+      skipped.push({
+        storagePath: entry.storagePath,
+        zipPath: entry.zipPath,
+        error: err.message || String(err)
+      });
     }
   }
 
   if (skipped.length) {
     archive.append(
       Buffer.from(
-        skipped.map((s) => `${s.zipPath}\n  ${s.url}\n  ${s.error}`).join('\n\n'),
+        skipped
+          .map(item => `${item.zipPath}\n  ${item.storagePath}\n  ${item.error}`)
+          .join('\n\n'),
         'utf8'
       ),
       { name: 'errors.txt' }
@@ -332,21 +160,7 @@ async function buildZip(entries) {
   return { buffer: Buffer.concat(chunks), skipped };
 }
 
-async function fetchBuffer(url) {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Failed to fetch (${res.status})`);
-  return Buffer.from(await res.arrayBuffer());
+function isMissingManifestError(error) {
+  const text = `${error && error.statusCode ? error.statusCode : ''} ${error && error.error ? error.error : ''} ${error && error.message ? error.message : ''}`;
+  return /not found|does not exist|no such|404/i.test(text);
 }
-
-function json(statusCode, body) {
-  return {
-    statusCode,
-    headers: {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-      'Cache-Control': 'no-store, max-age=0',
-    },
-    body: JSON.stringify(body),
-  };
-}
-
