@@ -1,11 +1,9 @@
 const { createClient } = require('@supabase/supabase-js');
 const {
   inferPlateCount,
-  isMissingColumnError,
   normalisePlateMap,
   normaliseStringArray,
-  resolvePlatePricing,
-  stripAdvancedPlateFields
+  resolvePlatePricing
 } = require('./plate-helpers');
 
 const supabase = createClient(
@@ -13,51 +11,67 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-function buildPayload(product) {
-  const plateCount = inferPlateCount(product);
-  const plateMap = normalisePlateMap(product, plateCount);
-  const plateNames = normaliseStringArray(product, ['plate_names', 'plateNames', 'panel_names', 'panelNames'], plateCount);
-  const plateImages = normaliseStringArray(product, ['plate_images', 'plateImages', 'panel_images', 'panelImages'], plateCount);
-  const pricing = resolvePlatePricing(product, plateCount);
-  const parsedPrice = Number.isFinite(pricing.setPrice) ? pricing.setPrice : 0;
+async function resolveCategoryId(product) {
+  const directId = Number(product.category_id || product.categoryId);
+  if (Number.isFinite(directId) && directId > 0) return directId;
 
-  return {
-    slug:             product.slug,
-    name:             product.name,
-    category:         product.category || null,
-    price:            parsedPrice,
-    price_label:      product.price_label || product.priceLabel || null,
-    short:            product.short || null,
-    description:      product.description || null,
-    note:             product.note || null,
-    accent:           product.accent || null,
-    size:             product.size || null,
-    material:         product.material || null,
-    pieces:           plateCount,
-    plate_count:      plateCount,
-    plate_unit_price: pricing.unitPrice,
-    plate_set_price:  pricing.setPrice,
-    panel_hint:       product.panel_hint || product.panelHint || null,
-    image:            product.image || null,
-    wall_image:       product.wall_image || product.wallImage || null,
-    wall_source_image: product.wall_source_image || product.wallSourceImage || null,
-    is_collection:    !!product.is_collection || !!product.isCollection,
-    in_stock:         product.in_stock !== false && product.inStock !== false,
-    is_published:     product.is_published !== false && product.isPublished !== false,
-    plate_names:      nullIfBlankArray(plateNames),
-    plate_images:     nullIfBlankArray(plateImages),
-    plate_map:        plateMap,
-    panel_names:      nullIfBlankArray(plateNames),
-    panel_images:     nullIfBlankArray(plateImages),
-    panel_map:        plateMap,
-    updated_at:       new Date().toISOString()
-  };
+  const raw = String(product.category_slug || product.categorySlug || product.category || '').trim();
+  if (!raw) return null;
+
+  const { data, error } = await supabase
+    .from('categories')
+    .select('id,slug,name')
+    .or(`slug.eq.${raw},name.eq.${raw}`)
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data && data.id ? data.id : null;
 }
 
-function nullIfBlankArray(values) {
-  const cleaned = (Array.isArray(values) ? values : [])
-    .map(value => (value == null ? '' : String(value).trim()));
-  return cleaned.some(Boolean) ? cleaned : null;
+function buildPlates(product, plateCount) {
+  const names = normaliseStringArray(product, ['plate_names', 'plateNames', 'panel_names', 'panelNames'], plateCount);
+  const images = normaliseStringArray(product, ['plate_images', 'plateImages', 'panel_images', 'panelImages'], plateCount);
+  return names.map((name, index) => ({
+    position: index + 1,
+    name: String(name || '').trim() || `Plate ${index + 1}`,
+    image: String(images[index] || '').trim() || null
+  }));
+}
+
+async function buildPayload(product) {
+  const plateCount = inferPlateCount(product);
+  const plateMap = normalisePlateMap(product, plateCount);
+  const categoryId = await resolveCategoryId(product);
+  const pricing = resolvePlatePricing(product, plateCount);
+
+  return {
+    plateRows: buildPlates(product, plateCount),
+    slug: product.slug,
+    name: product.name,
+    category_id: categoryId,
+    price: Number.isFinite(pricing.setPrice) ? pricing.setPrice : null,
+    short_description: product.short_description || product.short || null,
+    description: product.description || null,
+    note: product.note || null,
+    accent: product.accent || null,
+    size: product.size || null,
+    material: product.material || null,
+    plate_count: plateCount,
+    plate_unit_price: pricing.unitPrice,
+    panel_hint: product.panel_hint || product.panelHint || null,
+    image: product.image || null,
+    wall_image: product.wall_image || product.wallImage || null,
+    wall_source_image: product.wall_source_image || product.wallSourceImage || null,
+    is_collection: !!product.is_collection || !!product.isCollection,
+    in_stock: product.in_stock !== false && product.inStock !== false,
+    is_published: product.is_published !== false && product.isPublished !== false,
+    deleted_at: Object.prototype.hasOwnProperty.call(product, 'deleted_at')
+      ? product.deleted_at
+      : (Object.prototype.hasOwnProperty.call(product, 'deletedAt') ? product.deletedAt : null),
+    plate_map: plateMap,
+    updated_at: new Date().toISOString()
+  };
 }
 
 function splitBundleItems(value) {
@@ -79,7 +93,7 @@ function buildBundlePayload(product) {
   const name = String(bundle.name || product.name || '').trim();
   const price = String(bundle.price || product.bundle_price || product.bundlePrice || product.price || '').trim();
   const items = splitBundleItems(bundle.items || product.bundle_items || product.bundleItems);
-  const text = String(bundle.text || product.bundle_text || product.bundleText || product.short || product.description || '').trim();
+  const text = String(bundle.text || product.bundle_text || product.bundleText || product.short_description || product.short || product.description || '').trim();
 
   return {
     slug,
@@ -92,17 +106,31 @@ function buildBundlePayload(product) {
 }
 
 async function upsertProduct(payload) {
-  const result = await supabase
-    .from('products')
-    .upsert(payload, { onConflict: 'slug' });
+  const productPayload = { ...payload };
+  const plateRows = Array.isArray(productPayload.plateRows) ? productPayload.plateRows : [];
+  delete productPayload.plateRows;
 
-  if (!result.error) return result;
-  if (!isMissingColumnError(result.error)) return result;
-
-  console.warn('save-product: advanced plate columns missing, falling back to legacy payload');
-  return supabase
+  const upsertResult = await supabase
     .from('products')
-    .upsert(stripAdvancedPlateFields(payload), { onConflict: 'slug' });
+    .upsert(productPayload, { onConflict: 'slug' })
+    .select('id,slug')
+    .single();
+
+  if (upsertResult.error) return upsertResult;
+
+  const productId = upsertResult.data && upsertResult.data.id;
+  if (!productId) return upsertResult;
+
+  const del = await supabase.from('product_plates').delete().eq('product_id', productId);
+  if (del.error) return { error: del.error };
+
+  if (plateRows.length) {
+    const rows = plateRows.map(row => ({ ...row, product_id: productId }));
+    const ins = await supabase.from('product_plates').insert(rows);
+    if (ins.error) return { error: ins.error };
+  }
+
+  return { data: upsertResult.data, error: null };
 }
 
 async function upsertBundle(payload) {
@@ -152,7 +180,7 @@ exports.handler = async (event) => {
 
     const { error } = isBundle
       ? await upsertBundle(bundlePayload)
-      : await upsertProduct(buildPayload(product));
+      : await upsertProduct(await buildPayload(product));
 
     if (error) {
       console.error('save-product supabase error:', error);

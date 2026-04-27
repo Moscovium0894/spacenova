@@ -2,9 +2,9 @@ const { createClient } = require('@supabase/supabase-js');
 const {
   inferPlateCount,
   normalisePlateMap,
-  normaliseStringArray,
   resolvePlatePricing
 } = require('./plate-helpers');
+const { PRODUCT_SELECT, getProductImageUrl, mapProductPlates } = require('./product-data');
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -14,18 +14,19 @@ const supabase = createClient(
 function normaliseProduct(p) {
   const plateCount = inferPlateCount(p);
   const plateMap = normalisePlateMap(p, plateCount);
-  const plateNames = normaliseStringArray(p, ['plate_names', 'plateNames', 'panel_names', 'panelNames'], plateCount);
-  const plateImages = normaliseStringArray(p, ['plate_images', 'plateImages', 'panel_images', 'panelImages'], plateCount);
+  const plateData = mapProductPlates(p, plateCount);
   const pricing = resolvePlatePricing(p, plateCount);
 
   return {
     id:             p.id != null ? String(p.id) : p.slug,
     slug:           p.slug,
     name:           p.name,
-    category:       p.category,
+    category:       p.categories?.name || null,
+    categorySlug:   p.categories?.slug || null,
+    categoryId:     p.category_id || p.categories?.id || null,
     price:          pricing.setPrice,
     priceLabel:     p.price_label,
-    short:          p.short,
+    short:          p.short_description,
     description:    p.description,
     note:           p.note,
     accent:         p.accent,
@@ -36,19 +37,20 @@ function normaliseProduct(p) {
     plateUnitPrice: pricing.unitPrice,
     plateSetPrice:  pricing.setPrice,
     panelHint:      p.panel_hint,
-    image:          p.image,
-    wallImage:      p.wall_image || null,
-    wallSourceImage: p.wall_source_image || null,
+    image:          getProductImageUrl(p.image),
+    wallImage:      getProductImageUrl(p.wall_image),
+    wallSourceImage: getProductImageUrl(p.wall_source_image),
     updatedAt:      p.updated_at || null,
     isCollection:   !!p.is_collection,
     isBundle:       !!p.is_bundle,
     inStock:        p.in_stock !== false,
     isPublished:    p.is_published !== false,
-    plateNames,
-    plateImages,
+    plateNames:     plateData.names,
+    plateImages:    plateData.images,
+    productPlates:  plateData.rows,
     plateMap,
-    panelNames:     plateNames,
-    panelImages:    plateImages,
+    panelNames:     plateData.names,
+    panelImages:    plateData.images,
     panelMap:       plateMap
   };
 }
@@ -129,8 +131,10 @@ exports.handler = async (event) => {
     const [productsRes, bundles, featuredRows, dealsRows] = await Promise.all([
       supabase
         .from('products')
-        .select('*')
+        .select(PRODUCT_SELECT)
+        .is('deleted_at', null)
         .eq('is_published', true)
+        .eq('in_stock', true)
         .order('created_at', { ascending: false }),
       queryOptional('bundles', '*', 'name'),
       queryOptional('featured_slugs', 'slug, sort_order', 'sort_order'),
@@ -156,6 +160,8 @@ exports.handler = async (event) => {
       .sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0))
       .map(row => row.slug)
       .filter(Boolean);
+    const activeProductSlugs = new Set(products.map(product => product.slug).filter(Boolean));
+    const deals = (dealsRows || []).filter(deal => !deal.product_slug || activeProductSlugs.has(deal.product_slug));
 
     return {
       statusCode: 200,
@@ -167,7 +173,7 @@ exports.handler = async (event) => {
       body: JSON.stringify({
         products,
         bundles: bundles.map(bundle => normaliseBundle(bundle, productLookup)),
-        deals: dealsRows,
+        deals,
         featuredSlugs
       })
     };
