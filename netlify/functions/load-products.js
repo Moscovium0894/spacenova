@@ -41,6 +41,7 @@ function normaliseProduct(p) {
     updatedAt:       p.updated_at || null,
     isCollection:    !!p.is_collection,
     isBundle:        !!p.is_bundle,
+    inStock:         p.in_stock !== false,
     isPublished:     p.is_published !== false,
     plateNames,
     plateImages,

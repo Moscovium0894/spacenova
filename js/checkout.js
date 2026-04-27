@@ -110,6 +110,10 @@
     try { return raw ? JSON.parse(raw) : []; } catch(e) { return []; }
   }
 
+  function basketHasOutOfStock() {
+    return getBasket().some(function(item) { return item && item.inStock === false; });
+  }
+
   function getShippingCost(method, subtotal) {
     var opt = SHIPPING_OPTIONS[method];
     if (!opt) return 0;
@@ -204,10 +208,11 @@
       var qty = item.qty || item.quantity || 1;
       var lineTotal = (item.price || 0) * qty;
       var plateLine = formatPlateLine(item);
+      var itemPriceLabel = item.inStock === false ? 'Out of stock' : fmt(lineTotal);
       return '<div class="co-item"><span class="co-item-name">' + item.name +
         (qty > 1 ? ' &times;' + qty : '') +
         (plateLine ? '<small style="display:block;color:var(--muted);font-size:.68rem;margin-top:3px">' + plateLine + '</small>' : '') +
-        '</span><span class="co-item-price">' + fmt(lineTotal) + '</span></div>';
+        '</span><span class="co-item-price">' + itemPriceLabel + '</span></div>';
     }).join('');
 
     var sub = basket.reduce(function(s, i) { return s + (i.price || 0) * (i.qty || i.quantity || 1); }, 0);
@@ -324,6 +329,13 @@
   }
 
   async function init() {
+    if (basketHasOutOfStock()) {
+      showError('Your basket includes out of stock items. Remove them before checkout.');
+      if (submitBtn) submitBtn.disabled = true;
+      populateSummary();
+      return;
+    }
+
     /* 1. Load shipping options from Supabase */
     try {
       var shData = await fetchJSONWithRetry('/.netlify/functions/load-shipping-options', { cache: 'no-store' }, 1);

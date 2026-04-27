@@ -245,28 +245,29 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
     grid.innerHTML = products.map(function(p) {
+      var isOutOfStock = p.inStock === false;
       var desc = (p.description || '').substring(0, 80) + ((p.description || '').length > 80 ? '\u2026' : '');
       if (p.isBundle || p.recordType === 'bundle') {
-        return '<article class="card bundle-card">' +
+        return '<article class="card bundle-card' + (isOutOfStock ? ' out-of-stock-card' : '') + '">' +
           cardMedia(p) +
           '<div class="bundle-card-inner">' +
             '<h3>' + esc(p.name) + '</h3>' +
             '<p class="muted">' + desc + '</p>' +
-            '<div class="price">&pound;' + parseFloat(p.price || 0).toFixed(2) + '</div>' +
+            '<div class="price">' + (isOutOfStock ? 'Out of Stock' : '&pound;' + parseFloat(p.price || 0).toFixed(2)) + '</div>' +
           '</div>' +
           bundleIncludes(p) +
           '<div class="card-actions">' +
-            '<button class="btn btn-primary btn-sm bundle-add-btn" type="button" data-slug="' + esc(p.slug || p.id) + '">Add bundle</button>' +
+            '<button class="btn btn-primary btn-sm bundle-add-btn" type="button" data-slug="' + esc(p.slug || p.id) + '"' + (isOutOfStock ? ' disabled aria-disabled="true"' : '') + '>' + (isOutOfStock ? 'Out of Stock' : 'Add bundle') + '</button>' +
           '</div>' +
         '</article>';
       }
-      return '<a class="card card-link" href="/product.html?slug=' + (p.slug || p.id) + '">' +
+      return '<a class="card card-link' + (isOutOfStock ? ' out-of-stock-card' : '') + '" href="/product.html?slug=' + (p.slug || p.id) + '">' +
         cardMedia(p) +
         '<div class="card-body">' +
           '<h3>' + esc(p.name) + '</h3>' +
           '<p class="muted">' + desc + '</p>' +
           '<div class="card-price-row">' +
-            '<div class="price">&pound;' + parseFloat(p.price || 0).toFixed(2) + '</div>' +
+            '<div class="price">' + (isOutOfStock ? 'Out of Stock' : '&pound;' + parseFloat(p.price || 0).toFixed(2)) + '</div>' +
             (getActiveDealBadge(p.slug || p.id)
               ? '<span class="card-deal-badge">' + esc(getActiveDealBadge(p.slug || p.id)) + '</span>'
               : '') +
@@ -276,10 +277,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }).join('');
     grid.querySelectorAll('.bundle-add-btn').forEach(function(btn) {
       btn.addEventListener('click', function() {
+        if (btn.disabled) return;
         var bundle = allProducts.find(function(item) { return (item.slug || item.id) === btn.dataset.slug; });
-        if (!bundle || !window.addToBasket) return;
+        if (!bundle || !window.addToBasket || bundle.inStock === false) return;
         window.addToBasket({
           id: 'bundle-' + (bundle.slug || bundle.id),
+          productSlug: bundle.slug || bundle.id,
           slug: bundle.slug || bundle.id,
           name: bundle.name,
           price: parseFloat(bundle.price || 0),

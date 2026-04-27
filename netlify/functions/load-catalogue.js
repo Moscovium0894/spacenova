@@ -42,6 +42,7 @@ function normaliseProduct(p) {
     updatedAt:      p.updated_at || null,
     isCollection:   !!p.is_collection,
     isBundle:       !!p.is_bundle,
+    inStock:        p.in_stock !== false,
     isPublished:    p.is_published !== false,
     plateNames,
     plateImages,
@@ -70,6 +71,9 @@ function normaliseBundle(b, productLookup) {
   const matchedProducts = items
     .map(item => productLookup[item.slug])
     .filter(Boolean);
+  const allMatchedInStock = matchedProducts.length
+    ? matchedProducts.every(product => product.inStock !== false)
+    : true;
   const firstProduct = matchedProducts[0] || null;
   const price = Number.parseFloat(b.price || 0) || 0;
 
@@ -85,6 +89,7 @@ function normaliseBundle(b, productLookup) {
     wallImage:     firstProduct && firstProduct.wallImage ? firstProduct.wallImage : null,
     isCollection:  true,
     isBundle:      true,
+    inStock:       allMatchedInStock,
     isPublished:   true,
     items,
     itemSlugs:     items.map(item => item.slug).filter(Boolean),
