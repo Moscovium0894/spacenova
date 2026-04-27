@@ -81,7 +81,7 @@ function normaliseBundle(b, productLookup) {
     .map(p => p && p.image)
     .filter(Boolean)
     .slice(0, 4);
-  const price = Number.parseFloat(b.price || 0) || 0;
+  const price = Number(b.price || 0) || 0;
 
   return {
     id:            b.slug,
@@ -122,6 +122,38 @@ async function queryOptional(table, select, orderColumn) {
   return result.data || [];
 }
 
+async function queryFeaturedRows() {
+  const { data, error } = await supabase
+    .from('featured_slugs')
+    .select('slug, sort_order, products!inner(slug,is_published,deleted_at)')
+    .order('sort_order', { ascending: true })
+    .is('products.deleted_at', null)
+    .eq('products.is_published', true);
+
+  if (error) {
+    console.warn('load-catalogue featured_slugs warning:', error.message || error);
+    return [];
+  }
+  return data || [];
+}
+
+async function queryDealsRows() {
+  const now = new Date().toISOString();
+  const { data, error } = await supabase
+    .from('deals')
+    .select('slug, title, subtitle, badge, type, value, applies_to, product_slug, expires_at, sort_order, active, products!left(slug,deleted_at,is_published,in_stock)')
+    .eq('active', true)
+    .or(`expires_at.is.null,expires_at.gt.${now}`)
+    .order('sort_order', { ascending: true });
+
+  if (error) {
+    console.warn('load-catalogue deals warning:', error.message || error);
+    return [];
+  }
+
+  return (data || []).filter(deal => !deal.products || (deal.products.deleted_at == null && deal.products.is_published === true && deal.products.in_stock !== false));
+}
+
 exports.handler = async (event) => {
   if (event.httpMethod !== 'GET') {
     return { statusCode: 405, body: 'Method Not Allowed' };
@@ -137,8 +169,8 @@ exports.handler = async (event) => {
         .eq('in_stock', true)
         .order('created_at', { ascending: false }),
       queryOptional('bundles', '*', 'name'),
-      queryOptional('featured_slugs', 'slug, sort_order', 'sort_order'),
-      queryOptional('deals', 'slug, title, subtitle, badge, type, value, applies_to, product_slug, expires_at, sort_order', 'sort_order')
+      queryFeaturedRows(),
+      queryDealsRows()
     ]);
 
     if (productsRes.error) {
@@ -156,12 +188,20 @@ exports.handler = async (event) => {
       if (product.slug) productLookup[product.slug] = product;
       if (product.id) productLookup[product.id] = product;
     });
-    const featuredSlugs = featuredRows
-      .sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0))
-      .map(row => row.slug)
-      .filter(Boolean);
-    const activeProductSlugs = new Set(products.map(product => product.slug).filter(Boolean));
-    const deals = (dealsRows || []).filter(deal => !deal.product_slug || activeProductSlugs.has(deal.product_slug));
+    const featuredSlugs = featuredRows.map(row => row.slug).filter(Boolean);
+    const deals = (dealsRows || []).map(deal => ({
+      slug: deal.slug,
+      title: deal.title,
+      subtitle: deal.subtitle,
+      badge: deal.badge,
+      type: deal.type,
+      value: deal.value,
+      applies_to: deal.applies_to,
+      product_slug: deal.product_slug,
+      expires_at: deal.expires_at,
+      sort_order: deal.sort_order,
+      active: deal.active
+    }));
 
     return {
       statusCode: 200,

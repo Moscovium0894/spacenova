@@ -91,7 +91,7 @@ function buildBundlePayload(product) {
   const bundle = product.bundle && typeof product.bundle === 'object' ? product.bundle : {};
   const slug = String(bundle.slug || product.slug || '').trim();
   const name = String(bundle.name || product.name || '').trim();
-  const price = String(bundle.price || product.bundle_price || product.bundlePrice || product.price || '').trim();
+  const price = Number(bundle.price || product.bundle_price || product.bundlePrice || product.price || 0);
   const items = splitBundleItems(bundle.items || product.bundle_items || product.bundleItems);
   const text = String(bundle.text || product.bundle_text || product.bundleText || product.short_description || product.short || product.description || '').trim();
 
@@ -170,7 +170,7 @@ exports.handler = async (event) => {
     const isBundle = !!product.is_bundle || !!product.isBundle;
     const bundlePayload = isBundle ? buildBundlePayload(product) : null;
 
-    if (isBundle && (!bundlePayload.slug || !bundlePayload.name || !bundlePayload.price)) {
+    if (isBundle && (!bundlePayload.slug || !bundlePayload.name || !Number.isFinite(bundlePayload.price) || bundlePayload.price <= 0)) {
       return {
         statusCode: 400,
         headers: { 'Content-Type': 'application/json' },

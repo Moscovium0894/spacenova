@@ -4,53 +4,40 @@ const { createClient } = require('@supabase/supabase-js');
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
-function parseAmount(metaVal, fallbackMinor) {
-  const n = Number(metaVal);
-  if (Number.isFinite(n) && n >= 0) return n;
-  return Number(fallbackMinor || 0) / 100;
-}
+async function setOrderStatusBySession(sessionId, status, paymentIntentId) {
+  if (!sessionId) return;
+  const payload = {
+    status,
+    stripe_session_id: sessionId,
+    stripe_payment_intent: paymentIntentId || null
+  };
 
-function parseItems(metaItems) {
-  return String(metaItems || '')
-    .split('|')
-    .filter(Boolean)
-    .map((token) => {
-      const [id, qty, price, name, plateToken, plateCount, priceMode] = token.split('::');
-      const selectedPlateIndexes = String(plateToken || '')
-        .split(',')
-        .filter(value => value !== '')
-        .map(value => Number(value))
-        .filter(Number.isFinite);
-      const count = Number(plateCount || 0);
-      return {
-        id: id || null,
-        qty: Number(qty || 0),
-        price: Number(price || 0),
-        name: name || null,
-        selected_plate_indexes: selectedPlateIndexes,
-        selected_plates: selectedPlateIndexes.map(index => ({ index, number: index + 1 })),
-        plate_count: count || null,
-        is_full_set: count > 0 && selectedPlateIndexes.length === count,
-        price_mode: priceMode || null
-      };
-    });
-}
+  const bySession = await supabase
+    .from('orders')
+    .update(payload)
+    .eq('stripe_session_id', sessionId)
+    .select('id');
 
-async function incrementPromoUse(promoCode) {
-  if (!promoCode) return;
-  const { data, error } = await supabase
-    .from('promo_codes')
-    .select('id,uses_count')
-    .ilike('code', String(promoCode).trim())
-    .single();
-  if (error || !data) {
-    console.warn('Promo usage increment skipped:', error?.message || 'code not found');
-    return;
+  if (bySession.error) throw bySession.error;
+  if (Array.isArray(bySession.data) && bySession.data.length) return;
+
+  if (paymentIntentId) {
+    const byRef = await supabase
+      .from('orders')
+      .update(payload)
+      .eq('ref', paymentIntentId);
+    if (byRef.error) throw byRef.error;
   }
-  await supabase
-    .from('promo_codes')
-    .update({ uses_count: (data.uses_count || 0) + 1 })
-    .eq('id', data.id);
+}
+
+async function setOrderStatusByPaymentIntent(paymentIntentId, status) {
+  if (!paymentIntentId) return;
+  const { error } = await supabase
+    .from('orders')
+    .update({ status, stripe_payment_intent: paymentIntentId })
+    .eq('stripe_payment_intent', paymentIntentId);
+
+  if (error) throw error;
 }
 
 exports.handler = async (event) => {
@@ -72,63 +59,18 @@ exports.handler = async (event) => {
       process.env.STRIPE_WEBHOOK_SECRET
     );
 
-    if (stripeEvent.type === 'payment_intent.succeeded') {
-      const pi = stripeEvent.data.object;
-      const shipping = pi.shipping || {};
-      const shippingAddress = shipping.address || {};
-      const metadata = pi.metadata || {};
+    if (stripeEvent.type === 'checkout.session.completed') {
+      const session = stripeEvent.data.object;
+      const paymentIntentId = session && session.payment_intent
+        ? String(typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent.id)
+        : null;
 
-      const parsedItems = parseItems(metadata.items);
+      await setOrderStatusBySession(session.id, 'paid', paymentIntentId);
+    }
 
-      const payload = {
-        ref: pi.id,
-        stripe_payment_id: pi.id,
-        customer_name: shipping.name || null,
-        email: pi.receipt_email || null,
-        items: parsedItems,
-        subtotal: parseAmount(metadata.subtotal, pi.amount),
-        discount: parseAmount(metadata.discount, 0),
-        shipping_cost: parseAmount(metadata.shipping_cost, 0),
-        shipping_method: metadata.shipping_label || metadata.shipping_method || null,
-        delivery: {
-          full_name: shipping.name || null,
-          address1: shippingAddress.line1 || null,
-          address2: shippingAddress.line2 || null,
-          city: shippingAddress.city || null,
-          state: shippingAddress.state || null,
-          postcode: shippingAddress.postal_code || null,
-          country: shippingAddress.country || null
-        },
-        address: {
-          line1: shippingAddress.line1 || null,
-          line2: shippingAddress.line2 || null,
-          city: shippingAddress.city || null,
-          postcode: shippingAddress.postal_code || null,
-          country: shippingAddress.country || null
-        },
-        total: parseAmount(metadata.total, pi.amount),
-        promo_code: metadata.promo_code || null,
-        created_at: new Date((pi.created || Date.now() / 1000) * 1000).toISOString()
-      };
-
-      const { data: existingOrder } = await supabase
-        .from('orders')
-        .select('ref')
-        .eq('ref', pi.id)
-        .maybeSingle();
-
-      const { error } = await supabase
-        .from('orders')
-        .upsert([payload], { onConflict: 'ref' });
-
-      if (error) {
-        console.error('Failed to persist order from webhook:', error);
-        return { statusCode: 500, body: 'Failed to persist order' };
-      }
-
-      if (!existingOrder) {
-        await incrementPromoUse(metadata.promo_code || null);
-      }
+    if (stripeEvent.type === 'payment_intent.payment_failed') {
+      const paymentIntent = stripeEvent.data.object;
+      await setOrderStatusByPaymentIntent(paymentIntent.id, 'cancelled');
     }
 
     return { statusCode: 200, body: JSON.stringify({ received: true }) };

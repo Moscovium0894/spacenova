@@ -148,6 +148,16 @@ async function upsertProducts(payload) {
   }
 }
 
+
+async function filterExistingProductSlugs(slugs) {
+  const unique = Array.from(new Set((Array.isArray(slugs) ? slugs : []).filter(Boolean)));
+  if (!unique.length) return [];
+  const { data, error } = await supabase.from('products').select('slug').in('slug', unique);
+  if (error) throw error;
+  const allowed = new Set((data || []).map(row => row.slug));
+  return unique.filter(slug => allowed.has(slug));
+}
+
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
@@ -183,7 +193,7 @@ exports.handler = async (event) => {
     const bundlePayload = bundles.map((bundle) => ({
       slug: bundle.slug,
       name: bundle.name,
-      price: bundle.price,
+      price: Number(bundle.price || 0),
       items: Array.isArray(bundle.items) ? bundle.items : [],
       text: bundle.text || null,
       updated_at: now
@@ -194,10 +204,12 @@ exports.handler = async (event) => {
       url: source.url || null,
       description: source.description || source.desc || null,
       best: source.best || null,
+      product: source.product || source.Product || null,
       updated_at: now
     })).filter((source) => source.name);
 
-    const featuredPayload = featuredSlugs.filter(Boolean).map((slug, i) => ({
+    const validFeaturedSlugs = await filterExistingProductSlugs(featuredSlugs);
+    const featuredPayload = validFeaturedSlugs.map((slug, i) => ({
       slug: slug,
       sort_order: i,
       updated_at: now
