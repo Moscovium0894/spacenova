@@ -1,6 +1,7 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const { createClient } = require('@supabase/supabase-js');
 const { inferPlateCount, resolvePlatePricing } = require('./plate-helpers');
+const { PRODUCT_SELECT } = require('./product-data');
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -152,7 +153,10 @@ async function priceItemsFromCatalogue(items) {
   try {
     const { data, error } = await supabase
       .from('products')
-      .select('*')
+      .select(PRODUCT_SELECT)
+      .is('deleted_at', null)
+      .eq('is_published', true)
+      .eq('in_stock', true)
       .in('slug', slugs);
 
     if (error) {
