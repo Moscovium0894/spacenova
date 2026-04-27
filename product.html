@@ -558,6 +558,7 @@
   // ─── State ──────────────────────────────────────────────────────────────
   var _selected = new Set();
   var _totalPlates = 0;
+  var PRODUCT_OUT_OF_STOCK = false;
 
   // ─── DOM ready ──────────────────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', function () {
@@ -620,6 +621,8 @@
   function renderProduct(p, deal) {
     document.title = p.name + ' — SPACENOVA';
     document.getElementById('bc-name').textContent = p.name;
+    var isOutOfStock = p.inStock === false;
+    PRODUCT_OUT_OF_STOCK = isOutOfStock;
 
     _totalPlates = parseInt(p.plateCount || p.pieces, 10) || 0;
 
@@ -664,13 +667,13 @@
           '<h2>' + esc(p.name) + '</h2>' +
           '<p class="product-tagline">' + esc(p.short || '') + '</p>' +
           '<div class="product-price-row">' +
-            '<span class="product-price-main" id="dynamic-price">&pound;' +
-              PLATE_BUNDLE_PRICE.toFixed(2) +
+            '<span class="product-price-main" id="dynamic-price">' +
+              (isOutOfStock ? 'Out of Stock' : ('&pound;' + PLATE_BUNDLE_PRICE.toFixed(2))) +
             '</span>' +
-            (hasPriceDiscount
+            (!isOutOfStock && hasPriceDiscount
               ? '<span class="product-price-original">&pound;' + baseBundlePrice.toFixed(2) + '</span>'
               : '') +
-            (p.priceLabel ? '<span class="product-price-range">' + esc(p.priceLabel) + '</span>' : '') +
+            (!isOutOfStock && p.priceLabel ? '<span class="product-price-range">' + esc(p.priceLabel) + '</span>' : '') +
           '</div>' +
           (deal && deal.subtitle
             ? '<div class="product-deal-subtitle">' + esc(deal.subtitle) + '</div>'
@@ -679,10 +682,13 @@
             ? '<div class="notice" style="margin-bottom:16px;background:#f0eeea;color:#5a5550;border-color:#d7d2cb">Out of stock — this item cannot be added to basket right now.</div>'
             : '') +
           '<p style="color:var(--muted);font-family:var(--fm);font-size:.68rem;letter-spacing:.06em;margin-bottom:16px">' +
+            (isOutOfStock
+              ? 'This product is currently unavailable'
+              :
             '&pound;' + PLATE_UNIT_PRICE.toFixed(2) + ' per individual plate' +
             (_totalPlates > 1
               ? ' &mdash; full set &pound;' + PLATE_BUNDLE_PRICE.toFixed(2)
-              : '') +
+              : '')) +
           '</p>' +
           '<p style="color:var(--muted);font-size:.9rem;margin-bottom:24px;line-height:1.75">' +
             esc(p.description || '') +
@@ -1039,10 +1045,15 @@
     var dynPrice = document.getElementById('dynamic-price');
 
     var price = calcPrice(count);
-    if (priceEl) priceEl.textContent = '\u00a3' + price.toFixed(2);
-    if (subEl) subEl.innerHTML = priceSub(count, _totalPlates);
+    if (PRODUCT_OUT_OF_STOCK) {
+      if (priceEl) priceEl.textContent = 'Out of Stock';
+      if (subEl) subEl.innerHTML = 'Currently unavailable';
+    } else {
+      if (priceEl) priceEl.textContent = '\u00a3' + price.toFixed(2);
+      if (subEl) subEl.innerHTML = priceSub(count, _totalPlates);
+    }
     if (countEl) countEl.textContent = count + ' of ' + _totalPlates + ' selected';
-    if (dynPrice) dynPrice.textContent = '\u00a3' + price.toFixed(2);
+    if (dynPrice) dynPrice.textContent = PRODUCT_OUT_OF_STOCK ? 'Out of Stock' : '\u00a3' + price.toFixed(2);
 
     var addBtn = document.getElementById('add-to-basket-btn');
     if (addBtn) {
