@@ -43,6 +43,7 @@ function normaliseProduct(p) {
     updatedAt:      p.updated_at || null,
     isCollection:   !!p.is_collection,
     isBundle:       !!p.is_bundle,
+    // Default inStock to true if the column doesn't exist yet
     inStock:        p.in_stock !== false,
     isPublished:    p.is_published !== false,
     plateNames:     plateData.names,
@@ -123,35 +124,45 @@ async function queryOptional(table, select, orderColumn) {
 }
 
 async function queryFeaturedRows() {
-  const { data, error } = await supabase
-    .from('featured_slugs')
-    .select('slug, sort_order, products!inner(slug,is_published,deleted_at)')
-    .order('sort_order', { ascending: true })
-    .is('products.deleted_at', null)
-    .eq('products.is_published', true);
+  try {
+    const { data, error } = await supabase
+      .from('featured_slugs')
+      .select('slug, sort_order, products!inner(slug,is_published,deleted_at)')
+      .order('sort_order', { ascending: true })
+      .is('products.deleted_at', null)
+      .eq('products.is_published', true);
 
-  if (error) {
-    console.warn('load-catalogue featured_slugs warning:', error.message || error);
+    if (error) {
+      console.warn('load-catalogue featured_slugs warning:', error.message || error);
+      return [];
+    }
+    return data || [];
+  } catch (err) {
+    console.warn('load-catalogue featured_slugs error:', err.message || err);
     return [];
   }
-  return data || [];
 }
 
 async function queryDealsRows() {
-  const now = new Date().toISOString();
-  const { data, error } = await supabase
-    .from('deals')
-    .select('slug, title, subtitle, badge, type, value, applies_to, product_slug, expires_at, sort_order, active, products!left(slug,deleted_at,is_published,in_stock)')
-    .eq('active', true)
-    .or(`expires_at.is.null,expires_at.gt.${now}`)
-    .order('sort_order', { ascending: true });
+  try {
+    const now = new Date().toISOString();
+    const { data, error } = await supabase
+      .from('deals')
+      .select('slug, title, subtitle, badge, type, value, applies_to, product_slug, expires_at, sort_order, active')
+      .eq('active', true)
+      .or(`expires_at.is.null,expires_at.gt.${now}`)
+      .order('sort_order', { ascending: true });
 
-  if (error) {
-    console.warn('load-catalogue deals warning:', error.message || error);
+    if (error) {
+      console.warn('load-catalogue deals warning:', error.message || error);
+      return [];
+    }
+
+    return data || [];
+  } catch (err) {
+    console.warn('load-catalogue deals error:', err.message || err);
     return [];
   }
-
-  return (data || []).filter(deal => !deal.products || (deal.products.deleted_at == null && deal.products.is_published === true));
 }
 
 exports.handler = async (event) => {
@@ -160,26 +171,42 @@ exports.handler = async (event) => {
   }
 
   try {
-    const [productsRes, bundles, featuredRows, dealsRows] = await Promise.all([
-      supabase
+    // Build the product select — try with in_stock, fall back without it
+    let productsRes = await supabase
+      .from('products')
+      .select(PRODUCT_SELECT)
+      .is('deleted_at', null)
+      .eq('is_published', true)
+      .order('created_at', { ascending: false });
+
+    // If the query failed (e.g. in_stock column missing), try a fallback select
+    if (productsRes.error) {
+      console.warn('load-catalogue products query error (trying fallback):', productsRes.error.message || productsRes.error);
+
+      // Fallback: remove in_stock from select
+      const FALLBACK_SELECT = PRODUCT_SELECT.replace(',in_stock', '').replace('in_stock,', '');
+      productsRes = await supabase
         .from('products')
-        .select(PRODUCT_SELECT)
+        .select(FALLBACK_SELECT)
         .is('deleted_at', null)
         .eq('is_published', true)
-        .order('created_at', { ascending: false }),
+        .order('created_at', { ascending: false });
+
+      if (productsRes.error) {
+        console.error('load-catalogue products fallback query error:', productsRes.error);
+        return {
+          statusCode: 500,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+          body: JSON.stringify({ error: 'Failed to load products' })
+        };
+      }
+    }
+
+    const [bundles, featuredRows, dealsRows] = await Promise.all([
       queryOptional('bundles', '*', 'name'),
       queryFeaturedRows(),
       queryDealsRows()
     ]);
-
-    if (productsRes.error) {
-      console.error('products query error:', productsRes.error);
-      return {
-        statusCode: 500,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-        body: JSON.stringify({ error: 'Failed to load products' })
-      };
-    }
 
     const products = (productsRes.data || []).map(normaliseProduct);
     const productLookup = {};
