@@ -172,8 +172,18 @@ document.addEventListener('DOMContentLoaded', function() {
   fetch('/.netlify/functions/load-catalogue', { cache: 'no-store' })
     .then(function(r) { return r.json(); })
     .then(function(d) {
-      allProducts = (d.products || [])
+      // FIX: Keep ALL published products including out-of-stock ones.
+      // Out-of-stock items must still appear — they are rendered greyed out
+      // via the .out-of-stock-card CSS class. Do NOT filter by inStock here.
+      var products = (d.products || [])
         .filter(function(p) { return p.isPublished !== false; });
+
+      // FIX: Also merge normalised bundles from d.bundles into the product list
+      // so bundle cards appear in the grid alongside regular products.
+      var bundles = (d.bundles || []).filter(function(b) { return b.isPublished !== false; });
+
+      allProducts = products.concat(bundles);
+
       dealsBySlug = (d.deals || []).reduce(function(map, deal) {
         if (deal && deal.product_slug) map[deal.product_slug] = deal;
         return map;
@@ -186,8 +196,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
   function cardMedia(p) {
-    // If a wall image exists, stack it under the main image so CSS can crossfade on hover.
-    // On touch devices there is no hover — tapping goes straight to product page, which is correct.
     var badge = '<div class="badge-row"><span class="badge badge-accent">' +
       (p.isBundle ? 'Bundle' : p.isCollection ? 'Collection' : 'Series') +
       '</span></div>';
@@ -261,7 +269,7 @@ document.addEventListener('DOMContentLoaded', function() {
       var isOutOfStock = p.inStock === false;
       var desc = (p.description || '').substring(0, 80) + ((p.description || '').length > 80 ? '\u2026' : '');
       if (p.isBundle || p.recordType === 'bundle') {
-        return '<article class="card bundle-card' + (isOutOfStock ? ' out-of-stock-card' : '') + '">' +
+        return '<article class="card bundle-card' + (isOutOfStock ? ' out-of-stock-card' : '') + '"' + (isOutOfStock ? ' aria-label="' + esc(p.name) + ' is out of stock"' : '') + '>' +
           cardMedia(p) +
           '<div class="bundle-card-inner">' +
             '<h3>' + esc(p.name) + '</h3>' +
