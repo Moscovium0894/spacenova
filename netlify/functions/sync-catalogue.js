@@ -101,6 +101,8 @@ async function buildProductPayload(product, now) {
     wall_image:       product.wallImage || product.wall_image || null,
     wall_source_image: product.wallSourceImage || product.wall_source_image || null,
     is_collection:    !!product.isCollection || !!product.is_collection,
+    is_bundle:        !!product.isBundle || !!product.is_bundle,
+    in_stock:         product.inStock !== false && product.in_stock !== false,
     is_published:     product.isPublished !== false && product.is_published !== false,
     plate_map:        plateMap,
     updated_at:       now

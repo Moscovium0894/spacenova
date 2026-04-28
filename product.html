@@ -655,7 +655,7 @@
     if (wallImage) galleryImages.push({ src: wallImage, alt: p.name + ' on wall' });
 
     document.getElementById('product-content').innerHTML =
-      '<div class="product-hero">' +
+      '<div class="product-hero' + (isOutOfStock ? ' product-hero--oos' : '') + '">' +
         '<div class="product-media">' +
           buildGalleryHtml(galleryImages) +
           '<div id="preview-mount"></div>' +
@@ -1048,18 +1048,25 @@
     if (PRODUCT_OUT_OF_STOCK) {
       if (priceEl) priceEl.textContent = 'Out of Stock';
       if (subEl) subEl.innerHTML = 'Currently unavailable';
+      if (dynPrice) dynPrice.textContent = 'Out of Stock';
     } else {
       if (priceEl) priceEl.textContent = '\u00a3' + price.toFixed(2);
       if (subEl) subEl.innerHTML = priceSub(count, _totalPlates);
+      if (dynPrice) dynPrice.textContent = '\u00a3' + price.toFixed(2);
     }
     if (countEl) countEl.textContent = count + ' of ' + _totalPlates + ' selected';
-    if (dynPrice) dynPrice.textContent = PRODUCT_OUT_OF_STOCK ? 'Out of Stock' : '\u00a3' + price.toFixed(2);
 
     var addBtn = document.getElementById('add-to-basket-btn');
     if (addBtn) {
-      addBtn.textContent = count > 0
-        ? 'Add ' + count + ' Plate' + (count !== 1 ? 's' : '') + ' to Basket'
-        : 'Select Plates';
+      if (PRODUCT_OUT_OF_STOCK) {
+        addBtn.textContent = 'Out of Stock';
+        addBtn.disabled = true;
+      } else {
+        addBtn.textContent = count > 0
+          ? 'Add ' + count + ' Plate' + (count !== 1 ? 's' : '') + ' to Basket'
+          : 'Select Plates';
+        addBtn.disabled = false;
+      }
     }
   }
 
