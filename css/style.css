@@ -464,7 +464,6 @@ button { font-family: inherit; }
   text-transform: uppercase;
   color: var(--danger);
 }
-.product-price-oos { color: var(--danger); }
 
 /* ══════════════════════════════════════════
    FILTER BAR
