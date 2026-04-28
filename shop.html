@@ -168,13 +168,12 @@ document.addEventListener('DOMContentLoaded', function() {
   var dealsBySlug = {};
   var activeFilter = 'all';
   var activeSort = 'default';
+  var showOutOfStock = true;
 
   fetch('/.netlify/functions/load-catalogue', { cache: 'no-store' })
     .then(function(r) { return r.json(); })
     .then(function(d) {
-      // FIX: Keep ALL published products including out-of-stock ones.
-      // Out-of-stock items must still appear — they are rendered greyed out
-      // via the .out-of-stock-card CSS class. Do NOT filter by inStock here.
+      // Keep all published products including out-of-stock ones.
       var products = (d.products || [])
         .filter(function(p) { return p.isPublished !== false; });
 
@@ -269,12 +268,12 @@ document.addEventListener('DOMContentLoaded', function() {
       var isOutOfStock = p.inStock === false;
       var desc = (p.description || '').substring(0, 80) + ((p.description || '').length > 80 ? '\u2026' : '');
       if (p.isBundle || p.recordType === 'bundle') {
-        return '<article class="card bundle-card' + (isOutOfStock ? ' out-of-stock-card' : '') + '"' + (isOutOfStock ? ' aria-label="' + esc(p.name) + ' is out of stock"' : '') + '>' +
+        return '<article class="card bundle-card"' + (isOutOfStock ? ' aria-label="' + esc(p.name) + ' is out of stock"' : '') + '>' +
           cardMedia(p) +
           '<div class="bundle-card-inner">' +
             '<h3>' + esc(p.name) + '</h3>' +
             '<p class="muted">' + desc + '</p>' +
-            '<div class="price">' + (isOutOfStock ? 'OUT OF STOCK' : '&pound;' + parseFloat(p.price || 0).toFixed(2)) + '</div>' +
+            '<div class="price' + (isOutOfStock ? ' price-oos' : '') + '">' + (isOutOfStock ? 'OUT OF STOCK' : '&pound;' + parseFloat(p.price || 0).toFixed(2)) + '</div>' +
           '</div>' +
           bundleIncludes(p) +
           '<div class="card-actions">' +
@@ -288,16 +287,13 @@ document.addEventListener('DOMContentLoaded', function() {
           '<h3>' + esc(p.name) + '</h3>' +
           '<p class="muted">' + desc + '</p>' +
           '<div class="card-price-row">' +
-            '<div class="price">' + (isOutOfStock ? 'OUT OF STOCK' : '&pound;' + parseFloat(p.price || 0).toFixed(2)) + '</div>' +
+            '<div class="price' + (isOutOfStock ? ' price-oos' : '') + '">' + (isOutOfStock ? 'OUT OF STOCK' : '&pound;' + parseFloat(p.price || 0).toFixed(2)) + '</div>' +
             ((!isOutOfStock && getActiveDealBadge(p.slug || p.id))
               ? '<span class="card-deal-badge">' + esc(getActiveDealBadge(p.slug || p.id)) + '</span>'
               : '') +
           '</div>' +
         '</div>';
-      if (isOutOfStock) {
-        return '<article class="card out-of-stock-card" aria-label="' + esc(p.name) + ' is out of stock">' + cardInner + '</article>';
-      }
-      return '<a class="card card-link" href="/product.html?slug=' + (p.slug || p.id) + '">' + cardInner + '</a>';
+      return '<a class="card card-link" href="/product.html?slug=' + (p.slug || p.id) + '"' + (isOutOfStock ? ' aria-label="' + esc(p.name) + ' is out of stock"' : '') + '>' + cardInner + '</a>';
     }).join('');
     grid.querySelectorAll('.bundle-add-btn').forEach(function(btn) {
       btn.addEventListener('click', function() {
@@ -334,6 +330,9 @@ document.addEventListener('DOMContentLoaded', function() {
     else if (activeFilter === 'bundle') items = allProducts.filter(function(p) { return p.isBundle || p.recordType === 'bundle'; });
     else if (activeFilter === 'collection') items = allProducts.filter(function(p) { return p.isCollection && !p.isBundle && p.recordType !== 'bundle'; });
     else items = allProducts.filter(function(p) { return !p.isCollection && !p.isBundle && p.recordType !== 'bundle'; });
+    if (!showOutOfStock) {
+      items = items.filter(function(p) { return p.inStock !== false; });
+    }
     renderGrid(sorted(items));
   }
 
@@ -350,6 +349,20 @@ document.addEventListener('DOMContentLoaded', function() {
     activeSort = this.value;
     applyFilters();
   });
+
+  var filterBar = document.getElementById('filter-bar');
+  if (filterBar) {
+    var stockToggle = document.createElement('label');
+    stockToggle.className = 'filter-pill stock-toggle-pill';
+    stockToggle.innerHTML = '<input type="checkbox" id="show-out-of-stock-toggle" checked>Show out of stock';
+    filterBar.appendChild(stockToggle);
+
+    var stockCheckbox = document.getElementById('show-out-of-stock-toggle');
+    stockCheckbox.addEventListener('change', function() {
+      showOutOfStock = stockCheckbox.checked;
+      applyFilters();
+    });
+  }
 });
 </script>
 </body>

@@ -234,13 +234,10 @@ document.addEventListener('DOMContentLoaded', function() {
           '<div class="card-body">' +
             '<h3>' + esc(p.name) + '</h3>' +
             '<p class="muted">' + desc + '</p>' +
-            '<div class="price">' + (isOutOfStock ? 'OUT OF STOCK' : '&pound;' + parseFloat(p.price || 0).toFixed(2)) + '</div>' +
+            '<div class="price' + (isOutOfStock ? ' price-oos' : '') + '">' + (isOutOfStock ? 'OUT OF STOCK' : '&pound;' + parseFloat(p.price || 0).toFixed(2)) + '</div>' +
           '</div>';
 
-        if (isOutOfStock) {
-          return '<article class="card out-of-stock-card" aria-label="' + esc(p.name) + ' — out of stock">' + cardInner + '</article>';
-        }
-        return '<a class="card card-link" href="/product.html?slug=' + (p.slug || p.id) + '">' + cardInner + '</a>';
+        return '<a class="card card-link" href="/product.html?slug=' + (p.slug || p.id) + '"' + (isOutOfStock ? ' aria-label="' + esc(p.name) + ' — out of stock"' : '') + '>' + cardInner + '</a>';
       }).join('');
       if (window.initCardFlickGalleries) window.initCardFlickGalleries(grid);
     })
