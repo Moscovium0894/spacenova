@@ -677,6 +677,12 @@
               : '') +
             (!isOutOfStock && p.priceLabel ? '<span class="product-price-range">' + esc(p.priceLabel) + '</span>' : '') +
           '</div>' +
+<<<<<<< codex/address-multiple-bugs-in-spacenova-hgc8xb
+=======
+          (!isOutOfStock && deal && deal.subtitle
+            ? '<div class="product-deal-subtitle">' + esc(deal.subtitle) + '</div>'
+            : '') +
+>>>>>>> main
           '<p style="color:var(--muted);font-family:var(--fm);font-size:.68rem;letter-spacing:.06em;margin-bottom:16px">' +
             ('&pound;' + PLATE_UNIT_PRICE.toFixed(2) + ' per individual plate' +
             (_totalPlates > 1
