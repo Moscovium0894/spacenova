@@ -151,7 +151,7 @@ async function queryDealsRows() {
     return [];
   }
 
-  return (data || []).filter(deal => !deal.products || (deal.products.deleted_at == null && deal.products.is_published === true && deal.products.in_stock !== false));
+  return (data || []).filter(deal => !deal.products || (deal.products.deleted_at == null && deal.products.is_published === true));
 }
 
 exports.handler = async (event) => {
