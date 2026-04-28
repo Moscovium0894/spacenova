@@ -222,6 +222,8 @@
 
   </aside>
 
+  <div class="rail-resizer" id="rail-resizer" role="separator" aria-label="Resize editor sidebar" aria-orientation="vertical"></div>
+
   <!-- ── PREVIEW STAGE ── -->
   <section class="preview-stage" id="preview-stage">
     <div class="preview-header">
@@ -347,6 +349,7 @@
 
   /* ─── Element cache ─── */
   var E = {};
+  var bundleDragState = { active: false, droppedInside: false, payload: null };
   var HEX_H = 112;
   var HEX_W = 97;
   var ROW_PITCH = 84;
@@ -373,6 +376,9 @@
     E.statusText   = document.getElementById('status-text');
     E.statusDot    = document.getElementById('status-dot');
     E.productSel   = document.getElementById('product-select');
+    E.creatorShell = document.querySelector('.creator-shell');
+    E.editorRail   = document.querySelector('.editor-rail');
+    E.railResizer  = document.getElementById('rail-resizer');
     E.previewStage = document.getElementById('preview-stage');
     E.panelList    = document.getElementById('panel-list');
     E.bundlePanel  = document.getElementById('bundle-panel');
@@ -524,8 +530,53 @@
     });
 
     E.f.slug.addEventListener('input', function () { E.f.slug.dataset.touched = '1'; });
+    initResizableRail();
     bindPlateCustomizer();
     bindBundleBuilder();
+  }
+
+  function initResizableRail() {
+    if (!E.creatorShell || !E.editorRail || !E.railResizer) return;
+    var storedWidth = parseInt(localStorage.getItem('creator_rail_width') || '', 10);
+    if (Number.isFinite(storedWidth)) applyRailWidth(storedWidth);
+
+    E.railResizer.addEventListener('pointerdown', function (event) {
+      if (window.matchMedia('(max-width: 1060px)').matches) return;
+      event.preventDefault();
+      var startX = event.clientX;
+      var current = parseFloat(getComputedStyle(E.creatorShell).getPropertyValue('--rail-width')) || E.editorRail.getBoundingClientRect().width || 460;
+
+      E.railResizer.classList.add('is-dragging');
+      document.body.classList.add('is-resizing-rail');
+      E.railResizer.setPointerCapture(event.pointerId);
+
+      function onMove(moveEvent) {
+        var next = current + (moveEvent.clientX - startX);
+        applyRailWidth(next);
+      }
+
+      function onUp() {
+        E.railResizer.classList.remove('is-dragging');
+        document.body.classList.remove('is-resizing-rail');
+        E.railResizer.removeEventListener('pointermove', onMove);
+        E.railResizer.removeEventListener('pointerup', onUp);
+        E.railResizer.removeEventListener('pointercancel', onUp);
+        var resolved = parseFloat(getComputedStyle(E.creatorShell).getPropertyValue('--rail-width')) || E.editorRail.getBoundingClientRect().width || 460;
+        localStorage.setItem('creator_rail_width', String(Math.round(resolved)));
+      }
+
+      E.railResizer.addEventListener('pointermove', onMove);
+      E.railResizer.addEventListener('pointerup', onUp);
+      E.railResizer.addEventListener('pointercancel', onUp);
+    });
+  }
+
+  function applyRailWidth(value) {
+    if (!E.creatorShell) return;
+    var min = 320;
+    var max = Math.max(min, window.innerWidth - 360);
+    var clamped = Math.max(min, Math.min(max, parseFloat(value) || 460));
+    E.creatorShell.style.setProperty('--rail-width', clamped + 'px');
   }
 
   function bindBundleBuilder() {
@@ -571,7 +622,9 @@
         var slug = item.getAttribute('data-slug') || '';
         var idx = parseInt(item.getAttribute('data-idx') || '', 10);
         if (!slug || !Number.isFinite(idx)) return;
-        e.dataTransfer.setData('text/plain', JSON.stringify({ slug: slug, from: 'bundle', index: idx }));
+        var payload = { slug: slug, from: 'bundle', index: idx };
+        bundleDragState = { active: true, droppedInside: false, payload: payload };
+        e.dataTransfer.setData('text/plain', JSON.stringify(payload));
         e.dataTransfer.effectAllowed = 'move';
       });
 
@@ -588,8 +641,15 @@
       E.bundleDropList.addEventListener('drop', function (e) {
         if (!E.f.isBundle.checked) return;
         e.preventDefault();
+        bundleDragState.droppedInside = true;
         E.bundleDropList.querySelectorAll('.bundle-drop-item').forEach(function (el) { el.classList.remove('is-over'); });
         applyBundleDrop(e);
+      });
+
+      E.bundleDropList.addEventListener('dragend', function () {
+        if (!bundleDragState.active) return;
+        if (!bundleDragState.droppedInside) removeBundleDraggedItem(bundleDragState.payload);
+        bundleDragState = { active: false, droppedInside: false, payload: null };
       });
 
       E.bundleDropList.addEventListener('click', function (e) {
@@ -600,6 +660,32 @@
         var items = getBundleItems().filter(function (s) { return s !== slug; });
         setBundleItems(items);
       });
+    }
+
+    if (E.bundleDropZone) {
+      E.bundleDropZone.addEventListener('drop', function () {
+        bundleDragState.droppedInside = true;
+      });
+    }
+  }
+
+  function removeBundleDraggedItem(payload) {
+    if (!payload || payload.from !== 'bundle') return;
+    var items = getBundleItems();
+    if (!items.length) return;
+
+    var idx = Number.isFinite(payload.index) ? payload.index : -1;
+    if (idx >= 0 && idx < items.length && items[idx] === payload.slug) {
+      items.splice(idx, 1);
+      setBundleItems(items);
+      return;
+    }
+
+    var slug = String(payload.slug || '').trim();
+    var fallbackIdx = items.indexOf(slug);
+    if (fallbackIdx >= 0) {
+      items.splice(fallbackIdx, 1);
+      setBundleItems(items);
     }
   }
 
