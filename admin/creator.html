@@ -1521,14 +1521,19 @@
     if (!mainImage) return { style: 'background:#222;', html: '' };
     var pos = pixelPositions[idx] || { x: bounds.minX, y: bounds.minY };
     var zoom = clampNumber(mainZoom, 1, 2.5, 1);
-    var relX = ((pos.x - bounds.minX + (HEX_W / 2)) / Math.max(1, bounds.width)) * 100;
-    var relY = ((pos.y - bounds.minY + (HEX_H / 2)) / Math.max(1, bounds.height)) * 100;
+    var tileLeft = Math.round(pos.x - bounds.minX);
+    var tileTop = Math.round(pos.y - bounds.minY);
+    var zoomedW = Math.round(Math.max(1, bounds.width) * zoom);
+    var zoomedH = Math.round(Math.max(1, bounds.height) * zoom);
+    var offsetX = Math.round((zoomedW - Math.max(1, bounds.width)) / 2);
+    var offsetY = Math.round((zoomedH - Math.max(1, bounds.height)) / 2);
     return {
       style: 'background:#050505;',
-      html: '<img src="' + escapeSvgAttr(mainImage) + '" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;' +
-        'object-position:' + clampNumber(relX, 0, 100, 50) + '% ' + clampNumber(relY, 0, 100, 50) + '%;' +
-        'transform:scale(' + zoom + ');transform-origin:' + clampNumber(relX, 0, 100, 50) + '% ' + clampNumber(relY, 0, 100, 50) + '%;' +
-        'display:block;max-width:none;pointer-events:none;user-select:none;">'
+      html: '<img src="' + escapeSvgAttr(mainImage) + '" alt="" style="position:absolute;display:block;max-width:none;pointer-events:none;user-select:none;object-fit:cover;' +
+        'width:' + zoomedW + 'px;' +
+        'height:' + zoomedH + 'px;' +
+        'left:-' + Math.round(tileLeft * zoom + offsetX) + 'px;' +
+        'top:-' + Math.round(tileTop * zoom + offsetY) + 'px;">'
     };
   }
 

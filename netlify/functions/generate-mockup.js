@@ -350,6 +350,17 @@ function getBounds(positions) {
 async function createSlicedFramedPieces(productBuffer, positions, bounds, options = {}) {
   const innerW = HEX_W - FRAME_WIDTH * 2;
   const innerH = HEX_H - FRAME_WIDTH * 2;
+  const zoom = clampNumber(options.mainZoom, 1, 2.5, 1);
+  const baseW = Math.max(HEX_W, Math.round(bounds.width));
+  const baseH = Math.max(HEX_H, Math.round(bounds.height));
+  const canvasW = Math.max(HEX_W, Math.round(baseW * zoom));
+  const canvasH = Math.max(HEX_H, Math.round(baseH * zoom));
+  const offsetX = Math.round((canvasW - baseW) / 2);
+  const offsetY = Math.round((canvasH - baseH) / 2);
+  const imageCanvas = await sharp(productBuffer)
+    .resize(canvasW, canvasH, { fit: 'cover' })
+    .png()
+    .toBuffer();
 
   const outerMask = Buffer.from(hexMaskSvg(HEX_W, HEX_H));
   const innerMask = Buffer.from(hexMaskSvg(innerW, innerH));
@@ -375,14 +386,16 @@ async function createSlicedFramedPieces(productBuffer, positions, bounds, option
         normaliseTransform(options.plateTransforms && options.plateTransforms[i])
       );
     } else {
-      const mainTransform = normaliseMainImageTransform(pos, bounds, options.mainZoom);
-      slice = await createIndividualPlateSlice(
-        productBuffer,
-        innerW,
-        innerH,
-        innerMask,
-        mainTransform
-      );
+      const tileLeft = Math.max(0, Math.round((pos.x - bounds.minX) * zoom + offsetX));
+      const tileTop = Math.max(0, Math.round((pos.y - bounds.minY) * zoom + offsetY));
+      const safeLeft = Math.min(tileLeft, Math.max(0, canvasW - HEX_W));
+      const safeTop = Math.min(tileTop, Math.max(0, canvasH - HEX_H));
+      slice = await sharp(imageCanvas)
+        .extract({ left: safeLeft, top: safeTop, width: HEX_W, height: HEX_H })
+        .resize(innerW, innerH, { fit: 'cover' })
+        .composite([{ input: innerMask, blend: 'dest-in' }])
+        .png()
+        .toBuffer();
     }
 
     const frame = await sharp({
@@ -479,19 +492,6 @@ function getPlateTransforms(product, count) {
 
 function getMainZoom(product) {
   return clampNumber(product && (product.main_zoom ?? product.mainZoom), 1, 2.5, 1);
-}
-
-function normaliseMainImageTransform(position, bounds, mainZoom) {
-  const width = Math.max(1, bounds && bounds.width ? bounds.width : HEX_W);
-  const height = Math.max(1, bounds && bounds.height ? bounds.height : HEX_H);
-  const x = clampNumber((((position && position.x) || 0) - (bounds && bounds.minX || 0) + HEX_W * 0.5) / width * 100, 0, 100, 50);
-  const y = clampNumber((((position && position.y) || 0) - (bounds && bounds.minY || 0) + HEX_H * 0.5) / height * 100, 0, 100, 50);
-  return {
-    fit: 'cover',
-    x,
-    y,
-    scale: clampNumber(mainZoom, 1, 2.5, 1)
-  };
 }
 
 function getIndividualPlateImage(value, mainImageUrl) {
