@@ -464,6 +464,13 @@ button { font-family: inherit; }
   text-transform: uppercase;
   color: var(--danger);
 }
+.product-price-main.is-out-of-stock {
+  font-family: var(--fm);
+  font-size: 1.2rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--danger);
+}
 
 /* ══════════════════════════════════════════
    FILTER BAR

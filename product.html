@@ -361,6 +361,7 @@
       color: var(--gold);
       line-height: 1;
     }
+    .plate-preview-price.is-out-of-stock { color: var(--danger); }
     .plate-preview-price-sub {
       font-family: var(--fm);
       font-size: .62rem;
@@ -368,6 +369,7 @@
       margin-top: 3px;
       letter-spacing: .04em;
     }
+    .plate-preview-price-sub.is-out-of-stock { color: var(--danger); text-transform: uppercase; letter-spacing: .08em; }
     .plate-preview-actions {
       display: flex;
       gap: 8px;
@@ -667,8 +669,8 @@
           '<h2>' + esc(p.name) + '</h2>' +
           '<p class="product-tagline">' + esc(p.short || '') + '</p>' +
           '<div class="product-price-row">' +
-            '<span class="product-price-main" id="dynamic-price">' +
-              ('&pound;' + PLATE_BUNDLE_PRICE.toFixed(2)) +
+            '<span class="product-price-main' + (isOutOfStock ? ' is-out-of-stock' : '') + '" id="dynamic-price">' +
+              (isOutOfStock ? 'OUT OF STOCK' : ('&pound;' + PLATE_BUNDLE_PRICE.toFixed(2))) +
             '</span>' +
             (!isOutOfStock && hasPriceDiscount
               ? '<span class="product-price-original">&pound;' + baseBundlePrice.toFixed(2) + '</span>'
@@ -677,9 +679,6 @@
           '</div>' +
           (!isOutOfStock && deal && deal.subtitle
             ? '<div class="product-deal-subtitle">' + esc(deal.subtitle) + '</div>'
-            : '') +
-          (isOutOfStock
-            ? '<div class="notice" style="margin-bottom:16px;background:#f0eeea;color:#5a5550;border-color:#d7d2cb">Currently unavailable.</div>'
             : '') +
           '<p style="color:var(--muted);font-family:var(--fm);font-size:.68rem;letter-spacing:.06em;margin-bottom:16px">' +
             ('&pound;' + PLATE_UNIT_PRICE.toFixed(2) + ' per individual plate' +
@@ -885,8 +884,8 @@
         '</div>' +
         '<div class="plate-preview-footer">' +
           '<div>' +
-            '<div class="plate-preview-price" id="preview-price">&pound;' + PLATE_BUNDLE_PRICE.toFixed(2) + '</div>' +
-            '<div class="plate-preview-price-sub" id="preview-price-sub">' + priceSub(_totalPlates, _totalPlates) + '</div>' +
+            '<div class="plate-preview-price' + (PRODUCT_OUT_OF_STOCK ? ' is-out-of-stock' : '') + '" id="preview-price">&pound;' + PLATE_BUNDLE_PRICE.toFixed(2) + '</div>' +
+            '<div class="plate-preview-price-sub' + (PRODUCT_OUT_OF_STOCK ? ' is-out-of-stock' : '') + '" id="preview-price-sub">' + (PRODUCT_OUT_OF_STOCK ? 'OUT OF STOCK' : priceSub(_totalPlates, _totalPlates)) + '</div>' +
           '</div>' +
           '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
             '<span class="plate-count-chip" id="preview-count">' + _totalPlates + ' of ' + _totalPlates + ' selected</span>' +
@@ -1045,9 +1044,18 @@
     var dynPrice = document.getElementById('dynamic-price');
 
     var price = calcPrice(count);
-    if (priceEl) priceEl.textContent = '\u00a3' + price.toFixed(2);
-    if (subEl) subEl.innerHTML = priceSub(count, _totalPlates);
-    if (dynPrice) dynPrice.textContent = '\u00a3' + price.toFixed(2);
+    if (priceEl) {
+      priceEl.textContent = '\u00a3' + price.toFixed(2);
+      priceEl.classList.toggle('is-out-of-stock', PRODUCT_OUT_OF_STOCK);
+    }
+    if (subEl) {
+      subEl.innerHTML = PRODUCT_OUT_OF_STOCK ? 'OUT OF STOCK' : priceSub(count, _totalPlates);
+      subEl.classList.toggle('is-out-of-stock', PRODUCT_OUT_OF_STOCK);
+    }
+    if (dynPrice) {
+      dynPrice.textContent = PRODUCT_OUT_OF_STOCK ? 'OUT OF STOCK' : ('\u00a3' + price.toFixed(2));
+      dynPrice.classList.toggle('is-out-of-stock', PRODUCT_OUT_OF_STOCK);
+    }
     if (countEl) countEl.textContent = count + ' of ' + _totalPlates + ' selected';
     var addBtn = document.getElementById('add-to-basket-btn');
     if (addBtn) {
