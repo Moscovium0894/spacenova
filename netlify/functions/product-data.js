@@ -25,7 +25,6 @@ const PRODUCT_SELECT = [
   'deleted_at',
   'plate_count',
   'plate_unit_price',
-  'plate_set_price',
   'plate_map',
   'created_at',
   'updated_at',
