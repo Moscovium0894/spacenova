@@ -166,6 +166,7 @@ exports.handler = async (event) => {
         .select(PRODUCT_SELECT)
         .is('deleted_at', null)
         .eq('is_published', true)
+        .eq('in_stock', true)
         .order('created_at', { ascending: false }),
       queryOptional('bundles', '*', 'name'),
       queryFeaturedRows(),
