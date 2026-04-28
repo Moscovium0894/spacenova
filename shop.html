@@ -282,7 +282,7 @@ document.addEventListener('DOMContentLoaded', function() {
           '<p class="muted">' + desc + '</p>' +
           '<div class="card-price-row">' +
             '<div class="price">' + (isOutOfStock ? 'Out of Stock' : '&pound;' + parseFloat(p.price || 0).toFixed(2)) + '</div>' +
-            (getActiveDealBadge(p.slug || p.id)
+            ((!isOutOfStock && getActiveDealBadge(p.slug || p.id))
               ? '<span class="card-deal-badge">' + esc(getActiveDealBadge(p.slug || p.id)) + '</span>'
               : '') +
           '</div>' +

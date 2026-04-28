@@ -26,7 +26,7 @@ function normaliseProduct(p) {
     categoryId:     p.category_id || p.categories?.id || null,
     price:          pricing.setPrice,
     priceLabel:     p.price_label,
-    short:          p.short_description,
+    short:          p.short_description || p.short,
     description:    p.description,
     note:           p.note,
     accent:         p.accent,
@@ -166,7 +166,6 @@ exports.handler = async (event) => {
         .select(PRODUCT_SELECT)
         .is('deleted_at', null)
         .eq('is_published', true)
-        .eq('in_stock', true)
         .order('created_at', { ascending: false }),
       queryOptional('bundles', '*', 'name'),
       queryFeaturedRows(),

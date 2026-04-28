@@ -187,9 +187,7 @@ function stripAdvancedPlateFields(payload) {
     'plate_map',
     'panel_names',
     'panel_images',
-    'panel_map',
-    'is_bundle',
-    'wall_source_image'
+    'panel_map'
   ].forEach(key => delete copy[key]);
   return copy;
 }

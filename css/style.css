@@ -460,6 +460,19 @@ button { font-family: inherit; }
   text-transform: uppercase;
 }
 
+
+.product-hero--oos {
+  opacity: 0.6;
+  filter: grayscale(0.4);
+}
+.product-hero--oos .product-price-main {
+  font-family: var(--fm);
+  font-size: 1.2rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
 /* ══════════════════════════════════════════
    FILTER BAR
    ══════════════════════════════════════════ */

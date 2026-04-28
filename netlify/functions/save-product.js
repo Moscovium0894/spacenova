@@ -64,6 +64,7 @@ async function buildPayload(product) {
     wall_image: product.wall_image || product.wallImage || null,
     wall_source_image: product.wall_source_image || product.wallSourceImage || null,
     is_collection: !!product.is_collection || !!product.isCollection,
+    is_bundle: !!product.is_bundle || !!product.isBundle,
     in_stock: product.in_stock !== false && product.inStock !== false,
     is_published: product.is_published !== false && product.isPublished !== false,
     deleted_at: Object.prototype.hasOwnProperty.call(product, 'deleted_at')
