@@ -27,7 +27,8 @@ function parseItems(metaItems) {
       const count = Number(plateCount || 0);
       return {
         id: id || null,
-        qty: Number(qty || 0),
+        slug: id || null,
+        qty: Math.max(1, Number(qty || 1)),
         price: Number(price || 0),
         name: name || null,
         selected_plate_indexes: selectedPlateIndexes,
@@ -37,6 +38,30 @@ function parseItems(metaItems) {
         price_mode: priceMode || null
       };
     });
+}
+
+function asProductId(value) {
+  const n = Number(value);
+  return Number.isInteger(n) && n > 0 ? n : null;
+}
+
+async function replaceOrderItems(orderId, items) {
+  const del = await supabase.from('order_items').delete().eq('order_id', orderId);
+  if (del.error) throw del.error;
+
+  const rows = (Array.isArray(items) ? items : []).map(item => ({
+    order_id: orderId,
+    product_id: asProductId(item.product_id || item.productId || item.id),
+    slug: String(item.slug || item.id || '').trim() || 'unknown-product',
+    name: String(item.name || item.slug || item.id || 'Unknown product').trim(),
+    quantity: Math.max(1, Number(item.quantity || item.qty || 1) || 1),
+    unit_price: Number(item.unit_price ?? item.unitPrice ?? item.price ?? 0),
+    snapshot: item
+  }));
+
+  if (!rows.length) return;
+  const ins = await supabase.from('order_items').insert(rows);
+  if (ins.error) throw ins.error;
 }
 
 async function incrementPromoUse(promoCode) {
@@ -67,15 +92,10 @@ exports.handler = async (event) => {
     }
 
     let resolvedPaymentIntentId = paymentIntentId;
-    if (resolvedPaymentIntentId && !String(resolvedPaymentIntentId).startsWith('pi_')) {
-      return { statusCode: 400, body: JSON.stringify({ ok: false, error: 'Invalid paymentIntentId' }) };
-    }
+    let resolvedSessionId = checkoutSessionId || null;
 
-    if (!resolvedPaymentIntentId && checkoutSessionId) {
-      if (!String(checkoutSessionId).startsWith('cs_')) {
-        return { statusCode: 400, body: JSON.stringify({ ok: false, error: 'Invalid checkoutSessionId' }) };
-      }
-      const session = await stripe.checkout.sessions.retrieve(checkoutSessionId);
+    if (!resolvedPaymentIntentId && resolvedSessionId) {
+      const session = await stripe.checkout.sessions.retrieve(resolvedSessionId);
       const sessionPaymentIntent = session && session.payment_intent;
       resolvedPaymentIntentId = sessionPaymentIntent
         ? String(typeof sessionPaymentIntent === 'string' ? sessionPaymentIntent : sessionPaymentIntent.id)
@@ -94,15 +114,17 @@ exports.handler = async (event) => {
     const shipping = pi.shipping || {};
     const shippingAddress = shipping.address || {};
     const metadata = pi.metadata || {};
-
     const charge = pi.charges && Array.isArray(pi.charges.data) ? pi.charges.data[0] : null;
     const billing = (charge && charge.billing_details) || {};
+    const parsedItems = parseItems(metadata.items);
 
-    const payload = {
+    const orderPayload = {
       ref: pi.id,
+      status: 'pending',
+      stripe_payment_intent: pi.id,
+      stripe_session_id: resolvedSessionId,
       customer_name: shipping.name || null,
       email: pi.receipt_email || billing.email || metadata.customer_email || null,
-      items: parseItems(metadata.items),
       discount: parseAmount(metadata.discount, 0),
       shipping_type: metadata.shipping_label || metadata.shipping_method || null,
       delivery: {
@@ -128,18 +150,22 @@ exports.handler = async (event) => {
 
     const { data: existingOrder } = await supabase
       .from('orders')
-      .select('ref')
+      .select('id')
       .eq('ref', pi.id)
       .maybeSingle();
 
-    const { error } = await supabase
+    const { data: orderRow, error: orderError } = await supabase
       .from('orders')
-      .upsert([payload], { onConflict: 'ref' });
+      .upsert([orderPayload], { onConflict: 'ref' })
+      .select('id,ref')
+      .single();
 
-    if (error) {
-      console.error('save-order supabase error:', error);
+    if (orderError || !orderRow) {
+      console.error('save-order supabase error:', orderError);
       return { statusCode: 500, body: JSON.stringify({ ok: false, error: 'Failed to persist order' }) };
     }
+
+    await replaceOrderItems(orderRow.id, parsedItems);
 
     if (!existingOrder) {
       await incrementPromoUse(metadata.promo_code || null);

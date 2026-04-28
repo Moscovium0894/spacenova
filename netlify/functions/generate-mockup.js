@@ -49,7 +49,7 @@ exports.handler = async (event) => {
 
     let products = [];
     if (body.all) {
-      const { data, error } = await supabase.from('products').select('*');
+      const { data, error } = await supabase.from('products').select('id,slug,name,image,wall_image,wall_source_image,plate_count,plate_map,deleted_at,is_published,in_stock,product_plates(id,position,name,image)').is('deleted_at', null);
       if (error) throw error;
       products = data || [];
     } else if (body.productId) {
@@ -74,7 +74,7 @@ exports.handler = async (event) => {
         const positions = getPositions(product);
         const pieceCount = positions.length;
         const productBuffer = await fetchBuffer(imageUrl);
-        const plateImages = normaliseStringArray(product, ['plate_images', 'plateImages', 'panel_images', 'panelImages'], pieceCount);
+        const plateImages = resolvePlateImages(product, pieceCount);
         const plateTransforms = getPlateTransforms(product, pieceCount);
         const mockupBuffer = await generateMockup({
           wallBuffer,
@@ -127,6 +127,21 @@ exports.handler = async (event) => {
   }
 };
 
+
+function resolvePlateImages(product, pieceCount) {
+  const related = Array.isArray(product.product_plates)
+    ? product.product_plates.slice().sort((a, b) => Number(a.position || 0) - Number(b.position || 0))
+    : [];
+
+  if (related.length) {
+    const values = related.map(plate => String((plate && plate.image) || '').trim());
+    while (values.length < pieceCount) values.push('');
+    return values.slice(0, pieceCount);
+  }
+
+  return normaliseStringArray(product, ['plate_images', 'plateImages', 'panel_images', 'panelImages'], pieceCount);
+}
+
 function getPieceCount(product) {
   return inferPlateCount(product);
 }
@@ -137,16 +152,18 @@ async function getProductByIdentifier(supabase, identifier) {
 
   const bySlug = await supabase
     .from('products')
-    .select('*')
+    .select('id,slug,name,image,wall_image,wall_source_image,plate_count,plate_map,deleted_at,is_published,in_stock,product_plates(id,position,name,image)')
     .eq('slug', value)
+    .is('deleted_at', null)
     .maybeSingle();
 
   if (bySlug.data || (bySlug.error && !isNoRowsError(bySlug.error))) return bySlug;
 
   return supabase
     .from('products')
-    .select('*')
+    .select('id,slug,name,image,wall_image,wall_source_image,plate_count,plate_map,deleted_at,is_published,in_stock,product_plates(id,position,name,image)')
     .eq('id', value)
+    .is('deleted_at', null)
     .maybeSingle();
 }
 

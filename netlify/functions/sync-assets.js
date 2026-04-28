@@ -424,10 +424,10 @@ function normaliseImageExtension(ext, contentType) {
 async function fetchProduct(supabase, identifier) {
   const value = String(identifier || '').trim();
   if (!value) return null;
-  const bySlug = await supabase.from('products').select('*').eq('slug', value).maybeSingle();
+  const bySlug = await supabase.from('products').select('id,slug,name,image,wall_image,wall_source_image,plate_count,plate_map,deleted_at,is_published,in_stock,product_plates(id,position,name,image)').eq('slug', value).is('deleted_at', null).maybeSingle();
   if (bySlug.data) return bySlug.data;
   if (bySlug.error && !isNoRowsError(bySlug.error)) throw bySlug.error;
-  const byId = await supabase.from('products').select('*').eq('id', value).maybeSingle();
+  const byId = await supabase.from('products').select('id,slug,name,image,wall_image,wall_source_image,plate_count,plate_map,deleted_at,is_published,in_stock,product_plates(id,position,name,image)').eq('id', value).is('deleted_at', null).maybeSingle();
   if (byId.error && !isNoRowsError(byId.error)) throw byId.error;
   return byId.data || null;
 }
@@ -435,7 +435,8 @@ async function fetchProduct(supabase, identifier) {
 async function fetchProducts(supabase) {
   const { data, error } = await supabase
     .from('products')
-    .select('*')
+    .select('id,slug,name,image,wall_image,wall_source_image,plate_count,plate_map,deleted_at,is_published,in_stock,product_plates(id,position,name,image)')
+    .is('deleted_at', null)
     .order('created_at', { ascending: false });
   if (error) throw error;
   return data || [];
