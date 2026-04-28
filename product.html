@@ -566,6 +566,7 @@
   document.addEventListener('DOMContentLoaded', function () {
     var params = new URLSearchParams(window.location.search);
     var slug = params.get('slug') || params.get('id');
+    try { slug = decodeURIComponent(slug || ''); } catch (err) {}
     if (!slug) {
       document.getElementById('product-content').innerHTML =
         '<p style="color:var(--muted)">Product not found.</p>';
@@ -575,7 +576,8 @@
     fetch('/.netlify/functions/load-catalogue', { cache: 'no-store' })
       .then(function (r) { return r.json(); })
       .then(function (d) {
-        var p = (d.products || []).find(function (x) {
+        var catalogue = (d.products || []).concat(d.bundles || []);
+        var p = catalogue.find(function (x) {
           return x.slug === slug || x.id === slug;
         });
         if (!p) {
@@ -586,7 +588,8 @@
         var deal = getActiveProductDeal(d.deals || [], p.slug || p.id);
         renderProduct(p, deal);
       })
-      .catch(function () {
+      .catch(function (err) {
+        console.error('product page load error:', err);
         document.getElementById('product-content').innerHTML =
           '<p style="color:var(--muted)">Could not load product.</p>';
       });
@@ -677,12 +680,6 @@
               : '') +
             (!isOutOfStock && p.priceLabel ? '<span class="product-price-range">' + esc(p.priceLabel) + '</span>' : '') +
           '</div>' +
-<<<<<<< codex/address-multiple-bugs-in-spacenova-hgc8xb
-=======
-          (!isOutOfStock && deal && deal.subtitle
-            ? '<div class="product-deal-subtitle">' + esc(deal.subtitle) + '</div>'
-            : '') +
->>>>>>> main
           '<p style="color:var(--muted);font-family:var(--fm);font-size:.68rem;letter-spacing:.06em;margin-bottom:16px">' +
             ('&pound;' + PLATE_UNIT_PRICE.toFixed(2) + ' per individual plate' +
             (_totalPlates > 1
