@@ -172,8 +172,11 @@ document.addEventListener('DOMContentLoaded', function() {
   fetch('/.netlify/functions/load-catalogue', { cache: 'no-store' })
     .then(function(r) { return r.json(); })
     .then(function(d) {
-      allProducts = (d.products || [])
-        .filter(function(p) { return p.isPublished !== false; });
+      // Merge products and bundles into a single list so bundles appear in the shop grid.
+      var products = (d.products || []).filter(function(p) { return p.isPublished !== false; });
+      var bundles = (d.bundles || []).filter(function(b) { return b.isPublished !== false; });
+      allProducts = products.concat(bundles);
+
       dealsBySlug = (d.deals || []).reduce(function(map, deal) {
         if (deal && deal.product_slug) map[deal.product_slug] = deal;
         return map;
