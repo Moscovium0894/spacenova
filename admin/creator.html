@@ -1204,7 +1204,7 @@
     }
 
     /* Panels composite view */
-    renderPanelsView(image, count);
+    renderPanelsView(image, count, imageZoom);
 
     /* Arrangement card hex grid */
     renderHexGrid();
@@ -1212,14 +1212,15 @@
   }
 
    /* ── Panels composite: main image + hex outlines ── */
-  function renderPanelsView(mainImageUrl, count) {
+  function renderPanelsView(mainImageUrl, count, mainZoom) {
     var bgLayer  = E.prev.panelsBgLayer;
     var bgEmpty  = E.prev.panelsBgEmpty;
     var hexLayer = E.prev.panelsHexLayer;
+    var zoom = clampNumber(mainZoom, 1, 2.5, 1);
 
     if (mainImageUrl) {
       bgLayer.style.backgroundImage    = 'url(' + mainImageUrl + ')';
-      bgLayer.style.backgroundSize     = 'cover';
+      bgLayer.style.backgroundSize     = (100 * zoom) + '%';
       bgLayer.style.backgroundPosition = 'center';
       bgLayer.style.filter             = 'none';
       bgLayer.style.transform          = 'none';
@@ -1362,7 +1363,7 @@
       hex.style.background = 'transparent';
       hex.style.overflow = 'visible';
 
-      var fill = platePreviewFill(mainImage, state.panelImages, idx, pixelPositions, bounds, state.panelTransforms[idx]);
+      var fill = platePreviewFill(mainImage, state.panelImages, idx, pixelPositions, bounds, state.panelTransforms[idx], clampNumber(E.f.mainZoom.value, 1, 2.5, 1));
       var inner = document.createElement('div');
       inner.style.cssText = 'position:absolute;inset:0;clip-path:' + HEX_CLIP + ';overflow:hidden;' + fill.style;
       inner.innerHTML = fill.html;
@@ -1507,7 +1508,7 @@
     return { minX: minX, minY: minY, width: maxX - minX, height: maxY - minY };
   }
 
-  function platePreviewFill(sourceImage, plateImages, idx, pixelPositions, bounds, transform) {
+  function platePreviewFill(sourceImage, plateImages, idx, pixelPositions, bounds, transform, mainZoom) {
     var mainImage = (sourceImage || '').trim();
     var plateImage = getUsablePlateImage(plateImages, idx, mainImage);
     if (plateImage) {
@@ -1519,14 +1520,15 @@
     }
     if (!mainImage) return { style: 'background:#222;', html: '' };
     var pos = pixelPositions[idx] || { x: bounds.minX, y: bounds.minY };
-    var tileLeft = Math.round(pos.x - bounds.minX);
-    var tileTop = Math.round(pos.y - bounds.minY);
+    var zoom = clampNumber(mainZoom, 1, 2.5, 1);
+    var relX = ((pos.x - bounds.minX + (HEX_W / 2)) / Math.max(1, bounds.width)) * 100;
+    var relY = ((pos.y - bounds.minY + (HEX_H / 2)) / Math.max(1, bounds.height)) * 100;
     return {
-      style: '',
-      html: '<img src="' + escapeSvgAttr(mainImage) + '" alt="" style="position:absolute;display:block;max-width:none;pointer-events:none;user-select:none;object-fit:cover;' +
-        'width:' + Math.round(Math.max(1, bounds.width)) + 'px;' +
-        'height:' + Math.round(Math.max(1, bounds.height)) + 'px;' +
-        'left:-' + tileLeft + 'px;top:-' + tileTop + 'px;">'
+      style: 'background:#050505;',
+      html: '<img src="' + escapeSvgAttr(mainImage) + '" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;' +
+        'object-position:' + clampNumber(relX, 0, 100, 50) + '% ' + clampNumber(relY, 0, 100, 50) + '%;' +
+        'transform:scale(' + zoom + ');transform-origin:' + clampNumber(relX, 0, 100, 50) + '% ' + clampNumber(relY, 0, 100, 50) + '%;' +
+        'display:block;max-width:none;pointer-events:none;user-select:none;">'
     };
   }
 
