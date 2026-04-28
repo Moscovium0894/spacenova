@@ -266,27 +266,30 @@ document.addEventListener('DOMContentLoaded', function() {
           '<div class="bundle-card-inner">' +
             '<h3>' + esc(p.name) + '</h3>' +
             '<p class="muted">' + desc + '</p>' +
-            '<div class="price">' + (isOutOfStock ? 'Out of Stock' : '&pound;' + parseFloat(p.price || 0).toFixed(2)) + '</div>' +
+            '<div class="price">' + (isOutOfStock ? 'OUT OF STOCK' : '&pound;' + parseFloat(p.price || 0).toFixed(2)) + '</div>' +
           '</div>' +
           bundleIncludes(p) +
           '<div class="card-actions">' +
-            '<button class="btn btn-primary btn-sm bundle-add-btn" type="button" data-slug="' + esc(p.slug || p.id) + '"' + (isOutOfStock ? ' disabled aria-disabled="true"' : '') + '>' + (isOutOfStock ? 'Out of Stock' : 'Add bundle') + '</button>' +
+            '<button class="btn btn-primary btn-sm bundle-add-btn" type="button" data-slug="' + esc(p.slug || p.id) + '"' + (isOutOfStock ? ' disabled aria-disabled="true"' : '') + '>' + (isOutOfStock ? 'OUT OF STOCK' : 'Add bundle') + '</button>' +
           '</div>' +
         '</article>';
       }
-      return '<a class="card card-link' + (isOutOfStock ? ' out-of-stock-card' : '') + '" href="/product.html?slug=' + (p.slug || p.id) + '">' +
+      var cardInner =
         cardMedia(p) +
         '<div class="card-body">' +
           '<h3>' + esc(p.name) + '</h3>' +
           '<p class="muted">' + desc + '</p>' +
           '<div class="card-price-row">' +
-            '<div class="price">' + (isOutOfStock ? 'Out of Stock' : '&pound;' + parseFloat(p.price || 0).toFixed(2)) + '</div>' +
+            '<div class="price">' + (isOutOfStock ? 'OUT OF STOCK' : '&pound;' + parseFloat(p.price || 0).toFixed(2)) + '</div>' +
             ((!isOutOfStock && getActiveDealBadge(p.slug || p.id))
               ? '<span class="card-deal-badge">' + esc(getActiveDealBadge(p.slug || p.id)) + '</span>'
               : '') +
           '</div>' +
-        '</div>' +
-      '</a>';
+        '</div>';
+      if (isOutOfStock) {
+        return '<article class="card out-of-stock-card" aria-label="' + esc(p.name) + ' is out of stock">' + cardInner + '</article>';
+      }
+      return '<a class="card card-link" href="/product.html?slug=' + (p.slug || p.id) + '">' + cardInner + '</a>';
     }).join('');
     grid.querySelectorAll('.bundle-add-btn').forEach(function(btn) {
       btn.addEventListener('click', function() {
