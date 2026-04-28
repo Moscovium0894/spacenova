@@ -167,9 +167,20 @@
       </div>
       <label class="field-label" for="f-image">Main image URL</label>
       <input id="f-image" class="field" type="url" placeholder="https://...">
+      <div class="inline-actions">
+        <label class="btn btn-ghost btn-sm btn-upload" for="f-image-file">Import main image</label>
+        <input id="f-image-file" type="file" accept="image/*" hidden>
+      </div>
+      <label class="field-label" for="f-main-zoom">Main image zoom</label>
+      <input id="f-main-zoom" class="field" type="range" min="1" max="2.5" step="0.05" value="1">
       <div class="img-thumb-wrap" id="thumb-main"><div class="img-thumb-empty">No image</div></div>
       <label class="field-label" for="f-wall-image">Wall preview URL</label>
       <input id="f-wall-image" class="field" type="url" placeholder="https://...">
+      <div class="inline-actions">
+        <label class="btn btn-ghost btn-sm btn-upload" for="f-wall-image-file">Import wall image</label>
+        <input id="f-wall-image-file" type="file" accept="image/*" hidden>
+      </div>
+      <label class="toggle-row"><input id="f-auto-mockup" type="checkbox"><span>Auto mockup updates</span></label>
       <div class="img-thumb-wrap" id="thumb-wall"><div class="img-thumb-empty">No image</div></div>
       <label class="field-label" for="f-panel-hint">Plate hint text</label>
       <input id="f-panel-hint" class="field" type="text" placeholder="Select your arrangement below">
@@ -221,6 +232,8 @@
     </section>
 
   </aside>
+
+  <div class="rail-resizer" id="rail-resizer" role="separator" aria-label="Resize editor sidebar" aria-orientation="vertical"></div>
 
   <!-- ── PREVIEW STAGE ── -->
   <section class="preview-stage" id="preview-stage">
@@ -347,6 +360,10 @@
 
   /* ─── Element cache ─── */
   var E = {};
+  var bundleDragState = { active: false, droppedInside: false, payload: null };
+  var autoMockupTimer = null;
+  var autoMockupInFlight = false;
+  var suppressAutoMockup = false;
   var HEX_H = 112;
   var HEX_W = 97;
   var ROW_PITCH = 84;
@@ -373,6 +390,9 @@
     E.statusText   = document.getElementById('status-text');
     E.statusDot    = document.getElementById('status-dot');
     E.productSel   = document.getElementById('product-select');
+    E.creatorShell = document.querySelector('.creator-shell');
+    E.editorRail   = document.querySelector('.editor-rail');
+    E.railResizer  = document.getElementById('rail-resizer');
     E.previewStage = document.getElementById('preview-stage');
     E.panelList    = document.getElementById('panel-list');
     E.bundlePanel  = document.getElementById('bundle-panel');
@@ -404,7 +424,11 @@
       bundleItems:  document.getElementById('f-bundle-items'),
       bundleText:   document.getElementById('f-bundle-text'),
       image:        document.getElementById('f-image'),
+      imageFile:    document.getElementById('f-image-file'),
+      mainZoom:     document.getElementById('f-main-zoom'),
       wallImage:    document.getElementById('f-wall-image'),
+      wallImageFile: document.getElementById('f-wall-image-file'),
+      autoMockup:   document.getElementById('f-auto-mockup'),
       panelHint:    document.getElementById('f-panel-hint'),
       pieces:       document.getElementById('f-pieces'),
       layoutPreset: document.getElementById('layout-preset')
@@ -520,12 +544,122 @@
         if (key === 'image') updateThumb('main', E.f.image.value.trim());
         if (key === 'wallImage') updateThumb('wall', E.f.wallImage.value.trim());
         renderPreview();
+        queueAutoMockup();
       });
     });
 
     E.f.slug.addEventListener('input', function () { E.f.slug.dataset.touched = '1'; });
+    if (E.f.imageFile) {
+      E.f.imageFile.addEventListener('change', function () { importImageFromFile(E.f.imageFile, E.f.image); });
+    }
+    if (E.f.wallImageFile) {
+      E.f.wallImageFile.addEventListener('change', function () { importImageFromFile(E.f.wallImageFile, E.f.wallImage); });
+    }
+    if (E.f.autoMockup) {
+      E.f.autoMockup.addEventListener('change', function () {
+        if (E.f.autoMockup.checked) queueAutoMockup(250);
+      });
+    }
+    initResizableRail();
     bindPlateCustomizer();
     bindBundleBuilder();
+  }
+
+  function importImageFromFile(input, targetField) {
+    var file = input && input.files && input.files[0];
+    if (!file || !targetField) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      targetField.value = String(reader.result || '');
+      targetField.dispatchEvent(new Event('input', { bubbles: true }));
+      setStatus('Imported ' + file.name, 'success');
+    };
+    reader.onerror = function () {
+      setStatus('Could not import file', 'error');
+    };
+    reader.readAsDataURL(file);
+    input.value = '';
+  }
+
+  function queueAutoMockup(delay) {
+    if (suppressAutoMockup || !E.f || !E.f.autoMockup || !E.f.autoMockup.checked) return;
+    var ms = Number.isFinite(delay) ? delay : 1400;
+    clearTimeout(autoMockupTimer);
+    autoMockupTimer = setTimeout(runAutoMockup, ms);
+  }
+
+  function runAutoMockup() {
+    if (!E.f || !E.f.autoMockup || !E.f.autoMockup.checked) return;
+    if (autoMockupInFlight) return;
+    var productId = (state.currentId || E.f.slug.value || '').trim();
+    if (!productId) return;
+    autoMockupInFlight = true;
+    requestJson('/.netlify/functions/generate-mockup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId: productId })
+    })
+    .then(function (body) {
+      var rows = body && Array.isArray(body.results) ? body.results : [];
+      var row = rows.find(function (item) {
+        return item && item.success && (item.productId === productId || item.slug === productId);
+      }) || rows.find(function (item) { return item && item.success; });
+      if (!row || !row.wall_image) return;
+      suppressAutoMockup = true;
+      E.f.wallImage.value = row.wall_image;
+      updateThumb('wall', row.wall_image);
+      renderPreview();
+      suppressAutoMockup = false;
+      setStatus('Auto mockup refreshed', 'success');
+    })
+    .catch(function () {})
+    .finally(function () {
+      autoMockupInFlight = false;
+    });
+  }
+
+  function initResizableRail() {
+    if (!E.creatorShell || !E.editorRail || !E.railResizer) return;
+    var storedWidth = parseInt(localStorage.getItem('creator_rail_width') || '', 10);
+    if (Number.isFinite(storedWidth)) applyRailWidth(storedWidth);
+
+    E.railResizer.addEventListener('pointerdown', function (event) {
+      if (window.matchMedia('(max-width: 1060px)').matches) return;
+      event.preventDefault();
+      var startX = event.clientX;
+      var current = parseFloat(getComputedStyle(E.creatorShell).getPropertyValue('--rail-width')) || E.editorRail.getBoundingClientRect().width || 460;
+
+      E.railResizer.classList.add('is-dragging');
+      document.body.classList.add('is-resizing-rail');
+      E.railResizer.setPointerCapture(event.pointerId);
+
+      function onMove(moveEvent) {
+        var next = current + (moveEvent.clientX - startX);
+        applyRailWidth(next);
+      }
+
+      function onUp() {
+        E.railResizer.classList.remove('is-dragging');
+        document.body.classList.remove('is-resizing-rail');
+        E.railResizer.removeEventListener('pointermove', onMove);
+        E.railResizer.removeEventListener('pointerup', onUp);
+        E.railResizer.removeEventListener('pointercancel', onUp);
+        var resolved = parseFloat(getComputedStyle(E.creatorShell).getPropertyValue('--rail-width')) || E.editorRail.getBoundingClientRect().width || 460;
+        localStorage.setItem('creator_rail_width', String(Math.round(resolved)));
+      }
+
+      E.railResizer.addEventListener('pointermove', onMove);
+      E.railResizer.addEventListener('pointerup', onUp);
+      E.railResizer.addEventListener('pointercancel', onUp);
+    });
+  }
+
+  function applyRailWidth(value) {
+    if (!E.creatorShell) return;
+    var min = 320;
+    var max = Math.max(min, window.innerWidth - 360);
+    var clamped = Math.max(min, Math.min(max, parseFloat(value) || 460));
+    E.creatorShell.style.setProperty('--rail-width', clamped + 'px');
   }
 
   function bindBundleBuilder() {
@@ -571,7 +705,9 @@
         var slug = item.getAttribute('data-slug') || '';
         var idx = parseInt(item.getAttribute('data-idx') || '', 10);
         if (!slug || !Number.isFinite(idx)) return;
-        e.dataTransfer.setData('text/plain', JSON.stringify({ slug: slug, from: 'bundle', index: idx }));
+        var payload = { slug: slug, from: 'bundle', index: idx };
+        bundleDragState = { active: true, droppedInside: false, payload: payload };
+        e.dataTransfer.setData('text/plain', JSON.stringify(payload));
         e.dataTransfer.effectAllowed = 'move';
       });
 
@@ -588,8 +724,15 @@
       E.bundleDropList.addEventListener('drop', function (e) {
         if (!E.f.isBundle.checked) return;
         e.preventDefault();
+        bundleDragState.droppedInside = true;
         E.bundleDropList.querySelectorAll('.bundle-drop-item').forEach(function (el) { el.classList.remove('is-over'); });
         applyBundleDrop(e);
+      });
+
+      E.bundleDropList.addEventListener('dragend', function () {
+        if (!bundleDragState.active) return;
+        if (!bundleDragState.droppedInside) removeBundleDraggedItem(bundleDragState.payload);
+        bundleDragState = { active: false, droppedInside: false, payload: null };
       });
 
       E.bundleDropList.addEventListener('click', function (e) {
@@ -600,6 +743,32 @@
         var items = getBundleItems().filter(function (s) { return s !== slug; });
         setBundleItems(items);
       });
+    }
+
+    if (E.bundleDropZone) {
+      E.bundleDropZone.addEventListener('drop', function () {
+        bundleDragState.droppedInside = true;
+      });
+    }
+  }
+
+  function removeBundleDraggedItem(payload) {
+    if (!payload || payload.from !== 'bundle') return;
+    var items = getBundleItems();
+    if (!items.length) return;
+
+    var idx = Number.isFinite(payload.index) ? payload.index : -1;
+    if (idx >= 0 && idx < items.length && items[idx] === payload.slug) {
+      items.splice(idx, 1);
+      setBundleItems(items);
+      return;
+    }
+
+    var slug = String(payload.slug || '').trim();
+    var fallbackIdx = items.indexOf(slug);
+    if (fallbackIdx >= 0) {
+      items.splice(fallbackIdx, 1);
+      setBundleItems(items);
     }
   }
 
@@ -732,6 +901,7 @@
     E.f.bundleItems.value  = Array.isArray(p.bundleItems) ? p.bundleItems.join('\n') : '';
     E.f.bundleText.value   = p.bundleText || p.text || '';
     E.f.image.value        = p.image || '';
+    E.f.mainZoom.value     = p.mainZoom || 1;
     E.f.wallImage.value    = p.wallImage || '';
     E.f.panelHint.value    = p.panelHint || '';
     E.f.pieces.value       = parseInt(p.plateCount || p.pieces, 10) || 1;
@@ -773,6 +943,7 @@
     E.f.isCollection.checked = !!isCollection;
     E.f.unitPrice.value = '34.99';
     E.f.price.value = (6 * 34.99 * 0.9).toFixed(2);
+    E.f.mainZoom.value = 1;
     syncPriceLabel();
     state.panelNames = [];
     state.panelImages = [];
@@ -978,6 +1149,7 @@
     var isCollection = E.f.isCollection.checked;
     var isBundle    = E.f.isBundle.checked;
     var image       = E.f.image.value.trim();
+    var imageZoom   = clampNumber(E.f.mainZoom.value, 1, 2.5, 1);
     var wallImage   = E.f.wallImage.value.trim();
     var shortLine   = E.f.short.value.trim() || 'Add a short product line.';
     var description = E.f.description.value.trim() || 'Your description will appear here.';
@@ -1010,10 +1182,12 @@
     /* Main image */
     if (image) {
       E.prev.mainImage.src = image;
+      E.prev.mainImage.style.transform = 'scale(' + imageZoom + ')';
       E.prev.mainImage.style.display = '';
       E.prev.mainEmpty.style.display = 'none';
     } else {
       E.prev.mainImage.src = '';
+      E.prev.mainImage.style.transform = '';
       E.prev.mainImage.style.display = 'none';
       E.prev.mainEmpty.style.display = '';
     }
@@ -1030,7 +1204,7 @@
     }
 
     /* Panels composite view */
-    renderPanelsView(image, count);
+    renderPanelsView(image, count, imageZoom);
 
     /* Arrangement card hex grid */
     renderHexGrid();
@@ -1038,14 +1212,15 @@
   }
 
    /* ── Panels composite: main image + hex outlines ── */
-  function renderPanelsView(mainImageUrl, count) {
+  function renderPanelsView(mainImageUrl, count, mainZoom) {
     var bgLayer  = E.prev.panelsBgLayer;
     var bgEmpty  = E.prev.panelsBgEmpty;
     var hexLayer = E.prev.panelsHexLayer;
+    var zoom = clampNumber(mainZoom, 1, 2.5, 1);
 
     if (mainImageUrl) {
       bgLayer.style.backgroundImage    = 'url(' + mainImageUrl + ')';
-      bgLayer.style.backgroundSize     = 'cover';
+      bgLayer.style.backgroundSize     = (100 * zoom) + '%';
       bgLayer.style.backgroundPosition = 'center';
       bgLayer.style.filter             = 'none';
       bgLayer.style.transform          = 'none';
@@ -1188,7 +1363,7 @@
       hex.style.background = 'transparent';
       hex.style.overflow = 'visible';
 
-      var fill = platePreviewFill(mainImage, state.panelImages, idx, pixelPositions, bounds, state.panelTransforms[idx]);
+      var fill = platePreviewFill(mainImage, state.panelImages, idx, pixelPositions, bounds, state.panelTransforms[idx], clampNumber(E.f.mainZoom.value, 1, 2.5, 1));
       var inner = document.createElement('div');
       inner.style.cssText = 'position:absolute;inset:0;clip-path:' + HEX_CLIP + ';overflow:hidden;' + fill.style;
       inner.innerHTML = fill.html;
@@ -1333,7 +1508,7 @@
     return { minX: minX, minY: minY, width: maxX - minX, height: maxY - minY };
   }
 
-  function platePreviewFill(sourceImage, plateImages, idx, pixelPositions, bounds, transform) {
+  function platePreviewFill(sourceImage, plateImages, idx, pixelPositions, bounds, transform, mainZoom) {
     var mainImage = (sourceImage || '').trim();
     var plateImage = getUsablePlateImage(plateImages, idx, mainImage);
     if (plateImage) {
@@ -1345,14 +1520,15 @@
     }
     if (!mainImage) return { style: 'background:#222;', html: '' };
     var pos = pixelPositions[idx] || { x: bounds.minX, y: bounds.minY };
-    var tileLeft = Math.round(pos.x - bounds.minX);
-    var tileTop = Math.round(pos.y - bounds.minY);
+    var zoom = clampNumber(mainZoom, 1, 2.5, 1);
+    var relX = ((pos.x - bounds.minX + (HEX_W / 2)) / Math.max(1, bounds.width)) * 100;
+    var relY = ((pos.y - bounds.minY + (HEX_H / 2)) / Math.max(1, bounds.height)) * 100;
     return {
-      style: '',
-      html: '<img src="' + escapeSvgAttr(mainImage) + '" alt="" style="position:absolute;display:block;max-width:none;pointer-events:none;user-select:none;object-fit:cover;' +
-        'width:' + Math.round(Math.max(1, bounds.width)) + 'px;' +
-        'height:' + Math.round(Math.max(1, bounds.height)) + 'px;' +
-        'left:-' + tileLeft + 'px;top:-' + tileTop + 'px;">'
+      style: 'background:#050505;',
+      html: '<img src="' + escapeSvgAttr(mainImage) + '" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;' +
+        'object-position:' + clampNumber(relX, 0, 100, 50) + '% ' + clampNumber(relY, 0, 100, 50) + '%;' +
+        'transform:scale(' + zoom + ');transform-origin:' + clampNumber(relX, 0, 100, 50) + '% ' + clampNumber(relY, 0, 100, 50) + '%;' +
+        'display:block;max-width:none;pointer-events:none;user-select:none;">'
     };
   }
 
@@ -1653,6 +1829,7 @@
       pieces:       pieces,
       panel_hint:   E.f.panelHint.value.trim(),
       image:        E.f.image.value.trim(),
+      main_zoom:    clampNumber(E.f.mainZoom.value, 1, 2.5, 1),
       wall_image:   E.f.wallImage.value.trim(),
       is_collection: E.f.isCollection.checked,
       isBundle:     isBundle,
@@ -1947,6 +2124,7 @@
     normalised.plateSetPrice = withDefault(readField(product, ['plateSetPrice', 'plate_set_price', 'price']), '');
     normalised.panelHint = withDefault(readField(product, ['panelHint', 'panel_hint']), '');
     normalised.image = withDefault(readField(product, ['image']), '');
+    normalised.mainZoom = withDefault(readField(product, ['mainZoom', 'main_zoom']), 1);
     normalised.wallImage = withDefault(readField(product, ['wallImage', 'wall_image']), '');
     normalised.wallSourceImage = withDefault(readField(product, ['wallSourceImage', 'wall_source_image']), '');
     normalised.isCollection = !!withDefault(readField(product, ['isCollection', 'is_collection']), false);
