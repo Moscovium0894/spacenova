@@ -444,15 +444,7 @@ button { font-family: inherit; }
 .bundle-includes span::before { content: '→'; color: var(--gold); }
 .bundle-card .card-actions { padding: 14px 22px; border-top: 1px solid var(--border); margin: 0; }
 
-.out-of-stock-card {
-  filter: grayscale(1);
-  opacity: 0.65;
-}
-.out-of-stock-card:hover {
-  transform: none;
-  box-shadow: none;
-}
-.out-of-stock-card .price {
+.price-oos {
   color: #6f6a63;
   font-size: 1.35rem;
   font-family: var(--fm);
@@ -462,15 +454,22 @@ button { font-family: inherit; }
 
 
 .product-hero--oos {
-  opacity: 0.6;
-  filter: grayscale(0.4);
+  opacity: 1;
+  filter: none;
 }
 .product-hero--oos .product-price-main {
   font-family: var(--fm);
   font-size: 1.2rem;
   letter-spacing: .06em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--danger);
+}
+.product-price-main.is-out-of-stock {
+  font-family: var(--fm);
+  font-size: 1.2rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--danger);
 }
 
 /* ══════════════════════════════════════════
@@ -480,6 +479,8 @@ button { font-family: inherit; }
 .filter-pill { font-family: var(--fm); font-size: .62rem; letter-spacing: .14em; text-transform: uppercase; padding: 7px 16px; border-radius: 999px; border: 1px solid var(--border2); background: transparent; color: var(--muted); cursor: pointer; transition: all .2s; -webkit-tap-highlight-color: transparent; }
 .filter-pill:hover { color: var(--text); background: var(--surface); }
 .filter-pill.active { color: var(--text); background: var(--surface2); border-color: var(--border3); }
+.stock-toggle-pill { display: inline-flex; align-items: center; gap: 8px; text-transform: none; letter-spacing: .04em; }
+.stock-toggle-pill input { accent-color: var(--accent); }
 
 .search-wrap { position: relative; flex: 1; min-width: 180px; max-width: 280px; }
 .search-input { width: 100%; padding: 9px 14px 9px 36px; background: var(--surface); border: 1px solid var(--border2); border-radius: 999px; color: var(--text); font-family: var(--fu); font-size: .85rem; outline: none; transition: border-color .2s, box-shadow .2s; }
