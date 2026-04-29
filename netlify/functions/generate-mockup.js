@@ -76,13 +76,15 @@ exports.handler = async (event) => {
         const productBuffer = await fetchBuffer(imageUrl);
         const plateImages = resolvePlateImages(product, pieceCount);
         const plateTransforms = getPlateTransforms(product, pieceCount);
+        const mainZoom = getMainZoom(product);
         const mockupBuffer = await generateMockup({
           wallBuffer,
           productBuffer,
           productImageUrl: imageUrl,
           positions,
           plateImages,
-          plateTransforms
+          plateTransforms,
+          mainZoom
         });
         const productKey = getProductKey(product);
         const storagePath = `mockups/${safeStorageName(productKey)}-mockup.png`;
@@ -297,7 +299,7 @@ async function fetchBuffer(url) {
   return Buffer.from(await res.arrayBuffer());
 }
 
-async function generateMockup({ wallBuffer, productBuffer, productImageUrl, positions, pieceCount, plateImages, plateTransforms }) {
+async function generateMockup({ wallBuffer, productBuffer, productImageUrl, positions, pieceCount, plateImages, plateTransforms, mainZoom }) {
   const wallMeta = await sharp(wallBuffer).metadata();
   const wallWidth = wallMeta.width || 1200;
   const wallHeight = wallMeta.height || 800;
@@ -306,7 +308,8 @@ async function generateMockup({ wallBuffer, productBuffer, productImageUrl, posi
   const pieceImages = await createSlicedFramedPieces(productBuffer, tilePositions, bounds, {
     productImageUrl,
     plateImages,
-    plateTransforms
+    plateTransforms,
+    mainZoom
   });
   const shadow = await createContactShadow();
   const depth = await createDepthLayer();
@@ -347,12 +350,25 @@ function getBounds(positions) {
 async function createSlicedFramedPieces(productBuffer, positions, bounds, options = {}) {
   const innerW = HEX_W - FRAME_WIDTH * 2;
   const innerH = HEX_H - FRAME_WIDTH * 2;
-  const canvasW = Math.max(HEX_W, Math.round(bounds.width));
-  const canvasH = Math.max(HEX_H, Math.round(bounds.height));
-  const imageCanvas = await sharp(productBuffer)
-    .resize(canvasW, canvasH, { fit: 'cover' })
+  const zoom = clampNumber(options.mainZoom, 1, 2.5, 1);
+  const baseW = Math.max(HEX_W, Math.round(bounds.width));
+  const baseH = Math.max(HEX_H, Math.round(bounds.height));
+  const baseCanvas = await sharp(productBuffer)
+    .resize(baseW, baseH, { fit: 'cover' })
     .png()
     .toBuffer();
+  let imageCanvas = baseCanvas;
+  if (zoom > 1.001) {
+    const cropW = Math.max(1, Math.round(baseW / zoom));
+    const cropH = Math.max(1, Math.round(baseH / zoom));
+    const cropLeft = Math.max(0, Math.round((baseW - cropW) / 2));
+    const cropTop = Math.max(0, Math.round((baseH - cropH) / 2));
+    imageCanvas = await sharp(baseCanvas)
+      .extract({ left: cropLeft, top: cropTop, width: cropW, height: cropH })
+      .resize(baseW, baseH, { fit: 'fill' })
+      .png()
+      .toBuffer();
+  }
 
   const outerMask = Buffer.from(hexMaskSvg(HEX_W, HEX_H));
   const innerMask = Buffer.from(hexMaskSvg(innerW, innerH));
@@ -361,10 +377,6 @@ async function createSlicedFramedPieces(productBuffer, positions, bounds, option
 
   for (let i = 0; i < positions.length; i += 1) {
     const pos = positions[i];
-    const cropLeft = Math.max(0, Math.round(pos.x - bounds.minX));
-    const cropTop = Math.max(0, Math.round(pos.y - bounds.minY));
-    const safeLeft = Math.min(cropLeft, Math.max(0, canvasW - HEX_W));
-    const safeTop = Math.min(cropTop, Math.max(0, canvasH - HEX_H));
     const individualUrl = getIndividualPlateImage(options.plateImages && options.plateImages[i], options.productImageUrl);
     let slice;
 
@@ -382,6 +394,10 @@ async function createSlicedFramedPieces(productBuffer, positions, bounds, option
         normaliseTransform(options.plateTransforms && options.plateTransforms[i])
       );
     } else {
+      const tileLeft = Math.max(0, Math.round(pos.x - bounds.minX));
+      const tileTop = Math.max(0, Math.round(pos.y - bounds.minY));
+      const safeLeft = Math.min(tileLeft, Math.max(0, baseW - HEX_W));
+      const safeTop = Math.min(tileTop, Math.max(0, baseH - HEX_H));
       slice = await sharp(imageCanvas)
         .extract({ left: safeLeft, top: safeTop, width: HEX_W, height: HEX_H })
         .resize(innerW, innerH, { fit: 'cover' })
@@ -480,6 +496,12 @@ async function createIndividualPlateSlice(sourceBuffer, innerW, innerH, innerMas
 
 function getPlateTransforms(product, count) {
   return normalisePlateMap(product, count).transforms;
+}
+
+function getMainZoom(product) {
+  const map = product && (product.plate_map || product.plateMap || product.panel_map || product.panelMap);
+  const mapZoom = map && map.mockup && (map.mockup.mainZoom ?? map.mockup.main_zoom);
+  return clampNumber(product && (product.main_zoom ?? product.mainZoom ?? mapZoom), 1, 2.5, 1);
 }
 
 function getIndividualPlateImage(value, mainImageUrl) {
