@@ -376,18 +376,18 @@ input[type="range"]::-moz-range-thumb {
 /* ─── Panel list (plates editor) ─── */
 .panel-list-head {
   display: grid;
-  grid-template-columns: 36px 1fr 1.4fr 80px 56px 56px 56px 52px 52px;
-  gap: 6px; margin-bottom: 9px;
-  font-family: var(--fm); font-size: .54rem;
+  grid-template-columns: 46px 1fr 1.4fr 86px 72px 64px 64px 72px 64px 64px;
+  gap: 9px; margin-bottom: 9px;
+  font-family: var(--fm); font-size: .58rem;
   letter-spacing: .12em; text-transform: uppercase; color: var(--muted);
 }
 .panel-list { display: flex; flex-direction: column; gap: 7px; }
 .panel-row {
   display: grid;
-  grid-template-columns: 36px 1fr 1.4fr 80px 56px 56px 56px 52px 52px;
-  gap: 6px; align-items: center;
-  padding: 8px 10px;
-  border-radius: 12px;
+  grid-template-columns: 46px 1fr 1.4fr 86px 72px 64px 64px 72px 64px 64px;
+  gap: 9px; align-items: center;
+  padding: 10px 12px;
+  border-radius: 14px;
   background: rgba(255,255,255,.6);
   border: 1px solid rgba(22,23,27,.05);
   transition: border-color .15s, background .15s;

@@ -86,7 +86,8 @@ function normaliseTransforms(transforms, count) {
       fit,
       x: clampNumber(item.x ?? item.positionX, 0, 100, 50),
       y: clampNumber(item.y ?? item.positionY, 0, 100, 50),
-      scale: clampNumber(item.scale ?? item.zoom, 0.2, 3, 1)
+      scale: clampNumber(item.scale ?? item.zoom, 0.2, 10, 1),
+      rotate: clampNumber(item.rotate ?? item.rotation, -180, 180, 0)
     });
   }
 
