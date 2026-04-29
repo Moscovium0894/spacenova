@@ -361,6 +361,7 @@
       color: var(--gold);
       line-height: 1;
     }
+    .plate-preview-price.is-out-of-stock { color: var(--danger); }
     .plate-preview-price-sub {
       font-family: var(--fm);
       font-size: .62rem;
@@ -368,6 +369,7 @@
       margin-top: 3px;
       letter-spacing: .04em;
     }
+    .plate-preview-price-sub.is-out-of-stock { color: var(--danger); text-transform: uppercase; letter-spacing: .08em; }
     .plate-preview-actions {
       display: flex;
       gap: 8px;
@@ -564,6 +566,7 @@
   document.addEventListener('DOMContentLoaded', function () {
     var params = new URLSearchParams(window.location.search);
     var slug = params.get('slug') || params.get('id');
+    try { slug = decodeURIComponent(slug || ''); } catch (err) {}
     if (!slug) {
       document.getElementById('product-content').innerHTML =
         '<p style="color:var(--muted)">Product not found.</p>';
@@ -573,7 +576,8 @@
     fetch('/.netlify/functions/load-catalogue', { cache: 'no-store' })
       .then(function (r) { return r.json(); })
       .then(function (d) {
-        var p = (d.products || []).find(function (x) {
+        var catalogue = (d.products || []).concat(d.bundles || []);
+        var p = catalogue.find(function (x) {
           return x.slug === slug || x.id === slug;
         });
         if (!p) {
@@ -584,7 +588,8 @@
         var deal = getActiveProductDeal(d.deals || [], p.slug || p.id);
         renderProduct(p, deal);
       })
-      .catch(function () {
+      .catch(function (err) {
+        console.error('product page load error:', err);
         document.getElementById('product-content').innerHTML =
           '<p style="color:var(--muted)">Could not load product.</p>';
       });
@@ -628,12 +633,12 @@
 
     // Bundle price = p.price (clean rounded number from DB), potentially discounted by deal
     var baseBundlePrice = parseFloat(p.price || 0);
-    PLATE_BUNDLE_PRICE = getDealPrice(p.price, deal);
+    PLATE_BUNDLE_PRICE = isOutOfStock ? baseBundlePrice : getDealPrice(p.price, deal);
 
     // Unit price: use explicit plateUnitPrice, or fall back to 34.99
     PLATE_UNIT_PRICE = parseFloat(p.plateUnitPrice || 34.99);
 
-    var hasPriceDiscount = PLATE_BUNDLE_PRICE < baseBundlePrice;
+    var hasPriceDiscount = !isOutOfStock && PLATE_BUNDLE_PRICE < baseBundlePrice;
 
     var wallImage = p.wallImage || null;
 
@@ -655,7 +660,7 @@
     if (wallImage) galleryImages.push({ src: wallImage, alt: p.name + ' on wall' });
 
     document.getElementById('product-content').innerHTML =
-      '<div class="product-hero">' +
+      '<div class="product-hero' + (isOutOfStock ? ' product-hero--oos' : '') + '">' +
         '<div class="product-media">' +
           buildGalleryHtml(galleryImages) +
           '<div id="preview-mount"></div>' +
@@ -667,25 +672,16 @@
           '<h2>' + esc(p.name) + '</h2>' +
           '<p class="product-tagline">' + esc(p.short || '') + '</p>' +
           '<div class="product-price-row">' +
-            '<span class="product-price-main" id="dynamic-price">' +
-              (isOutOfStock ? 'Out of Stock' : ('&pound;' + PLATE_BUNDLE_PRICE.toFixed(2))) +
+            '<span class="product-price-main' + (isOutOfStock ? ' is-out-of-stock' : '') + '" id="dynamic-price">' +
+              (isOutOfStock ? 'OUT OF STOCK' : ('&pound;' + PLATE_BUNDLE_PRICE.toFixed(2))) +
             '</span>' +
             (!isOutOfStock && hasPriceDiscount
               ? '<span class="product-price-original">&pound;' + baseBundlePrice.toFixed(2) + '</span>'
               : '') +
             (!isOutOfStock && p.priceLabel ? '<span class="product-price-range">' + esc(p.priceLabel) + '</span>' : '') +
           '</div>' +
-          (deal && deal.subtitle
-            ? '<div class="product-deal-subtitle">' + esc(deal.subtitle) + '</div>'
-            : '') +
-          (isOutOfStock
-            ? '<div class="notice" style="margin-bottom:16px;background:#f0eeea;color:#5a5550;border-color:#d7d2cb">Out of stock — this item cannot be added to basket right now.</div>'
-            : '') +
           '<p style="color:var(--muted);font-family:var(--fm);font-size:.68rem;letter-spacing:.06em;margin-bottom:16px">' +
-            (isOutOfStock
-              ? 'This product is currently unavailable'
-              :
-            '&pound;' + PLATE_UNIT_PRICE.toFixed(2) + ' per individual plate' +
+            ('&pound;' + PLATE_UNIT_PRICE.toFixed(2) + ' per individual plate' +
             (_totalPlates > 1
               ? ' &mdash; full set &pound;' + PLATE_BUNDLE_PRICE.toFixed(2)
               : '')) +
@@ -693,10 +689,12 @@
           '<p style="color:var(--muted);font-size:.9rem;margin-bottom:24px;line-height:1.75">' +
             esc(p.description || '') +
           '</p>' +
-          '<div class="product-actions">' +
-            '<button class="btn btn-primary" id="add-to-basket-btn"' + (isOutOfStock ? ' disabled aria-disabled="true"' : '') + '>' + (isOutOfStock ? 'Out of Stock' : 'Add to Basket') + '</button>' +
-            '<a class="btn btn-ghost' + (isOutOfStock ? ' is-disabled' : '') + '" id="buy-now-btn" href="/checkout.html"' + (isOutOfStock ? ' aria-disabled="true" tabindex="-1"' : '') + '>' + (isOutOfStock ? 'Unavailable' : 'Buy Now') + '</a>' +
-          '</div>' +
+          (!isOutOfStock
+            ? '<div class="product-actions">' +
+                '<button class="btn btn-primary" id="add-to-basket-btn">Add to Basket</button>' +
+                '<button class="btn btn-ghost" id="buy-now-btn" type="button">Buy Now</button>' +
+              '</div>'
+            : '') +
           '<div class="notice" style="margin-top:20px">Free UK shipping on orders over &pound;150. Dispatched within 2&ndash;3 business days.</div>' +
           (p.note ? '<p style="color:var(--muted);font-size:.83rem;margin-top:14px;line-height:1.7">' + esc(p.note) + '</p>' : '') +
         '</div>' +
@@ -705,20 +703,21 @@
     initGallery(galleryImages);
     buildInteractivePreview(p, positions, plateImages, plateNames, plateTransforms);
 
-    document.getElementById('add-to-basket-btn').addEventListener('click', function () {
-      addSelectionToBasket(p, plateNames);
-    });
-    document.getElementById('buy-now-btn').addEventListener('click', function (e) {
-      if (p.inStock === false) {
+    var addBtn = document.getElementById('add-to-basket-btn');
+    if (addBtn) {
+      addBtn.addEventListener('click', function () {
+        addSelectionToBasket(p, plateNames);
+      });
+    }
+    var buyNowBtn = document.getElementById('buy-now-btn');
+    if (buyNowBtn) {
+      buyNowBtn.addEventListener('click', function (e) {
         e.preventDefault();
-        if (window.showToast) window.showToast('This item is out of stock');
-        return;
-      }
-      e.preventDefault();
-      if (addSelectionToBasket(p, plateNames)) {
-        setTimeout(function () { window.location.href = '/checkout.html'; }, 180);
-      }
-    });
+        if (addSelectionToBasket(p, plateNames)) {
+          setTimeout(function () { window.location.href = '/checkout.html'; }, 180);
+        }
+      });
+    }
   }
 
   // ─── Gallery ─────────────────────────────────────────────────────────────
@@ -885,8 +884,8 @@
         '</div>' +
         '<div class="plate-preview-footer">' +
           '<div>' +
-            '<div class="plate-preview-price" id="preview-price">&pound;' + PLATE_BUNDLE_PRICE.toFixed(2) + '</div>' +
-            '<div class="plate-preview-price-sub" id="preview-price-sub">' + priceSub(_totalPlates, _totalPlates) + '</div>' +
+            '<div class="plate-preview-price' + (PRODUCT_OUT_OF_STOCK ? ' is-out-of-stock' : '') + '" id="preview-price">&pound;' + PLATE_BUNDLE_PRICE.toFixed(2) + '</div>' +
+            '<div class="plate-preview-price-sub' + (PRODUCT_OUT_OF_STOCK ? ' is-out-of-stock' : '') + '" id="preview-price-sub">' + (PRODUCT_OUT_OF_STOCK ? 'OUT OF STOCK' : priceSub(_totalPlates, _totalPlates)) + '</div>' +
           '</div>' +
           '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
             '<span class="plate-count-chip" id="preview-count">' + _totalPlates + ' of ' + _totalPlates + ' selected</span>' +
@@ -1045,21 +1044,26 @@
     var dynPrice = document.getElementById('dynamic-price');
 
     var price = calcPrice(count);
-    if (PRODUCT_OUT_OF_STOCK) {
-      if (priceEl) priceEl.textContent = 'Out of Stock';
-      if (subEl) subEl.innerHTML = 'Currently unavailable';
-    } else {
-      if (priceEl) priceEl.textContent = '\u00a3' + price.toFixed(2);
-      if (subEl) subEl.innerHTML = priceSub(count, _totalPlates);
+    if (priceEl) {
+      priceEl.textContent = '\u00a3' + price.toFixed(2);
+      priceEl.classList.toggle('is-out-of-stock', PRODUCT_OUT_OF_STOCK);
+    }
+    if (subEl) {
+      subEl.innerHTML = PRODUCT_OUT_OF_STOCK ? 'OUT OF STOCK' : priceSub(count, _totalPlates);
+      subEl.classList.toggle('is-out-of-stock', PRODUCT_OUT_OF_STOCK);
+    }
+    if (dynPrice) {
+      dynPrice.textContent = PRODUCT_OUT_OF_STOCK ? 'OUT OF STOCK' : ('\u00a3' + price.toFixed(2));
+      dynPrice.classList.toggle('is-out-of-stock', PRODUCT_OUT_OF_STOCK);
     }
     if (countEl) countEl.textContent = count + ' of ' + _totalPlates + ' selected';
-    if (dynPrice) dynPrice.textContent = PRODUCT_OUT_OF_STOCK ? 'Out of Stock' : '\u00a3' + price.toFixed(2);
-
     var addBtn = document.getElementById('add-to-basket-btn');
     if (addBtn) {
       addBtn.textContent = count > 0
         ? 'Add ' + count + ' Plate' + (count !== 1 ? 's' : '') + ' to Basket'
         : 'Select Plates';
+      addBtn.disabled = false;
+      addBtn.removeAttribute('aria-disabled');
     }
   }
 
@@ -1200,4 +1204,3 @@
 </script>
 </body>
 </html>
-    var isOutOfStock = p.inStock === false;

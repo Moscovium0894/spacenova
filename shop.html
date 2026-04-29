@@ -168,13 +168,21 @@ document.addEventListener('DOMContentLoaded', function() {
   var dealsBySlug = {};
   var activeFilter = 'all';
   var activeSort = 'default';
+  var showOutOfStock = true;
 
   fetch('/.netlify/functions/load-catalogue', { cache: 'no-store' })
     .then(function(r) { return r.json(); })
     .then(function(d) {
-      allProducts = (d.products || [])
-        .filter(function(p) { return p.isPublished !== false; })
-        .concat((d.bundles || []).filter(function(b) { return b.isPublished !== false; }));
+      // Keep all published products including out-of-stock ones.
+      var products = (d.products || [])
+        .filter(function(p) { return p.isPublished !== false; });
+
+      // FIX: Also merge normalised bundles from d.bundles into the product list
+      // so bundle cards appear in the grid alongside regular products.
+      var bundles = (d.bundles || []).filter(function(b) { return b.isPublished !== false; });
+
+      allProducts = products.concat(bundles);
+
       dealsBySlug = (d.deals || []).reduce(function(map, deal) {
         if (deal && deal.product_slug) map[deal.product_slug] = deal;
         return map;
@@ -187,8 +195,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
   function cardMedia(p) {
-    // If a wall image exists, stack it under the main image so CSS can crossfade on hover.
-    // On touch devices there is no hover — tapping goes straight to product page, which is correct.
     var badge = '<div class="badge-row"><span class="badge badge-accent">' +
       (p.isBundle ? 'Bundle' : p.isCollection ? 'Collection' : 'Series') +
       '</span></div>';
@@ -262,32 +268,32 @@ document.addEventListener('DOMContentLoaded', function() {
       var isOutOfStock = p.inStock === false;
       var desc = (p.description || '').substring(0, 80) + ((p.description || '').length > 80 ? '\u2026' : '');
       if (p.isBundle || p.recordType === 'bundle') {
-        return '<article class="card bundle-card' + (isOutOfStock ? ' out-of-stock-card' : '') + '">' +
+        return '<article class="card bundle-card"' + (isOutOfStock ? ' aria-label="' + esc(p.name) + ' is out of stock"' : '') + '>' +
           cardMedia(p) +
           '<div class="bundle-card-inner">' +
             '<h3>' + esc(p.name) + '</h3>' +
             '<p class="muted">' + desc + '</p>' +
-            '<div class="price">' + (isOutOfStock ? 'Out of Stock' : '&pound;' + parseFloat(p.price || 0).toFixed(2)) + '</div>' +
+            '<div class="price' + (isOutOfStock ? ' price-oos' : '') + '">' + (isOutOfStock ? 'OUT OF STOCK' : '&pound;' + parseFloat(p.price || 0).toFixed(2)) + '</div>' +
           '</div>' +
           bundleIncludes(p) +
           '<div class="card-actions">' +
-            '<button class="btn btn-primary btn-sm bundle-add-btn" type="button" data-slug="' + esc(p.slug || p.id) + '"' + (isOutOfStock ? ' disabled aria-disabled="true"' : '') + '>' + (isOutOfStock ? 'Out of Stock' : 'Add bundle') + '</button>' +
+            '<button class="btn btn-primary btn-sm bundle-add-btn" type="button" data-slug="' + esc(p.slug || p.id) + '"' + (isOutOfStock ? ' disabled aria-disabled="true"' : '') + '>' + (isOutOfStock ? 'OUT OF STOCK' : 'Add bundle') + '</button>' +
           '</div>' +
         '</article>';
       }
-      return '<a class="card card-link' + (isOutOfStock ? ' out-of-stock-card' : '') + '" href="/product.html?slug=' + (p.slug || p.id) + '">' +
+      var cardInner =
         cardMedia(p) +
         '<div class="card-body">' +
           '<h3>' + esc(p.name) + '</h3>' +
           '<p class="muted">' + desc + '</p>' +
           '<div class="card-price-row">' +
-            '<div class="price">' + (isOutOfStock ? 'Out of Stock' : '&pound;' + parseFloat(p.price || 0).toFixed(2)) + '</div>' +
-            (getActiveDealBadge(p.slug || p.id)
+            '<div class="price' + (isOutOfStock ? ' price-oos' : '') + '">' + (isOutOfStock ? 'OUT OF STOCK' : '&pound;' + parseFloat(p.price || 0).toFixed(2)) + '</div>' +
+            ((!isOutOfStock && getActiveDealBadge(p.slug || p.id))
               ? '<span class="card-deal-badge">' + esc(getActiveDealBadge(p.slug || p.id)) + '</span>'
               : '') +
           '</div>' +
-        '</div>' +
-      '</a>';
+        '</div>';
+      return '<a class="card card-link" href="/product.html?slug=' + (p.slug || p.id) + '"' + (isOutOfStock ? ' aria-label="' + esc(p.name) + ' is out of stock"' : '') + '>' + cardInner + '</a>';
     }).join('');
     grid.querySelectorAll('.bundle-add-btn').forEach(function(btn) {
       btn.addEventListener('click', function() {
@@ -324,6 +330,9 @@ document.addEventListener('DOMContentLoaded', function() {
     else if (activeFilter === 'bundle') items = allProducts.filter(function(p) { return p.isBundle || p.recordType === 'bundle'; });
     else if (activeFilter === 'collection') items = allProducts.filter(function(p) { return p.isCollection && !p.isBundle && p.recordType !== 'bundle'; });
     else items = allProducts.filter(function(p) { return !p.isCollection && !p.isBundle && p.recordType !== 'bundle'; });
+    if (!showOutOfStock) {
+      items = items.filter(function(p) { return p.inStock !== false; });
+    }
     renderGrid(sorted(items));
   }
 
@@ -340,6 +349,20 @@ document.addEventListener('DOMContentLoaded', function() {
     activeSort = this.value;
     applyFilters();
   });
+
+  var filterBar = document.getElementById('filter-bar');
+  if (filterBar) {
+    var stockToggle = document.createElement('label');
+    stockToggle.className = 'filter-pill stock-toggle-pill';
+    stockToggle.innerHTML = '<input type="checkbox" id="show-out-of-stock-toggle" checked>Show out of stock';
+    filterBar.appendChild(stockToggle);
+
+    var stockCheckbox = document.getElementById('show-out-of-stock-toggle');
+    stockCheckbox.addEventListener('change', function() {
+      showOutOfStock = stockCheckbox.checked;
+      applyFilters();
+    });
+  }
 });
 </script>
 </body>

@@ -1,11 +1,9 @@
 const { createClient } = require('@supabase/supabase-js');
 const {
   inferPlateCount,
-  isMissingColumnError,
   normalisePlateMap,
   normaliseStringArray,
-  resolvePlatePricing,
-  stripAdvancedPlateFields
+  resolvePlatePricing
 } = require('./plate-helpers');
 
 const supabase = createClient(
@@ -14,11 +12,22 @@ const supabase = createClient(
 );
 
 function escapeInValue(value) {
-  return '"' + String(value).replace(/"/g, '\\"') + '"';
+  return '"' + String(value).replace(/"/g, '\"') + '"';
 }
 
 function buildNotInList(values) {
   return '(' + values.map(escapeInValue).join(',') + ')';
+}
+
+async function softDeleteMissingProducts(keepValues, now) {
+  if (!Array.isArray(keepValues)) return;
+
+  const query = supabase.from('products').update({ deleted_at: now }).is('deleted_at', null);
+  const result = keepValues.length === 0
+    ? await query.not('slug', 'is', null)
+    : await query.not('slug', 'in', buildNotInList(keepValues));
+
+  if (result.error) throw result.error;
 }
 
 async function deleteMissingRows(table, key, keepValues) {
@@ -38,62 +47,117 @@ async function deleteMissingRows(table, key, keepValues) {
   if (result.error) throw result.error;
 }
 
-function buildProductPayload(product, now) {
+async function resolveCategoryId(product) {
+  const directId = Number(product.category_id || product.categoryId);
+  if (Number.isFinite(directId) && directId > 0) return directId;
+
+  const raw = String(product.category_slug || product.categorySlug || product.category || '').trim();
+  if (!raw) return null;
+
+  const { data, error } = await supabase
+    .from('categories')
+    .select('id,slug,name')
+    .or(`slug.eq.${raw},name.eq.${raw}`)
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data && data.id ? data.id : null;
+}
+
+function buildPlateRows(product, plateCount, slug) {
+  const names = normaliseStringArray(product, ['plate_names', 'plateNames', 'panel_names', 'panelNames'], plateCount);
+  const images = normaliseStringArray(product, ['plate_images', 'plateImages', 'panel_images', 'panelImages'], plateCount);
+  return names.map((name, index) => ({
+    product_slug: slug,
+    position: index + 1,
+    name: String(name || '').trim() || `Plate ${index + 1}`,
+    image: String(images[index] || '').trim() || null
+  }));
+}
+
+async function buildProductPayload(product, now) {
   const plateCount = inferPlateCount(product);
   const plateMap = normalisePlateMap(product, plateCount);
-  const plateNames = normaliseStringArray(product, ['plate_names', 'plateNames', 'panel_names', 'panelNames'], plateCount);
-  const plateImages = normaliseStringArray(product, ['plate_images', 'plateImages', 'panel_images', 'panelImages'], plateCount);
   const pricing = resolvePlatePricing(product, plateCount);
+  const categoryId = await resolveCategoryId(product);
 
   return {
+    plateRows: buildPlateRows(product, plateCount, product.slug),
     slug:             product.slug,
     name:             product.name,
-    category:         product.category || null,
+    category_id:      categoryId,
     price:            pricing.setPrice,
-    price_label:      product.priceLabel || product.price_label || null,
-    short:            product.short || null,
+    short_description: product.short_description || product.short || null,
     description:      product.description || null,
     note:             product.note || null,
     accent:           product.accent || null,
     size:             product.size || null,
     material:         product.material || null,
-    pieces:           plateCount,
     plate_count:      plateCount,
     plate_unit_price: pricing.unitPrice,
-    plate_set_price:  pricing.setPrice,
     panel_hint:       product.panelHint || product.panel_hint || null,
     image:            product.image || null,
     wall_image:       product.wallImage || product.wall_image || null,
     wall_source_image: product.wallSourceImage || product.wall_source_image || null,
     is_collection:    !!product.isCollection || !!product.is_collection,
+    is_bundle:        !!product.isBundle || !!product.is_bundle,
+    in_stock:         product.inStock !== false && product.in_stock !== false,
     is_published:     product.isPublished !== false && product.is_published !== false,
-    plate_names:      nullIfBlankArray(plateNames),
-    plate_images:     nullIfBlankArray(plateImages),
     plate_map:        plateMap,
-    panel_names:      nullIfBlankArray(plateNames),
-    panel_images:     nullIfBlankArray(plateImages),
-    panel_map:        plateMap,
     updated_at:       now
   };
 }
 
-function nullIfBlankArray(values) {
-  const cleaned = (Array.isArray(values) ? values : [])
-    .map(value => (value == null ? '' : String(value).trim()));
-  return cleaned.some(Boolean) ? cleaned : null;
-}
 
 async function upsertProducts(payload) {
   if (!payload.length) return;
 
-  const result = await supabase.from('products').upsert(payload, { onConflict: 'slug' });
-  if (!result.error) return;
-  if (!isMissingColumnError(result.error)) throw result.error;
+  const rows = payload.map(item => {
+    const copy = { ...item };
+    delete copy.plateRows;
+    copy.deleted_at = null;
+    return copy;
+  });
 
-  console.warn('sync-catalogue: advanced plate columns missing, falling back to legacy product payload');
-  const legacyPayload = payload.map(stripAdvancedPlateFields);
-  const legacyResult = await supabase.from('products').upsert(legacyPayload, { onConflict: 'slug' });
-  if (legacyResult.error) throw legacyResult.error;
+  const result = await supabase
+    .from('products')
+    .upsert(rows, { onConflict: 'slug' })
+    .select('id,slug');
+  if (result.error) throw result.error;
+
+  const bySlug = {};
+  (result.data || []).forEach(row => { if (row.slug) bySlug[row.slug] = row.id; });
+
+  for (const product of payload) {
+    const productId = bySlug[product.slug];
+    if (!productId) continue;
+
+    const del = await supabase.from('product_plates').delete().eq('product_id', productId);
+    if (del.error) throw del.error;
+
+    const plateRows = (product.plateRows || []).map(plate => ({
+      product_id: productId,
+      position: plate.position,
+      name: plate.name,
+      image: plate.image
+    }));
+
+    if (plateRows.length) {
+      const ins = await supabase.from('product_plates').insert(plateRows);
+      if (ins.error) throw ins.error;
+    }
+  }
+}
+
+
+async function filterExistingProductSlugs(slugs) {
+  const unique = Array.from(new Set((Array.isArray(slugs) ? slugs : []).filter(Boolean)));
+  if (!unique.length) return [];
+  const { data, error } = await supabase.from('products').select('slug').in('slug', unique);
+  if (error) throw error;
+  const allowed = new Set((data || []).map(row => row.slug));
+  return unique.filter(slug => allowed.has(slug));
 }
 
 exports.handler = async (event) => {
@@ -124,14 +188,14 @@ exports.handler = async (event) => {
 
     const now = new Date().toISOString();
 
-    const productPayload = products
-      .map(product => buildProductPayload(product, now))
+    const productPayload = (await Promise.all(products
+      .map(product => buildProductPayload(product, now))))
       .filter(product => product.slug && product.name);
 
     const bundlePayload = bundles.map((bundle) => ({
       slug: bundle.slug,
       name: bundle.name,
-      price: bundle.price,
+      price: Number(bundle.price || 0),
       items: Array.isArray(bundle.items) ? bundle.items : [],
       text: bundle.text || null,
       updated_at: now
@@ -142,10 +206,12 @@ exports.handler = async (event) => {
       url: source.url || null,
       description: source.description || source.desc || null,
       best: source.best || null,
+      product: source.product || source.Product || null,
       updated_at: now
     })).filter((source) => source.name);
 
-    const featuredPayload = featuredSlugs.filter(Boolean).map((slug, i) => ({
+    const validFeaturedSlugs = await filterExistingProductSlugs(featuredSlugs);
+    const featuredPayload = validFeaturedSlugs.map((slug, i) => ({
       slug: slug,
       sort_order: i,
       updated_at: now
@@ -154,7 +220,7 @@ exports.handler = async (event) => {
     if (hasProducts) {
       await upsertProducts(productPayload);
       if (!body.preserveMissing) {
-        await deleteMissingRows('products', 'slug', productPayload.map((product) => product.slug));
+        await softDeleteMissingProducts(productPayload.map((product) => product.slug), now);
       }
     }
 

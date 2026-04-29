@@ -10,6 +10,31 @@ function toNumber(v) {
   return Number.isFinite(n) ? n : 0;
 }
 
+function normaliseLegacyItems(items) {
+  const list = Array.isArray(items) ? items : (items && typeof items === 'object' ? [items] : []);
+  return list.map(item => ({
+    slug: item.slug || item.id || null,
+    name: item.name || item.slug || item.id || 'Unknown product',
+    qty: Number(item.qty || item.quantity || 1) || 1,
+    price: Number(item.price || item.unit_price || item.unitPrice || 0) || 0,
+    snapshot: item.snapshot || item
+  }));
+}
+
+function normaliseOrderItems(order) {
+  if (Array.isArray(order.order_items) && order.order_items.length > 0) {
+    return order.order_items.map(item => ({
+      slug: item.slug,
+      name: item.name,
+      qty: Number(item.quantity || 1) || 1,
+      price: Number(item.unit_price || 0) || 0,
+      snapshot: item.snapshot || null,
+      product_id: item.product_id || null
+    }));
+  }
+  return normaliseLegacyItems(order.items);
+}
+
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
@@ -23,7 +48,7 @@ exports.handler = async (event) => {
 
     const { data, error } = await supabase
       .from('orders')
-      .select('ref,total,discount,shipping_type,promo_code,created_at,email,customer_name,items,address,delivery')
+      .select('ref,total,discount,shipping_type,promo_code,created_at,updated_at,email,customer_name,status,stripe_payment_intent,stripe_session_id,items,address,delivery,order_items(id,product_id,slug,name,quantity,unit_price,snapshot)')
       .order('created_at', { ascending: false })
       .limit(300);
 
@@ -32,7 +57,11 @@ exports.handler = async (event) => {
       return { statusCode: 500, body: JSON.stringify({ ok: false, error: 'Failed to load orders' }) };
     }
 
-    const orders = Array.isArray(data) ? data : [];
+    const rawOrders = Array.isArray(data) ? data : [];
+    const orders = rawOrders.map(order => ({
+      ...order,
+      items: normaliseOrderItems(order)
+    }));
     const now = Date.now();
     const monthMs = 1000 * 60 * 60 * 24 * 30;
 
@@ -61,7 +90,7 @@ exports.handler = async (event) => {
           totalRevenue,
           monthRevenue,
           avgOrderValue,
-          paidOrders: orders.length
+          paidOrders: orders.filter(order => order.status === 'paid').length
         },
         recentOrders: orders
       })

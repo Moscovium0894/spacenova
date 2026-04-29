@@ -187,7 +187,15 @@ document.addEventListener('DOMContentLoaded', function() {
     .then(function(r) { return r.json(); })
     .then(function(d) {
       var allProducts = (d.products || []).filter(function(p) { return p.isPublished !== false; });
-      var products = allProducts.slice(0, 3);
+
+      // Use featuredSlugs to pick the right products in the right order;
+      // fall back to the first 3 if no featured slugs are configured.
+      var featuredSlugs = d.featuredSlugs || [];
+      var productBySlug = {};
+      allProducts.forEach(function(p) { productBySlug[p.slug] = p; });
+      var products = featuredSlugs.length
+        ? featuredSlugs.map(function(slug) { return productBySlug[slug]; }).filter(Boolean).slice(0, 3)
+        : allProducts.slice(0, 3);
 
       var el = document.getElementById('stat-products');
       if (el) el.textContent = allProducts.length || '\u2014';
@@ -201,6 +209,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
 
       grid.innerHTML = products.map(function(p) {
+        var isOutOfStock = p.inStock === false;
         var desc = (p.description || '').substring(0, 90) + ((p.description || '').length > 90 ? '\u2026' : '');
         var badge = '<div class="badge-row"><span class="badge badge-accent">' + (p.isCollection ? 'Collection' : 'Series') + '</span></div>';
         var media;
@@ -221,14 +230,14 @@ document.addEventListener('DOMContentLoaded', function() {
           media = '<div class="card-media"><img src="' + p.image + '" alt="' + esc(p.name) + '" loading="lazy">' + badge + '</div>';
         }
 
-        return '<a class="card card-link" href="/product.html?slug=' + (p.slug || p.id) + '">' +
-          media +
+        var cardInner = media +
           '<div class="card-body">' +
             '<h3>' + esc(p.name) + '</h3>' +
             '<p class="muted">' + desc + '</p>' +
-            '<div class="price">&pound;' + parseFloat(p.price || 0).toFixed(2) + '</div>' +
-          '</div>' +
-        '</a>';
+            '<div class="price' + (isOutOfStock ? ' price-oos' : '') + '">' + (isOutOfStock ? 'OUT OF STOCK' : '&pound;' + parseFloat(p.price || 0).toFixed(2)) + '</div>' +
+          '</div>';
+
+        return '<a class="card card-link" href="/product.html?slug=' + (p.slug || p.id) + '"' + (isOutOfStock ? ' aria-label="' + esc(p.name) + ' — out of stock"' : '') + '>' + cardInner + '</a>';
       }).join('');
       if (window.initCardFlickGalleries) window.initCardFlickGalleries(grid);
     })

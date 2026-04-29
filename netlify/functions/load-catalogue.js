@@ -2,9 +2,9 @@ const { createClient } = require('@supabase/supabase-js');
 const {
   inferPlateCount,
   normalisePlateMap,
-  normaliseStringArray,
   resolvePlatePricing
 } = require('./plate-helpers');
+const { PRODUCT_SELECT, getProductImageUrl, mapProductPlates } = require('./product-data');
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -14,18 +14,19 @@ const supabase = createClient(
 function normaliseProduct(p) {
   const plateCount = inferPlateCount(p);
   const plateMap = normalisePlateMap(p, plateCount);
-  const plateNames = normaliseStringArray(p, ['plate_names', 'plateNames', 'panel_names', 'panelNames'], plateCount);
-  const plateImages = normaliseStringArray(p, ['plate_images', 'plateImages', 'panel_images', 'panelImages'], plateCount);
+  const plateData = mapProductPlates(p, plateCount);
   const pricing = resolvePlatePricing(p, plateCount);
 
   return {
     id:             p.id != null ? String(p.id) : p.slug,
     slug:           p.slug,
     name:           p.name,
-    category:       p.category,
+    category:       p.categories?.name || null,
+    categorySlug:   p.categories?.slug || null,
+    categoryId:     p.category_id || p.categories?.id || null,
     price:          pricing.setPrice,
     priceLabel:     p.price_label,
-    short:          p.short,
+    short:          p.short_description || p.short,
     description:    p.description,
     note:           p.note,
     accent:         p.accent,
@@ -36,19 +37,21 @@ function normaliseProduct(p) {
     plateUnitPrice: pricing.unitPrice,
     plateSetPrice:  pricing.setPrice,
     panelHint:      p.panel_hint,
-    image:          p.image,
-    wallImage:      p.wall_image || null,
-    wallSourceImage: p.wall_source_image || null,
+    image:          getProductImageUrl(p.image),
+    wallImage:      getProductImageUrl(p.wall_image),
+    wallSourceImage: getProductImageUrl(p.wall_source_image),
     updatedAt:      p.updated_at || null,
     isCollection:   !!p.is_collection,
     isBundle:       !!p.is_bundle,
+    // Default inStock to true if the column doesn't exist yet
     inStock:        p.in_stock !== false,
     isPublished:    p.is_published !== false,
-    plateNames,
-    plateImages,
+    plateNames:     plateData.names,
+    plateImages:    plateData.images,
+    productPlates:  plateData.rows,
     plateMap,
-    panelNames:     plateNames,
-    panelImages:    plateImages,
+    panelNames:     plateData.names,
+    panelImages:    plateData.images,
     panelMap:       plateMap
   };
 }
@@ -79,7 +82,7 @@ function normaliseBundle(b, productLookup) {
     .map(p => p && p.image)
     .filter(Boolean)
     .slice(0, 4);
-  const price = Number.parseFloat(b.price || 0) || 0;
+  const price = Number(b.price || 0) || 0;
 
   return {
     id:            b.slug,
@@ -120,31 +123,90 @@ async function queryOptional(table, select, orderColumn) {
   return result.data || [];
 }
 
+async function queryFeaturedRows() {
+  try {
+    const { data, error } = await supabase
+      .from('featured_slugs')
+      .select('slug, sort_order, products!inner(slug,is_published,deleted_at)')
+      .order('sort_order', { ascending: true })
+      .is('products.deleted_at', null)
+      .eq('products.is_published', true);
+
+    if (error) {
+      console.warn('load-catalogue featured_slugs warning:', error.message || error);
+      return [];
+    }
+    return data || [];
+  } catch (err) {
+    console.warn('load-catalogue featured_slugs error:', err.message || err);
+    return [];
+  }
+}
+
+async function queryDealsRows() {
+  try {
+    const now = new Date().toISOString();
+    const { data, error } = await supabase
+      .from('deals')
+      .select('slug, title, subtitle, badge, type, value, applies_to, product_slug, expires_at, sort_order, active')
+      .eq('active', true)
+      .or(`expires_at.is.null,expires_at.gt.${now}`)
+      .order('sort_order', { ascending: true });
+
+    if (error) {
+      console.warn('load-catalogue deals warning:', error.message || error);
+      return [];
+    }
+
+    return data || [];
+  } catch (err) {
+    console.warn('load-catalogue deals error:', err.message || err);
+    return [];
+  }
+}
+
 exports.handler = async (event) => {
   if (event.httpMethod !== 'GET') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
   try {
-    const [productsRes, bundles, featuredRows, dealsRows] = await Promise.all([
-      supabase
-        .from('products')
-        .select('*')
-        .eq('is_published', true)
-        .order('created_at', { ascending: false }),
-      queryOptional('bundles', '*', 'name'),
-      queryOptional('featured_slugs', 'slug, sort_order', 'sort_order'),
-      queryOptional('deals', 'slug, title, subtitle, badge, type, value, applies_to, product_slug, expires_at, sort_order', 'sort_order')
-    ]);
+    // Build the product select — try with in_stock, fall back without it
+    let productsRes = await supabase
+      .from('products')
+      .select(PRODUCT_SELECT)
+      .is('deleted_at', null)
+      .eq('is_published', true)
+      .order('created_at', { ascending: false });
 
+    // If the query failed (e.g. in_stock column missing), try a fallback select
     if (productsRes.error) {
-      console.error('products query error:', productsRes.error);
-      return {
-        statusCode: 500,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-        body: JSON.stringify({ error: 'Failed to load products' })
-      };
+      console.warn('load-catalogue products query error (trying fallback):', productsRes.error.message || productsRes.error);
+
+      // Fallback: remove in_stock from select
+      const FALLBACK_SELECT = PRODUCT_SELECT.replace(',in_stock', '').replace('in_stock,', '');
+      productsRes = await supabase
+        .from('products')
+        .select(FALLBACK_SELECT)
+        .is('deleted_at', null)
+        .eq('is_published', true)
+        .order('created_at', { ascending: false });
+
+      if (productsRes.error) {
+        console.error('load-catalogue products fallback query error:', productsRes.error);
+        return {
+          statusCode: 500,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+          body: JSON.stringify({ error: 'Failed to load products' })
+        };
+      }
     }
+
+    const [bundles, featuredRows, dealsRows] = await Promise.all([
+      queryOptional('bundles', '*', 'name'),
+      queryFeaturedRows(),
+      queryDealsRows()
+    ]);
 
     const products = (productsRes.data || []).map(normaliseProduct);
     const productLookup = {};
@@ -152,10 +214,20 @@ exports.handler = async (event) => {
       if (product.slug) productLookup[product.slug] = product;
       if (product.id) productLookup[product.id] = product;
     });
-    const featuredSlugs = featuredRows
-      .sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0))
-      .map(row => row.slug)
-      .filter(Boolean);
+    const featuredSlugs = featuredRows.map(row => row.slug).filter(Boolean);
+    const deals = (dealsRows || []).map(deal => ({
+      slug: deal.slug,
+      title: deal.title,
+      subtitle: deal.subtitle,
+      badge: deal.badge,
+      type: deal.type,
+      value: deal.value,
+      applies_to: deal.applies_to,
+      product_slug: deal.product_slug,
+      expires_at: deal.expires_at,
+      sort_order: deal.sort_order,
+      active: deal.active
+    }));
 
     return {
       statusCode: 200,
@@ -167,7 +239,7 @@ exports.handler = async (event) => {
       body: JSON.stringify({
         products,
         bundles: bundles.map(bundle => normaliseBundle(bundle, productLookup)),
-        deals: dealsRows,
+        deals,
         featuredSlugs
       })
     };

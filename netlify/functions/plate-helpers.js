@@ -160,7 +160,13 @@ function normaliseStringArray(record, names, count) {
 
 function resolvePlatePricing(record, count) {
   const safeCount = clampPlateCount(count);
-  const setPrice = toNumber(record && (record.plate_set_price ?? record.plateSetPrice ?? record.price), 0);
+  const rawCount = toInt(record && (record.plate_count ?? record.plateCount), safeCount);
+  const setPrice = toNumber(
+    record && record.plate_unit_price != null && rawCount
+      ? parseFloat(record.plate_unit_price) * parseInt(rawCount, 10)
+      : parseFloat((record && record.price) || 0),
+    0
+  );
   const explicitUnit = toNumber(record && (record.plate_unit_price ?? record.plateUnitPrice), NaN);
   const unitPrice = Number.isFinite(explicitUnit) && explicitUnit > 0
     ? explicitUnit
@@ -174,7 +180,7 @@ function resolvePlatePricing(record, count) {
 
 function isMissingColumnError(error) {
   const text = `${error && error.code ? error.code : ''} ${error && error.message ? error.message : ''}`;
-  return /PGRST204|schema cache|column|plate_count|plate_unit_price|plate_set_price|plate_names|plate_images|plate_map|panel_names|panel_images|panel_map|wall_source_image|is_bundle/i.test(text);
+  return /PGRST204|schema cache|column|plate_count|plate_unit_price|plate_names|plate_images|plate_map|panel_names|panel_images|panel_map|wall_source_image|is_bundle/i.test(text);
 }
 
 function stripAdvancedPlateFields(payload) {
@@ -182,15 +188,12 @@ function stripAdvancedPlateFields(payload) {
   [
     'plate_count',
     'plate_unit_price',
-    'plate_set_price',
     'plate_names',
     'plate_images',
     'plate_map',
     'panel_names',
     'panel_images',
-    'panel_map',
-    'is_bundle',
-    'wall_source_image'
+    'panel_map'
   ].forEach(key => delete copy[key]);
   return copy;
 }
