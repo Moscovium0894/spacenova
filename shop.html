@@ -159,9 +159,11 @@
 </div>
 
 <div id="toast-container"></div>
+<script src="/js/amplitude.js"></script>
 <script src="/js/basket.js"></script>
 <script src="/js/nav.js"></script>
 <script src="/js/card-flick.js"></script>
+<script src="/js/shop.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   var allProducts = [];
@@ -173,12 +175,9 @@ document.addEventListener('DOMContentLoaded', function() {
   fetch('/.netlify/functions/load-catalogue', { cache: 'no-store' })
     .then(function(r) { return r.json(); })
     .then(function(d) {
-      // Keep all published products including out-of-stock ones.
       var products = (d.products || [])
         .filter(function(p) { return p.isPublished !== false; });
 
-      // FIX: Also merge normalised bundles from d.bundles into the product list
-      // so bundle cards appear in the grid alongside regular products.
       var bundles = (d.bundles || []).filter(function(b) { return b.isPublished !== false; });
 
       allProducts = products.concat(bundles);
