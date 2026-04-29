@@ -11,9 +11,7 @@
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════
-     AUTH SCREEN
-═══════════════════════════════════════ -->
+<!-- ═══════════════ AUTH ═══════════════ -->
 <div class="auth-screen" id="auth-screen">
   <div class="auth-card">
     <div class="auth-mark">✦</div>
@@ -27,9 +25,7 @@
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════
-     TOP BAR
-═══════════════════════════════════════ -->
+<!-- ═══════════════ TOPBAR ═══════════════ -->
 <header class="topbar">
   <div class="topbar-brand">
     <div class="brand-badge">SN</div>
@@ -49,9 +45,7 @@
   </div>
 </header>
 
-<!-- ═══════════════════════════════════════
-     MAIN SHELL
-═══════════════════════════════════════ -->
+<!-- ═══════════════ MAIN SHELL ═══════════════ -->
 <main class="creator-shell">
 
   <!-- ── LEFT RAIL ── -->
@@ -67,8 +61,8 @@
         <option value="">Loading products…</option>
       </select>
       <div class="inline-actions">
-        <button class="btn btn-primary" id="new-series-btn" type="button">New series</button>
-        <button class="btn btn-ghost" id="new-collection-btn" type="button">New collection</button>
+        <button class="btn btn-primary" id="new-series-btn" type="button">+ New series</button>
+        <button class="btn btn-ghost" id="new-collection-btn" type="button">+ Collection</button>
       </div>
     </section>
 
@@ -97,7 +91,7 @@
           <input id="f-price" class="field" type="number" step="0.01" placeholder="229">
         </div>
         <div>
-          <label class="field-label" for="f-plate-unit-price">Individual plate price</label>
+          <label class="field-label" for="f-plate-unit-price">Per plate price</label>
           <input id="f-plate-unit-price" class="field" type="number" step="0.01" placeholder="34.99">
         </div>
       </div>
@@ -123,6 +117,7 @@
         <label class="toggle-row"><input id="f-is-collection" type="checkbox"><span>Collection</span></label>
         <label class="toggle-row"><input id="f-is-bundle" type="checkbox"><span>Bundle</span></label>
         <label class="toggle-row"><input id="f-is-published" type="checkbox" checked><span>Published</span></label>
+        <label class="toggle-row is-out-of-stock-toggle"><input id="f-out-of-stock" type="checkbox"><span>Out of stock</span></label>
       </div>
       <div id="bundle-panel" style="display:none;margin-top:14px">
         <div class="panel-head" style="padding:0;margin-bottom:10px">
@@ -138,7 +133,7 @@
               Drag &amp; drop builder
               <span class="bundle-builder-sub">Drag series/collections into the bundle, reorder, remove.</span>
             </div>
-            <input id="bundle-library-search" class="field bundle-builder-search" type="text" placeholder="Search catalogueâ€¦">
+            <input id="bundle-library-search" class="field bundle-builder-search" type="text" placeholder="Search catalogue…">
           </div>
           <div class="bundle-builder-grid">
             <div class="bundle-builder-col">
@@ -148,7 +143,7 @@
             <div class="bundle-builder-col">
               <div class="bundle-builder-col-head">Bundle contents</div>
               <div class="bundle-drop-zone" id="bundle-drop-zone">
-                <div class="bundle-drop-hint" id="bundle-drop-hint">Drop products hereâ€¦</div>
+                <div class="bundle-drop-hint" id="bundle-drop-hint">Drop products here…</div>
                 <div class="bundle-drop-list" id="bundle-drop-list"></div>
               </div>
               <div class="bundle-builder-note">You can still edit the slug list above if you prefer.</div>
@@ -167,20 +162,34 @@
       </div>
       <label class="field-label" for="f-image">Main image URL</label>
       <input id="f-image" class="field" type="url" placeholder="https://...">
-      <div class="inline-actions">
-        <label class="btn btn-ghost btn-sm btn-upload" for="f-image-file">Import main image</label>
+      <div class="inline-actions" style="margin-bottom:11px">
+        <label class="btn btn-ghost btn-sm btn-upload" for="f-image-file">↑ Import main image</label>
         <input id="f-image-file" type="file" accept="image/*" hidden>
       </div>
-      <label class="field-label" for="f-main-zoom">Main image zoom</label>
-      <input id="f-main-zoom" class="field" type="range" min="1" max="2.5" step="0.05" value="1">
+
+      <!-- Main image zoom - crop style -->
+      <div class="zoom-control-wrap">
+        <span class="field-label">Main zoom (crop)</span>
+        <input id="f-main-zoom" class="field" type="range" min="1" max="3" step="0.05" value="1" style="margin-bottom:0">
+        <span class="zoom-value-badge" id="main-zoom-badge">1.00×</span>
+      </div>
+      <p style="font-family:var(--fm);font-size:.58rem;color:var(--faint);margin-bottom:11px;letter-spacing:.06em">Zooms into the centre of the main image before slicing plates</p>
+
       <div class="img-thumb-wrap" id="thumb-main"><div class="img-thumb-empty">No image</div></div>
+
       <label class="field-label" for="f-wall-image">Wall preview URL</label>
       <input id="f-wall-image" class="field" type="url" placeholder="https://...">
-      <div class="inline-actions">
-        <label class="btn btn-ghost btn-sm btn-upload" for="f-wall-image-file">Import wall image</label>
+      <div class="inline-actions" style="margin-bottom:11px">
+        <label class="btn btn-ghost btn-sm btn-upload" for="f-wall-image-file">↑ Import wall image</label>
         <input id="f-wall-image-file" type="file" accept="image/*" hidden>
       </div>
-      <label class="toggle-row"><input id="f-auto-mockup" type="checkbox"><span>Auto mockup updates</span></label>
+
+      <label class="toggle-row" style="margin-bottom:11px"><input id="f-auto-mockup" type="checkbox"><span>Auto-generate mockup on save</span></label>
+      <div id="mockup-status" class="mockup-status" style="display:none">
+        <span class="mockup-spinner" id="mockup-spinner" style="display:none"></span>
+        <span id="mockup-status-text"></span>
+      </div>
+
       <div class="img-thumb-wrap" id="thumb-wall"><div class="img-thumb-empty">No image</div></div>
       <label class="field-label" for="f-panel-hint">Plate hint text</label>
       <input id="f-panel-hint" class="field" type="text" placeholder="Select your arrangement below">
@@ -190,11 +199,11 @@
     <section class="panel">
       <div class="panel-head">
         <div><p class="eyebrow">Plates</p><h2>Arrangement</h2></div>
-        <button class="btn btn-ghost btn-sm" id="rebuild-panels-btn" type="button">Rebuild</button>
+        <button class="btn btn-ghost btn-sm" id="rebuild-panels-btn" type="button">↺ Rebuild</button>
       </div>
       <div class="field-grid two">
         <div>
-          <label class="field-label" for="f-pieces">Plates</label>
+          <label class="field-label" for="f-pieces">Plate count</label>
           <input id="f-pieces" class="field" type="number" min="1" max="24" value="6">
         </div>
         <div>
@@ -205,12 +214,15 @@
             <option value="arc">Arc</option>
             <option value="cluster">Cluster</option>
             <option value="honeycomb">Honeycomb</option>
+            <option value="diamond">Diamond</option>
+            <option value="triangle">Triangle</option>
           </select>
         </div>
       </div>
       <div class="panel-editor-toolbar">
-        <button class="btn btn-ghost btn-sm" id="auto-layout-btn" type="button">Auto layout</button>
-        <button class="btn btn-ghost btn-sm" id="sort-layout-btn" type="button">Tidy rows</button>
+        <button class="btn btn-ghost btn-sm" id="auto-layout-btn" type="button">⬡ Auto layout</button>
+        <button class="btn btn-ghost btn-sm" id="sort-layout-btn" type="button">↕ Tidy rows</button>
+        <button class="btn btn-ghost btn-sm" id="reset-transforms-btn" type="button">↺ Reset zooms</button>
       </div>
       <div class="panel-list-head">
         <span>#</span><span>Name</span><span>Image URL</span><span>Fit</span><span>Zoom</span><span>X</span><span>Y</span><span>Row</span><span>Col</span>
@@ -224,9 +236,10 @@
         <div><p class="eyebrow">Actions</p><h2>Save product</h2></div>
       </div>
       <div class="inline-actions">
-        <button class="btn btn-primary" id="save-btn" type="button">Save</button>
-        <button class="btn btn-ghost" id="sync-btn" type="button">Sync</button>
-        <button class="btn btn-ghost" id="export-png-btn" type="button">Export PNGs</button>
+        <button class="btn btn-primary" id="save-btn" type="button">💾 Save</button>
+        <button class="btn btn-ghost" id="sync-btn" type="button">⟳ Sync</button>
+        <button class="btn btn-ghost" id="generate-mockup-btn" type="button">🖼 Mockup</button>
+        <button class="btn btn-ghost" id="export-png-btn" type="button">↓ PNGs</button>
       </div>
       <div class="export-results" id="export-results"></div>
     </section>
@@ -242,7 +255,6 @@
         <p class="eyebrow">Live preview</p>
         <h2 id="preview-title">Untitled product</h2>
       </div>
-      <!-- View switcher — using data attributes cleanly, no brackets in selector -->
       <div class="view-tabs" id="view-tabs">
         <button class="view-tab is-active" data-view="main">Main</button>
         <button class="view-tab" data-view="wall">Wall</button>
@@ -252,7 +264,7 @@
 
     <div class="preview-grid">
 
-      <!-- Media card — changes by tab -->
+      <!-- Media card -->
       <div class="preview-card media-card">
         <!-- Main image view -->
         <div class="preview-view" id="view-main">
@@ -270,7 +282,7 @@
           </div>
         </div>
 
-        <!-- Plates view: main image with hex plates composited on top -->
+        <!-- Plates composite view -->
         <div class="preview-view" id="view-panels" style="display:none">
           <div class="panels-composite-wrap">
             <div class="panels-bg-layer" id="panels-bg-layer">
@@ -278,6 +290,13 @@
             </div>
             <div class="panels-hex-layer" id="panels-hex-layer"></div>
             <div class="panels-overlay-label">Plate arrangement preview</div>
+            <!-- Zoom controls for composite view -->
+            <div class="panels-zoom-overlay">
+              <button class="panels-zoom-btn" id="comp-zoom-out" title="Zoom out">−</button>
+              <span class="panels-zoom-label" id="comp-zoom-label">100%</span>
+              <button class="panels-zoom-btn" id="comp-zoom-in" title="Zoom in">+</button>
+              <button class="panels-zoom-btn" id="comp-zoom-reset" title="Reset zoom" style="font-size:.7rem;font-family:var(--fm);padding:0 8px;width:auto">↺</button>
+            </div>
           </div>
         </div>
       </div>
@@ -305,7 +324,7 @@
           <span class="arrangement-count" id="arrangement-count">0 plates</span>
         </div>
         <div class="arrangement-wrap">
-          <div id="hex-preview" class="hex-preview"></div>
+          <div id="hex-preview" class="hex-preview" style="position:relative;"></div>
         </div>
         <div class="plate-customizer" id="plate-customizer">
           <div class="plate-customizer-head">
@@ -315,25 +334,41 @@
             </div>
             <span id="custom-plate-coords">Row 0 / Col 0</span>
           </div>
-          <div class="field-grid four">
-            <label class="mini-field">Fit
-              <select id="custom-fit" class="field field-select">
-                <option value="contain">Contain</option>
-                <option value="cover">Cover</option>
+          <!-- Fit -->
+          <div class="field-grid two" style="margin-bottom:10px">
+            <div>
+              <label class="field-label" for="custom-fit">Fit mode</label>
+              <select id="custom-fit" class="field field-select" style="margin-bottom:0">
+                <option value="cover">Cover (fill)</option>
+                <option value="contain">Contain (fit)</option>
               </select>
-            </label>
-            <label class="mini-field">Zoom
-              <input id="custom-zoom" class="field" type="range" min="0.2" max="3" step="0.05">
-            </label>
-            <label class="mini-field">X
-              <input id="custom-x" class="field" type="range" min="0" max="100" step="1">
-            </label>
-            <label class="mini-field">Y
-              <input id="custom-y" class="field" type="range" min="0" max="100" step="1">
-            </label>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <span class="field-label">Quick actions</span>
+              <div style="display:flex;gap:6px">
+                <button class="btn btn-ghost btn-sm" id="reset-plate-btn" type="button">↺ Reset</button>
+                <button class="btn btn-ghost btn-sm" id="apply-all-plates-btn" type="button">→ All</button>
+              </div>
+            </div>
+          </div>
+          <!-- Individual plate zoom (affects just that plate's image after slicing) -->
+          <div class="zoom-row">
+            <span class="field-label">Zoom</span>
+            <input id="custom-zoom" class="field" type="range" min="0.5" max="3" step="0.05" value="1">
+            <span class="zoom-badge" id="zoom-badge-zoom">1.00×</span>
+          </div>
+          <div class="zoom-row">
+            <span class="field-label">X pos</span>
+            <input id="custom-x" class="field" type="range" min="0" max="100" step="1" value="50">
+            <span class="zoom-badge" id="zoom-badge-x">50%</span>
+          </div>
+          <div class="zoom-row">
+            <span class="field-label">Y pos</span>
+            <input id="custom-y" class="field" type="range" min="0" max="100" step="1" value="50">
+            <span class="zoom-badge" id="zoom-badge-y">50%</span>
           </div>
         </div>
-        <p class="arrangement-hint">Each plate shows a cropped region of the main image. Individual plate image URLs override this.</p>
+        <p class="arrangement-hint">Drag plates to rearrange. Click a plate to select it and adjust its crop. Main image zoom crops the source before slicing — individual plate zoom adjusts each plate after slicing.</p>
       </div>
 
     </div>
@@ -355,7 +390,8 @@
     panelTransforms: [],
     activePanel: 0,
     activeView: 'main',
-    isSaving: false
+    isSaving: false,
+    compZoomLevel: 1
   };
 
   /* ─── Element cache ─── */
@@ -403,6 +439,11 @@
     E.bundleDropHint = document.getElementById('bundle-drop-hint');
     E.bundleDropList = document.getElementById('bundle-drop-list');
     E.exportResults = document.getElementById('export-results');
+    E.mockupStatus  = document.getElementById('mockup-status');
+    E.mockupStatusText = document.getElementById('mockup-status-text');
+    E.mockupSpinner = document.getElementById('mockup-spinner');
+    E.mainZoomBadge = document.getElementById('main-zoom-badge');
+    E.compZoomLabel = document.getElementById('comp-zoom-label');
 
     E.f = {
       name:         document.getElementById('f-name'),
@@ -420,6 +461,7 @@
       isCollection: document.getElementById('f-is-collection'),
       isBundle:     document.getElementById('f-is-bundle'),
       isPublished:  document.getElementById('f-is-published'),
+      outOfStock:   document.getElementById('f-out-of-stock'),
       bundlePrice:  document.getElementById('f-bundle-price'),
       bundleItems:  document.getElementById('f-bundle-items'),
       bundleText:   document.getElementById('f-bundle-text'),
@@ -459,7 +501,10 @@
       customFit:        document.getElementById('custom-fit'),
       customZoom:       document.getElementById('custom-zoom'),
       customX:          document.getElementById('custom-x'),
-      customY:          document.getElementById('custom-y')
+      customY:          document.getElementById('custom-y'),
+      zoomBadgeZoom:    document.getElementById('zoom-badge-zoom'),
+      zoomBadgeX:       document.getElementById('zoom-badge-x'),
+      zoomBadgeY:       document.getElementById('zoom-badge-y')
     };
 
     E.views = {
@@ -506,14 +551,51 @@
     document.getElementById('rebuild-panels-btn').addEventListener('click', rebuildPanelEditors);
     document.getElementById('auto-layout-btn').addEventListener('click', applyPresetLayout);
     document.getElementById('sort-layout-btn').addEventListener('click', tidyPositions);
+    document.getElementById('reset-transforms-btn').addEventListener('click', resetAllTransforms);
     document.getElementById('save-btn').addEventListener('click', saveProduct);
     document.getElementById('sync-btn').addEventListener('click', syncProduct);
     document.getElementById('export-png-btn').addEventListener('click', exportPlatePNGs);
+    document.getElementById('generate-mockup-btn').addEventListener('click', runManualMockup);
     document.getElementById('preview-toggle').addEventListener('click', function () {
       E.previewStage.classList.toggle('is-open');
     });
 
-    /* View tabs — no attribute selectors, just target the container */
+    // Reset plate button
+    document.getElementById('reset-plate-btn').addEventListener('click', function () {
+      var idx = state.activePanel;
+      state.panelTransforms[idx] = defaultPanelTransform();
+      syncPlateCustomizer();
+      renderPreview();
+    });
+
+    // Apply transform to all plates
+    document.getElementById('apply-all-plates-btn').addEventListener('click', function () {
+      var current = normalisePanelTransform(state.panelTransforms[state.activePanel]);
+      for (var i = 0; i < state.panelTransforms.length; i++) {
+        state.panelTransforms[i] = Object.assign({}, current);
+      }
+      rebuildPanelEditors();
+      renderPreview();
+    });
+
+    // Composite zoom buttons
+    document.getElementById('comp-zoom-in').addEventListener('click', function () {
+      state.compZoomLevel = Math.min(3, parseFloat((state.compZoomLevel + 0.25).toFixed(2)));
+      updateCompZoomLabel();
+      renderPreview();
+    });
+    document.getElementById('comp-zoom-out').addEventListener('click', function () {
+      state.compZoomLevel = Math.max(0.5, parseFloat((state.compZoomLevel - 0.25).toFixed(2)));
+      updateCompZoomLabel();
+      renderPreview();
+    });
+    document.getElementById('comp-zoom-reset').addEventListener('click', function () {
+      state.compZoomLevel = 1;
+      updateCompZoomLabel();
+      renderPreview();
+    });
+
+    /* View tabs */
     document.getElementById('view-tabs').addEventListener('click', function (e) {
       var btn = e.target.closest('.view-tab');
       if (!btn) return;
@@ -525,9 +607,15 @@
       renderPreview();
     });
 
+    /* Main zoom badge live update */
+    E.f.mainZoom.addEventListener('input', function () {
+      E.mainZoomBadge.textContent = parseFloat(E.f.mainZoom.value).toFixed(2) + '×';
+    });
+
     /* Field watchers */
     Object.keys(E.f).forEach(function (key) {
       var el = E.f[key];
+      if (!el) return;
       var evt = (el.type === 'checkbox' || el.tagName === 'SELECT') ? 'change' : 'input';
       el.addEventListener(evt, function () {
         if (key === 'pieces') {
@@ -543,8 +631,12 @@
         }
         if (key === 'image') updateThumb('main', E.f.image.value.trim());
         if (key === 'wallImage') updateThumb('wall', E.f.wallImage.value.trim());
+        if (key === 'mainZoom') E.mainZoomBadge.textContent = parseFloat(E.f.mainZoom.value).toFixed(2) + '×';
         renderPreview();
-        queueAutoMockup();
+        // Auto-mockup triggers on meaningful image/layout changes
+        if (['image', 'mainZoom', 'wallImage', 'pieces'].indexOf(key) >= 0) {
+          queueAutoMockup();
+        }
       });
     });
 
@@ -555,14 +647,23 @@
     if (E.f.wallImageFile) {
       E.f.wallImageFile.addEventListener('change', function () { importImageFromFile(E.f.wallImageFile, E.f.wallImage); });
     }
-    if (E.f.autoMockup) {
-      E.f.autoMockup.addEventListener('change', function () {
-        if (E.f.autoMockup.checked) queueAutoMockup(250);
-      });
-    }
+
     initResizableRail();
     bindPlateCustomizer();
     bindBundleBuilder();
+  }
+
+  function updateCompZoomLabel() {
+    if (E.compZoomLabel) E.compZoomLabel.textContent = Math.round(state.compZoomLevel * 100) + '%';
+  }
+
+  function resetAllTransforms() {
+    for (var i = 0; i < state.panelTransforms.length; i++) {
+      state.panelTransforms[i] = defaultPanelTransform();
+    }
+    rebuildPanelEditors();
+    renderPreview();
+    setStatus('All plate zooms reset', 'ready');
   }
 
   function importImageFromFile(input, targetField) {
@@ -574,25 +675,31 @@
       targetField.dispatchEvent(new Event('input', { bubbles: true }));
       setStatus('Imported ' + file.name, 'success');
     };
-    reader.onerror = function () {
-      setStatus('Could not import file', 'error');
-    };
+    reader.onerror = function () { setStatus('Could not import file', 'error'); };
     reader.readAsDataURL(file);
     input.value = '';
   }
 
   function queueAutoMockup(delay) {
     if (suppressAutoMockup || !E.f || !E.f.autoMockup || !E.f.autoMockup.checked) return;
-    var ms = Number.isFinite(delay) ? delay : 1400;
+    var ms = Number.isFinite(delay) ? delay : 2000;
     clearTimeout(autoMockupTimer);
     autoMockupTimer = setTimeout(runAutoMockup, ms);
   }
 
-  function runAutoMockup() {
-    if (!E.f || !E.f.autoMockup || !E.f.autoMockup.checked) return;
-    if (autoMockupInFlight) return;
-    var productId = (state.currentId || E.f.slug.value || '').trim();
-    if (!productId) return;
+  function setMockupStatus(mode, text) {
+    if (!E.mockupStatus) return;
+    E.mockupStatus.style.display = text ? '' : 'none';
+    E.mockupStatus.className = 'mockup-status' + (mode ? ' is-' + mode : '');
+    if (E.mockupStatusText) E.mockupStatusText.textContent = text || '';
+    if (E.mockupSpinner) E.mockupSpinner.style.display = mode === 'running' ? '' : 'none';
+  }
+
+  function runManualMockup() {
+    var productId = (state.currentId || (E.f && E.f.slug && E.f.slug.value) || '').trim();
+    if (!productId) { setStatus('Save the product first to generate a mockup', 'error'); return; }
+    setMockupStatus('running', 'Generating mockup…');
+    setStatus('Generating mockup…', 'loading');
     autoMockupInFlight = true;
     requestJson('/.netlify/functions/generate-mockup', {
       method: 'POST',
@@ -601,21 +708,28 @@
     })
     .then(function (body) {
       var rows = body && Array.isArray(body.results) ? body.results : [];
-      var row = rows.find(function (item) {
-        return item && item.success && (item.productId === productId || item.slug === productId);
-      }) || rows.find(function (item) { return item && item.success; });
-      if (!row || !row.wall_image) return;
+      var row = rows.find(function (item) { return item && item.success; });
+      if (!row || !row.wall_image) { setMockupStatus('error', 'Mockup failed — check product image'); setStatus('Mockup failed', 'error'); return; }
       suppressAutoMockup = true;
       E.f.wallImage.value = row.wall_image;
       updateThumb('wall', row.wall_image);
       renderPreview();
       suppressAutoMockup = false;
-      setStatus('Auto mockup refreshed', 'success');
+      setMockupStatus('done', 'Mockup generated ✓');
+      setStatus('Mockup ready', 'success');
+      setTimeout(function () { setMockupStatus('', ''); }, 4000);
     })
-    .catch(function () {})
-    .finally(function () {
-      autoMockupInFlight = false;
-    });
+    .catch(function (err) {
+      setMockupStatus('error', 'Mockup failed — ' + (err && err.message || 'unknown error'));
+      setStatus('Mockup failed', 'error');
+    })
+    .finally(function () { autoMockupInFlight = false; });
+  }
+
+  function runAutoMockup() {
+    if (!E.f || !E.f.autoMockup || !E.f.autoMockup.checked) return;
+    if (autoMockupInFlight) return;
+    runManualMockup();
   }
 
   function initResizableRail() {
@@ -627,24 +741,19 @@
       if (window.matchMedia('(max-width: 1060px)').matches) return;
       event.preventDefault();
       var startX = event.clientX;
-      var current = parseFloat(getComputedStyle(E.creatorShell).getPropertyValue('--rail-width')) || E.editorRail.getBoundingClientRect().width || 460;
-
+      var current = parseFloat(getComputedStyle(E.creatorShell).getPropertyValue('--rail-width')) || E.editorRail.getBoundingClientRect().width || 480;
       E.railResizer.classList.add('is-dragging');
       document.body.classList.add('is-resizing-rail');
       E.railResizer.setPointerCapture(event.pointerId);
 
-      function onMove(moveEvent) {
-        var next = current + (moveEvent.clientX - startX);
-        applyRailWidth(next);
-      }
-
+      function onMove(moveEvent) { applyRailWidth(current + (moveEvent.clientX - startX)); }
       function onUp() {
         E.railResizer.classList.remove('is-dragging');
         document.body.classList.remove('is-resizing-rail');
         E.railResizer.removeEventListener('pointermove', onMove);
         E.railResizer.removeEventListener('pointerup', onUp);
         E.railResizer.removeEventListener('pointercancel', onUp);
-        var resolved = parseFloat(getComputedStyle(E.creatorShell).getPropertyValue('--rail-width')) || E.editorRail.getBoundingClientRect().width || 460;
+        var resolved = parseFloat(getComputedStyle(E.creatorShell).getPropertyValue('--rail-width')) || E.editorRail.getBoundingClientRect().width || 480;
         localStorage.setItem('creator_rail_width', String(Math.round(resolved)));
       }
 
@@ -658,15 +767,15 @@
     if (!E.creatorShell) return;
     var min = 320;
     var max = Math.max(min, window.innerWidth - 360);
-    var clamped = Math.max(min, Math.min(max, parseFloat(value) || 460));
+    var clamped = Math.max(min, Math.min(max, parseFloat(value) || 480));
     E.creatorShell.style.setProperty('--rail-width', clamped + 'px');
   }
 
+  /* ─── Bundle builder ─── */
   function bindBundleBuilder() {
     if (E.bundleLibrarySearch) {
       E.bundleLibrarySearch.addEventListener('input', function () { renderBundleBuilder(); });
     }
-
     if (E.bundleLibraryList) {
       E.bundleLibraryList.addEventListener('dragstart', function (e) {
         var item = e.target.closest('.bundle-lib-item');
@@ -677,27 +786,19 @@
         e.dataTransfer.effectAllowed = 'copy';
       });
     }
-
     if (E.bundleDropZone) {
       E.bundleDropZone.addEventListener('dragover', function (e) {
         if (!E.f.isBundle.checked) return;
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'copy';
+        e.preventDefault(); e.dataTransfer.dropEffect = 'copy';
         E.bundleDropZone.classList.add('is-dragover');
       });
-
-      E.bundleDropZone.addEventListener('dragleave', function () {
-        E.bundleDropZone.classList.remove('is-dragover');
-      });
-
+      E.bundleDropZone.addEventListener('dragleave', function () { E.bundleDropZone.classList.remove('is-dragover'); });
       E.bundleDropZone.addEventListener('drop', function (e) {
         if (!E.f.isBundle.checked) return;
-        e.preventDefault();
-        E.bundleDropZone.classList.remove('is-dragover');
+        e.preventDefault(); E.bundleDropZone.classList.remove('is-dragover');
         applyBundleDrop(e);
       });
     }
-
     if (E.bundleDropList) {
       E.bundleDropList.addEventListener('dragstart', function (e) {
         var item = e.target.closest('.bundle-drop-item');
@@ -710,45 +811,33 @@
         e.dataTransfer.setData('text/plain', JSON.stringify(payload));
         e.dataTransfer.effectAllowed = 'move';
       });
-
       E.bundleDropList.addEventListener('dragover', function (e) {
         if (!E.f.isBundle.checked) return;
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
+        e.preventDefault(); e.dataTransfer.dropEffect = 'move';
         var over = e.target.closest('.bundle-drop-item');
-        E.bundleDropList.querySelectorAll('.bundle-drop-item').forEach(function (el) {
-          el.classList.toggle('is-over', el === over);
-        });
+        E.bundleDropList.querySelectorAll('.bundle-drop-item').forEach(function (el) { el.classList.toggle('is-over', el === over); });
       });
-
       E.bundleDropList.addEventListener('drop', function (e) {
         if (!E.f.isBundle.checked) return;
-        e.preventDefault();
-        bundleDragState.droppedInside = true;
+        e.preventDefault(); bundleDragState.droppedInside = true;
         E.bundleDropList.querySelectorAll('.bundle-drop-item').forEach(function (el) { el.classList.remove('is-over'); });
         applyBundleDrop(e);
       });
-
       E.bundleDropList.addEventListener('dragend', function () {
         if (!bundleDragState.active) return;
         if (!bundleDragState.droppedInside) removeBundleDraggedItem(bundleDragState.payload);
         bundleDragState = { active: false, droppedInside: false, payload: null };
       });
-
       E.bundleDropList.addEventListener('click', function (e) {
         var btn = e.target.closest('.bundle-drop-remove');
         if (!btn) return;
         var slug = btn.getAttribute('data-slug') || '';
         if (!slug) return;
-        var items = getBundleItems().filter(function (s) { return s !== slug; });
-        setBundleItems(items);
+        setBundleItems(getBundleItems().filter(function (s) { return s !== slug; }));
       });
     }
-
     if (E.bundleDropZone) {
-      E.bundleDropZone.addEventListener('drop', function () {
-        bundleDragState.droppedInside = true;
-      });
+      E.bundleDropZone.addEventListener('drop', function () { bundleDragState.droppedInside = true; });
     }
   }
 
@@ -756,35 +845,32 @@
     if (!payload || payload.from !== 'bundle') return;
     var items = getBundleItems();
     if (!items.length) return;
-
     var idx = Number.isFinite(payload.index) ? payload.index : -1;
-    if (idx >= 0 && idx < items.length && items[idx] === payload.slug) {
-      items.splice(idx, 1);
-      setBundleItems(items);
-      return;
-    }
-
-    var slug = String(payload.slug || '').trim();
-    var fallbackIdx = items.indexOf(slug);
-    if (fallbackIdx >= 0) {
-      items.splice(fallbackIdx, 1);
-      setBundleItems(items);
-    }
+    if (idx >= 0 && idx < items.length && items[idx] === payload.slug) { items.splice(idx, 1); setBundleItems(items); return; }
+    var fallbackIdx = items.indexOf(String(payload.slug || '').trim());
+    if (fallbackIdx >= 0) { items.splice(fallbackIdx, 1); setBundleItems(items); }
   }
 
+  /* ─── Plate customizer ─── */
   function bindPlateCustomizer() {
     if (!E.prev.customFit) return;
     E.prev.customFit.addEventListener('change', function () {
       updateActivePanelTransform({ fit: E.prev.customFit.value });
     });
     E.prev.customZoom.addEventListener('input', function () {
-      updateActivePanelTransform({ scale: clampNumber(E.prev.customZoom.value, 0.2, 3, 1) });
+      var v = clampNumber(E.prev.customZoom.value, 0.5, 3, 1);
+      updateActivePanelTransform({ scale: v });
+      if (E.prev.zoomBadgeZoom) E.prev.zoomBadgeZoom.textContent = v.toFixed(2) + '×';
     });
     E.prev.customX.addEventListener('input', function () {
-      updateActivePanelTransform({ x: clampNumber(E.prev.customX.value, 0, 100, 50) });
+      var v = clampNumber(E.prev.customX.value, 0, 100, 50);
+      updateActivePanelTransform({ x: v });
+      if (E.prev.zoomBadgeX) E.prev.zoomBadgeX.textContent = v + '%';
     });
     E.prev.customY.addEventListener('input', function () {
-      updateActivePanelTransform({ y: clampNumber(E.prev.customY.value, 0, 100, 50) });
+      var v = clampNumber(E.prev.customY.value, 0, 100, 50);
+      updateActivePanelTransform({ y: v });
+      if (E.prev.zoomBadgeY) E.prev.zoomBadgeY.textContent = v + '%';
     });
   }
 
@@ -834,21 +920,12 @@
     });
   }
 
-  function extractProducts(data) {
-    return extractProductList(data).filter(Boolean).map(normaliseProductPayload);
-  }
-
   function extractProductList(data) {
     var list = [];
-    if (Array.isArray(data)) {
-      list = data;
-    } else if (data && Array.isArray(data.products)) {
-      list = data.products.concat(Array.isArray(data.bundles) ? data.bundles : []);
-    } else if (data && Array.isArray(data.data)) {
-      list = data.data;
-    } else {
-      throw new Error('Product response did not include a product list');
-    }
+    if (Array.isArray(data)) { list = data; }
+    else if (data && Array.isArray(data.products)) { list = data.products.concat(Array.isArray(data.bundles) ? data.bundles : []); }
+    else if (data && Array.isArray(data.data)) { list = data.data; }
+    else { throw new Error('Product response did not include a product list'); }
     return list;
   }
 
@@ -856,19 +933,16 @@
     E.productSel.innerHTML = '';
     if (!state.products.length) {
       var empty = document.createElement('option');
-      empty.value = '';
-      empty.textContent = 'No saved products';
-      E.productSel.appendChild(empty);
-      return;
+      empty.value = ''; empty.textContent = 'No saved products';
+      E.productSel.appendChild(empty); return;
     }
     var placeholder = document.createElement('option');
-    placeholder.value = '';
-    placeholder.textContent = '— select a product —';
+    placeholder.value = ''; placeholder.textContent = '— select a product —';
     E.productSel.appendChild(placeholder);
     state.products.forEach(function (p) {
       var opt = document.createElement('option');
       opt.value = productKey(p);
-      opt.textContent = p.name || p.slug || 'Untitled';
+      opt.textContent = (p.isBundle ? '📦 ' : p.isCollection ? '🎨 ' : '🌟 ') + (p.name || p.slug || 'Untitled');
       E.productSel.appendChild(opt);
     });
   }
@@ -897,6 +971,7 @@
     E.f.isCollection.checked = !!p.isCollection;
     E.f.isBundle.checked   = !!p.isBundle;
     E.f.isPublished.checked = p.isPublished !== false;
+    E.f.outOfStock.checked  = p.inStock === false;
     E.f.bundlePrice.value  = p.isBundle ? (p.bundlePrice || p.price || '') : '';
     E.f.bundleItems.value  = Array.isArray(p.bundleItems) ? p.bundleItems.join('\n') : '';
     E.f.bundleText.value   = p.bundleText || p.text || '';
@@ -905,6 +980,7 @@
     E.f.wallImage.value    = p.wallImage || '';
     E.f.panelHint.value    = p.panelHint || '';
     E.f.pieces.value       = parseInt(p.plateCount || p.pieces, 10) || 1;
+    E.mainZoomBadge.textContent = parseFloat(p.mainZoom || 1).toFixed(2) + '×';
     syncPriceLabel();
 
     state.panelNames     = Array.isArray(p.plateNames) ? p.plateNames.slice() : (Array.isArray(p.panelNames) ? p.panelNames.slice() : []);
@@ -917,6 +993,8 @@
       ? loadedMap.transforms.map(normalisePanelTransform)
       : [];
 
+    state.compZoomLevel = 1;
+    updateCompZoomLabel();
     ensurePanelArrays();
     updateBundlePanel();
     rebuildPanelEditors();
@@ -931,20 +1009,25 @@
     loadSeq++;
     state.currentId = null;
     state.activePanel = 0;
+    state.compZoomLevel = 1;
     E.productSel.value = '';
     E.f.slug.dataset.touched = '';
     Object.keys(E.f).forEach(function (k) {
       var el = E.f[k];
+      if (!el) return;
       if (el.type === 'checkbox') { el.checked = k === 'isPublished'; }
       else if (k === 'pieces') { el.value = 6; }
       else if (k === 'layoutPreset') { el.value = 'auto'; }
+      else if (k === 'mainZoom') { el.value = 1; }
       else { el.value = ''; }
     });
     E.f.isCollection.checked = !!isCollection;
     E.f.unitPrice.value = '34.99';
     E.f.price.value = (6 * 34.99 * 0.9).toFixed(2);
     E.f.mainZoom.value = 1;
+    E.mainZoomBadge.textContent = '1.00×';
     syncPriceLabel();
+    updateCompZoomLabel();
     state.panelNames = [];
     state.panelImages = [];
     state.panelPositions = [];
@@ -956,6 +1039,7 @@
     updateThumb('wall', '');
     renderPreview();
     updateBundlePanel();
+    setMockupStatus('', '');
     setStatus('New draft', 'ready');
   }
 
@@ -999,26 +1083,26 @@
     E.panelList.innerHTML = '';
     state.panelPositions.forEach(function (pos, i) {
       var row = document.createElement('div');
-      row.className = 'panel-row';
+      row.className = 'panel-row' + (i === state.activePanel ? ' is-active' : '');
       row.innerHTML =
-        '<div class="panel-index">' + (i + 1) + '</div>' +
-        '<input class="field pn" type="text" placeholder="Plate name">' +
-        '<input class="field pi" type="url" placeholder="https://...">' +
-        '<select class="field pf"><option value="contain">Contain</option><option value="cover">Cover</option></select>' +
-        '<input class="field pz" type="number" min="0.2" max="3" step="0.05" title="Zoom">' +
-        '<input class="field px" type="number" min="0" max="100" step="1" title="Horizontal position">' +
-        '<input class="field py" type="number" min="0" max="100" step="1" title="Vertical position">' +
-        '<input class="field pr" type="number" step="1">' +
-        '<input class="field pc" type="number" step="1">';
+        '<div class="panel-index" data-idx="' + i + '">' + (i + 1) + '</div>' +
+        '<input class="field pn" type="text" placeholder="Name…">' +
+        '<input class="field pi" type="url" placeholder="https://…">' +
+        '<select class="field pf"><option value="cover">Cover</option><option value="contain">Contain</option></select>' +
+        '<input class="field pz" type="number" min="0.5" max="3" step="0.05" title="Zoom">' +
+        '<input class="field px" type="number" min="0" max="100" step="1" title="X position">' +
+        '<input class="field py" type="number" min="0" max="100" step="1" title="Y position">' +
+        '<input class="field pr" type="number" step="1" title="Row">' +
+        '<input class="field pc" type="number" step="1" title="Col">';
 
-      var nameIn  = row.querySelector('.pn');
-      var imgIn   = row.querySelector('.pi');
-      var fitIn   = row.querySelector('.pf');
-      var zoomIn  = row.querySelector('.pz');
-      var xIn     = row.querySelector('.px');
-      var yIn     = row.querySelector('.py');
-      var rowIn   = row.querySelector('.pr');
-      var colIn   = row.querySelector('.pc');
+      var nameIn = row.querySelector('.pn');
+      var imgIn  = row.querySelector('.pi');
+      var fitIn  = row.querySelector('.pf');
+      var zoomIn = row.querySelector('.pz');
+      var xIn    = row.querySelector('.px');
+      var yIn    = row.querySelector('.py');
+      var rowIn  = row.querySelector('.pr');
+      var colIn  = row.querySelector('.pc');
       var transform = normalisePanelTransform(state.panelTransforms[i]);
 
       nameIn.value = state.panelNames[i] || '';
@@ -1030,10 +1114,17 @@
       rowIn.value  = pos.row;
       colIn.value  = pos.col;
 
+      // Click index to select this plate
+      row.querySelector('.panel-index').addEventListener('click', function () {
+        selectPanel(i);
+        // Scroll panel into view
+        row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      });
+
       nameIn.addEventListener('input', function () { state.panelNames[i] = nameIn.value; renderPreview(); });
-      imgIn.addEventListener('input',  function () { state.panelImages[i] = imgIn.value; state.panelTransforms[i] = normalisePanelTransform(state.panelTransforms[i]); renderPreview(); });
+      imgIn.addEventListener('input',  function () { state.panelImages[i] = imgIn.value.trim(); renderPreview(); queueAutoMockup(); });
       fitIn.addEventListener('change', function () { state.panelTransforms[i].fit = fitIn.value; renderPreview(); });
-      zoomIn.addEventListener('input', function () { state.panelTransforms[i].scale = clampNumber(zoomIn.value, 0.2, 3, 1); renderPreview(); });
+      zoomIn.addEventListener('input', function () { state.panelTransforms[i].scale = clampNumber(zoomIn.value, 0.5, 3, 1); renderPreview(); });
       xIn.addEventListener('input',    function () { state.panelTransforms[i].x = clampNumber(xIn.value, 0, 100, 50); renderPreview(); });
       yIn.addEventListener('input',    function () { state.panelTransforms[i].y = clampNumber(yIn.value, 0, 100, 50); renderPreview(); });
       rowIn.addEventListener('input',  function () { state.panelPositions[i].row = parseInt(rowIn.value, 10) || 0; renderPreview(); });
@@ -1053,12 +1144,10 @@
 
     if (preset === 'line') {
       for (var i = 0; i < count; i++) pos.push({ row: 0, col: i });
-
     } else if (preset === 'arc') {
       for (var j = 0; j < count; j++) {
         pos.push({ row: (j === 0 || j === count - 1) ? 1 : 0, col: j });
       }
-
     } else if (preset === 'cluster') {
       var cluster = [
         {row:0,col:1},{row:1,col:0},{row:1,col:1},{row:1,col:2},
@@ -1066,7 +1155,6 @@
         {row:3,col:1},{row:3,col:2}
       ];
       for (var c = 0; c < count; c++) pos.push(cluster[c] || { row: Math.floor(c/3), col: c%3 });
-
     } else if (preset === 'honeycomb') {
       var honey = [
         {row:0,col:1},{row:1,col:0},{row:1,col:1},{row:1,col:2},
@@ -1074,7 +1162,19 @@
         {row:3,col:1},{row:3,col:2},{row:4,col:1},{row:4,col:2}
       ];
       for (var h = 0; h < count; h++) pos.push(honey[h] || { row: Math.floor(h/4), col: h%4 });
-
+    } else if (preset === 'diamond') {
+      var diamond = [
+        {row:0,col:2},{row:1,col:1},{row:1,col:2},{row:1,col:3},
+        {row:2,col:0},{row:2,col:1},{row:2,col:2},{row:2,col:3},{row:2,col:4},
+        {row:3,col:1},{row:3,col:2},{row:3,col:3}
+      ];
+      for (var dm = 0; dm < count; dm++) pos.push(diamond[dm] || { row: Math.floor(dm/4), col: dm%4 });
+    } else if (preset === 'triangle') {
+      var tri = [
+        {row:0,col:0},{row:1,col:0},{row:1,col:1},{row:2,col:0},{row:2,col:1},{row:2,col:2},
+        {row:3,col:0},{row:3,col:1},{row:3,col:2},{row:3,col:3}
+      ];
+      for (var t = 0; t < count; t++) pos.push(tri[t] || { row: Math.floor(t/4), col: t%4 });
     } else {
       pos = autoLayout(count);
     }
@@ -1087,7 +1187,6 @@
     var sorted = state.panelPositions.map(function (p, idx) {
       return { row: parseInt(p.row,10)||0, col: parseInt(p.col,10)||0, idx: idx };
     }).sort(function (a, b) { return a.row !== b.row ? a.row - b.row : a.col - b.col; });
-
     var nn = [], ni = [], nt = [], np = [];
     sorted.forEach(function (item) {
       nn.push(state.panelNames[item.idx] || '');
@@ -1101,11 +1200,8 @@
 
   function autoLayout(count) {
     var presets = {
-      1:[[0,0]],
-      2:[[0,0],[0,1]],
-      3:[[0,0],[0,1],[1,0]],
-      4:[[0,0],[0,1],[1,0],[1,1]],
-      5:[[0,1],[1,0],[1,1],[1,2],[2,1]],
+      1:[[0,0]], 2:[[0,0],[0,1]], 3:[[0,0],[0,1],[1,0]],
+      4:[[0,0],[0,1],[1,0],[1,1]], 5:[[0,1],[1,0],[1,1],[1,2],[2,1]],
       6:[[0,0],[0,1],[0,2],[1,0],[1,1],[1,2]],
       7:[[0,1],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]],
       8:[[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1]],
@@ -1114,25 +1210,18 @@
       11:[[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[1,3],[2,0],[2,1],[2,2],[2,3]],
       12:[[0,0],[0,1],[0,2],[0,3],[1,0],[1,1],[1,2],[1,3],[2,0],[2,1],[2,2],[2,3]]
     };
-    if (presets[count]) {
-      return presets[count].map(function (p) { return { row: p[0], col: p[1] }; });
-    }
-
+    if (presets[count]) return presets[count].map(function (p) { return { row: p[0], col: p[1] }; });
     var positions = [], cols = Math.max(3, Math.ceil(Math.sqrt(count)));
-    var rows = Math.ceil(count / cols);
-    var placed = 0;
+    var rows = Math.ceil(count / cols), placed = 0;
     for (var r = 0; r < rows && placed < count; r++) {
       var rowCols = Math.min(cols, count - placed);
       var offset = Math.floor((cols - rowCols) / 2);
-      for (var c = 0; c < rowCols; c++) {
-        positions.push({ row: r, col: c + offset });
-        placed++;
-      }
+      for (var c = 0; c < rowCols; c++) { positions.push({ row: r, col: c + offset }); placed++; }
     }
     return positions;
   }
 
-  /* ─── Thumb previews in rail ─── */
+  /* ─── Thumb previews ─── */
   function updateThumb(which, url) {
     var wrap = which === 'main' ? E.prev.thumbMain : E.prev.thumbWall;
     if (!wrap) return;
@@ -1148,8 +1237,9 @@
     var name        = E.f.name.value.trim() || 'Untitled product';
     var isCollection = E.f.isCollection.checked;
     var isBundle    = E.f.isBundle.checked;
+    var isOos       = E.f.outOfStock.checked;
     var image       = E.f.image.value.trim();
-    var imageZoom   = clampNumber(E.f.mainZoom.value, 1, 2.5, 1);
+    var imageZoom   = clampNumber(E.f.mainZoom.value, 1, 3, 1);
     var wallImage   = E.f.wallImage.value.trim();
     var shortLine   = E.f.short.value.trim() || 'Add a short product line.';
     var description = E.f.description.value.trim() || 'Your description will appear here.';
@@ -1161,25 +1251,24 @@
     E.prev.badge.textContent       = isBundle ? 'Bundle' : (isCollection ? 'Collection' : 'Series');
     E.prev.short.textContent       = shortLine;
     E.prev.description.textContent = description;
-    E.prev.price.textContent       = '£' + price.toFixed(2);
-    E.prev.priceLabel.textContent  = E.f.priceLabel.value || '';
+    E.prev.price.textContent       = isOos ? 'Out of stock' : ('£' + price.toFixed(2));
+    E.prev.priceLabel.textContent  = isOos ? '' : (E.f.priceLabel.value || '');
     E.prev.arrangementCount.textContent = count + ' plate' + (count === 1 ? '' : 's');
 
-    /* Meta pills */
     var pills = [];
+    if (isOos) pills.push('Out of Stock');
     if (E.f.size.value.trim()) pills.push(E.f.size.value.trim());
     if (E.f.material.value.trim()) pills.push(E.f.material.value.trim());
     if (E.f.category.value.trim()) pills.push(E.f.category.value.trim());
     E.prev.metaPills.innerHTML = pills.map(function (p) {
-      return '<span class="meta-pill">' + p + '</span>';
+      return '<span class="meta-pill" style="' + (p === 'Out of Stock' ? 'color:var(--danger);border-color:rgba(196,77,77,.25);' : '') + '">' + p + '</span>';
     }).join('');
 
-    /* Switch view panes */
     Object.keys(E.views).forEach(function (v) {
       E.views[v].style.display = v === state.activeView ? '' : 'none';
     });
 
-    /* Main image */
+    /* Main image — zoom acts as a crop, using object-fit:cover + scale */
     if (image) {
       E.prev.mainImage.src = image;
       E.prev.mainImage.style.transform = 'scale(' + imageZoom + ')';
@@ -1211,130 +1300,149 @@
     syncPlateCustomizer();
   }
 
-   /* ── Panels composite: main image + hex outlines ── */
+  /* ── Panels composite: background-cropped main image + hex tile overlays ── */
   function renderPanelsView(mainImageUrl, count, mainZoom) {
     var bgLayer  = E.prev.panelsBgLayer;
     var bgEmpty  = E.prev.panelsBgEmpty;
     var hexLayer = E.prev.panelsHexLayer;
-    var zoom = clampNumber(mainZoom, 1, 2.5, 1);
+    var zoom = clampNumber(mainZoom, 1, 3, 1) * clampNumber(state.compZoomLevel, 0.5, 3, 1);
 
     if (mainImageUrl) {
       bgLayer.style.backgroundImage    = 'url(' + mainImageUrl + ')';
       bgLayer.style.backgroundSize     = (100 * zoom) + '%';
       bgLayer.style.backgroundPosition = 'center';
-      bgLayer.style.filter             = 'none';
-      bgLayer.style.transform          = 'none';
       bgEmpty.style.display = 'none';
     } else {
       bgLayer.style.backgroundImage = '';
-      bgLayer.style.filter          = '';
-      bgLayer.style.transform       = '';
       bgEmpty.style.display = '';
     }
 
-    /* Draw SVG hex outlines on top */
-    renderOutlineHexSVG(hexLayer, mainImageUrl);
+    renderOutlinePreviewSVG(hexLayer, mainImageUrl, mainZoom);
   }
 
-  /* Draws an SVG with transparent hex outlines + numbered labels over the image */
-  function renderOutlineHexSVG(hexLayer, mainImageUrl) {
+  /* ── Improved SVG plate overlay: tiles show cropped portions of the main image ── */
+  function renderOutlinePreviewSVG(hexLayer, mainImageUrl, mainZoom) {
     hexLayer.innerHTML = '';
     ensurePanelArrays();
-    renderOutlinePreviewSVG(hexLayer, mainImageUrl);
-    return;
 
-    var grouped  = groupByRow();
-    var rowKeys  = Object.keys(grouped).map(Number).sort(function (a,b) { return a-b; });
-    if (!rowKeys.length) return;
+    var pixelPositions = getPreviewPixelPositions();
+    if (!pixelPositions.length) return;
 
-    /* Cell geometry — pointy-top hexagon */
-    var CW = 80, CH = 92;           /* cell width, height */
-    var OVERLAP = CH * 0.25;        /* vertical row overlap */
-    var ROW_PITCH = CH - OVERLAP;   /* vertical distance between row origins */
-    var COL_PITCH = CW + 4;         /* horizontal distance between cells in same row */
-    var OFFSET_X  = CW / 2 + 2;    /* even/odd row horizontal offset */
+    var bounds = getPreviewBounds(pixelPositions);
+    var pad = 8;
+    var minX = bounds.minX - pad;
+    var minY = bounds.minY - pad;
+    var svgW = bounds.width + pad * 2;
+    var svgH = bounds.height + pad * 2;
+    var zoom = clampNumber(mainZoom, 1, 3, 1);
+    var image = escapeSvgAttr(mainImageUrl || '');
 
-    /* Compute bounding box of entire grid */
-    var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    rowKeys.forEach(function (rk) {
-      var isOdd = rk % 2 !== 0;
-      grouped[rk].forEach(function (cell) {
-        var cx = cell.col * COL_PITCH + (isOdd ? OFFSET_X : 0) + CW / 2;
-        var cy = rk * ROW_PITCH + CH / 2;
-        minX = Math.min(minX, cx - CW/2 - 4);
-        minY = Math.min(minY, cy - CH/2 - 4);
-        maxX = Math.max(maxX, cx + CW/2 + 4);
-        maxY = Math.max(maxY, cy + CH/2 + 4);
-      });
-    });
-
-    var svgW = maxX - minX;
-    var svgH = maxY - minY;
-
-    /* Build hex polygon points for a pointy-top hex centred at (cx, cy) */
-    function hexPoints(cx, cy) {
-      var pts = [];
-      var w = CW / 2, h = CH / 2;
-      /* pointy-top: top, upper-right, lower-right, bottom, lower-left, upper-left */
-      pts.push((cx)         + ',' + (cy - h));
-      pts.push((cx + w)     + ',' + (cy - h/2));
-      pts.push((cx + w)     + ',' + (cy + h/2));
-      pts.push((cx)         + ',' + (cy + h));
-      pts.push((cx - w)     + ',' + (cy + h/2));
-      pts.push((cx - w)     + ',' + (cy - h/2));
-      return pts.join(' ');
-    }
+    // Scale the source region inversely with zoom (cropping effect)
+    var srcW = bounds.width / zoom;
+    var srcH = bounds.height / zoom;
+    var srcX = bounds.minX + (bounds.width - srcW) / 2;
+    var srcY = bounds.minY + (bounds.height - srcH) / 2;
 
     var svgParts = [
       '<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="',
-      minX + ' ' + minY + ' ' + svgW + ' ' + svgH,
-      '">'
+      minX + ' ' + minY + ' ' + svgW + ' ' + svgH, '">'
     ];
 
-    /* Semi-transparent dark overlay everywhere */
-    svgParts.push('<rect x="' + minX + '" y="' + minY + '" width="' + svgW + '" height="' + svgH + '" fill="rgba(0,0,0,0.35)"/>');
+    // Dark overlay to dim the background behind the plates
+    svgParts.push('<rect x="' + minX + '" y="' + minY + '" width="' + svgW + '" height="' + svgH + '" fill="rgba(0,0,0,0.38)"/>');
 
-    /* For each hex: cut a "window" using clipPath so the image shows through cleanly */
-    rowKeys.forEach(function (rk) {
-      var isOdd = rk % 2 !== 0;
-      grouped[rk].forEach(function (cell) {
-        var cx = cell.col * COL_PITCH + (isOdd ? OFFSET_X : 0) + CW / 2;
-        var cy = rk * ROW_PITCH + CH / 2;
-        var pts = hexPoints(cx, cy);
-        var id  = 'hp' + cell.idx;
+    pixelPositions.forEach(function (pos, idx) {
+      var pts = hexPoints(pos.x, pos.y);
+      var cx  = pos.x + HEX_W / 2;
+      var cy  = pos.y + HEX_H / 2;
+      var id  = 'hp' + idx;
 
-        /* Clip path so image shows through this hex only */
+      // Individual plate override
+      var plateUrl = getUsablePlateImage(state.panelImages, idx, mainImageUrl);
+      var t = normalisePanelTransform(state.panelTransforms[idx]);
+      var isActive = idx === state.activePanel;
+
+      // Clip path for this tile
+      svgParts.push('<clipPath id="' + id + '"><polygon points="' + pts + '"/></clipPath>');
+
+      if (plateUrl && plateUrl !== mainImageUrl) {
+        // Individual plate image - apply zoom transform within the hex
+        var scale = t.scale;
+        var scaledW = HEX_W * scale;
+        var scaledH = HEX_H * scale;
+        var ox = pos.x - (scaledW - HEX_W) * (t.x / 100);
+        var oy = pos.y - (scaledH - HEX_H) * (t.y / 100);
         svgParts.push(
-          '<clipPath id="' + id + '"><polygon points="' + pts + '"/></clipPath>' +
-          '<image href="' + (mainImageUrl || '') + '" x="' + minX + '" y="' + minY +
-          '" width="' + svgW + '" height="' + svgH +
-          '" preserveAspectRatio="xMidYMid slice" clip-path="url(#' + id + ')"/>'
+          '<image href="' + escapeSvgAttr(plateUrl) + '"' +
+          ' x="' + ox + '" y="' + oy + '"' +
+          ' width="' + scaledW + '" height="' + scaledH + '"' +
+          ' preserveAspectRatio="x' + Math.round(t.x * 2 / 100 * 100) + 'Y' + Math.round(t.y * 2 / 100 * 100) + ' ' + (t.fit === 'cover' ? 'slice' : 'meet') + '"' +
+          ' clip-path="url(#' + id + ')"/>'
         );
+      } else if (image) {
+        // Slice from the (zoomed) main image — tile shows its region
+        var tileLeft = pos.x - bounds.minX;
+        var tileTop  = pos.y - bounds.minY;
+        // Map back through the crop to find what portion of the source is visible
+        var imgX = srcX + (tileLeft / bounds.width) * srcW;
+        var imgY = srcY + (tileTop / bounds.height) * srcH;
 
-        /* Outline */
-        svgParts.push('<polygon points="' + pts + '" fill="none" stroke="rgba(255,255,255,0.75)" stroke-width="2"/>');
-
-        /* Number label */
         svgParts.push(
-          '<text x="' + cx + '" y="' + (cy + 5) + '" text-anchor="middle" dominant-baseline="middle"' +
-          ' font-family="\'DM Mono\', monospace" font-size="14" fill="rgba(255,255,255,0.92)"' +
-          ' style="text-shadow: 0 1px 4px rgba(0,0,0,0.8)">' +
-          (cell.idx + 1) + '</text>'
+          '<image href="' + image + '"' +
+          ' x="' + (pos.x - imgX) + '" y="' + (pos.y - imgY) + '"' +
+          ' width="' + srcW + '" height="' + srcH + '"' +
+          ' preserveAspectRatio="xMidYMid slice"' +
+          ' clip-path="url(#' + id + ')"/>'
         );
-      });
+      }
+
+      // Plate outline — brighter/thicker for active plate
+      svgParts.push(
+        '<polygon points="' + pts + '" fill="none"' +
+        ' stroke="' + (isActive ? 'rgba(211,123,20,.95)' : 'rgba(255,255,255,.65)') + '"' +
+        ' stroke-width="' + (isActive ? 2.5 : 1.5) + '"/>'
+      );
+
+      // Gloss highlight on top half
+      svgParts.push(
+        '<polygon points="' + pts + '" fill="url(#gloss' + idx + ')"' +
+        ' clip-path="url(#' + id + ')"/>'
+      );
+
+      // Number label
+      svgParts.push(
+        '<text x="' + cx + '" y="' + (cy + 5) + '" text-anchor="middle" dominant-baseline="middle"' +
+        ' font-family="\'DM Mono\', monospace" font-size="' + (isActive ? '15' : '13') + '"' +
+        ' font-weight="' + (isActive ? '700' : '400') + '"' +
+        ' fill="' + (isActive ? 'rgba(255,200,80,.98)' : 'rgba(255,255,255,.88)') + '"' +
+        ' style="text-shadow: 0 1px 4px rgba(0,0,0,0.9)">' +
+        (idx + 1) + '</text>'
+      );
     });
+
+    // Gloss gradient defs
+    svgParts.push('<defs>');
+    pixelPositions.forEach(function (pos, idx) {
+      svgParts.push(
+        '<linearGradient id="gloss' + idx + '" x1="0" y1="0" x2="0" y2="1">' +
+        '<stop offset="0" stop-color="rgba(255,255,255,0.12)"/>' +
+        '<stop offset="0.45" stop-color="rgba(255,255,255,0.04)"/>' +
+        '<stop offset="1" stop-color="rgba(0,0,0,0.10)"/>' +
+        '</linearGradient>'
+      );
+    });
+    svgParts.push('</defs>');
 
     svgParts.push('</svg>');
     hexLayer.innerHTML = svgParts.join('');
   }
 
-  /* ── Arrangement card hex grid (background-image crop per tile) ── */
+  /* ── Arrangement card hex grid ── */
   function renderHexGrid() {
     ensurePanelArrays();
-    var wrap      = E.prev.hexPreview;
+    var wrap = E.prev.hexPreview;
     var mainImage = E.f.image.value.trim();
     renderPixelHexGrid(wrap, mainImage);
-    return;
   }
 
   function renderPixelHexGrid(wrap, mainImage) {
@@ -1350,20 +1458,24 @@
     wrap.style.maxWidth = '';
     wrap.style.margin = '0 auto';
 
+    var mainZoom = clampNumber(E.f.mainZoom.value, 1, 3, 1);
+
     pixelPositions.forEach(function (pos, idx) {
       var hex = document.createElement('div');
       hex.className = 'hex-cell-preview' + (idx === state.activePanel ? ' is-selected' : '');
       hex.dataset.idx = idx;
-      hex.style.position = 'absolute';
-      hex.style.left = Math.round(pos.x - bounds.minX) + 'px';
-      hex.style.top = Math.round(pos.y - bounds.minY) + 'px';
-      hex.style.width = HEX_W + 'px';
-      hex.style.height = HEX_H + 'px';
-      hex.style.margin = '0';
-      hex.style.background = 'transparent';
-      hex.style.overflow = 'visible';
+      hex.style.cssText = [
+        'position:absolute',
+        'left:' + Math.round(pos.x - bounds.minX) + 'px',
+        'top:' + Math.round(pos.y - bounds.minY) + 'px',
+        'width:' + HEX_W + 'px',
+        'height:' + HEX_H + 'px',
+        'margin:0',
+        'background:transparent',
+        'overflow:visible'
+      ].join(';');
 
-      var fill = platePreviewFill(mainImage, state.panelImages, idx, pixelPositions, bounds, state.panelTransforms[idx], clampNumber(E.f.mainZoom.value, 1, 2.5, 1));
+      var fill = platePreviewFill(mainImage, state.panelImages, idx, pixelPositions, bounds, state.panelTransforms[idx], mainZoom);
       var inner = document.createElement('div');
       inner.style.cssText = 'position:absolute;inset:0;clip-path:' + HEX_CLIP + ';overflow:hidden;' + fill.style;
       inner.innerHTML = fill.html;
@@ -1419,47 +1531,6 @@
     });
   }
 
-  function renderOutlinePreviewSVG(hexLayer, mainImageUrl) {
-    var pixelPositions = getPreviewPixelPositions();
-    if (!pixelPositions.length) return;
-
-    var bounds = getPreviewBounds(pixelPositions);
-    var pad = 4;
-    var minX = bounds.minX - pad;
-    var minY = bounds.minY - pad;
-    var svgW = bounds.width + pad * 2;
-    var svgH = bounds.height + pad * 2;
-    var image = escapeSvgAttr(mainImageUrl || '');
-    var svgParts = [
-      '<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="',
-      minX + ' ' + minY + ' ' + svgW + ' ' + svgH,
-      '">'
-    ];
-
-    svgParts.push('<rect x="' + minX + '" y="' + minY + '" width="' + svgW + '" height="' + svgH + '" fill="rgba(0,0,0,0.35)"/>');
-    pixelPositions.forEach(function (pos, idx) {
-      var pts = hexPoints(pos.x, pos.y);
-      var cx = pos.x + HEX_W / 2;
-      var cy = pos.y + HEX_H / 2;
-      var id = 'hp' + idx;
-      svgParts.push(
-        '<clipPath id="' + id + '"><polygon points="' + pts + '"/></clipPath>' +
-        '<image href="' + image + '" x="' + bounds.minX + '" y="' + bounds.minY +
-        '" width="' + bounds.width + '" height="' + bounds.height +
-        '" preserveAspectRatio="xMidYMid slice" clip-path="url(#' + id + ')"/>'
-      );
-      svgParts.push('<polygon points="' + pts + '" fill="none" stroke="rgba(255,255,255,0.75)" stroke-width="2"/>');
-      svgParts.push(
-        '<text x="' + cx + '" y="' + (cy + 5) + '" text-anchor="middle" dominant-baseline="middle"' +
-        ' font-family="\'DM Mono\', monospace" font-size="14" fill="rgba(255,255,255,0.92)"' +
-        ' style="text-shadow: 0 1px 4px rgba(0,0,0,0.8)">' +
-        (idx + 1) + '</text>'
-      );
-    });
-    svgParts.push('</svg>');
-    hexLayer.innerHTML = svgParts.join('');
-  }
-
   function getPreviewPixelPositions() {
     ensurePanelArrays();
     return state.panelPositions.map(function (pos) {
@@ -1480,7 +1551,6 @@
       maxRow = Math.max(maxRow, parseInt(pos.row, 10) || 0);
       maxCol = Math.max(maxCol, parseInt(pos.col, 10) || 0);
     });
-
     var best = null;
     for (var r = 0; r <= maxRow + 5; r++) {
       for (var c = 0; c <= maxCol + 5; c++) {
@@ -1508,42 +1578,65 @@
     return { minX: minX, minY: minY, width: maxX - minX, height: maxY - minY };
   }
 
+  /* ── Main image zoom crops into the centre, then tiles are sliced from it ── */
   function platePreviewFill(sourceImage, plateImages, idx, pixelPositions, bounds, transform, mainZoom) {
     var mainImage = (sourceImage || '').trim();
     var plateImage = getUsablePlateImage(plateImages, idx, mainImage);
+
     if (plateImage) {
+      // Individual plate image with its own zoom/position transform
       var t = normalisePanelTransform(transform);
       return {
         style: 'background:#050505;',
-        html: '<img src="' + escapeSvgAttr(plateImage) + '" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:' + t.fit + ';object-position:' + t.x + '% ' + t.y + '%;transform:scale(' + t.scale + ');transform-origin:' + t.x + '% ' + t.y + '%;display:block;max-width:none;pointer-events:none;user-select:none;">'
+        html: '<img src="' + escapeSvgAttr(plateImage) + '" alt="" style="' +
+          'position:absolute;inset:0;width:100%;height:100%;' +
+          'object-fit:' + t.fit + ';' +
+          'object-position:' + t.x + '% ' + t.y + '%;' +
+          'transform:scale(' + t.scale + ');' +
+          'transform-origin:' + t.x + '% ' + t.y + '%;' +
+          'display:block;max-width:none;pointer-events:none;user-select:none;">'
       };
     }
-    if (!mainImage) return { style: 'background:#222;', html: '' };
+
+    if (!mainImage) return { style: 'background:#1a1a2e;', html: '' };
+
+    // Main image: zoom = crop into centre, then tile gets its slice
+    var zoom = clampNumber(mainZoom, 1, 3, 1);
     var pos = pixelPositions[idx] || { x: bounds.minX, y: bounds.minY };
-    var zoom = clampNumber(mainZoom, 1, 2.5, 1);
-    var tileLeft = Math.round(pos.x - bounds.minX);
-    var tileTop = Math.round(pos.y - bounds.minY);
-    var zoomedW = Math.round(Math.max(1, bounds.width) * zoom);
-    var zoomedH = Math.round(Math.max(1, bounds.height) * zoom);
-    var offsetX = Math.round((zoomedW - Math.max(1, bounds.width)) / 2);
-    var offsetY = Math.round((zoomedH - Math.max(1, bounds.height)) / 2);
+
+    // Effective canvas after zoom-crop (centred crop)
+    var croppedW = Math.max(1, bounds.width / zoom);
+    var croppedH = Math.max(1, bounds.height / zoom);
+    var cropOffX = (bounds.width - croppedW) / 2;
+    var cropOffY = (bounds.height - croppedH) / 2;
+
+    // Position of this tile within the cropped canvas
+    var tileLeft = (pos.x - bounds.minX) - cropOffX;
+    var tileTop  = (pos.y - bounds.minY) - cropOffY;
+
+    // Scale back to full render size
+    var renderScale = bounds.width / croppedW;
+
     return {
       style: 'background:#050505;',
-      html: '<img src="' + escapeSvgAttr(mainImage) + '" alt="" style="position:absolute;display:block;max-width:none;pointer-events:none;user-select:none;object-fit:cover;' +
-        'width:' + zoomedW + 'px;' +
-        'height:' + zoomedH + 'px;' +
-        'left:-' + Math.round(tileLeft * zoom + offsetX) + 'px;' +
-        'top:-' + Math.round(tileTop * zoom + offsetY) + 'px;">'
+      html: '<img src="' + escapeSvgAttr(mainImage) + '" alt="" style="' +
+        'position:absolute;display:block;max-width:none;pointer-events:none;user-select:none;object-fit:cover;' +
+        'width:' + Math.round(croppedW * renderScale) + 'px;' +
+        'height:' + Math.round(croppedH * renderScale) + 'px;' +
+        'left:-' + Math.round(tileLeft * renderScale) + 'px;' +
+        'top:-' + Math.round(tileTop * renderScale) + 'px;">'
     };
   }
 
-  function defaultPanelTransform() {
-    return { fit: 'contain', scale: 1, x: 50, y: 50 };
-  }
+  function defaultPanelTransform() { return { fit: 'cover', scale: 1, x: 50, y: 50 }; }
 
   function selectPanel(idx, skipRender) {
     ensurePanelArrays();
     state.activePanel = Math.max(0, Math.min(state.panelPositions.length - 1, parseInt(idx, 10) || 0));
+    // Highlight active row in panel editor
+    document.querySelectorAll('.panel-row').forEach(function (row, i) {
+      row.classList.toggle('is-active', i === state.activePanel);
+    });
     if (!skipRender) renderPreview();
     else syncPlateCustomizer();
   }
@@ -1554,6 +1647,18 @@
     var current = normalisePanelTransform(state.panelTransforms[idx]);
     Object.keys(patch || {}).forEach(function (key) { current[key] = patch[key]; });
     state.panelTransforms[idx] = normalisePanelTransform(current);
+    // Sync panel row inputs
+    var rows = E.panelList.querySelectorAll('.panel-row');
+    if (rows[idx]) {
+      var zoomIn = rows[idx].querySelector('.pz');
+      var xIn = rows[idx].querySelector('.px');
+      var yIn = rows[idx].querySelector('.py');
+      var fitIn = rows[idx].querySelector('.pf');
+      if (zoomIn) zoomIn.value = current.scale;
+      if (xIn) xIn.value = current.x;
+      if (yIn) yIn.value = current.y;
+      if (fitIn) fitIn.value = current.fit;
+    }
     renderPreview();
   }
 
@@ -1571,13 +1676,16 @@
     E.prev.customZoom.value = transform.scale;
     E.prev.customX.value = transform.x;
     E.prev.customY.value = transform.y;
+    if (E.prev.zoomBadgeZoom) E.prev.zoomBadgeZoom.textContent = transform.scale.toFixed(2) + '×';
+    if (E.prev.zoomBadgeX) E.prev.zoomBadgeX.textContent = transform.x + '%';
+    if (E.prev.zoomBadgeY) E.prev.zoomBadgeY.textContent = transform.y + '%';
   }
 
   function normalisePanelTransform(value) {
     value = value && typeof value === 'object' ? value : {};
     return {
-      fit: value.fit === 'cover' ? 'cover' : 'contain',
-      scale: clampNumber(value.scale != null ? value.scale : value.zoom, 0.2, 3, 1),
+      fit: value.fit === 'cover' ? 'cover' : (value.fit === 'contain' ? 'contain' : 'cover'),
+      scale: clampNumber(value.scale != null ? value.scale : value.zoom, 0.5, 3, 1),
       x: clampNumber(value.x != null ? value.x : value.positionX, 0, 100, 50),
       y: clampNumber(value.y != null ? value.y : value.positionY, 0, 100, 50)
     };
@@ -1600,10 +1708,7 @@
   }
 
   function splitBundleItems(value) {
-    return String(value || '')
-      .split(/[\n,]+/)
-      .map(function (item) { return item.trim(); })
-      .filter(Boolean);
+    return String(value || '').split(/[\n,]+/).map(function (item) { return item.trim(); }).filter(Boolean);
   }
 
   function getBundleItems() {
@@ -1634,10 +1739,7 @@
     if (!E.bundleBuilder || !E.f || !E.f.isBundle) return;
     if (!E.f.isBundle.checked) return;
 
-    var query = (E.bundleLibrarySearch && E.bundleLibrarySearch.value ? E.bundleLibrarySearch.value : '')
-      .trim()
-      .toLowerCase();
-
+    var query = (E.bundleLibrarySearch && E.bundleLibrarySearch.value ? E.bundleLibrarySearch.value : '').trim().toLowerCase();
     var candidates = state.products
       .filter(function (p) { return p && !(p.isBundle || p.recordType === 'bundle'); })
       .filter(function (p) { return !!(p.slug || p.id); })
@@ -1681,7 +1783,7 @@
               ? '<img src="' + escapeHtml(p.image) + '" alt="">'
               : '<div class="bundle-drop-thumb-empty"></div>';
             return '<div class="bundle-drop-item" draggable="true" data-slug="' + escapeHtml(slug) + '" data-idx="' + idx + '">' +
-              '<div class="bundle-drop-handle" aria-hidden="true">&#8942;&#8942;</div>' +
+              '<div class="bundle-drop-handle" aria-hidden="true">⋮⋮</div>' +
               '<div class="bundle-drop-thumb">' + thumb + '</div>' +
               '<div class="bundle-drop-meta">' +
                 '<div class="bundle-drop-name">' + escapeHtml(label) + '</div>' +
@@ -1697,25 +1799,19 @@
   function parseDragPayload(e) {
     var raw = (e && e.dataTransfer && e.dataTransfer.getData) ? e.dataTransfer.getData('text/plain') : '';
     if (!raw) return null;
-    try {
-      var parsed = JSON.parse(raw);
-      if (parsed && typeof parsed === 'object') return parsed;
-    } catch (err) {}
+    try { var parsed = JSON.parse(raw); if (parsed && typeof parsed === 'object') return parsed; } catch (err) {}
     return { slug: raw, from: 'library' };
   }
 
   function applyBundleDrop(e) {
     var payload = parseDragPayload(e);
     if (!payload || !payload.slug) return;
-
     var items = getBundleItems();
     var slug = String(payload.slug || '').trim();
     if (!slug) return;
-
     var targetItem = e.target && e.target.closest ? e.target.closest('.bundle-drop-item') : null;
     var dropIndex = targetItem ? parseInt(targetItem.getAttribute('data-idx') || '', 10) : items.length;
     if (!Number.isFinite(dropIndex) || dropIndex < 0) dropIndex = items.length;
-
     if (payload.from === 'bundle' && Number.isFinite(payload.index)) {
       var fromIndex = payload.index;
       if (fromIndex >= 0 && fromIndex < items.length) {
@@ -1725,12 +1821,8 @@
       }
     } else {
       var existingIndex = items.indexOf(slug);
-      if (existingIndex >= 0) {
-        items.splice(existingIndex, 1);
-        if (existingIndex < dropIndex) dropIndex -= 1;
-      }
+      if (existingIndex >= 0) { items.splice(existingIndex, 1); if (existingIndex < dropIndex) dropIndex -= 1; }
     }
-
     items.splice(Math.min(dropIndex, items.length), 0, slug);
     setBundleItems(items);
   }
@@ -1768,30 +1860,11 @@
   }
 
   function escapeSvgAttr(value) {
-    return String(value || '')
-      .replace(/&/g, '&amp;')
-      .replace(/"/g, '&quot;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
+    return String(value || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
   function escapeHtml(value) {
-    return String(value || '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
-  }
-  
-  function groupByRow() {
-    var grouped = {};
-    state.panelPositions.forEach(function (pos, idx) {
-      var r = parseInt(pos.row, 10) || 0;
-      if (!grouped[r]) grouped[r] = [];
-      grouped[r].push({ idx: idx, row: r, col: parseInt(pos.col, 10) || 0 });
-    });
-    return grouped;
+    return String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
   /* ─── Save / Sync ─── */
@@ -1799,19 +1872,14 @@
     ensurePanelArrays();
     syncPriceLabel();
     var pieces = Math.max(1, parseInt(E.f.pieces.value, 10) || 1);
-    var mainZoom = clampNumber(E.f.mainZoom.value, 1, 2.5, 1);
     var unitPrice = parseFloat(E.f.unitPrice.value || 0);
     var setPrice = parseFloat(E.f.price.value || 0);
+    var mainZoomVal = clampNumber(E.f.mainZoom.value, 1, 3, 1);
     var plateMap = {
-      version: 2,
-      geometry: 'pointy_hex',
-      positions: state.panelPositions.map(function (p) {
-        return { row: parseInt(p.row,10)||0, col: parseInt(p.col,10)||0 };
-      }),
+      version: 2, geometry: 'pointy_hex',
+      positions: state.panelPositions.map(function (p) { return { row: parseInt(p.row,10)||0, col: parseInt(p.col,10)||0 }; }),
       transforms: state.panelTransforms.map(normalisePanelTransform),
-      mockup: {
-        mainZoom: mainZoom
-      }
+      mockup: {}
     };
     var slug = E.f.slug.value.trim() || slugify(E.f.name.value);
     var name = E.f.name.value.trim();
@@ -1819,6 +1887,7 @@
     var bundleItems = splitBundleItems(E.f.bundleItems.value);
     var bundleText = E.f.bundleText.value.trim() || E.f.short.value.trim();
     var bundlePrice = (E.f.bundlePrice.value || E.f.price.value || '').trim();
+    var outOfStock = E.f.outOfStock.checked;
     return {
       slug:         slug,
       name:         name,
@@ -1837,11 +1906,14 @@
       pieces:       pieces,
       panel_hint:   E.f.panelHint.value.trim(),
       image:        E.f.image.value.trim(),
-      main_zoom:    mainZoom,
+      main_zoom:    mainZoomVal,
+      mainZoom:     mainZoomVal,
       wall_image:   E.f.wallImage.value.trim(),
       is_collection: E.f.isCollection.checked,
       isBundle:     isBundle,
       is_published: E.f.isPublished.checked,
+      in_stock:     !outOfStock,
+      inStock:      !outOfStock,
       plate_names:  state.panelNames.slice(),
       plate_images: state.panelImages.slice(),
       plate_map:    plateMap,
@@ -1854,46 +1926,35 @@
       bundle_items: bundleItems,
       bundle_text:  bundleText,
       bundle_price: bundlePrice,
-      bundle: {
-        slug: slug,
-        name: name,
-        price: bundlePrice,
-        items: bundleItems,
-        text: bundleText
-      }
+      bundle: { slug: slug, name: name, price: bundlePrice, items: bundleItems, text: bundleText }
     };
   }
 
   function saveProduct() {
-    if (state.isSaving) {
-      setStatus('Save already in progress', 'saving');
-      return;
-    }
-
+    if (state.isSaving) { setStatus('Save already in progress', 'saving'); return; }
     var payload = buildPayload();
     if (!payload.name || !payload.slug) { setStatus('Name and slug are required', 'error'); return; }
     state.isSaving = true;
-    setStatus('Saving...', 'saving');
+    setStatus('Saving…', 'saving');
     requestJson('/.netlify/functions/save-product', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-admin-password': getAdminPassword() },
       body: JSON.stringify(payload)
     })
     .then(function (body) {
-      if (!body || body.ok !== true) {
-        throw new Error((body && (body.error || body.message)) || 'Save was not confirmed by the server');
-      }
-      // Apply local copy immediately so the UI never "snaps back" to stale data
-      // while the refreshed catalogue request is in flight.
+      if (!body || body.ok !== true) { throw new Error((body && (body.error || body.message)) || 'Save was not confirmed by the server'); }
       upsertProduct(payload);
       populateSelect();
       state.currentId = payload.slug;
       E.productSel.value = state.currentId;
       loadProduct(payload.slug);
-      setStatus('Saved', 'success');
+      setStatus('Saved ✓', 'success');
 
-      // Refresh catalogue in the background, but preserve the just-saved record
-      // if the fetch returns an older snapshot.
+      // Auto-mockup after save if enabled
+      if (E.f.autoMockup && E.f.autoMockup.checked) {
+        setTimeout(function () { runManualMockup(); }, 500);
+      }
+
       return loadProductCatalogue()
         .then(function (result) {
           if (result.stale) return;
@@ -1901,16 +1962,10 @@
           populateSelect();
           if (state.currentId) E.productSel.value = state.currentId;
         })
-        .catch(function () {
-          // Keep local copy; user can refresh later.
-        });
+        .catch(function () {});
     })
-    .then(function () {
-      state.isSaving = false;
-    }, function (err) {
-      state.isSaving = false;
-      setStatus((err && err.message) || 'Save failed', 'error');
-    });
+    .then(function () { state.isSaving = false; },
+          function (err) { state.isSaving = false; setStatus((err && err.message) || 'Save failed', 'error'); });
   }
 
   function syncProduct() {
@@ -1920,22 +1975,19 @@
       .map(ensureProductHasPlateMap);
     var found = false;
     products = products.map(function (product) {
-      if (productKey(product) === payload.slug) {
-        found = true;
-        return payload;
-      }
+      if (productKey(product) === payload.slug) { found = true; return payload; }
       return product;
     });
     if (!found && !payload.isBundle) products.push(payload);
 
-    setStatus('Syncing catalogue maps...', 'saving');
+    setStatus('Syncing catalogue maps…', 'saving');
     fetch('/.netlify/functions/sync-catalogue', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-admin-password': getAdminPassword() },
       body: JSON.stringify({ password: getAdminPassword(), products: products, preserveMissing: true })
     })
     .then(function (r) { return parseJsonResponse(r).then(function (body) { if (!r.ok) throw makeRequestError(r, body); return body; }); })
-    .then(function () { setStatus('Catalogue maps synced', 'success'); return loadProductCatalogue(); })
+    .then(function () { setStatus('Catalogue synced ✓', 'success'); return loadProductCatalogue(); })
     .catch(function (err) { setStatus((err && err.message) || 'Sync failed', 'error'); });
   }
 
@@ -1943,23 +1995,19 @@
     var payload = buildPayload();
     if (!payload.slug || !payload.name) { setStatus('Name and slug are required before export', 'error'); return; }
     if (!payload.image && !payload.plate_images.some(function (url) { return String(url || '').trim(); })) {
-      setStatus('Add a main image or individual plate images before export', 'error');
-      return;
+      setStatus('Add a main image or individual plate images before export', 'error'); return;
     }
-
-    if (E.exportResults) E.exportResults.innerHTML = '<p>Exporting plate PNGs...</p>';
-    setStatus('Exporting plate PNGs...', 'saving');
+    if (E.exportResults) E.exportResults.innerHTML = '<p>Exporting plate PNGs…</p>';
+    setStatus('Exporting plate PNGs…', 'saving');
     requestJson('/.netlify/functions/export-plates', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-admin-password': getAdminPassword() },
       body: JSON.stringify({ password: getAdminPassword(), product: payload })
     })
     .then(function (body) {
-      if (!body || body.ok !== true) {
-        throw new Error((body && (body.error || body.message)) || 'Export failed');
-      }
+      if (!body || body.ok !== true) { throw new Error((body && (body.error || body.message)) || 'Export failed'); }
       renderExportResults(body);
-      setStatus('Exported ' + ((body.files || []).length) + ' plate PNGs', 'success');
+      setStatus('Exported ' + ((body.files || []).length) + ' plate PNGs ✓', 'success');
     })
     .catch(function (err) {
       if (E.exportResults) E.exportResults.innerHTML = '<p class="export-error">' + escapeHtml((err && err.message) || 'Export failed') + '</p>';
@@ -1970,24 +2018,16 @@
   function renderExportResults(data) {
     if (!E.exportResults) return;
     var files = Array.isArray(data.files) ? data.files : [];
-    if (!files.length) {
-      E.exportResults.innerHTML = '<p>No PNG files returned.</p>';
-      return;
-    }
+    if (!files.length) { E.exportResults.innerHTML = '<p>No PNG files returned.</p>'; return; }
     var dims = data.dimensions || {};
     E.exportResults.innerHTML =
-      '<p>Frame-safe transparent PNGs: ' +
-        (dims.exportedWidth || '?') + ' x ' + (dims.exportedHeight || '?') +
-        ' px, 5 mm frame inset.</p>' +
+      '<p>Transparent PNGs: ' + (dims.exportedWidth || '?') + ' × ' + (dims.exportedHeight || '?') + ' px</p>' +
       '<div class="export-file-list">' +
         files.map(function (file) {
-          return '<div class="export-file-item">' +
-            escapeHtml(file.filename || ('Plate ' + ((file.index || 0) + 1))) +
-          '</div>';
+          return '<div class="export-file-item">' + escapeHtml(file.filename || ('Plate ' + ((file.index || 0) + 1))) + '</div>';
         }).join('') +
       '</div>' +
-      '<p class="export-note">Downloading all PNGs… If your browser blocks multiple downloads, allow downloads for this site and click Export again.</p>';
-
+      '<p class="export-note">Downloading all PNGs…</p>';
     downloadAllExportFiles(files);
   }
 
@@ -2007,32 +2047,19 @@
     var safeUrl = String(url || '').trim();
     if (!safeUrl) return;
     var name = String(filename || '').trim();
-
-    // Prefer blob download to avoid navigation; fall back to <a download>.
     fetch(safeUrl, { cache: 'no-store' })
       .then(function (r) { if (!r.ok) throw new Error('Download failed'); return r.blob(); })
       .then(function (blob) {
         var objUrl = URL.createObjectURL(blob);
         var a = document.createElement('a');
-        a.href = objUrl;
-        a.download = name || '';
-        a.rel = 'noopener';
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(function () {
-          URL.revokeObjectURL(objUrl);
-          a.remove();
-        }, 2000);
+        a.href = objUrl; a.download = name || ''; a.rel = 'noopener'; a.style.display = 'none';
+        document.body.appendChild(a); a.click();
+        setTimeout(function () { URL.revokeObjectURL(objUrl); a.remove(); }, 2000);
       })
       .catch(function () {
         var a = document.createElement('a');
-        a.href = safeUrl;
-        a.download = name || '';
-        a.rel = 'noopener';
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        a.click();
+        a.href = safeUrl; a.download = name || ''; a.rel = 'noopener'; a.style.display = 'none';
+        document.body.appendChild(a); a.click();
         setTimeout(function () { a.remove(); }, 50);
       });
   }
@@ -2044,25 +2071,14 @@
     var map = copy.plateMap || copy.plate_map || copy.panelMap || copy.panel_map || {};
     var hasPositions = map && Array.isArray(map.positions) && map.positions.length > 0;
     if (!hasPositions) {
-      map = {
-        version: 2,
-        geometry: 'pointy_hex',
-        positions: autoLayout(count),
-        transforms: [],
-        mockup: {}
-      };
+      map = { version: 2, geometry: 'pointy_hex', positions: autoLayout(count), transforms: [], mockup: {} };
     }
-    copy.plateMap = map;
-    copy.panelMap = map;
-    copy.plate_map = map;
-    copy.panel_map = map;
+    copy.plateMap = map; copy.panelMap = map; copy.plate_map = map; copy.panel_map = map;
     return copy;
   }
 
   /* ─── Helpers ─── */
-  function getAdminPassword() {
-    return sessionStorage.getItem('admin_pw') || '';
-  }
+  function getAdminPassword() { return sessionStorage.getItem('admin_pw') || ''; }
 
   function requestJson(url, options) {
     return fetch(url, options || {}).then(function (response) {
@@ -2079,29 +2095,20 @@
   function parseJsonResponse(response) {
     return response.text().then(function (text) {
       if (!text) return null;
-      try {
-        return JSON.parse(text);
-      } catch (err) {
-        throw new Error('Invalid JSON response from server');
-      }
+      try { return JSON.parse(text); } catch (err) { throw new Error('Invalid JSON response from server'); }
     });
   }
 
   function makeRequestError(response, body) {
     var message = body && (body.error || body.message);
     if (!message) message = 'Request failed (' + response.status + ' ' + (response.statusText || 'Error') + ')';
-    var err = new Error(message);
-    err.status = response.status;
-    err.body = body;
-    return err;
+    var err = new Error(message); err.status = response.status; err.body = body; return err;
   }
 
   function normaliseProductPayload(product) {
     product = product || {};
     var normalised = {};
-    Object.keys(product).forEach(function (key) {
-      normalised[key] = product[key];
-    });
+    Object.keys(product).forEach(function (key) { normalised[key] = product[key]; });
 
     var plateCount = parseInt(withDefault(readField(product, ['plateCount', 'plate_count', 'pieces']), 1), 10) || 1;
     var plateNames = readBestArray(product, ['plateNames', 'plate_names', 'panelNames', 'panel_names']);
@@ -2126,28 +2133,24 @@
     normalised.accent = withDefault(readField(product, ['accent']), '');
     normalised.size = withDefault(readField(product, ['size']), '');
     normalised.material = withDefault(readField(product, ['material']), '');
-    normalised.pieces = plateCount;
-    normalised.plateCount = plateCount;
+    normalised.pieces = plateCount; normalised.plateCount = plateCount;
     normalised.plateUnitPrice = withDefault(readField(product, ['plateUnitPrice', 'plate_unit_price']), '');
     normalised.plateSetPrice = withDefault(readField(product, ['plateSetPrice', 'plate_set_price', 'price']), '');
     normalised.panelHint = withDefault(readField(product, ['panelHint', 'panel_hint']), '');
     normalised.image = withDefault(readField(product, ['image']), '');
-    var mapZoom = (plateMap && plateMap.mockup && (plateMap.mockup.mainZoom ?? plateMap.mockup.main_zoom));
-    normalised.mainZoom = withDefault(readField(product, ['mainZoom', 'main_zoom']), withDefault(mapZoom, 1));
+    normalised.mainZoom = withDefault(readField(product, ['mainZoom', 'main_zoom']), 1);
     normalised.wallImage = withDefault(readField(product, ['wallImage', 'wall_image']), '');
     normalised.wallSourceImage = withDefault(readField(product, ['wallSourceImage', 'wall_source_image']), '');
     normalised.isCollection = !!withDefault(readField(product, ['isCollection', 'is_collection']), false);
     normalised.isBundle = isBundle;
     normalised.isPublished = withDefault(readField(product, ['isPublished', 'is_published']), true) !== false;
-    normalised.plateNames = plateNames;
-    normalised.plateImages = plateImages;
+    normalised.inStock = withDefault(readField(product, ['inStock', 'in_stock']), true) !== false;
+    normalised.plateNames = plateNames; normalised.plateImages = plateImages;
     normalised.plateMap = plateMap;
     normalised.bundlePrice = withDefault(readField(product, ['bundlePrice', 'price']), '');
     normalised.bundleItems = bundleItems;
     normalised.bundleText = withDefault(readField(product, ['bundleText', 'text', 'short', 'description']), '');
-    normalised.panelNames = plateNames;
-    normalised.panelImages = plateImages;
-    normalised.panelMap = plateMap;
+    normalised.panelNames = plateNames; normalised.panelImages = plateImages; normalised.panelMap = plateMap;
     return normalised;
   }
 
@@ -2167,11 +2170,7 @@
       var arr = arrayFromField(source[key]);
       if (arr.length) arrays.push(arr);
     });
-    return (arrays.find(function (arr) {
-      return arr.some(function (value) {
-        return value !== undefined && value !== null && String(value).trim() !== '';
-      });
-    }) || arrays[0] || []).slice();
+    return (arrays.find(function (arr) { return arr.some(function (v) { return v !== undefined && v !== null && String(v).trim() !== ''; }); }) || arrays[0] || []).slice();
   }
 
   function arrayFromField(value) {
@@ -2179,9 +2178,7 @@
     if (value && typeof value === 'object') {
       if (Array.isArray(value.images)) return value.images;
       if (Array.isArray(value.items)) return value.items;
-      return Object.keys(value)
-        .sort(function (a, b) { return (parseInt(a, 10) || 0) - (parseInt(b, 10) || 0); })
-        .map(function (key) { return value[key]; });
+      return Object.keys(value).sort(function (a, b) { return (parseInt(a, 10) || 0) - (parseInt(b, 10) || 0); }).map(function (key) { return value[key]; });
     }
     return [];
   }
@@ -2190,52 +2187,27 @@
     var maps = [];
     keys.forEach(function (key) {
       var map = source && source[key];
-      if (map && typeof map === 'object' && !Array.isArray(map) && Array.isArray(map.positions)) {
-        maps.push(map);
-      }
+      if (map && typeof map === 'object' && !Array.isArray(map) && Array.isArray(map.positions)) { maps.push(map); }
     });
     return maps.find(function (map) { return map.positions.length > 0; }) || maps[0] || {};
   }
 
-  function withDefault(value, fallback) {
-    return value === undefined || value === null ? fallback : value;
-  }
-
-  function arrayCopy(value) {
-    return Array.isArray(value) ? value.slice() : [];
-  }
-
-  function productKey(product) {
-    var key = product && (product.slug || product.id);
-    return key === undefined || key === null ? '' : String(key);
-  }
-
-  function findProduct(id) {
-    var target = id === undefined || id === null ? '' : String(id);
-    for (var i = 0; i < state.products.length; i++) {
-      if (productKey(state.products[i]) === target) return state.products[i];
-    }
-    return null;
-  }
+  function withDefault(value, fallback) { return value === undefined || value === null ? fallback : value; }
+  function arrayCopy(value) { return Array.isArray(value) ? value.slice() : []; }
+  function productKey(product) { var key = product && (product.slug || product.id); return key === undefined || key === null ? '' : String(key); }
+  function findProduct(id) { var target = id === undefined || id === null ? '' : String(id); for (var i = 0; i < state.products.length; i++) { if (productKey(state.products[i]) === target) return state.products[i]; } return null; }
 
   function upsertProduct(product) {
     var normalised = normaliseProductPayload(product);
     var key = productKey(normalised);
     if (!key) return null;
     for (var i = 0; i < state.products.length; i++) {
-      if (productKey(state.products[i]) === key) {
-        state.products[i] = normalised;
-        return normalised;
-      }
+      if (productKey(state.products[i]) === key) { state.products[i] = normalised; return normalised; }
     }
-    state.products.unshift(normalised);
-    return normalised;
+    state.products.unshift(normalised); return normalised;
   }
 
-  function slugify(v) {
-    return (v || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-  }
-
+  function slugify(v) { return (v || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''); }
   function setStatus(text, mode) {
     E.statusText.textContent = text;
     E.statusDot.className = 'status-dot' + (mode ? ' is-' + mode : '');
