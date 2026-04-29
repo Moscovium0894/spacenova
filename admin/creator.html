@@ -202,7 +202,7 @@
         <button class="btn btn-ghost btn-sm" id="sort-layout-btn" type="button">Tidy rows</button>
       </div>
       <div class="panel-list-head">
-        <span>#</span><span>Name</span><span>Image URL</span><span>Fit</span><span>Zoom</span><span>X</span><span>Y</span><span>Row</span><span>Col</span>
+        <span>#</span><span>Name</span><span>Image URL</span><span>Fit</span><span>Zoom</span><span>X</span><span>Y</span><span>Rotate</span><span>Row</span><span>Col</span>
       </div>
       <div id="panel-list" class="panel-list"></div>
     </section>
@@ -310,7 +310,7 @@
               </select>
             </label>
             <label class="mini-field">Zoom
-              <input id="custom-zoom" class="field" type="range" min="0.2" max="3" step="0.05">
+              <input id="custom-zoom" class="field" type="range" min="0.2" max="10" step="0.05">
             </label>
             <label class="mini-field">X
               <input id="custom-x" class="field" type="range" min="0" max="100" step="1">
@@ -318,6 +318,16 @@
             <label class="mini-field">Y
               <input id="custom-y" class="field" type="range" min="0" max="100" step="1">
             </label>
+          </div>
+          <div class="field-grid two" style="margin-top:10px">
+            <label class="mini-field">Rotate
+              <input id="custom-rotate" class="field" type="range" min="-180" max="180" step="1">
+            </label>
+            <div class="mini-field" style="display:flex;align-items:flex-end;gap:10px">
+              <div style="flex:1;font-size:.78rem;color:var(--muted);line-height:1.3;padding-bottom:2px">
+                Tip: Shift-drag a plate to pan; Shift+wheel to zoom.
+              </div>
+            </div>
           </div>
         </div>
         <p class="arrangement-hint">Each plate shows a cropped region of the main image. Individual plate image URLs override this.</p>
@@ -353,6 +363,7 @@
   var COL_PITCH = 97;
   var ODD_OFFSET = 48;
   var HEX_CLIP = 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)';
+  var PANEL_ZOOM_MAX = 10;
   var loadSeq = 0;
 
   document.addEventListener('DOMContentLoaded', function () {
@@ -435,7 +446,8 @@
       customFit:        document.getElementById('custom-fit'),
       customZoom:       document.getElementById('custom-zoom'),
       customX:          document.getElementById('custom-x'),
-      customY:          document.getElementById('custom-y')
+      customY:          document.getElementById('custom-y'),
+      customRotate:     document.getElementById('custom-rotate')
     };
 
     E.views = {
@@ -609,7 +621,7 @@
       updateActivePanelTransform({ fit: E.prev.customFit.value });
     });
     E.prev.customZoom.addEventListener('input', function () {
-      updateActivePanelTransform({ scale: clampNumber(E.prev.customZoom.value, 0.2, 3, 1) });
+      updateActivePanelTransform({ scale: clampNumber(E.prev.customZoom.value, 0.2, PANEL_ZOOM_MAX, 1) });
     });
     E.prev.customX.addEventListener('input', function () {
       updateActivePanelTransform({ x: clampNumber(E.prev.customX.value, 0, 100, 50) });
@@ -617,6 +629,11 @@
     E.prev.customY.addEventListener('input', function () {
       updateActivePanelTransform({ y: clampNumber(E.prev.customY.value, 0, 100, 50) });
     });
+    if (E.prev.customRotate) {
+      E.prev.customRotate.addEventListener('input', function () {
+        updateActivePanelTransform({ rotate: clampNumber(E.prev.customRotate.value, -180, 180, 0) });
+      });
+    }
   }
 
   /* ─── Load products ─── */
@@ -834,9 +851,10 @@
         '<input class="field pn" type="text" placeholder="Plate name">' +
         '<input class="field pi" type="url" placeholder="https://...">' +
         '<select class="field pf"><option value="contain">Contain</option><option value="cover">Cover</option></select>' +
-        '<input class="field pz" type="number" min="0.2" max="3" step="0.05" title="Zoom">' +
+        '<input class="field pz" type="number" min="0.2" max="' + PANEL_ZOOM_MAX + '" step="0.05" title="Zoom">' +
         '<input class="field px" type="number" min="0" max="100" step="1" title="Horizontal position">' +
         '<input class="field py" type="number" min="0" max="100" step="1" title="Vertical position">' +
+        '<input class="field prot" type="number" min="-180" max="180" step="1" title="Rotation (degrees)">' +
         '<input class="field pr" type="number" step="1">' +
         '<input class="field pc" type="number" step="1">';
 
@@ -846,6 +864,7 @@
       var zoomIn  = row.querySelector('.pz');
       var xIn     = row.querySelector('.px');
       var yIn     = row.querySelector('.py');
+      var rotIn   = row.querySelector('.prot');
       var rowIn   = row.querySelector('.pr');
       var colIn   = row.querySelector('.pc');
       var transform = normalisePanelTransform(state.panelTransforms[i]);
@@ -856,15 +875,17 @@
       zoomIn.value  = transform.scale;
       xIn.value     = transform.x;
       yIn.value     = transform.y;
+      rotIn.value   = transform.rotate;
       rowIn.value  = pos.row;
       colIn.value  = pos.col;
 
       nameIn.addEventListener('input', function () { state.panelNames[i] = nameIn.value; renderPreview(); });
       imgIn.addEventListener('input',  function () { state.panelImages[i] = imgIn.value; state.panelTransforms[i] = normalisePanelTransform(state.panelTransforms[i]); renderPreview(); });
       fitIn.addEventListener('change', function () { state.panelTransforms[i].fit = fitIn.value; renderPreview(); });
-      zoomIn.addEventListener('input', function () { state.panelTransforms[i].scale = clampNumber(zoomIn.value, 0.2, 3, 1); renderPreview(); });
+      zoomIn.addEventListener('input', function () { state.panelTransforms[i].scale = clampNumber(zoomIn.value, 0.2, PANEL_ZOOM_MAX, 1); renderPreview(); });
       xIn.addEventListener('input',    function () { state.panelTransforms[i].x = clampNumber(xIn.value, 0, 100, 50); renderPreview(); });
       yIn.addEventListener('input',    function () { state.panelTransforms[i].y = clampNumber(yIn.value, 0, 100, 50); renderPreview(); });
+      rotIn.addEventListener('input',  function () { state.panelTransforms[i].rotate = clampNumber(rotIn.value, -180, 180, 0); renderPreview(); });
       rowIn.addEventListener('input',  function () { state.panelPositions[i].row = parseInt(rowIn.value, 10) || 0; renderPreview(); });
       colIn.addEventListener('input',  function () { state.panelPositions[i].col = parseInt(colIn.value, 10) || 0; renderPreview(); });
 
@@ -1210,6 +1231,38 @@
       event.preventDefault();
       selectPanel(idx, true);
 
+      // Shift-drag pans crop for individual plate images (non-destructive).
+      if (event.shiftKey && hasUsablePlateImage(idx)) {
+        var panStartX = event.clientX;
+        var panStartY = event.clientY;
+        var panStartT = normalisePanelTransform(state.panelTransforms[idx]);
+        hex.classList.add('is-dragging');
+        hex.setPointerCapture(event.pointerId);
+
+        function movePan(e) {
+          var dx = e.clientX - panStartX;
+          var dy = e.clientY - panStartY;
+          var w = Math.max(1, hex.clientWidth || HEX_W);
+          var h = Math.max(1, hex.clientHeight || HEX_H);
+          var nextX = clampNumber(panStartT.x - (dx / w) * 100, 0, 100, 50);
+          var nextY = clampNumber(panStartT.y - (dy / h) * 100, 0, 100, 50);
+          state.panelTransforms[idx] = normalisePanelTransform(Object.assign({}, panStartT, { x: nextX, y: nextY }));
+          renderPreview();
+        }
+
+        function upPan() {
+          hex.classList.remove('is-dragging');
+          hex.removeEventListener('pointermove', movePan);
+          hex.removeEventListener('pointerup', upPan);
+          hex.removeEventListener('pointercancel', upPan);
+        }
+
+        hex.addEventListener('pointermove', movePan);
+        hex.addEventListener('pointerup', upPan);
+        hex.addEventListener('pointercancel', upPan);
+        return;
+      }
+
       var startX = event.clientX;
       var startY = event.clientY;
       var startPos = pixelPositions[idx] || gridToPreviewPixel(0, idx);
@@ -1242,6 +1295,18 @@
       hex.addEventListener('pointerup', up);
       hex.addEventListener('pointercancel', up);
     });
+
+    // Shift+wheel zoom for individual plate images.
+    hex.addEventListener('wheel', function (event) {
+      if (!event.shiftKey) return;
+      if (!hasUsablePlateImage(idx)) return;
+      event.preventDefault();
+      var t = normalisePanelTransform(state.panelTransforms[idx]);
+      var direction = (event.deltaY || 0) > 0 ? -1 : 1;
+      var next = clampNumber(t.scale + direction * 0.1, 0.2, PANEL_ZOOM_MAX, 1);
+      state.panelTransforms[idx] = normalisePanelTransform(Object.assign({}, t, { scale: next }));
+      renderPreview();
+    }, { passive: false });
   }
 
   function renderOutlinePreviewSVG(hexLayer, mainImageUrl) {
@@ -1340,7 +1405,7 @@
       var t = normalisePanelTransform(transform);
       return {
         style: 'background:#050505;',
-        html: '<img src="' + escapeSvgAttr(plateImage) + '" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:' + t.fit + ';object-position:' + t.x + '% ' + t.y + '%;transform:scale(' + t.scale + ');transform-origin:' + t.x + '% ' + t.y + '%;display:block;max-width:none;pointer-events:none;user-select:none;">'
+        html: '<img src="' + escapeSvgAttr(plateImage) + '" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:' + t.fit + ';object-position:' + t.x + '% ' + t.y + '%;transform:rotate(' + t.rotate + 'deg) scale(' + t.scale + ');transform-origin:' + t.x + '% ' + t.y + '%;display:block;max-width:none;pointer-events:none;user-select:none;">'
       };
     }
     if (!mainImage) return { style: 'background:#222;', html: '' };
@@ -1357,7 +1422,7 @@
   }
 
   function defaultPanelTransform() {
-    return { fit: 'contain', scale: 1, x: 50, y: 50 };
+    return { fit: 'contain', scale: 1, x: 50, y: 50, rotate: 0 };
   }
 
   function selectPanel(idx, skipRender) {
@@ -1390,21 +1455,28 @@
     E.prev.customZoom.value = transform.scale;
     E.prev.customX.value = transform.x;
     E.prev.customY.value = transform.y;
+    if (E.prev.customRotate) E.prev.customRotate.value = transform.rotate;
   }
 
   function normalisePanelTransform(value) {
     value = value && typeof value === 'object' ? value : {};
     return {
       fit: value.fit === 'cover' ? 'cover' : 'contain',
-      scale: clampNumber(value.scale != null ? value.scale : value.zoom, 0.2, 3, 1),
+      scale: clampNumber(value.scale != null ? value.scale : value.zoom, 0.2, PANEL_ZOOM_MAX, 1),
       x: clampNumber(value.x != null ? value.x : value.positionX, 0, 100, 50),
-      y: clampNumber(value.y != null ? value.y : value.positionY, 0, 100, 50)
+      y: clampNumber(value.y != null ? value.y : value.positionY, 0, 100, 50),
+      rotate: clampNumber(value.rotate != null ? value.rotate : value.rotation, -180, 180, 0)
     };
   }
 
   function clampNumber(value, min, max, fallback) {
     var n = parseFloat(value);
     return Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : fallback;
+  }
+
+  function hasUsablePlateImage(idx) {
+    var mainImage = (E.f && E.f.image ? E.f.image.value.trim() : '');
+    return !!getUsablePlateImage(state.panelImages, idx, mainImage);
   }
 
   function updateBundlePanel() {
