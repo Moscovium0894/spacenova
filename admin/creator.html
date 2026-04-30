@@ -796,12 +796,62 @@
   }
 
   function fetchProducts() {
-    return Promise.all([
-      requestJson('/.netlify/functions/load-products', { cache: 'no-store' }),
-      requestJson('/.netlify/functions/load-catalogue', { cache: 'no-store' }).catch(function () { return { bundles: [] }; })
-    ]).then(function (results) {
-      return extractProductList(results[0])
-        .concat(Array.isArray(results[1].bundles) ? results[1].bundles : [])
+    // `load-catalogue` now returns { products, bundles, ... } and may be the only
+    // available endpoint in some deploy contexts. Keep the creator resilient:
+    // - Prefer `load-products` (includes drafts) when available.
+    // - Pull bundles from `load-catalogue` when available.
+    // - If `load-products` fails, fall back to `load-catalogue` products/bundles.
+    var productsReq = requestJson('/.netlify/functions/load-products', { cache: 'no-store' })
+      .catch(function () { return null; });
+    var catalogueReq = requestJson('/.netlify/functions/load-catalogue', { cache: 'no-store' })
+      .catch(function () { return null; });
+
+    return Promise.all([productsReq, catalogueReq]).then(function (results) {
+      var productsRes = results[0];
+      var catalogueRes = results[1];
+
+      var products = [];
+      try {
+        if (productsRes) products = extractProductList(productsRes);
+      } catch (err) {
+        products = [];
+      }
+
+      var usedCatalogueExtract = false;
+      if (!products.length && catalogueRes) {
+        if (Array.isArray(catalogueRes.products)) {
+          products = catalogueRes.products.slice();
+        } else if (catalogueRes && catalogueRes.catalogue && Array.isArray(catalogueRes.catalogue.products)) {
+          products = catalogueRes.catalogue.products.slice();
+        } else if (catalogueRes && catalogueRes.data && Array.isArray(catalogueRes.data.products)) {
+          products = catalogueRes.data.products.slice();
+        } else {
+          try {
+            products = extractProductList(catalogueRes);
+            usedCatalogueExtract = true;
+          } catch (err2) {
+            products = [];
+          }
+        }
+      }
+
+      // For older bundle-only catalogue responses (or when products aren't present),
+      // allow bundles to be the only source.
+      if (!products.length && catalogueRes) {
+        if (Array.isArray(catalogueRes.bundles)) products = catalogueRes.bundles.slice();
+        else if (catalogueRes && catalogueRes.catalogue && Array.isArray(catalogueRes.catalogue.bundles)) products = catalogueRes.catalogue.bundles.slice();
+        else if (catalogueRes && catalogueRes.data && Array.isArray(catalogueRes.data.bundles)) products = catalogueRes.data.bundles.slice();
+      }
+
+      var bundles = [];
+      if (catalogueRes && !usedCatalogueExtract) {
+        if (Array.isArray(catalogueRes.bundles)) bundles = catalogueRes.bundles;
+        else if (catalogueRes && catalogueRes.catalogue && Array.isArray(catalogueRes.catalogue.bundles)) bundles = catalogueRes.catalogue.bundles;
+        else if (catalogueRes && catalogueRes.data && Array.isArray(catalogueRes.data.bundles)) bundles = catalogueRes.data.bundles;
+      }
+
+      return products
+        .concat(bundles)
         .filter(Boolean)
         .map(normaliseProductPayload);
     });
