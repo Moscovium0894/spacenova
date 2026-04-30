@@ -8,16 +8,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=DM+Mono:wght@400&family=Syne:wght@400;500;700&display=swap" rel="stylesheet">
-  <style>
-    /* ── Crop modal styles ── */
-    #crop-modal { animation: cropModalIn .2s ease; }
-    @keyframes cropModalIn { from { opacity:0; } to { opacity:1; } }
-    #crop-dialog { animation: cropDialogIn .22s cubic-bezier(.22,1,.36,1); }
-    @keyframes cropDialogIn { from { opacity:0; transform:scale(.97) translateY(10px); } to { opacity:1; transform:none; } }
-    #crop-stage { border-radius: 12px; overflow: hidden; }
-    .crop-handle { touch-action: none; }
-    #crop-box { touch-action: none; }
-  </style>
 </head>
 <body>
 
@@ -181,18 +171,8 @@
         <label class="btn btn-ghost btn-sm btn-upload" for="f-image-file">Import main image</label>
         <input id="f-image-file" type="file" accept="image/*" hidden>
       </div>
-
-      <!-- CROP BUTTON (replaces zoom slider) -->
-      <div style="margin-bottom:11px;display:flex;align-items:center;gap:10px">
-        <button class="btn btn-ghost btn-sm" id="crop-btn" type="button">✂ Crop image</button>
-        <span id="crop-status" style="font-family:var(--fm);font-size:.6rem;color:var(--muted);letter-spacing:.08em"></span>
-      </div>
-      <!-- Hidden crop state inputs -->
-      <input id="f-crop-x" type="hidden" value="0">
-      <input id="f-crop-y" type="hidden" value="0">
-      <input id="f-crop-w" type="hidden" value="100">
-      <input id="f-crop-h" type="hidden" value="100">
-
+      <label class="field-label" for="f-main-zoom">Main image zoom</label>
+      <input id="f-main-zoom" class="field" type="range" min="1" max="2.5" step="0.05" value="1">
       <div class="img-thumb-wrap" id="thumb-main"><div class="img-thumb-empty">No image</div></div>
       <label class="field-label" for="f-wall-image">Wall preview URL</label>
       <input id="f-wall-image" class="field" type="url" placeholder="https://...">
@@ -233,7 +213,7 @@
         <button class="btn btn-ghost btn-sm" id="sort-layout-btn" type="button">Tidy rows</button>
       </div>
       <div class="panel-list-head">
-        <span>#</span><span>Name</span><span>Image URL</span><span>Fit</span><span>Zoom</span><span>X</span><span>Y</span><span>Rotate</span><span>Row</span><span>Col</span>
+        <span>#</span><span>Name</span><span>Image URL</span><span>Fit</span><span>Zoom</span><span>X</span><span>Y</span><span>Row</span><span>Col</span>
       </div>
       <div id="panel-list" class="panel-list"></div>
     </section>
@@ -339,7 +319,7 @@
               </select>
             </label>
             <label class="mini-field">Zoom
-              <input id="custom-zoom" class="field" type="range" min="0.2" max="10" step="0.05">
+              <input id="custom-zoom" class="field" type="range" min="0.2" max="3" step="0.05">
             </label>
             <label class="mini-field">X
               <input id="custom-x" class="field" type="range" min="0" max="100" step="1">
@@ -347,16 +327,6 @@
             <label class="mini-field">Y
               <input id="custom-y" class="field" type="range" min="0" max="100" step="1">
             </label>
-          </div>
-          <div class="field-grid two" style="margin-top:10px">
-            <label class="mini-field">Rotate
-              <input id="custom-rotate" class="field" type="range" min="-180" max="180" step="1">
-            </label>
-            <div class="mini-field" style="display:flex;align-items:flex-end;gap:10px">
-              <div style="flex:1;font-size:.78rem;color:var(--muted);line-height:1.3;padding-bottom:2px">
-                Tip: Shift-drag a plate to pan; Shift+wheel to zoom.
-              </div>
-            </div>
           </div>
         </div>
         <p class="arrangement-hint">Each plate shows a cropped region of the main image. Individual plate image URLs override this.</p>
@@ -390,13 +360,15 @@
   var autoMockupTimer = null;
   var autoMockupInFlight = false;
   var suppressAutoMockup = false;
+
+  /* ─── Hex geometry constants ─── */
   var HEX_H = 112;
   var HEX_W = 97;
-  var ROW_PITCH = 84;
-  var COL_PITCH = 97;
-  var ODD_OFFSET = 48;
+  var ROW_PITCH = 84;   /* vertical distance between row origins (HEX_H * 0.75) */
+  var COL_PITCH = 97;   /* horizontal distance between col origins */
+  var ODD_OFFSET = 48;  /* half COL_PITCH for odd-row offset */
   var HEX_CLIP = 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)';
-  var PANEL_ZOOM_MAX = 10;
+
   var loadSeq = 0;
 
   document.addEventListener('DOMContentLoaded', function () {
@@ -452,11 +424,7 @@
       bundleText:   document.getElementById('f-bundle-text'),
       image:        document.getElementById('f-image'),
       imageFile:    document.getElementById('f-image-file'),
-      /* CROP fields (replaces mainZoom) */
-      cropX:        document.getElementById('f-crop-x'),
-      cropY:        document.getElementById('f-crop-y'),
-      cropW:        document.getElementById('f-crop-w'),
-      cropH:        document.getElementById('f-crop-h'),
+      mainZoom:     document.getElementById('f-main-zoom'),
       wallImage:    document.getElementById('f-wall-image'),
       wallImageFile: document.getElementById('f-wall-image-file'),
       autoMockup:   document.getElementById('f-auto-mockup'),
@@ -490,8 +458,7 @@
       customFit:        document.getElementById('custom-fit'),
       customZoom:       document.getElementById('custom-zoom'),
       customX:          document.getElementById('custom-x'),
-      customY:          document.getElementById('custom-y'),
-      customRotate:     document.getElementById('custom-rotate')
+      customY:          document.getElementById('custom-y')
     };
 
     E.views = {
@@ -499,328 +466,6 @@
       wall:   document.getElementById('view-wall'),
       panels: document.getElementById('view-panels')
     };
-  }
-
-  /* ─── Crop helpers ─── */
-
-  function getCropValues() {
-    return {
-      x: clampNumber(E.f.cropX.value, 0, 99, 0),
-      y: clampNumber(E.f.cropY.value, 0, 99, 0),
-      w: clampNumber(E.f.cropW.value, 1, 100, 100),
-      h: clampNumber(E.f.cropH.value, 1, 100, 100)
-    };
-  }
-
-  function setCropValues(x, y, w, h) {
-    E.f.cropX.value = Math.max(0, Math.min(99, x));
-    E.f.cropY.value = Math.max(0, Math.min(99, y));
-    E.f.cropW.value = Math.max(1, Math.min(100, w));
-    E.f.cropH.value = Math.max(1, Math.min(100, h));
-    updateCropStatus();
-  }
-
-  function resetCrop() {
-    setCropValues(0, 0, 100, 100);
-  }
-
-  function isCropDefault(crop) {
-    return crop.x < 0.5 && crop.y < 0.5 && crop.w > 99.5 && crop.h > 99.5;
-  }
-
-  function updateCropStatus() {
-    var statusEl = document.getElementById('crop-status');
-    if (!statusEl) return;
-    var crop = getCropValues();
-    statusEl.textContent = isCropDefault(crop)
-      ? ''
-      : 'Cropped (' + Math.round(crop.w) + '\u00d7' + Math.round(crop.h) + '%)';
-  }
-
-  /* ─── Crop modal ─── */
-
-  function openCropModal() {
-    var imageUrl = E.f.image ? E.f.image.value.trim() : '';
-    if (!imageUrl) {
-      setStatus('Add a main image URL first', 'error');
-      return;
-    }
-
-    var existing = document.getElementById('crop-modal');
-    if (existing) existing.remove();
-
-    var crop = getCropValues();
-
-    var modal = document.createElement('div');
-    modal.id = 'crop-modal';
-    modal.setAttribute('role', 'dialog');
-    modal.setAttribute('aria-modal', 'true');
-    modal.setAttribute('aria-label', 'Crop main image');
-    modal.style.cssText = [
-      'position:fixed;inset:0;z-index:9999',
-      'background:rgba(0,0,0,.72)',
-      'backdrop-filter:blur(8px)',
-      '-webkit-backdrop-filter:blur(8px)',
-      'display:flex;align-items:center;justify-content:center',
-      'padding:24px',
-      'box-sizing:border-box'
-    ].join(';');
-
-    modal.innerHTML =
-      '<div id="crop-dialog" style="' +
-        'background:#fff;border-radius:20px;' +
-        'box-shadow:0 40px 80px rgba(0,0,0,.3);' +
-        'display:flex;flex-direction:column;' +
-        'max-width:min(820px,90vw);width:100%;' +
-        'max-height:90vh;overflow:hidden;' +
-      '">' +
-        '<div style="padding:20px 24px;border-bottom:1px solid rgba(0,0,0,.08);display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-shrink:0">' +
-          '<div>' +
-            '<p style="font-family:var(--fm);font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Imagery</p>' +
-            '<h2 style="font-family:var(--fd);font-size:1.55rem;font-weight:400;line-height:1">Crop main image</h2>' +
-          '</div>' +
-          '<p style="font-size:.82rem;color:var(--muted);line-height:1.6;max-width:280px;padding-top:4px">' +
-            'Drag to draw a crop box, or drag the handles to resize. The selected region will be sliced into hex plates.' +
-          '</p>' +
-        '</div>' +
-        '<div style="padding:20px 24px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:12px">' +
-          '<div id="crop-stage" style="position:relative;background:#0a0a0a;border-radius:12px;overflow:hidden;cursor:crosshair;user-select:none;touch-action:none;flex-shrink:0">' +
-            '<img id="crop-img" src="' + escapeSvgAttr(imageUrl) + '" alt="" ' +
-              'style="display:block;width:100%;height:auto;max-height:480px;object-fit:contain;pointer-events:none;" ' +
-              'draggable="false">' +
-            '<div id="crop-overlay" style="position:absolute;inset:0;pointer-events:none"></div>' +
-            '<div id="crop-box" style="position:absolute;box-sizing:border-box;cursor:move;touch-action:none">' +
-              /* Border via box-shadow so it doesn't affect layout */
-              '<div style="position:absolute;inset:0;border:2px solid #d4780f;box-shadow:0 0 0 9999px rgba(0,0,0,.48);pointer-events:none"></div>' +
-              /* Rule-of-thirds grid */
-              '<div style="position:absolute;inset:0;pointer-events:none">' +
-                '<div style="position:absolute;top:33.3%;left:0;right:0;height:1px;background:rgba(212,120,15,.35)"></div>' +
-                '<div style="position:absolute;top:66.6%;left:0;right:0;height:1px;background:rgba(212,120,15,.35)"></div>' +
-                '<div style="position:absolute;left:33.3%;top:0;bottom:0;width:1px;background:rgba(212,120,15,.35)"></div>' +
-                '<div style="position:absolute;left:66.6%;top:0;bottom:0;width:1px;background:rgba(212,120,15,.35)"></div>' +
-              '</div>' +
-              /* Handles */
-              '<div class="crop-handle" data-pos="nw" style="position:absolute;top:-6px;left:-6px;width:12px;height:12px;background:#d4780f;border-radius:3px;cursor:nw-resize;touch-action:none"></div>' +
-              '<div class="crop-handle" data-pos="n"  style="position:absolute;top:-6px;left:50%;margin-left:-6px;width:12px;height:12px;background:#d4780f;border-radius:3px;cursor:n-resize;touch-action:none"></div>' +
-              '<div class="crop-handle" data-pos="ne" style="position:absolute;top:-6px;right:-6px;width:12px;height:12px;background:#d4780f;border-radius:3px;cursor:ne-resize;touch-action:none"></div>' +
-              '<div class="crop-handle" data-pos="e"  style="position:absolute;top:50%;right:-6px;margin-top:-6px;width:12px;height:12px;background:#d4780f;border-radius:3px;cursor:e-resize;touch-action:none"></div>' +
-              '<div class="crop-handle" data-pos="se" style="position:absolute;bottom:-6px;right:-6px;width:12px;height:12px;background:#d4780f;border-radius:3px;cursor:se-resize;touch-action:none"></div>' +
-              '<div class="crop-handle" data-pos="s"  style="position:absolute;bottom:-6px;left:50%;margin-left:-6px;width:12px;height:12px;background:#d4780f;border-radius:3px;cursor:s-resize;touch-action:none"></div>' +
-              '<div class="crop-handle" data-pos="sw" style="position:absolute;bottom:-6px;left:-6px;width:12px;height:12px;background:#d4780f;border-radius:3px;cursor:sw-resize;touch-action:none"></div>' +
-              '<div class="crop-handle" data-pos="w"  style="position:absolute;top:50%;left:-6px;margin-top:-6px;width:12px;height:12px;background:#d4780f;border-radius:3px;cursor:w-resize;touch-action:none"></div>' +
-            '</div>' +
-          '</div>' +
-          '<div id="crop-info" style="font-family:var(--fm);font-size:.64rem;letter-spacing:.06em;color:var(--muted);text-align:center;height:16px"></div>' +
-        '</div>' +
-        '<div style="padding:16px 24px;border-top:1px solid rgba(0,0,0,.08);display:flex;gap:10px;justify-content:flex-end;flex-shrink:0">' +
-          '<button id="crop-reset" class="btn btn-ghost btn-sm" type="button">Reset to full</button>' +
-          '<button id="crop-cancel" class="btn btn-ghost btn-sm" type="button">Cancel</button>' +
-          '<button id="crop-apply" class="btn btn-primary btn-sm" type="button">Apply crop</button>' +
-        '</div>' +
-      '</div>';
-
-    document.body.appendChild(modal);
-
-    var img        = document.getElementById('crop-img');
-    var box        = document.getElementById('crop-box');
-    var infoEl     = document.getElementById('crop-info');
-    var stage      = document.getElementById('crop-stage');
-    var dragState  = null;
-    var pxCrop     = { x: 0, y: 0, w: 0, h: 0 };
-
-    /* Get the displayed image bounds within the stage */
-    function getImgRect() {
-      var imgEl = document.getElementById('crop-img');
-      if (!imgEl) return { left: 0, top: 0, width: 100, height: 100 };
-      var ir = imgEl.getBoundingClientRect();
-      var sr = stage.getBoundingClientRect();
-      return {
-        left:   ir.left - sr.left,
-        top:    ir.top  - sr.top,
-        width:  ir.width,
-        height: ir.height
-      };
-    }
-
-    function percentToPx(pct) {
-      var ir = getImgRect();
-      return {
-        x: ir.left + (pct.x / 100) * ir.width,
-        y: ir.top  + (pct.y / 100) * ir.height,
-        w: (pct.w / 100) * ir.width,
-        h: (pct.h / 100) * ir.height
-      };
-    }
-
-    function pxToPercent(px) {
-      var ir = getImgRect();
-      return {
-        x: Math.max(0, ((px.x - ir.left) / ir.width)  * 100),
-        y: Math.max(0, ((px.y - ir.top)  / ir.height) * 100),
-        w: Math.min(100, (px.w / ir.width)  * 100),
-        h: Math.min(100, (px.h / ir.height) * 100)
-      };
-    }
-
-    function clampPxToImg(c) {
-      var ir = getImgRect();
-      var minSize = 10;
-      c.w = Math.max(minSize, c.w);
-      c.h = Math.max(minSize, c.h);
-      if (c.x < ir.left) { c.w -= (ir.left - c.x); c.x = ir.left; }
-      if (c.y < ir.top)  { c.h -= (ir.top  - c.y); c.y = ir.top;  }
-      var maxRight  = ir.left + ir.width;
-      var maxBottom = ir.top  + ir.height;
-      if (c.x + c.w > maxRight)  c.w = maxRight  - c.x;
-      if (c.y + c.h > maxBottom) c.h = maxBottom - c.y;
-      c.w = Math.max(minSize, c.w);
-      c.h = Math.max(minSize, c.h);
-    }
-
-    function updateBox() {
-      var c = pxCrop;
-      var sr = stage.getBoundingClientRect();
-      box.style.left   = Math.round(c.x - sr.left) + 'px';
-      box.style.top    = Math.round(c.y - sr.top)  + 'px';
-      box.style.width  = Math.round(c.w) + 'px';
-      box.style.height = Math.round(c.h) + 'px';
-      var pct = pxToPercent(c);
-      infoEl.textContent =
-        'x: ' + Math.round(pct.x) + '%  y: ' + Math.round(pct.y) + '%  ' +
-        'width: ' + Math.round(pct.w) + '%  height: ' + Math.round(pct.h) + '%';
-    }
-
-    function initBox() {
-      var px = percentToPx(crop);
-      pxCrop = px;
-      clampPxToImg(pxCrop);
-      updateBox();
-    }
-
-    function getEventPos(e) {
-      var touch = e.touches ? e.touches[0] : e;
-      return { x: touch.clientX, y: touch.clientY };
-    }
-
-    /* Initialise once the image is loaded */
-    if (img.complete && img.naturalWidth) {
-      initBox();
-    } else {
-      img.addEventListener('load', initBox, { once: true });
-    }
-
-    /* Handle pointer on box (move + resize) */
-    box.addEventListener('pointerdown', function(e) {
-      var handle = e.target.closest('.crop-handle');
-      e.preventDefault();
-      e.stopPropagation();
-      box.setPointerCapture(e.pointerId);
-      var pt = getEventPos(e);
-      dragState = {
-        type:      handle ? handle.dataset.pos : 'move',
-        startPt:   { x: pt.x, y: pt.y },
-        startCrop: { x: pxCrop.x, y: pxCrop.y, w: pxCrop.w, h: pxCrop.h }
-      };
-    });
-
-    box.addEventListener('pointermove', function(e) {
-      if (!dragState) return;
-      e.preventDefault();
-      var pt = getEventPos(e);
-      var dx = pt.x - dragState.startPt.x;
-      var dy = pt.y - dragState.startPt.y;
-      var s  = dragState.startCrop;
-      var c  = { x: s.x, y: s.y, w: s.w, h: s.h };
-
-      if (dragState.type === 'move') {
-        c.x = s.x + dx;
-        c.y = s.y + dy;
-      } else {
-        var pos = dragState.type;
-        if (pos.indexOf('e') >= 0) c.w = s.w + dx;
-        if (pos.indexOf('s') >= 0) c.h = s.h + dy;
-        if (pos.indexOf('w') >= 0) { c.x = s.x + dx; c.w = s.w - dx; }
-        if (pos.indexOf('n') >= 0) { c.y = s.y + dy; c.h = s.h - dy; }
-      }
-
-      clampPxToImg(c);
-      pxCrop = c;
-      updateBox();
-    });
-
-    box.addEventListener('pointerup',     function() { dragState = null; });
-    box.addEventListener('pointercancel', function() { dragState = null; });
-
-    /* Draw a new crop by dragging on the stage background */
-    stage.addEventListener('pointerdown', function(e) {
-      /* Only on the stage itself, not inside the crop box */
-      if (e.target !== stage && e.target !== img) return;
-      e.preventDefault();
-      stage.setPointerCapture(e.pointerId);
-      var startPt = getEventPos(e);
-      var drawing = true;
-
-      function onMove(ev) {
-        if (!drawing) return;
-        var mp = getEventPos(ev);
-        var x  = Math.min(startPt.x, mp.x);
-        var y  = Math.min(startPt.y, mp.y);
-        var w  = Math.abs(mp.x - startPt.x);
-        var h  = Math.abs(mp.y - startPt.y);
-        pxCrop = { x: x, y: y, w: w, h: h };
-        clampPxToImg(pxCrop);
-        updateBox();
-      }
-
-      function onUp() {
-        drawing = false;
-        stage.removeEventListener('pointermove', onMove);
-        stage.removeEventListener('pointerup',   onUp);
-        /* If too small, reset to full */
-        if (pxCrop.w < 12 || pxCrop.h < 12) {
-          var ir = getImgRect();
-          pxCrop = { x: ir.left, y: ir.top, w: ir.width, h: ir.height };
-          updateBox();
-        }
-      }
-
-      stage.addEventListener('pointermove', onMove);
-      stage.addEventListener('pointerup',   onUp);
-    });
-
-    document.getElementById('crop-reset').addEventListener('click', function() {
-      var ir = getImgRect();
-      pxCrop = { x: ir.left, y: ir.top, w: ir.width, h: ir.height };
-      updateBox();
-    });
-
-    document.getElementById('crop-cancel').addEventListener('click', function() {
-      modal.remove();
-    });
-
-    document.getElementById('crop-apply').addEventListener('click', function() {
-      var pct = pxToPercent(pxCrop);
-      setCropValues(
-        Math.round(pct.x  * 10) / 10,
-        Math.round(pct.y  * 10) / 10,
-        Math.round(pct.w  * 10) / 10,
-        Math.round(pct.h  * 10) / 10
-      );
-      modal.remove();
-      renderPreview();
-      setStatus('Crop applied', 'success');
-    });
-
-    modal.addEventListener('click', function(e) {
-      if (e.target === modal) modal.remove();
-    });
-
-    document.addEventListener('keydown', function escHandler(e) {
-      if (e.key === 'Escape') {
-        modal.remove();
-        document.removeEventListener('keydown', escHandler);
-      }
-    }, { once: true });
   }
 
   /* ─── Auth ─── */
@@ -867,11 +512,6 @@
       E.previewStage.classList.toggle('is-open');
     });
 
-    /* Crop button */
-    var cropBtn = document.getElementById('crop-btn');
-    if (cropBtn) cropBtn.addEventListener('click', openCropModal);
-
-    /* View tabs */
     document.getElementById('view-tabs').addEventListener('click', function (e) {
       var btn = e.target.closest('.view-tab');
       if (!btn) return;
@@ -883,10 +523,8 @@
       renderPreview();
     });
 
-    /* Field watchers */
     Object.keys(E.f).forEach(function (key) {
       var el = E.f[key];
-      if (!el || el.type === 'hidden') return; /* skip hidden crop fields — they update programmatically */
       var evt = (el.type === 'checkbox' || el.tagName === 'SELECT') ? 'change' : 'input';
       el.addEventListener(evt, function () {
         if (key === 'pieces') {
@@ -982,8 +620,7 @@
       if (window.matchMedia('(max-width: 1060px)').matches) return;
       event.preventDefault();
       var startX = event.clientX;
-      var current = parseFloat(getComputedStyle(E.creatorShell).getPropertyValue('--rail-width')) || 460;
-
+      var current = parseFloat(getComputedStyle(E.creatorShell).getPropertyValue('--rail-width')) || E.editorRail.getBoundingClientRect().width || 460;
       E.railResizer.classList.add('is-dragging');
       document.body.classList.add('is-resizing-rail');
       E.railResizer.setPointerCapture(event.pointerId);
@@ -997,10 +634,9 @@
         E.railResizer.removeEventListener('pointermove', onMove);
         E.railResizer.removeEventListener('pointerup', onUp);
         E.railResizer.removeEventListener('pointercancel', onUp);
-        var resolved = parseFloat(getComputedStyle(E.creatorShell).getPropertyValue('--rail-width')) || 460;
+        var resolved = parseFloat(getComputedStyle(E.creatorShell).getPropertyValue('--rail-width')) || E.editorRail.getBoundingClientRect().width || 460;
         localStorage.setItem('creator_rail_width', String(Math.round(resolved)));
       }
-
       E.railResizer.addEventListener('pointermove', onMove);
       E.railResizer.addEventListener('pointerup', onUp);
       E.railResizer.addEventListener('pointercancel', onUp);
@@ -1009,7 +645,9 @@
 
   function applyRailWidth(value) {
     if (!E.creatorShell) return;
-    var clamped = Math.max(320, Math.min(Math.max(320, window.innerWidth - 360), parseFloat(value) || 460));
+    var min = 320;
+    var max = Math.max(min, window.innerWidth - 360);
+    var clamped = Math.max(min, Math.min(max, parseFloat(value) || 460));
     E.creatorShell.style.setProperty('--rail-width', clamped + 'px');
   }
 
@@ -1049,7 +687,7 @@
         var item = e.target.closest('.bundle-drop-item');
         if (!item) return;
         var slug = item.getAttribute('data-slug') || '';
-        var idx  = parseInt(item.getAttribute('data-idx') || '', 10);
+        var idx = parseInt(item.getAttribute('data-idx') || '', 10);
         if (!slug || !Number.isFinite(idx)) return;
         var payload = { slug: slug, from: 'bundle', index: idx };
         bundleDragState = { active: true, droppedInside: false, payload: payload };
@@ -1096,10 +734,15 @@
     if (!items.length) return;
     var idx = Number.isFinite(payload.index) ? payload.index : -1;
     if (idx >= 0 && idx < items.length && items[idx] === payload.slug) {
-      items.splice(idx, 1); setBundleItems(items); return;
+      items.splice(idx, 1);
+      setBundleItems(items);
+      return;
     }
-    var fi = items.indexOf(String(payload.slug || '').trim());
-    if (fi >= 0) { items.splice(fi, 1); setBundleItems(items); }
+    var fallbackIdx = items.indexOf(String(payload.slug || '').trim());
+    if (fallbackIdx >= 0) {
+      items.splice(fallbackIdx, 1);
+      setBundleItems(items);
+    }
   }
 
   function bindPlateCustomizer() {
@@ -1108,7 +751,7 @@
       updateActivePanelTransform({ fit: E.prev.customFit.value });
     });
     E.prev.customZoom.addEventListener('input', function () {
-      updateActivePanelTransform({ scale: clampNumber(E.prev.customZoom.value, 0.2, PANEL_ZOOM_MAX, 1) });
+      updateActivePanelTransform({ scale: clampNumber(E.prev.customZoom.value, 0.2, 3, 1) });
     });
     E.prev.customX.addEventListener('input', function () {
       updateActivePanelTransform({ x: clampNumber(E.prev.customX.value, 0, 100, 50) });
@@ -1116,11 +759,6 @@
     E.prev.customY.addEventListener('input', function () {
       updateActivePanelTransform({ y: clampNumber(E.prev.customY.value, 0, 100, 50) });
     });
-    if (E.prev.customRotate) {
-      E.prev.customRotate.addEventListener('input', function () {
-        updateActivePanelTransform({ rotate: clampNumber(E.prev.customRotate.value, -180, 180, 0) });
-      });
-    }
   }
 
   /* ─── Load products ─── */
@@ -1159,7 +797,7 @@
 
   function fetchProducts() {
     return Promise.all([
-      requestJson('/.netlify/functions/load-products',  { cache: 'no-store' }),
+      requestJson('/.netlify/functions/load-products', { cache: 'no-store' }),
       requestJson('/.netlify/functions/load-catalogue', { cache: 'no-store' }).catch(function () { return { bundles: [] }; })
     ]).then(function (results) {
       return extractProductList(results[0])
@@ -1170,22 +808,31 @@
   }
 
   function extractProductList(data) {
-    if (Array.isArray(data)) return data;
-    if (data && Array.isArray(data.products)) return data.products.concat(Array.isArray(data.bundles) ? data.bundles : []);
-    if (data && Array.isArray(data.data)) return data.data;
-    throw new Error('Product response did not include a product list');
+    var list = [];
+    if (Array.isArray(data)) {
+      list = data;
+    } else if (data && Array.isArray(data.products)) {
+      list = data.products.concat(Array.isArray(data.bundles) ? data.bundles : []);
+    } else if (data && Array.isArray(data.data)) {
+      list = data.data;
+    } else {
+      throw new Error('Product response did not include a product list');
+    }
+    return list;
   }
 
   function populateSelect() {
     E.productSel.innerHTML = '';
     if (!state.products.length) {
       var empty = document.createElement('option');
-      empty.value = ''; empty.textContent = 'No saved products';
+      empty.value = '';
+      empty.textContent = 'No saved products';
       E.productSel.appendChild(empty);
       return;
     }
     var placeholder = document.createElement('option');
-    placeholder.value = ''; placeholder.textContent = '— select a product —';
+    placeholder.value = '';
+    placeholder.textContent = '— select a product —';
     E.productSel.appendChild(placeholder);
     state.products.forEach(function (p) {
       var opt = document.createElement('option');
@@ -1199,52 +846,43 @@
     if (!id) return false;
     var p = findProduct(id);
     if (!p) return false;
-    state.currentId  = productKey(p);
+    state.currentId = productKey(p);
     state.activePanel = 0;
     E.productSel.value = state.currentId;
 
-    E.f.name.value          = p.name || '';
-    E.f.slug.value          = p.slug || '';
+    E.f.name.value         = p.name || '';
+    E.f.slug.value         = p.slug || '';
     E.f.slug.dataset.touched = '1';
-    E.f.category.value      = p.category || '';
-    E.f.accent.value        = p.accent || '';
-    E.f.price.value         = p.price || '';
-    E.f.unitPrice.value     = p.plateUnitPrice || '';
-    E.f.priceLabel.value    = p.priceLabel || '';
-    E.f.size.value          = p.size || '';
-    E.f.material.value      = p.material || '';
-    E.f.short.value         = p.short || '';
-    E.f.description.value   = p.description || '';
-    E.f.note.value          = p.note || '';
+    E.f.category.value     = p.category || '';
+    E.f.accent.value       = p.accent || '';
+    E.f.price.value        = p.price || '';
+    E.f.unitPrice.value    = p.plateUnitPrice || '';
+    E.f.priceLabel.value   = p.priceLabel || '';
+    E.f.size.value         = p.size || '';
+    E.f.material.value     = p.material || '';
+    E.f.short.value        = p.short || '';
+    E.f.description.value  = p.description || '';
+    E.f.note.value         = p.note || '';
     E.f.isCollection.checked = !!p.isCollection;
-    E.f.isBundle.checked    = !!p.isBundle;
+    E.f.isBundle.checked   = !!p.isBundle;
     E.f.isPublished.checked = p.isPublished !== false;
-    E.f.bundlePrice.value   = p.isBundle ? (p.bundlePrice || p.price || '') : '';
-    E.f.bundleItems.value   = Array.isArray(p.bundleItems) ? p.bundleItems.join('\n') : '';
-    E.f.bundleText.value    = p.bundleText || p.text || '';
-    E.f.image.value         = p.image || '';
-    E.f.wallImage.value     = p.wallImage || '';
-    E.f.panelHint.value     = p.panelHint || '';
-    E.f.pieces.value        = parseInt(p.plateCount || p.pieces, 10) || 1;
-
-    /* Load crop values */
-    var crop = (p.crop && typeof p.crop === 'object') ? p.crop : {};
-    setCropValues(
-      clampNumber(crop.x, 0, 99, 0),
-      clampNumber(crop.y, 0, 99, 0),
-      clampNumber(crop.w, 1, 100, 100),
-      clampNumber(crop.h, 1, 100, 100)
-    );
-
+    E.f.bundlePrice.value  = p.isBundle ? (p.bundlePrice || p.price || '') : '';
+    E.f.bundleItems.value  = Array.isArray(p.bundleItems) ? p.bundleItems.join('\n') : '';
+    E.f.bundleText.value   = p.bundleText || p.text || '';
+    E.f.image.value        = p.image || '';
+    E.f.mainZoom.value     = p.mainZoom || 1;
+    E.f.wallImage.value    = p.wallImage || '';
+    E.f.panelHint.value    = p.panelHint || '';
+    E.f.pieces.value       = parseInt(p.plateCount || p.pieces, 10) || 1;
     syncPriceLabel();
 
-    state.panelNames     = Array.isArray(p.plateNames) ? p.plateNames.slice() : [];
-    state.panelImages    = Array.isArray(p.plateImages) ? p.plateImages.slice() : [];
-    var loadedMap        = p.plateMap || p.panelMap || {};
-    state.panelPositions = Array.isArray(loadedMap.positions)
+    state.panelNames     = Array.isArray(p.plateNames) ? p.plateNames.slice() : (Array.isArray(p.panelNames) ? p.panelNames.slice() : []);
+    state.panelImages    = Array.isArray(p.plateImages) ? p.plateImages.slice() : (Array.isArray(p.panelImages) ? p.panelImages.slice() : []);
+    var loadedMap = p.plateMap || p.panelMap || {};
+    state.panelPositions = (loadedMap && Array.isArray(loadedMap.positions))
       ? loadedMap.positions.map(function (x) { return { row: parseInt(x.row, 10) || 0, col: parseInt(x.col, 10) || 0 }; })
       : [];
-    state.panelTransforms = Array.isArray(loadedMap.transforms)
+    state.panelTransforms = (loadedMap && Array.isArray(loadedMap.transforms))
       ? loadedMap.transforms.map(normalisePanelTransform)
       : [];
 
@@ -1260,28 +898,25 @@
 
   function createBlank(isCollection) {
     loadSeq++;
-    state.currentId   = null;
+    state.currentId = null;
     state.activePanel = 0;
     E.productSel.value = '';
     E.f.slug.dataset.touched = '';
     Object.keys(E.f).forEach(function (k) {
       var el = E.f[k];
-      if (!el) return;
-      if (el.type === 'hidden') return; /* handle hidden crop fields below */
       if (el.type === 'checkbox') { el.checked = k === 'isPublished'; }
-      else if (k === 'pieces')       { el.value = 6; }
+      else if (k === 'pieces') { el.value = 6; }
       else if (k === 'layoutPreset') { el.value = 'auto'; }
       else { el.value = ''; }
     });
     E.f.isCollection.checked = !!isCollection;
     E.f.unitPrice.value = '34.99';
     E.f.price.value = (6 * 34.99 * 0.9).toFixed(2);
-    /* Reset crop */
-    resetCrop();
+    E.f.mainZoom.value = 1;
     syncPriceLabel();
-    state.panelNames      = [];
-    state.panelImages     = [];
-    state.panelPositions  = [];
+    state.panelNames = [];
+    state.panelImages = [];
+    state.panelPositions = [];
     state.panelTransforms = [];
     ensurePanelArrays();
     applyPresetLayout();
@@ -1295,8 +930,8 @@
 
   /* ─── Panel arrays ─── */
   function syncPriceLabel() {
-    var count     = Math.max(1, parseInt(E.f.pieces.value, 10) || 1);
-    var setPrice  = parseFloat(E.f.price.value || 0);
+    var count = Math.max(1, parseInt(E.f.pieces.value, 10) || 1);
+    var setPrice = parseFloat(E.f.price.value || 0);
     var unitPrice = parseFloat(E.f.unitPrice.value || 0);
     if (!unitPrice && setPrice) {
       unitPrice = setPrice / count;
@@ -1308,22 +943,22 @@
   }
 
   function ensurePanelArrays() {
-    var count    = Math.max(1, parseInt(E.f.pieces.value, 10) || 1);
+    var count = Math.max(1, parseInt(E.f.pieces.value, 10) || 1);
     var fallback = autoLayout(count);
-    while (state.panelNames.length    < count) state.panelNames.push('');
-    while (state.panelImages.length   < count) state.panelImages.push('');
+    while (state.panelNames.length < count) state.panelNames.push('');
+    while (state.panelImages.length < count) state.panelImages.push('');
     while (state.panelTransforms.length < count) state.panelTransforms.push(defaultPanelTransform());
-    while (state.panelPositions.length  < count) {
+    while (state.panelPositions.length < count) {
       state.panelPositions.push(fallback[state.panelPositions.length] || { row: 0, col: state.panelPositions.length });
     }
-    state.panelNames      = state.panelNames.slice(0, count);
-    state.panelImages     = state.panelImages.slice(0, count);
+    state.panelNames = state.panelNames.slice(0, count);
+    state.panelImages = state.panelImages.slice(0, count);
     state.panelTransforms = state.panelTransforms.slice(0, count).map(normalisePanelTransform);
-    state.panelPositions  = state.panelPositions.slice(0, count).map(function (pos, idx) {
-      var fp = fallback[idx] || { row: 0, col: idx };
+    state.panelPositions = state.panelPositions.slice(0, count).map(function (pos, idx) {
+      var fallbackPos = fallback[idx] || { row: 0, col: idx };
       return {
-        row: Number.isFinite(parseInt(pos && pos.row, 10)) ? parseInt(pos.row, 10) : fp.row,
-        col: Number.isFinite(parseInt(pos && pos.col, 10)) ? parseInt(pos.col, 10) : fp.col
+        row: Number.isFinite(parseInt(pos && pos.row, 10)) ? parseInt(pos.row, 10) : fallbackPos.row,
+        col: Number.isFinite(parseInt(pos && pos.col, 10)) ? parseInt(pos.col, 10) : fallbackPos.col
       };
     });
   }
@@ -1339,10 +974,9 @@
         '<input class="field pn" type="text" placeholder="Plate name">' +
         '<input class="field pi" type="url" placeholder="https://...">' +
         '<select class="field pf"><option value="contain">Contain</option><option value="cover">Cover</option></select>' +
-        '<input class="field pz" type="number" min="0.2" max="' + PANEL_ZOOM_MAX + '" step="0.05" title="Zoom">' +
+        '<input class="field pz" type="number" min="0.2" max="3" step="0.05" title="Zoom">' +
         '<input class="field px" type="number" min="0" max="100" step="1" title="Horizontal position">' +
         '<input class="field py" type="number" min="0" max="100" step="1" title="Vertical position">' +
-        '<input class="field prot" type="number" min="-180" max="180" step="1" title="Rotation (degrees)">' +
         '<input class="field pr" type="number" step="1">' +
         '<input class="field pc" type="number" step="1">';
 
@@ -1352,7 +986,6 @@
       var zoomIn  = row.querySelector('.pz');
       var xIn     = row.querySelector('.px');
       var yIn     = row.querySelector('.py');
-      var rotIn   = row.querySelector('.prot');
       var rowIn   = row.querySelector('.pr');
       var colIn   = row.querySelector('.pc');
       var transform = normalisePanelTransform(state.panelTransforms[i]);
@@ -1363,17 +996,15 @@
       zoomIn.value  = transform.scale;
       xIn.value     = transform.x;
       yIn.value     = transform.y;
-      rotIn.value   = transform.rotate;
       rowIn.value  = pos.row;
       colIn.value  = pos.col;
 
       nameIn.addEventListener('input', function () { state.panelNames[i] = nameIn.value; renderPreview(); });
-      imgIn.addEventListener('input',  function () { state.panelImages[i] = imgIn.value; state.panelTransforms[i] = normalisePanelTransform(state.panelTransforms[i]); renderPreview(); });
+      imgIn.addEventListener('input',  function () { state.panelImages[i] = imgIn.value; renderPreview(); });
       fitIn.addEventListener('change', function () { state.panelTransforms[i].fit = fitIn.value; renderPreview(); });
-      zoomIn.addEventListener('input', function () { state.panelTransforms[i].scale = clampNumber(zoomIn.value, 0.2, PANEL_ZOOM_MAX, 1); renderPreview(); });
+      zoomIn.addEventListener('input', function () { state.panelTransforms[i].scale = clampNumber(zoomIn.value, 0.2, 3, 1); renderPreview(); });
       xIn.addEventListener('input',    function () { state.panelTransforms[i].x = clampNumber(xIn.value, 0, 100, 50); renderPreview(); });
       yIn.addEventListener('input',    function () { state.panelTransforms[i].y = clampNumber(yIn.value, 0, 100, 50); renderPreview(); });
-      rotIn.addEventListener('input',  function () { state.panelTransforms[i].rotate = clampNumber(rotIn.value, -180, 180, 0); renderPreview(); });
       rowIn.addEventListener('input',  function () { state.panelPositions[i].row = parseInt(rowIn.value, 10) || 0; renderPreview(); });
       colIn.addEventListener('input',  function () { state.panelPositions[i].col = parseInt(colIn.value, 10) || 0; renderPreview(); });
 
@@ -1388,19 +1019,31 @@
     var count  = state.panelPositions.length;
     var preset = E.f.layoutPreset.value || 'auto';
     var pos    = [];
+
     if (preset === 'line') {
       for (var i = 0; i < count; i++) pos.push({ row: 0, col: i });
     } else if (preset === 'arc') {
-      for (var j = 0; j < count; j++) pos.push({ row: (j === 0 || j === count - 1) ? 1 : 0, col: j });
+      for (var j = 0; j < count; j++) {
+        pos.push({ row: (j === 0 || j === count - 1) ? 1 : 0, col: j });
+      }
     } else if (preset === 'cluster') {
-      var cluster = [{row:0,col:1},{row:1,col:0},{row:1,col:1},{row:1,col:2},{row:2,col:0},{row:2,col:1},{row:2,col:2},{row:2,col:3},{row:3,col:1},{row:3,col:2}];
+      var cluster = [
+        {row:0,col:1},{row:1,col:0},{row:1,col:1},{row:1,col:2},
+        {row:2,col:0},{row:2,col:1},{row:2,col:2},{row:2,col:3},
+        {row:3,col:1},{row:3,col:2}
+      ];
       for (var c = 0; c < count; c++) pos.push(cluster[c] || { row: Math.floor(c/3), col: c%3 });
     } else if (preset === 'honeycomb') {
-      var honey = [{row:0,col:1},{row:1,col:0},{row:1,col:1},{row:1,col:2},{row:2,col:0},{row:2,col:1},{row:2,col:2},{row:2,col:3},{row:3,col:1},{row:3,col:2},{row:4,col:1},{row:4,col:2}];
+      var honey = [
+        {row:0,col:1},{row:1,col:0},{row:1,col:1},{row:1,col:2},
+        {row:2,col:0},{row:2,col:1},{row:2,col:2},{row:2,col:3},
+        {row:3,col:1},{row:3,col:2},{row:4,col:1},{row:4,col:2}
+      ];
       for (var h = 0; h < count; h++) pos.push(honey[h] || { row: Math.floor(h/4), col: h%4 });
     } else {
       pos = autoLayout(count);
     }
+
     state.panelPositions = pos;
     rebuildPanelEditors();
   }
@@ -1409,39 +1052,51 @@
     var sorted = state.panelPositions.map(function (p, idx) {
       return { row: parseInt(p.row,10)||0, col: parseInt(p.col,10)||0, idx: idx };
     }).sort(function (a, b) { return a.row !== b.row ? a.row - b.row : a.col - b.col; });
-    var nn=[], ni=[], nt=[], np=[];
+
+    var nn = [], ni = [], nt = [], np = [];
     sorted.forEach(function (item) {
-      nn.push(state.panelNames[item.idx]     || '');
-      ni.push(state.panelImages[item.idx]    || '');
+      nn.push(state.panelNames[item.idx] || '');
+      ni.push(state.panelImages[item.idx] || '');
       nt.push(normalisePanelTransform(state.panelTransforms[item.idx]));
       np.push({ row: item.row, col: item.col });
     });
-    state.panelNames=nn; state.panelImages=ni; state.panelTransforms=nt; state.panelPositions=np;
+    state.panelNames = nn; state.panelImages = ni; state.panelTransforms = nt; state.panelPositions = np;
     rebuildPanelEditors();
   }
 
   function autoLayout(count) {
     var presets = {
-      1:[[0,0]],2:[[0,0],[0,1]],3:[[0,0],[0,1],[1,0]],4:[[0,0],[0,1],[1,0],[1,1]],
-      5:[[0,1],[1,0],[1,1],[1,2],[2,1]],6:[[0,0],[0,1],[0,2],[1,0],[1,1],[1,2]],
-      7:[[0,1],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]],8:[[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1]],
+      1:[[0,0]],
+      2:[[0,0],[0,1]],
+      3:[[0,0],[0,1],[1,0]],
+      4:[[0,0],[0,1],[1,0],[1,1]],
+      5:[[0,1],[1,0],[1,1],[1,2],[2,1]],
+      6:[[0,0],[0,1],[0,2],[1,0],[1,1],[1,2]],
+      7:[[0,1],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]],
+      8:[[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1]],
       9:[[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]],
       10:[[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[1,3],[2,0],[2,1],[2,2]],
       11:[[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[1,3],[2,0],[2,1],[2,2],[2,3]],
       12:[[0,0],[0,1],[0,2],[0,3],[1,0],[1,1],[1,2],[1,3],[2,0],[2,1],[2,2],[2,3]]
     };
-    if (presets[count]) return presets[count].map(function (p) { return { row: p[0], col: p[1] }; });
-    var cols = Math.max(3, Math.ceil(Math.sqrt(count)));
-    var positions=[], placed=0;
-    for (var r=0; placed<count; r++) {
-      var rowCols = Math.min(cols, count-placed);
-      var offset  = Math.floor((cols-rowCols)/2);
-      for (var c=0; c<rowCols; c++) { positions.push({ row:r, col:c+offset }); placed++; }
+    if (presets[count]) {
+      return presets[count].map(function (p) { return { row: p[0], col: p[1] }; });
+    }
+    var positions = [], cols = Math.max(3, Math.ceil(Math.sqrt(count)));
+    var rows = Math.ceil(count / cols);
+    var placed = 0;
+    for (var r = 0; r < rows && placed < count; r++) {
+      var rowCols = Math.min(cols, count - placed);
+      var offset = Math.floor((cols - rowCols) / 2);
+      for (var c = 0; c < rowCols; c++) {
+        positions.push({ row: r, col: c + offset });
+        placed++;
+      }
     }
     return positions;
   }
 
-  /* ─── Thumb previews ─── */
+  /* ─── Thumb previews in rail ─── */
   function updateThumb(which, url) {
     var wrap = which === 'main' ? E.prev.thumbMain : E.prev.thumbWall;
     if (!wrap) return;
@@ -1452,18 +1107,21 @@
     }
   }
 
-  /* ─── Preview rendering ─── */
+  /* ═══════════════════════════════════════════════════════════════
+     PREVIEW RENDERING
+     ═══════════════════════════════════════════════════════════════ */
+
   function renderPreview() {
-    var name         = E.f.name.value.trim() || 'Untitled product';
+    var name        = E.f.name.value.trim() || 'Untitled product';
     var isCollection = E.f.isCollection.checked;
-    var isBundle     = E.f.isBundle.checked;
-    var image        = E.f.image.value.trim();
-    var wallImage    = E.f.wallImage.value.trim();
-    var shortLine    = E.f.short.value.trim() || 'Add a short product line.';
-    var description  = E.f.description.value.trim() || 'Your description will appear here.';
-    var price        = parseFloat((isBundle && E.f.bundlePrice.value) || E.f.price.value || 0);
-    var count        = Math.max(1, parseInt(E.f.pieces.value, 10) || 1);
-    var crop         = getCropValues();
+    var isBundle    = E.f.isBundle.checked;
+    var image       = E.f.image.value.trim();
+    var imageZoom   = clampNumber(E.f.mainZoom.value, 1, 2.5, 1);
+    var wallImage   = E.f.wallImage.value.trim();
+    var shortLine   = E.f.short.value.trim() || 'Add a short product line.';
+    var description = E.f.description.value.trim() || 'Your description will appear here.';
+    var price       = parseFloat((isBundle && E.f.bundlePrice.value) || E.f.price.value || 0);
+    var count       = Math.max(1, parseInt(E.f.pieces.value, 10) || 1);
 
     E.prev.title.textContent       = name;
     E.prev.name.textContent        = name;
@@ -1475,7 +1133,7 @@
     E.prev.arrangementCount.textContent = count + ' plate' + (count === 1 ? '' : 's');
 
     var pills = [];
-    if (E.f.size.value.trim())     pills.push(E.f.size.value.trim());
+    if (E.f.size.value.trim()) pills.push(E.f.size.value.trim());
     if (E.f.material.value.trim()) pills.push(E.f.material.value.trim());
     if (E.f.category.value.trim()) pills.push(E.f.category.value.trim());
     E.prev.metaPills.innerHTML = pills.map(function (p) {
@@ -1486,119 +1144,192 @@
       E.views[v].style.display = v === state.activeView ? '' : 'none';
     });
 
-    /* Main image — show with crop overlay indicator */
     if (image) {
       E.prev.mainImage.src = image;
-      /* Show crop as CSS clip-path on the image */
-      if (!isCropDefault(crop)) {
-        var cx = crop.x, cy = crop.y, cw = crop.w, ch = crop.h;
-        E.prev.mainImage.style.clipPath =
-          'inset(' + cy + '% ' + (100 - cx - cw) + '% ' + (100 - cy - ch) + '% ' + cx + '%)';
-        E.prev.mainImage.style.transform =
-          'scale(' + (100/cw) + ') translate(' +
-          (-(cx + cw/2 - 50)/100 * (100/cw)) + 'px, ' +
-          (-(cy + ch/2 - 50)/100 * (100/cw)) + 'px)';
-      } else {
-        E.prev.mainImage.style.clipPath  = '';
-        E.prev.mainImage.style.transform = '';
-      }
+      E.prev.mainImage.style.transform = 'scale(' + imageZoom + ')';
       E.prev.mainImage.style.display = '';
       E.prev.mainEmpty.style.display = 'none';
     } else {
-      E.prev.mainImage.src             = '';
-      E.prev.mainImage.style.clipPath  = '';
+      E.prev.mainImage.src = '';
       E.prev.mainImage.style.transform = '';
-      E.prev.mainImage.style.display   = 'none';
-      E.prev.mainEmpty.style.display   = '';
+      E.prev.mainImage.style.display = 'none';
+      E.prev.mainEmpty.style.display = '';
     }
 
     if (wallImage) {
-      E.prev.wallImage.src           = wallImage;
+      E.prev.wallImage.src = wallImage;
       E.prev.wallImage.style.display = '';
       E.prev.wallEmpty.style.display = 'none';
     } else {
-      E.prev.wallImage.src           = '';
+      E.prev.wallImage.src = '';
       E.prev.wallImage.style.display = 'none';
       E.prev.wallEmpty.style.display = '';
     }
 
-    renderPanelsView(image, count, crop);
+    renderPanelsView(image, imageZoom);
     renderHexGrid();
     syncPlateCustomizer();
   }
 
-  /* ── Panels composite: main image + hex outlines ── */
-  function renderPanelsView(mainImageUrl, count, crop) {
+  /* ══════════════════════════════════════════════════════════════
+     PANELS COMPOSITE VIEW  (Plates tab — SVG overlay on bg image)
+
+     The main image is shown as a background.  On top we draw an
+     SVG where each hex tile is a clip-path window that reveals
+     the same image underneath a semi-transparent dark overlay,
+     plus an outline stroke and a numeric label.
+
+     Key fix: the SVG <image> must be sized and positioned to match
+     the background layer exactly, accounting for zoom.  We use the
+     SVG viewBox so coordinates are in CSS-pixel space.
+     ══════════════════════════════════════════════════════════════ */
+
+  function renderPanelsView(mainImageUrl, mainZoom) {
     var bgLayer  = E.prev.panelsBgLayer;
     var bgEmpty  = E.prev.panelsBgEmpty;
     var hexLayer = E.prev.panelsHexLayer;
+    var zoom = clampNumber(mainZoom, 1, 2.5, 1);
 
     if (mainImageUrl) {
-      /* Use CSS to show only the cropped region as the background */
       bgLayer.style.backgroundImage    = 'url(' + mainImageUrl + ')';
-      /* background-size = 100/w% of original → crops to the correct region */
-      var scaleX = 100 / (crop.w || 100);
-      var scaleY = 100 / (crop.h || 100);
-      bgLayer.style.backgroundSize     = (100 * scaleX) + '% ' + (100 * scaleY) + '%';
-      bgLayer.style.backgroundPosition = (-crop.x * scaleX) + '% ' + (-crop.y * scaleY) + '%';
-      bgLayer.style.filter             = 'none';
-      bgEmpty.style.display            = 'none';
+      bgLayer.style.backgroundSize     = (100 * zoom) + '%';
+      bgLayer.style.backgroundPosition = 'center';
+      bgEmpty.style.display = 'none';
     } else {
       bgLayer.style.backgroundImage = '';
-      bgLayer.style.backgroundSize  = '';
-      bgLayer.style.backgroundPosition = '';
-      bgEmpty.style.display         = '';
+      bgEmpty.style.display = '';
     }
 
-    renderOutlinePreviewSVG(hexLayer, mainImageUrl);
+    renderOutlinePreviewSVG(hexLayer, mainImageUrl, zoom);
   }
 
-  function renderOutlinePreviewSVG(hexLayer, mainImageUrl) {
+  /*
+   * renderOutlinePreviewSVG  — rewritten
+   *
+   * Correct approach:
+   *   1. Compute pixel positions for each hex tile (relative to bounds origin).
+   *   2. Build an SVG whose viewBox matches those pixel coordinates.
+   *   3. The SVG fills its container via width/height="100%" so the browser
+   *      scales it to fit — we do NOT need to know the container's actual px size.
+   *   4. A dark rect covers the whole viewBox.
+   *   5. For each hex:  clipPath + <image> punches a window through the dark rect,
+   *      showing the source image behind it.  The <image> must span the FULL viewBox
+   *      so that the visible region inside each hex clip is the correct crop.
+   *   6. An outline polygon and a text label complete each tile.
+   *
+   * The image <image href> uses the same URL as the background.  Because the SVG
+   * <image> is sized to the full viewBox and uses preserveAspectRatio="xMidYMid slice"
+   * it matches the CSS background-size:cover rendering.  Zoom is handled by shrinking
+   * the effective image area inside the viewBox (see zoomedW/H calculation).
+   */
+  function renderOutlinePreviewSVG(hexLayer, mainImageUrl, zoom) {
     hexLayer.innerHTML = '';
     ensurePanelArrays();
+    if (!state.panelPositions.length) return;
+
     var pixelPositions = getPreviewPixelPositions();
-    if (!pixelPositions.length) return;
-
     var bounds = getPreviewBounds(pixelPositions);
-    var pad  = 4;
-    var minX = bounds.minX - pad;
-    var minY = bounds.minY - pad;
-    var svgW = bounds.width  + pad * 2;
-    var svgH = bounds.height + pad * 2;
-    var image = escapeSvgAttr(mainImageUrl || '');
 
-    var svgParts = [
-      '<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="',
-      minX + ' ' + minY + ' ' + svgW + ' ' + svgH,
-      '">'
-    ];
-    svgParts.push('<rect x="' + minX + '" y="' + minY + '" width="' + svgW + '" height="' + svgH + '" fill="rgba(0,0,0,0.35)"/>');
+    /* Add padding around the grid so strokes aren't clipped */
+    var PAD = 6;
+    var vbX = bounds.minX - PAD;
+    var vbY = bounds.minY - PAD;
+    var vbW = bounds.width  + PAD * 2;
+    var vbH = bounds.height + PAD * 2;
 
+    var parts = [];
+    parts.push(
+      '<svg xmlns="http://www.w3.org/2000/svg"',
+      ' width="100%" height="100%"',
+      ' viewBox="' + vbX + ' ' + vbY + ' ' + vbW + ' ' + vbH + '"',
+      ' style="position:absolute;inset:0;overflow:visible"',
+      '>'
+    );
+
+    /* Dark overlay rect */
+    parts.push('<rect x="' + vbX + '" y="' + vbY + '" width="' + vbW + '" height="' + vbH + '" fill="rgba(0,0,0,0.38)"/>');
+
+    if (mainImageUrl) {
+      /*
+       * The image must replicate how the background layer renders the photo.
+       * The background-layer is a div with background-size: (100*zoom)% center.
+       * In SVG terms: we want the image to fill the viewBox with cover scaling,
+       * then zoom it about the centre.
+       *
+       * We achieve this by:
+       *   - Placing a <image> that covers the full viewBox (preserveAspectRatio slice)
+       *   - Wrapping it in a transform that scales about the centre of the viewBox
+       *
+       * This matches the CSS `background-size: Xvw center` behaviour.
+       */
+      var cx = vbX + vbW / 2;
+      var cy = vbY + vbH / 2;
+
+      parts.push('<defs>');
+      pixelPositions.forEach(function (pos, idx) {
+        var pts = hexPointsStr(pos.x, pos.y, HEX_W, HEX_H);
+        parts.push('<clipPath id="hcp' + idx + '"><polygon points="' + pts + '"/></clipPath>');
+      });
+      parts.push('</defs>');
+
+      pixelPositions.forEach(function (pos, idx) {
+        var safeUrl = escapeSvgAttr(mainImageUrl);
+        /* Each tile: clip to hex, then show full zoomed image (only the clipped region is visible) */
+        parts.push(
+          '<g clip-path="url(#hcp' + idx + ')">',
+            '<g transform="scale(' + zoom + ') translate(' + (cx * (1 - 1/zoom) / zoom) + ',' + (cy * (1 - 1/zoom) / zoom) + ')">',
+              '<image href="' + safeUrl + '"',
+              ' x="' + vbX + '" y="' + vbY + '"',
+              ' width="' + vbW + '" height="' + vbH + '"',
+              ' preserveAspectRatio="xMidYMid slice"',
+              '/>',
+            '</g>',
+          '</g>'
+        );
+      });
+    }
+
+    /* Outlines and labels on top */
     pixelPositions.forEach(function (pos, idx) {
-      var pts = hexPoints(pos.x, pos.y);
-      var cx  = pos.x + HEX_W / 2;
-      var cy  = pos.y + HEX_H / 2;
-      var id  = 'hp' + idx;
-      svgParts.push(
-        '<clipPath id="' + id + '"><polygon points="' + pts + '"/></clipPath>' +
-        '<image href="' + image + '" x="' + bounds.minX + '" y="' + bounds.minY +
-        '" width="' + bounds.width + '" height="' + bounds.height +
-        '" preserveAspectRatio="xMidYMid slice" clip-path="url(#' + id + ')"/>'
-      );
-      svgParts.push('<polygon points="' + pts + '" fill="none" stroke="rgba(255,255,255,0.75)" stroke-width="2"/>');
-      svgParts.push(
-        '<text x="' + cx + '" y="' + (cy + 5) + '" text-anchor="middle" dominant-baseline="middle"' +
-        ' font-family="\'DM Mono\', monospace" font-size="14" fill="rgba(255,255,255,0.92)"' +
-        ' style="text-shadow: 0 1px 4px rgba(0,0,0,0.8)">' +
-        (idx + 1) + '</text>'
+      var pts = hexPointsStr(pos.x, pos.y, HEX_W, HEX_H);
+      var tileCx = pos.x + HEX_W / 2;
+      var tileCy = pos.y + HEX_H / 2;
+      parts.push(
+        '<polygon points="' + pts + '" fill="none" stroke="rgba(255,255,255,0.72)" stroke-width="1.5"/>',
+        '<text x="' + tileCx + '" y="' + (tileCy + 5) + '"',
+        ' text-anchor="middle" dominant-baseline="middle"',
+        ' font-family="\'DM Mono\',monospace" font-size="14" fill="rgba(255,255,255,0.9)"',
+        ' style="text-shadow:0 1px 4px rgba(0,0,0,0.9)">',
+        (idx + 1),
+        '</text>'
       );
     });
 
-    svgParts.push('</svg>');
-    hexLayer.innerHTML = svgParts.join('');
+    parts.push('</svg>');
+    hexLayer.innerHTML = parts.join('');
   }
 
-  /* ── Arrangement card hex grid ── */
+  /* ══════════════════════════════════════════════════════════════
+     ARRANGEMENT CARD  — hex grid with per-tile image crop
+
+     Each hex div has a clipped inner div.  The inner div contains
+     an <img> whose CSS positions it so the correct region is visible
+     through the hex clip.
+
+     The fix:
+       • Compute the full bounding box of the grid (bounds).
+       • For each tile at pixel position (pos.x, pos.y) relative to
+         bounds.minX/minY, the visible crop of the source image is
+         simply the rectangle starting at (pos.x, pos.y) within the
+         full grid canvas.
+       • We size the <img> to cover the full bounding box (zoomed),
+         then offset it by -(pos.x - bounds.minX) and -(pos.y - bounds.minY)
+         to bring the correct region into view.
+       • Zoom expands the image uniformly about the canvas centre so
+         tiles near the centre see a zoomed-in version, matching the
+         server-side render logic.
+     ══════════════════════════════════════════════════════════════ */
+
   function renderHexGrid() {
     ensurePanelArrays();
     var wrap      = E.prev.hexPreview;
@@ -1608,40 +1339,125 @@
 
   function renderPixelHexGrid(wrap, mainImage) {
     var pixelPositions = getPreviewPixelPositions();
-    var bounds         = getPreviewBounds(pixelPositions);
+    var bounds = getPreviewBounds(pixelPositions);
     wrap.innerHTML = '';
     if (!pixelPositions.length) return;
 
-    var crop = getCropValues();
+    var gridW = Math.round(Math.max(1, bounds.width));
+    var gridH = Math.round(Math.max(1, bounds.height));
+    var zoom  = clampNumber(E.f.mainZoom.value, 1, 2.5, 1);
+
+    /* The zoomed canvas dimensions (what the image renders at) */
+    var canvasW = Math.round(gridW * zoom);
+    var canvasH = Math.round(gridH * zoom);
+
+    /* Offset to centre the zoom (zoom happens about the canvas centre) */
+    var zoomOffX = Math.round((canvasW - gridW) / 2);
+    var zoomOffY = Math.round((canvasH - gridH) / 2);
 
     wrap.style.position = 'relative';
-    wrap.style.display  = 'block';
-    wrap.style.width    = Math.round(Math.max(1, bounds.width))  + 'px';
-    wrap.style.height   = Math.round(Math.max(1, bounds.height)) + 'px';
+    wrap.style.display = 'block';
+    wrap.style.width = gridW + 'px';
+    wrap.style.height = gridH + 'px';
     wrap.style.maxWidth = '';
-    wrap.style.margin   = '0 auto';
+    wrap.style.margin = '0 auto';
 
     pixelPositions.forEach(function (pos, idx) {
+      /* Tile's top-left relative to the bounds origin */
+      var tileLeft = Math.round(pos.x - bounds.minX);
+      var tileTop  = Math.round(pos.y - bounds.minY);
+
       var hex = document.createElement('div');
       hex.className = 'hex-cell-preview' + (idx === state.activePanel ? ' is-selected' : '');
       hex.dataset.idx = idx;
-      hex.style.position = 'absolute';
-      hex.style.left     = Math.round(pos.x - bounds.minX) + 'px';
-      hex.style.top      = Math.round(pos.y - bounds.minY) + 'px';
-      hex.style.width    = HEX_W + 'px';
-      hex.style.height   = HEX_H + 'px';
-      hex.style.margin   = '0';
-      hex.style.background = 'transparent';
-      hex.style.overflow = 'visible';
+      hex.style.cssText = [
+        'position:absolute',
+        'left:' + tileLeft + 'px',
+        'top:' + tileTop + 'px',
+        'width:' + HEX_W + 'px',
+        'height:' + HEX_H + 'px',
+        'margin:0',
+        'overflow:visible'
+      ].join(';');
 
-      var fill  = platePreviewFill(mainImage, state.panelImages, idx, pixelPositions, bounds, state.panelTransforms[idx], crop);
+      /* Inner clipped fill */
       var inner = document.createElement('div');
-      inner.style.cssText = 'position:absolute;inset:0;clip-path:' + HEX_CLIP + ';overflow:hidden;' + fill.style;
-      inner.innerHTML = fill.html;
+      inner.style.cssText = [
+        'position:absolute',
+        'inset:0',
+        'clip-path:' + HEX_CLIP,
+        'overflow:hidden'
+      ].join(';');
 
+      var individualUrl = getUsablePlateImage(state.panelImages, idx, mainImage);
+
+      if (individualUrl) {
+        /* Individual plate image: use transform-based fit/pan */
+        var t = normalisePanelTransform(state.panelTransforms[idx]);
+        var img = document.createElement('img');
+        img.src = individualUrl;
+        img.alt = '';
+        img.style.cssText = [
+          'position:absolute',
+          'inset:0',
+          'width:100%',
+          'height:100%',
+          'object-fit:' + t.fit,
+          'object-position:' + t.x + '% ' + t.y + '%',
+          'transform:scale(' + t.scale + ')',
+          'transform-origin:' + t.x + '% ' + t.y + '%',
+          'display:block',
+          'pointer-events:none',
+          'user-select:none'
+        ].join(';');
+        inner.appendChild(img);
+
+      } else if (mainImage) {
+        /*
+         * Main image crop:
+         *   - Image is sized to canvasW × canvasH (the full grid, zoomed)
+         *   - Offset so the tile's region is visible:
+         *       left = -(tileLeft * zoom + zoomOffX)
+         *       top  = -(tileTop  * zoom + zoomOffY)
+         *
+         *   This works because:
+         *     The zoomed image at (0,0) maps grid pixel (gx,gy) to canvas pixel
+         *     (gx*zoom + zoomOffX, gy*zoom + zoomOffY).
+         *     We want canvas pixel (tileLeft*zoom+zoomOffX, tileTop*zoom+zoomOffY)
+         *     to appear at (0,0) inside this tile's clip region.
+         *     So we offset the image by the negative of that.
+         */
+        var imgLeft = -(tileLeft * zoom + zoomOffX);
+        var imgTop  = -(tileTop  * zoom + zoomOffY);
+
+        var img = document.createElement('img');
+        img.src = mainImage;
+        img.alt = '';
+        img.style.cssText = [
+          'position:absolute',
+          'display:block',
+          'pointer-events:none',
+          'user-select:none',
+          'max-width:none',
+          'width:' + canvasW + 'px',
+          'height:' + canvasH + 'px',
+          'left:' + Math.round(imgLeft) + 'px',
+          'top:' + Math.round(imgTop) + 'px',
+          'object-fit:cover'
+        ].join(';');
+        inner.style.background = '#050505';
+        inner.appendChild(img);
+
+      } else {
+        /* No image — show a neutral fill */
+        inner.style.background = '#2a2825';
+      }
+
+      /* Number label */
       var label = document.createElement('span');
       label.className = 'hex-label-preview';
       label.textContent = idx + 1;
+
       hex.appendChild(inner);
       hex.appendChild(label);
       hex.addEventListener('click', function () { selectPanel(idx); });
@@ -1650,46 +1466,41 @@
     });
   }
 
+  /* ─── Pixel coordinates for the arrangement preview ─── */
+
+  function getPreviewPixelPositions() {
+    ensurePanelArrays();
+    return state.panelPositions.map(function (pos) {
+      return gridToPreviewPixel(parseInt(pos.row, 10) || 0, parseInt(pos.col, 10) || 0);
+    });
+  }
+
+  function gridToPreviewPixel(row, col) {
+    return {
+      x: col * COL_PITCH + (row % 2 !== 0 ? ODD_OFFSET : 0),
+      y: row * ROW_PITCH
+    };
+  }
+
+  function getPreviewBounds(positions) {
+    if (!positions.length) return { minX: 0, minY: 0, width: HEX_W, height: HEX_H };
+    var minX = Math.min.apply(null, positions.map(function (p) { return p.x; }));
+    var minY = Math.min.apply(null, positions.map(function (p) { return p.y; }));
+    var maxX = Math.max.apply(null, positions.map(function (p) { return p.x + HEX_W; }));
+    var maxY = Math.max.apply(null, positions.map(function (p) { return p.y + HEX_H; }));
+    return { minX: minX, minY: minY, width: maxX - minX, height: maxY - minY };
+  }
+
+  /* ─── Draggable hex in arrangement card ─── */
+
   function bindDraggableHex(hex, idx, pixelPositions, bounds) {
     hex.addEventListener('pointerdown', function (event) {
       if (event.button !== undefined && event.button !== 0) return;
       event.preventDefault();
       selectPanel(idx, true);
 
-      // Shift-drag pans crop for individual plate images (non-destructive).
-      if (event.shiftKey && hasUsablePlateImage(idx)) {
-        var panStartX = event.clientX;
-        var panStartY = event.clientY;
-        var panStartT = normalisePanelTransform(state.panelTransforms[idx]);
-        hex.classList.add('is-dragging');
-        hex.setPointerCapture(event.pointerId);
-
-        function movePan(e) {
-          var dx = e.clientX - panStartX;
-          var dy = e.clientY - panStartY;
-          var w = Math.max(1, hex.clientWidth || HEX_W);
-          var h = Math.max(1, hex.clientHeight || HEX_H);
-          var nextX = clampNumber(panStartT.x - (dx / w) * 100, 0, 100, 50);
-          var nextY = clampNumber(panStartT.y - (dy / h) * 100, 0, 100, 50);
-          state.panelTransforms[idx] = normalisePanelTransform(Object.assign({}, panStartT, { x: nextX, y: nextY }));
-          renderPreview();
-        }
-
-        function upPan() {
-          hex.classList.remove('is-dragging');
-          hex.removeEventListener('pointermove', movePan);
-          hex.removeEventListener('pointerup', upPan);
-          hex.removeEventListener('pointercancel', upPan);
-        }
-
-        hex.addEventListener('pointermove', movePan);
-        hex.addEventListener('pointerup', upPan);
-        hex.addEventListener('pointercancel', upPan);
-        return;
-      }
-
-      var startX = event.clientX;
-      var startY = event.clientY;
+      var startX   = event.clientX;
+      var startY   = event.clientY;
       var startPos = pixelPositions[idx] || gridToPreviewPixel(0, idx);
       var snapped  = state.panelPositions[idx] || { row: 0, col: idx };
       var moved    = false;
@@ -1704,95 +1515,49 @@
         hex.style.top  = Math.round(preview.y - bounds.minY) + 'px';
         moved = true;
       }
+
       function up() {
         hex.classList.remove('is-dragging');
         hex.removeEventListener('pointermove', move);
-        hex.removeEventListener('pointerup',   up);
+        hex.removeEventListener('pointerup', up);
         hex.removeEventListener('pointercancel', up);
-        if (moved) { state.panelPositions[idx] = snapped; rebuildPanelEditors(); }
+        if (moved) {
+          state.panelPositions[idx] = snapped;
+          rebuildPanelEditors();
+        }
       }
 
       hex.addEventListener('pointermove', move);
-      hex.addEventListener('pointerup',   up);
+      hex.addEventListener('pointerup', up);
       hex.addEventListener('pointercancel', up);
     });
-
-    // Shift+wheel zoom for individual plate images.
-    hex.addEventListener('wheel', function (event) {
-      if (!event.shiftKey) return;
-      if (!hasUsablePlateImage(idx)) return;
-      event.preventDefault();
-      var t = normalisePanelTransform(state.panelTransforms[idx]);
-      var direction = (event.deltaY || 0) > 0 ? -1 : 1;
-      var next = clampNumber(t.scale + direction * 0.1, 0.2, PANEL_ZOOM_MAX, 1);
-      state.panelTransforms[idx] = normalisePanelTransform(Object.assign({}, t, { scale: next }));
-      renderPreview();
-    }, { passive: false });
   }
 
-  /* ─── PLATE PREVIEW FILL (crop-aware) ─── */
-  function platePreviewFill(sourceImage, plateImages, idx, pixelPositions, bounds, transform, crop) {
-    var mainImage  = (sourceImage || '').trim();
-    var plateImage = getUsablePlateImage(plateImages, idx, mainImage);
-
-    /* Individual plate image override — use plate transform as before */
-    if (plateImage) {
-      var t = normalisePanelTransform(transform);
-      return {
-        style: 'background:#050505;',
-        html: '<img src="' + escapeSvgAttr(plateImage) + '" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:' + t.fit + ';object-position:' + t.x + '% ' + t.y + '%;transform:rotate(' + t.rotate + 'deg) scale(' + t.scale + ');transform-origin:' + t.x + '% ' + t.y + '%;display:block;max-width:none;pointer-events:none;user-select:none;">'
-      };
+  function nearestFreeGridPosition(x, y, ignoreIdx) {
+    var maxRow = 0, maxCol = 0;
+    state.panelPositions.forEach(function (pos) {
+      maxRow = Math.max(maxRow, parseInt(pos.row, 10) || 0);
+      maxCol = Math.max(maxCol, parseInt(pos.col, 10) || 0);
+    });
+    var best = null;
+    for (var r = 0; r <= maxRow + 5; r++) {
+      for (var c = 0; c <= maxCol + 5; c++) {
+        if (isGridOccupied(r, c, ignoreIdx)) continue;
+        var px = gridToPreviewPixel(r, c);
+        var dist = Math.pow(px.x - x, 2) + Math.pow(px.y - y, 2);
+        if (!best || dist < best.distance) best = { row: r, col: c, distance: dist };
+      }
     }
-
-    if (!mainImage) return { style: 'background:#222;', html: '' };
-
-    /* Use crop region as the source canvas that gets sliced into hex grid */
-    var pos = pixelPositions[idx] || { x: bounds.minX, y: bounds.minY };
-
-    /* The "cropped canvas" in pixels at the preview scale */
-    var cropW = (crop.w / 100) * bounds.width;
-    var cropH = (crop.h / 100) * bounds.height;
-    var cropOffX = (crop.x / 100) * bounds.width;
-    var cropOffY = (crop.y / 100) * bounds.height;
-
-    /* Each hex is sliced from the cropped region.
-       We need to map the hex position within the full grid to a position
-       within the cropped region, then scale the image so the cropped region
-       fills the hex container. */
-
-    /* The image needs to be sized so the cropped region fills the preview area */
-    var scaleX = bounds.width  / (cropW  || 1);
-    var scaleY = bounds.height / (cropH  || 1);
-    /* Use uniform scale (fit cropped region into the hex cluster bounding box) */
-    var imgScale = Math.min(scaleX, scaleY);
-
-    /* Scaled image dimensions */
-    var imgW = Math.round(bounds.width  * imgScale);
-    var imgH = Math.round(bounds.height * imgScale);
-
-    /* The crop region's top-left, scaled */
-    var cropLeft = Math.round(cropOffX * imgScale);
-    var cropTop  = Math.round(cropOffY * imgScale);
-
-    /* Position the hex within the scaled image, minus the crop offset */
-    var tileLeft = Math.round((pos.x - bounds.minX) * imgScale) - cropLeft;
-    var tileTop  = Math.round((pos.y - bounds.minY) * imgScale) - cropTop;
-
-    return {
-      style: 'background:#050505;',
-      html: '<img src="' + escapeSvgAttr(mainImage) + '" alt="" style="' +
-        'position:absolute;display:block;max-width:none;' +
-        'pointer-events:none;user-select:none;object-fit:cover;' +
-        'width:'  + imgW + 'px;' +
-        'height:' + imgH + 'px;' +
-        'left:-'  + tileLeft + 'px;' +
-        'top:-'   + tileTop  + 'px;">'
-    };
+    return best ? { row: best.row, col: best.col } : { row: 0, col: 0 };
   }
 
-  function defaultPanelTransform() {
-    return { fit: 'contain', scale: 1, x: 50, y: 50, rotate: 0 };
+  function isGridOccupied(row, col, ignoreIdx) {
+    return state.panelPositions.some(function (pos, idx) {
+      return idx !== ignoreIdx && (parseInt(pos.row, 10) || 0) === row && (parseInt(pos.col, 10) || 0) === col;
+    });
   }
+
+  /* ─── Plate selection & customizer ─── */
 
   function selectPanel(idx, skipRender) {
     ensurePanelArrays();
@@ -1803,7 +1568,7 @@
 
   function updateActivePanelTransform(patch) {
     ensurePanelArrays();
-    var idx     = Math.max(0, Math.min(state.panelTransforms.length - 1, state.activePanel || 0));
+    var idx = Math.max(0, Math.min(state.panelTransforms.length - 1, state.activePanel || 0));
     var current = normalisePanelTransform(state.panelTransforms[idx]);
     Object.keys(patch || {}).forEach(function (key) { current[key] = patch[key]; });
     state.panelTransforms[idx] = normalisePanelTransform(current);
@@ -1813,28 +1578,32 @@
   function syncPlateCustomizer() {
     if (!E.prev.customFit) return;
     ensurePanelArrays();
-    var idx       = Math.max(0, Math.min(state.panelPositions.length - 1, state.activePanel || 0));
+    var idx = Math.max(0, Math.min(state.panelPositions.length - 1, state.activePanel || 0));
     state.activePanel = idx;
     var transform = normalisePanelTransform(state.panelTransforms[idx]);
-    var pos       = state.panelPositions[idx] || { row: 0, col: 0 };
-    var name      = state.panelNames[idx] || ('Plate ' + (idx + 1));
-    E.prev.customTitle.textContent  = name;
+    var pos = state.panelPositions[idx] || { row: 0, col: 0 };
+    var name = state.panelNames[idx] || ('Plate ' + (idx + 1));
+    E.prev.customTitle.textContent = name;
     E.prev.customCoords.textContent = 'Row ' + (parseInt(pos.row, 10) || 0) + ' / Col ' + (parseInt(pos.col, 10) || 0);
-    E.prev.customFit.value  = transform.fit;
-    E.prev.customZoom.value = transform.scale;
-    E.prev.customX.value = transform.x;
-    E.prev.customY.value = transform.y;
-    if (E.prev.customRotate) E.prev.customRotate.value = transform.rotate;
+    E.prev.customFit.value   = transform.fit;
+    E.prev.customZoom.value  = transform.scale;
+    E.prev.customX.value     = transform.x;
+    E.prev.customY.value     = transform.y;
+  }
+
+  /* ─── Utilities ─── */
+
+  function defaultPanelTransform() {
+    return { fit: 'contain', scale: 1, x: 50, y: 50 };
   }
 
   function normalisePanelTransform(value) {
     value = value && typeof value === 'object' ? value : {};
     return {
-      fit: value.fit === 'cover' ? 'cover' : 'contain',
-      scale: clampNumber(value.scale != null ? value.scale : value.zoom, 0.2, PANEL_ZOOM_MAX, 1),
-      x: clampNumber(value.x != null ? value.x : value.positionX, 0, 100, 50),
-      y: clampNumber(value.y != null ? value.y : value.positionY, 0, 100, 50),
-      rotate: clampNumber(value.rotate != null ? value.rotate : value.rotation, -180, 180, 0)
+      fit:   value.fit === 'cover' ? 'cover' : 'contain',
+      scale: clampNumber(value.scale != null ? value.scale : value.zoom, 0.2, 3, 1),
+      x:     clampNumber(value.x != null ? value.x : value.positionX, 0, 100, 50),
+      y:     clampNumber(value.y != null ? value.y : value.positionY, 0, 100, 50)
     };
   }
 
@@ -1843,22 +1612,76 @@
     return Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : fallback;
   }
 
-  function hasUsablePlateImage(idx) {
-    var mainImage = (E.f && E.f.image ? E.f.image.value.trim() : '');
-    return !!getUsablePlateImage(state.panelImages, idx, mainImage);
+  function getUsablePlateImage(plateImages, idx, mainImage) {
+    var image = (plateImages[idx] || '').trim();
+    if (!image || sameImageUrl(image, mainImage)) return '';
+    return image;
   }
+
+  function sameImageUrl(a, b) {
+    if (!a || !b) return false;
+    return normaliseImageUrl(a) === normaliseImageUrl(b);
+  }
+
+  function normaliseImageUrl(value) {
+    var raw = String(value || '').trim();
+    try {
+      var url = new URL(raw, window.location.origin);
+      return (url.origin + url.pathname).replace(/\/+$/, '').toLowerCase();
+    } catch (err) {
+      return raw.split(/[?#]/)[0].replace(/\/+$/, '').toLowerCase();
+    }
+  }
+
+  /*
+   * hexPointsStr(x, y, w, h)
+   * Returns SVG polygon points string for a flat-top hex with
+   * top-left corner at (x, y) and size w×h.
+   * Vertex order: top-centre, top-right, bottom-right, bottom-centre, bottom-left, top-left
+   */
+  function hexPointsStr(x, y, w, h) {
+    return [
+      (x + w * 0.5) + ',' + y,
+      (x + w)       + ',' + (y + h * 0.25),
+      (x + w)       + ',' + (y + h * 0.75),
+      (x + w * 0.5) + ',' + (y + h),
+      x             + ',' + (y + h * 0.75),
+      x             + ',' + (y + h * 0.25)
+    ].join(' ');
+  }
+
+  function escapeSvgAttr(value) {
+    return String(value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  function escapeHtml(value) {
+    return String(value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  /* ─── Bundle helpers ─── */
 
   function updateBundlePanel() {
     if (!E.bundlePanel) return;
     var show = !!(E.f && E.f.isBundle && E.f.isBundle.checked);
     E.bundlePanel.style.display = show ? '' : 'none';
-    if (show && E.f.bundlePrice && !E.f.bundlePrice.value) E.f.bundlePrice.value = E.f.price.value || '';
+    if (show && E.f.bundlePrice && !E.f.bundlePrice.value) {
+      E.f.bundlePrice.value = E.f.price.value || '';
+    }
     if (E.bundleBuilder) E.bundleBuilder.style.display = show ? '' : 'none';
     if (show) renderBundleBuilder();
   }
 
   function splitBundleItems(value) {
-    return String(value || '').split(/[\n,]+/).map(function (s) { return s.trim(); }).filter(Boolean);
+    return String(value || '').split(/[\n,]+/).map(function (item) { return item.trim(); }).filter(Boolean);
   }
 
   function getBundleItems() {
@@ -1868,7 +1691,8 @@
 
   function setBundleItems(items) {
     if (!E.f || !E.f.bundleItems) return;
-    E.f.bundleItems.value = (Array.isArray(items) ? items : []).map(function (x) { return String(x||'').trim(); }).filter(Boolean).join('\n');
+    var next = (Array.isArray(items) ? items : []).map(function (x) { return String(x || '').trim(); }).filter(Boolean);
+    E.f.bundleItems.value = next.join('\n');
     renderBundleBuilder();
     renderPreview();
   }
@@ -1878,7 +1702,8 @@
     if (!target) return null;
     for (var i = 0; i < state.products.length; i++) {
       var p = state.products[i];
-      if (p && String(p.slug || p.id || '') === target) return p;
+      if (!p) continue;
+      if (String(p.slug || p.id || '') === target) return p;
     }
     return null;
   }
@@ -1886,15 +1711,21 @@
   function renderBundleBuilder() {
     if (!E.bundleBuilder || !E.f || !E.f.isBundle) return;
     if (!E.f.isBundle.checked) return;
-    var query = ((E.bundleLibrarySearch && E.bundleLibrarySearch.value) || '').trim().toLowerCase();
+
+    var query = (E.bundleLibrarySearch && E.bundleLibrarySearch.value ? E.bundleLibrarySearch.value : '')
+      .trim().toLowerCase();
+
     var candidates = state.products
-      .filter(function (p) { return p && !(p.isBundle || p.recordType === 'bundle') && !!(p.slug || p.id); })
+      .filter(function (p) { return p && !(p.isBundle || p.recordType === 'bundle'); })
+      .filter(function (p) { return !!(p.slug || p.id); })
       .filter(function (p) {
         if (!query) return true;
-        var n = String(p.name || '').toLowerCase();
-        var s = String(p.slug || p.id || '').toLowerCase();
-        return n.indexOf(query) >= 0 || s.indexOf(query) >= 0;
+        var name = String(p.name || '').toLowerCase();
+        var slug = String(p.slug || p.id || '').toLowerCase();
+        var cat  = String(p.category || '').toLowerCase();
+        return name.indexOf(query) >= 0 || slug.indexOf(query) >= 0 || cat.indexOf(query) >= 0;
       });
+
     if (E.bundleLibraryList) {
       E.bundleLibraryList.innerHTML = candidates.length
         ? candidates.map(function (p) {
@@ -1914,8 +1745,10 @@
           }).join('')
         : '<div class="bundle-empty">No matching products.</div>';
     }
+
     var items = getBundleItems();
     if (E.bundleDropHint) E.bundleDropHint.style.display = items.length ? 'none' : '';
+
     if (E.bundleDropList) {
       E.bundleDropList.innerHTML = items.length
         ? items.map(function (slug, idx) {
@@ -1925,7 +1758,7 @@
               ? '<img src="' + escapeHtml(p.image) + '" alt="">'
               : '<div class="bundle-drop-thumb-empty"></div>';
             return '<div class="bundle-drop-item" draggable="true" data-slug="' + escapeHtml(slug) + '" data-idx="' + idx + '">' +
-              '<div class="bundle-drop-handle" aria-hidden="true">&#8942;&#8942;</div>' +
+              '<div class="bundle-drop-handle" aria-hidden="true">⋮⋮</div>' +
               '<div class="bundle-drop-thumb">' + thumb + '</div>' +
               '<div class="bundle-drop-meta">' +
                 '<div class="bundle-drop-name">' + escapeHtml(label) + '</div>' +
@@ -1941,16 +1774,21 @@
   function parseDragPayload(e) {
     var raw = (e && e.dataTransfer && e.dataTransfer.getData) ? e.dataTransfer.getData('text/plain') : '';
     if (!raw) return null;
-    try { var parsed = JSON.parse(raw); if (parsed && typeof parsed === 'object') return parsed; } catch (err) {}
+    try {
+      var parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object') return parsed;
+    } catch (err) {}
     return { slug: raw, from: 'library' };
   }
 
   function applyBundleDrop(e) {
     var payload = parseDragPayload(e);
     if (!payload || !payload.slug) return;
+
     var items = getBundleItems();
     var slug  = String(payload.slug || '').trim();
     if (!slug) return;
+
     var targetItem = e.target && e.target.closest ? e.target.closest('.bundle-drop-item') : null;
     var dropIndex  = targetItem ? parseInt(targetItem.getAttribute('data-idx') || '', 10) : items.length;
     if (!Number.isFinite(dropIndex) || dropIndex < 0) dropIndex = items.length;
@@ -1964,116 +1802,26 @@
       }
     } else {
       var existingIndex = items.indexOf(slug);
-      if (existingIndex >= 0) { items.splice(existingIndex, 1); if (existingIndex < dropIndex) dropIndex -= 1; }
+      if (existingIndex >= 0) {
+        items.splice(existingIndex, 1);
+        if (existingIndex < dropIndex) dropIndex -= 1;
+      }
     }
 
     items.splice(Math.min(dropIndex, items.length), 0, slug);
     setBundleItems(items);
   }
 
-  function getUsablePlateImage(plateImages, idx, mainImage) {
-    var image = (plateImages[idx] || '').trim();
-    if (!image || sameImageUrl(image, mainImage)) return '';
-    return image;
-  }
-
-  function sameImageUrl(a, b) {
-    if (!a || !b) return false;
-    return normaliseImageUrl(a) === normaliseImageUrl(b);
-  }
-
-  function normaliseImageUrl(value) {
-    var raw = String(value || '').trim();
-    try { var url = new URL(raw, window.location.origin); return (url.origin + url.pathname).replace(/\/+$/, '').toLowerCase(); }
-    catch (err) { return raw.split(/[?#]/)[0].replace(/\/+$/, '').toLowerCase(); }
-  }
-
-  function hexPoints(x, y) {
-    return [
-      (x + HEX_W * 0.5) + ',' + y,
-      (x + HEX_W) + ',' + (y + HEX_H * 0.25),
-      (x + HEX_W) + ',' + (y + HEX_H * 0.75),
-      (x + HEX_W * 0.5) + ',' + (y + HEX_H),
-      x + ',' + (y + HEX_H * 0.75),
-      x + ',' + (y + HEX_H * 0.25)
-    ].join(' ');
-  }
-
-  function escapeSvgAttr(value) {
-    return String(value || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  }
-
-  function escapeHtml(value) {
-    return String(value || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-  }
-
-  function groupByRow() {
-    var grouped = {};
-    state.panelPositions.forEach(function (pos, idx) {
-      var r = parseInt(pos.row, 10) || 0;
-      if (!grouped[r]) grouped[r] = [];
-      grouped[r].push({ idx: idx, row: r, col: parseInt(pos.col, 10) || 0 });
-    });
-    return grouped;
-  }
-
-  function getPreviewPixelPositions() {
-    ensurePanelArrays();
-    return state.panelPositions.map(function (pos) {
-      return gridToPreviewPixel(parseInt(pos.row, 10) || 0, parseInt(pos.col, 10) || 0);
-    });
-  }
-
-  function gridToPreviewPixel(row, col) {
-    return {
-      x: col * COL_PITCH + (row % 2 !== 0 ? ODD_OFFSET : 0),
-      y: row * ROW_PITCH
-    };
-  }
-
-  function nearestFreeGridPosition(x, y, ignoreIdx) {
-    var maxRow = 0, maxCol = 0;
-    state.panelPositions.forEach(function (pos) {
-      maxRow = Math.max(maxRow, parseInt(pos.row, 10) || 0);
-      maxCol = Math.max(maxCol, parseInt(pos.col, 10) || 0);
-    });
-    var best = null;
-    for (var r = 0; r <= maxRow + 5; r++) {
-      for (var c = 0; c <= maxCol + 5; c++) {
-        if (isGridOccupied(r, c, ignoreIdx)) continue;
-        var px  = gridToPreviewPixel(r, c);
-        var dist = Math.pow(px.x - x, 2) + Math.pow(px.y - y, 2);
-        if (!best || dist < best.distance) best = { row: r, col: c, distance: dist };
-      }
-    }
-    return best ? { row: best.row, col: best.col } : { row: 0, col: 0 };
-  }
-
-  function isGridOccupied(row, col, ignoreIdx) {
-    return state.panelPositions.some(function (pos, idx) {
-      return idx !== ignoreIdx && (parseInt(pos.row,10)||0) === row && (parseInt(pos.col,10)||0) === col;
-    });
-  }
-
-  function getPreviewBounds(positions) {
-    if (!positions.length) return { minX: 0, minY: 0, width: HEX_W, height: HEX_H };
-    var minX = Math.min.apply(null, positions.map(function (p) { return p.x; }));
-    var minY = Math.min.apply(null, positions.map(function (p) { return p.y; }));
-    var maxX = Math.max.apply(null, positions.map(function (p) { return p.x + HEX_W; }));
-    var maxY = Math.max.apply(null, positions.map(function (p) { return p.y + HEX_H; }));
-    return { minX: minX, minY: minY, width: maxX - minX, height: maxY - minY };
-  }
-
   /* ─── Save / Sync ─── */
+
   function buildPayload() {
     ensurePanelArrays();
     syncPriceLabel();
     var pieces    = Math.max(1, parseInt(E.f.pieces.value, 10) || 1);
     var unitPrice = parseFloat(E.f.unitPrice.value || 0);
     var setPrice  = parseFloat(E.f.price.value || 0);
-    var crop      = getCropValues();
     var plateMap  = {
-      version:  2,
+      version: 2,
       geometry: 'pointy_hex',
       positions: state.panelPositions.map(function (p) {
         return { row: parseInt(p.row,10)||0, col: parseInt(p.col,10)||0 };
@@ -2087,47 +1835,39 @@
     var bundleItems = splitBundleItems(E.f.bundleItems.value);
     var bundleText  = E.f.bundleText.value.trim() || E.f.short.value.trim();
     var bundlePrice = (E.f.bundlePrice.value || E.f.price.value || '').trim();
-
     return {
-      slug:             slug,
-      name:             name,
-      category:         E.f.category.value.trim(),
-      price:            setPrice,
-      price_label:      E.f.priceLabel.value.trim(),
-      plate_count:      pieces,
+      slug, name,
+      category:     E.f.category.value.trim(),
+      price:        setPrice,
+      price_label:  E.f.priceLabel.value.trim(),
+      plate_count:  pieces,
       plate_unit_price: unitPrice,
-      plate_set_price:  setPrice,
-      short:            E.f.short.value.trim(),
-      description:      E.f.description.value.trim(),
-      note:             E.f.note.value.trim(),
-      accent:           E.f.accent.value.trim(),
-      size:             E.f.size.value.trim(),
-      material:         E.f.material.value.trim(),
-      pieces:           pieces,
-      panel_hint:       E.f.panelHint.value.trim(),
-      image:            E.f.image.value.trim(),
-      /* CROP replaces main_zoom */
-      crop:             crop,
-      wall_image:       E.f.wallImage.value.trim(),
-      is_collection:    E.f.isCollection.checked,
-      isBundle:         isBundle,
-      is_published:     E.f.isPublished.checked,
-      plate_names:      state.panelNames.slice(),
-      plate_images:     state.panelImages.slice(),
-      plate_map:        plateMap,
-      panel_names:      state.panelNames.slice(),
-      panel_images:     state.panelImages.slice(),
-      panel_map:        plateMap,
-      bundleItems:      bundleItems,
-      bundleText:       bundleText,
-      bundlePrice:      bundlePrice,
-      bundle_items:     bundleItems,
-      bundle_text:      bundleText,
-      bundle_price:     bundlePrice,
-      bundle: {
-        slug: slug, name: name, price: bundlePrice,
-        items: bundleItems, text: bundleText
-      }
+      plate_set_price: setPrice,
+      short:        E.f.short.value.trim(),
+      description:  E.f.description.value.trim(),
+      note:         E.f.note.value.trim(),
+      accent:       E.f.accent.value.trim(),
+      size:         E.f.size.value.trim(),
+      material:     E.f.material.value.trim(),
+      pieces,
+      panel_hint:   E.f.panelHint.value.trim(),
+      image:        E.f.image.value.trim(),
+      main_zoom:    clampNumber(E.f.mainZoom.value, 1, 2.5, 1),
+      wall_image:   E.f.wallImage.value.trim(),
+      is_collection: E.f.isCollection.checked,
+      isBundle,
+      is_published: E.f.isPublished.checked,
+      plate_names:  state.panelNames.slice(),
+      plate_images: state.panelImages.slice(),
+      plate_map:    plateMap,
+      panel_names:  state.panelNames.slice(),
+      panel_images: state.panelImages.slice(),
+      panel_map:    plateMap,
+      bundleItems, bundleText, bundlePrice,
+      bundle_items: bundleItems,
+      bundle_text:  bundleText,
+      bundle_price: bundlePrice,
+      bundle: { slug, name, price: bundlePrice, items: bundleItems, text: bundleText }
     };
   }
 
@@ -2143,7 +1883,9 @@
       body: JSON.stringify(payload)
     })
     .then(function (body) {
-      if (!body || body.ok !== true) throw new Error((body && (body.error || body.message)) || 'Save not confirmed');
+      if (!body || body.ok !== true) {
+        throw new Error((body && (body.error || body.message)) || 'Save was not confirmed by the server');
+      }
       upsertProduct(payload);
       populateSelect();
       state.currentId = payload.slug;
@@ -2159,23 +1901,25 @@
         })
         .catch(function () {});
     })
-    .then(function () { state.isSaving = false; }, function (err) {
-      state.isSaving = false;
-      setStatus((err && err.message) || 'Save failed', 'error');
-    });
+    .then(function () { state.isSaving = false; },
+          function (err) {
+            state.isSaving = false;
+            setStatus((err && err.message) || 'Save failed', 'error');
+          });
   }
 
   function syncProduct() {
     var payload  = buildPayload();
     var products = state.products
-      .filter(function (product) { return !(product.isBundle || product.recordType === 'bundle'); })
+      .filter(function (p) { return !(p.isBundle || p.recordType === 'bundle'); })
       .map(ensureProductHasPlateMap);
     var found = false;
-    products = products.map(function (product) {
-      if (productKey(product) === payload.slug) { found = true; return payload; }
-      return product;
+    products = products.map(function (p) {
+      if (productKey(p) === payload.slug) { found = true; return payload; }
+      return p;
     });
     if (!found && !payload.isBundle) products.push(payload);
+
     setStatus('Syncing catalogue maps...', 'saving');
     fetch('/.netlify/functions/sync-catalogue', {
       method: 'POST',
@@ -2191,7 +1935,8 @@
     var payload = buildPayload();
     if (!payload.slug || !payload.name) { setStatus('Name and slug are required before export', 'error'); return; }
     if (!payload.image && !payload.plate_images.some(function (url) { return String(url || '').trim(); })) {
-      setStatus('Add a main image or individual plate images before export', 'error'); return;
+      setStatus('Add a main image or individual plate images before export', 'error');
+      return;
     }
     if (E.exportResults) E.exportResults.innerHTML = '<p>Exporting plate PNGs...</p>';
     setStatus('Exporting plate PNGs...', 'saving');
@@ -2267,20 +2012,19 @@
   function ensureProductHasPlateMap(product) {
     var copy = {};
     Object.keys(product || {}).forEach(function (key) { copy[key] = product[key]; });
-    var count  = Math.max(1, parseInt(copy.plateCount || copy.plate_count || copy.pieces, 10) || 1);
-    var map    = copy.plateMap || copy.plate_map || copy.panelMap || copy.panel_map || {};
-    var hasPos = map && Array.isArray(map.positions) && map.positions.length > 0;
-    if (!hasPos) {
+    var count = Math.max(1, parseInt(copy.plateCount || copy.plate_count || copy.pieces, 10) || 1);
+    var map = copy.plateMap || copy.plate_map || copy.panelMap || copy.panel_map || {};
+    var hasPositions = map && Array.isArray(map.positions) && map.positions.length > 0;
+    if (!hasPositions) {
       map = { version: 2, geometry: 'pointy_hex', positions: autoLayout(count), transforms: [], mockup: {} };
     }
     copy.plateMap = map; copy.panelMap = map; copy.plate_map = map; copy.panel_map = map;
     return copy;
   }
 
-  /* ─── Helpers ─── */
-  function getAdminPassword() {
-    return sessionStorage.getItem('admin_pw') || '';
-  }
+  /* ─── Request helpers ─── */
+
+  function getAdminPassword() { return sessionStorage.getItem('admin_pw') || ''; }
 
   function requestJson(url, options) {
     return fetch(url, options || {}).then(function (response) {
@@ -2305,41 +2049,35 @@
   function makeRequestError(response, body) {
     var message = body && (body.error || body.message);
     if (!message) message = 'Request failed (' + response.status + ' ' + (response.statusText || 'Error') + ')';
-    var err = new Error(message); err.status = response.status; err.body = body;
+    var err = new Error(message);
+    err.status = response.status; err.body = body;
     return err;
   }
+
+  /* ─── Product data helpers ─── */
 
   function normaliseProductPayload(product) {
     product = product || {};
     var normalised = {};
     Object.keys(product).forEach(function (key) { normalised[key] = product[key]; });
 
-    var plateCount    = parseInt(withDefault(readField(product, ['plateCount', 'plate_count', 'pieces']), 1), 10) || 1;
-    var plateNames    = readBestArray(product, ['plateNames', 'plate_names', 'panelNames', 'panel_names']);
-    var plateImages   = readBestArray(product, ['plateImages', 'plate_images', 'panelImages', 'panel_images']);
-    var plateMap      = readBestMap(product, ['plateMap', 'plate_map', 'panelMap', 'panel_map']);
+    var plateCount   = parseInt(withDefault(readField(product, ['plateCount','plate_count','pieces']), 1), 10) || 1;
+    var plateNames   = readBestArray(product, ['plateNames','plate_names','panelNames','panel_names']);
+    var plateImages  = readBestArray(product, ['plateImages','plate_images','panelImages','panel_images']);
+    var plateMap     = readBestMap(product, ['plateMap','plate_map','panelMap','panel_map']);
     if (!plateMap || typeof plateMap !== 'object') plateMap = {};
-    var isBundle      = !!withDefault(readField(product, ['isBundle', 'is_bundle']), false);
-    var bundleItems   = arrayCopy(readField(product, ['bundleItems', 'itemSlugs', 'items']));
+    var isBundle     = !!withDefault(readField(product, ['isBundle','is_bundle']), false);
+    var bundleItems  = arrayCopy(readField(product, ['bundleItems','itemSlugs','items']));
     bundleItems = bundleItems.map(function (item) {
       return typeof item === 'string' ? item : (item && (item.slug || item.id || item.label || item.name)) || '';
     }).filter(Boolean);
-
-    /* Crop (replaces mainZoom) */
-    var rawCrop = readField(product, ['crop']) || {};
-    normalised.crop = {
-      x: clampNumber(rawCrop.x, 0, 99,  0),
-      y: clampNumber(rawCrop.y, 0, 99,  0),
-      w: clampNumber(rawCrop.w, 1, 100, 100),
-      h: clampNumber(rawCrop.h, 1, 100, 100)
-    };
 
     normalised.id            = readField(product, ['id']);
     normalised.slug          = withDefault(readField(product, ['slug']), '');
     normalised.name          = withDefault(readField(product, ['name']), '');
     normalised.category      = withDefault(readField(product, ['category']), '');
-    normalised.price         = withDefault(readField(product, ['price', 'plateSetPrice', 'plate_set_price']), '');
-    normalised.priceLabel    = withDefault(readField(product, ['priceLabel', 'price_label']), '');
+    normalised.price         = withDefault(readField(product, ['price','plateSetPrice','plate_set_price']), '');
+    normalised.priceLabel    = withDefault(readField(product, ['priceLabel','price_label']), '');
     normalised.short         = withDefault(readField(product, ['short']), '');
     normalised.description   = withDefault(readField(product, ['description']), '');
     normalised.note          = withDefault(readField(product, ['note']), '');
@@ -2348,21 +2086,22 @@
     normalised.material      = withDefault(readField(product, ['material']), '');
     normalised.pieces        = plateCount;
     normalised.plateCount    = plateCount;
-    normalised.plateUnitPrice = withDefault(readField(product, ['plateUnitPrice', 'plate_unit_price']), '');
-    normalised.plateSetPrice = withDefault(readField(product, ['plateSetPrice', 'plate_set_price', 'price']), '');
-    normalised.panelHint     = withDefault(readField(product, ['panelHint', 'panel_hint']), '');
+    normalised.plateUnitPrice = withDefault(readField(product, ['plateUnitPrice','plate_unit_price']), '');
+    normalised.plateSetPrice = withDefault(readField(product, ['plateSetPrice','plate_set_price','price']), '');
+    normalised.panelHint     = withDefault(readField(product, ['panelHint','panel_hint']), '');
     normalised.image         = withDefault(readField(product, ['image']), '');
-    normalised.wallImage     = withDefault(readField(product, ['wallImage', 'wall_image']), '');
-    normalised.wallSourceImage = withDefault(readField(product, ['wallSourceImage', 'wall_source_image']), '');
-    normalised.isCollection  = !!withDefault(readField(product, ['isCollection', 'is_collection']), false);
+    normalised.mainZoom      = withDefault(readField(product, ['mainZoom','main_zoom']), 1);
+    normalised.wallImage     = withDefault(readField(product, ['wallImage','wall_image']), '');
+    normalised.wallSourceImage = withDefault(readField(product, ['wallSourceImage','wall_source_image']), '');
+    normalised.isCollection  = !!withDefault(readField(product, ['isCollection','is_collection']), false);
     normalised.isBundle      = isBundle;
-    normalised.isPublished   = withDefault(readField(product, ['isPublished', 'is_published']), true) !== false;
+    normalised.isPublished   = withDefault(readField(product, ['isPublished','is_published']), true) !== false;
     normalised.plateNames    = plateNames;
     normalised.plateImages   = plateImages;
     normalised.plateMap      = plateMap;
-    normalised.bundlePrice   = withDefault(readField(product, ['bundlePrice', 'price']), '');
+    normalised.bundlePrice   = withDefault(readField(product, ['bundlePrice','price']), '');
     normalised.bundleItems   = bundleItems;
-    normalised.bundleText    = withDefault(readField(product, ['bundleText', 'text', 'short', 'description']), '');
+    normalised.bundleText    = withDefault(readField(product, ['bundleText','text','short','description']), '');
     normalised.panelNames    = plateNames;
     normalised.panelImages   = plateImages;
     normalised.panelMap      = plateMap;
@@ -2394,8 +2133,8 @@
     if (Array.isArray(value)) return value;
     if (value && typeof value === 'object') {
       if (Array.isArray(value.images)) return value.images;
-      if (Array.isArray(value.items))  return value.items;
-      return Object.keys(value).sort(function (a,b) { return (parseInt(a,10)||0)-(parseInt(b,10)||0); }).map(function (key) { return value[key]; });
+      if (Array.isArray(value.items)) return value.items;
+      return Object.keys(value).sort(function (a, b) { return (parseInt(a,10)||0)-(parseInt(b,10)||0); }).map(function (k) { return value[k]; });
     }
     return [];
   }
@@ -2411,11 +2150,7 @@
 
   function withDefault(value, fallback) { return value === undefined || value === null ? fallback : value; }
   function arrayCopy(value) { return Array.isArray(value) ? value.slice() : []; }
-
-  function productKey(product) {
-    var key = product && (product.slug || product.id);
-    return key === undefined || key === null ? '' : String(key);
-  }
+  function productKey(product) { var key = product && (product.slug || product.id); return key === undefined || key === null ? '' : String(key); }
 
   function findProduct(id) {
     var target = id === undefined || id === null ? '' : String(id);
