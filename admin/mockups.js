@@ -36,7 +36,12 @@
   function loadProducts() {
     setBusy(true, 'Loading products...');
 
-    fetch('/.netlify/functions/load-products', { cache: 'no-store' })
+    var adminPw = '';
+    try { adminPw = (sessionStorage.getItem('admin_pw') || '').trim(); } catch (e) {}
+    var options = { cache: 'no-store' };
+    if (adminPw) options.headers = { 'x-admin-password': adminPw };
+
+    fetch('/.netlify/functions/load-products', options)
       .then(function (res) {
         if (!res.ok) throw new Error('Could not load products (' + res.status + ')');
         return res.json();

@@ -59,12 +59,23 @@ exports.handler = async (event) => {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
   try {
-    const { data, error } = await supabase
+    const headers = event && event.headers ? event.headers : {};
+    const adminPassword = String(
+      (headers['x-admin-password'] || headers['X-Admin-Password'] || '') || ''
+    );
+    const isAdmin =
+      !!process.env.ADMIN_PASSWORD &&
+      !!adminPassword &&
+      adminPassword === process.env.ADMIN_PASSWORD;
+
+    let query = supabase
       .from('products')
       .select(PRODUCT_SELECT)
-      .is('deleted_at', null)
-      .eq('is_published', true)
-      .order('created_at', { ascending: false });
+      .is('deleted_at', null);
+
+    if (!isAdmin) query = query.eq('is_published', true);
+
+    const { data, error } = await query.order('created_at', { ascending: false });
 
     if (error) {
       console.error('load-products error:', error);

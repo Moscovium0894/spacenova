@@ -725,7 +725,7 @@ function runSyncAssets(){
   setExportStatus('Syncing assetsâ€¦');
   toast('Sync started â€” this can take a while','info');
 
-  fetchJsonSafe('/.netlify/functions/load-products',{cache:'no-store'})
+  fetchJsonSafe('/.netlify/functions/load-products',{cache:'no-store',headers:{'x-admin-password':adminPw}})
     .then(function(list){
       var products=Array.isArray(list)?list:(Array.isArray(list.products)?list.products:[]);
       products=products.filter(function(p){return p&&p.slug});
@@ -787,7 +787,7 @@ function runSyncAssetsStorage(){
     });
   }
 
-  fetchJsonSafe('/.netlify/functions/load-products',{cache:'no-store'})
+  fetchJsonSafe('/.netlify/functions/load-products',{cache:'no-store',headers:{'x-admin-password':adminPw}})
     .then(function(list){
       var products=Array.isArray(list)?list:(Array.isArray(list.products)?list.products:[]);
       products=products.filter(function(p){return p&&p.slug});

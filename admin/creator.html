@@ -824,7 +824,10 @@
 
   function fetchProducts() {
     return Promise.all([
-      requestJson('/.netlify/functions/load-products', { cache: 'no-store' }),
+      requestJson('/.netlify/functions/load-products', {
+        cache: 'no-store',
+        headers: { 'x-admin-password': getAdminPassword() }
+      }),
       requestJson('/.netlify/functions/load-catalogue', { cache: 'no-store' }).catch(function () { return { bundles: [] }; })
     ]).then(function (results) {
       return extractProductList(results[0])
