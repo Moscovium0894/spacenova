@@ -41,7 +41,8 @@ function normaliseProduct(p) {
     wallSourceImage: getProductImageUrl(p.wall_source_image),
     updatedAt:       p.updated_at || null,
     isCollection:    !!p.is_collection,
-    isBundle:        !!p.is_bundle,
+    // Bundles live in the `bundles` table and are loaded separately.
+    isBundle:        false,
     inStock:         p.in_stock !== false,
     isPublished:     p.is_published !== false,
     plateNames:      plateData.names,
