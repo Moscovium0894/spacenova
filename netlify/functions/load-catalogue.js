@@ -41,7 +41,9 @@ function normaliseProduct(p) {
     wallSourceImage: p.wall_source_image || null,
     updatedAt:      p.updated_at || null,
     isCollection:   !!p.is_collection,
-    isBundle:       !!p.is_bundle,
+    // Bundles are stored in the `bundles` table (see normaliseBundle).
+    // The legacy `is_bundle` / `in_bundle` columns are intentionally not used.
+    isBundle:       false,
     inStock:        p.in_stock !== false,
     isPublished:    p.is_published !== false,
     plateNames,
@@ -130,7 +132,8 @@ exports.handler = async (event) => {
       supabase
         .from('products')
         .select('*')
-        .eq('is_published', true)
+        // Include both explicit `true` and legacy/NULL values (treated as published by the frontend).
+        .or('is_published.is.null,is_published.eq.true')
         .order('created_at', { ascending: false }),
       queryOptional('bundles', '*', 'name'),
       queryOptional('featured_slugs', 'slug, sort_order', 'sort_order'),

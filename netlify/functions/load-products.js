@@ -40,7 +40,9 @@ function normaliseProduct(p) {
     wallSourceImage: p.wall_source_image || null,
     updatedAt:       p.updated_at || null,
     isCollection:    !!p.is_collection,
-    isBundle:        !!p.is_bundle,
+    // Bundles are stored in the `bundles` table (not in products).
+    // The legacy `is_bundle` / `in_bundle` columns are intentionally not used.
+    isBundle:        false,
     inStock:         p.in_stock !== false,
     isPublished:     p.is_published !== false,
     plateNames,
