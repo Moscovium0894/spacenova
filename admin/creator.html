@@ -18,7 +18,2192 @@
   <div class="auth-card">
     <div class="auth-mark">✦</div>
     <h1>Creator Access</h1>
+    <p>Enter the team password to open the c<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Spacenova — Creator</title>
+  <link rel="stylesheet" href="/css/creator.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=DM+Mono:wght@400&family=Syne:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     AUTH SCREEN
+═══════════════════════════════════════ -->
+<div class="auth-screen" id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-mark">✦</div>
+    <h1>Creator Access</h1>
     <p>Enter the team password to open the catalogue editor.</p>
+    <label class="field-label" for="auth-pw">Password</label>
+    <input id="auth-pw" class="field" type="password" placeholder="Team password" autocomplete="current-password">
+    <p class="auth-error" id="auth-err">Incorrect password.</p>
+    <button class="btn btn-primary btn-block" id="auth-btn">Enter creator</button>
+    <a class="subtle-link auth-back" href="/">Back to store</a>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     TOP BAR
+═══════════════════════════════════════ -->
+<header class="topbar">
+  <div class="topbar-brand">
+    <div class="brand-badge">SN</div>
+    <div>
+      <p class="topbar-kicker">Admin</p>
+      <div class="topbar-title">Product Creator</div>
+    </div>
+  </div>
+  <div class="topbar-status">
+    <span class="status-dot" id="status-dot"></span>
+    <span id="status-text">Ready</span>
+  </div>
+  <div class="topbar-actions">
+    <a class="btn btn-ghost btn-sm" href="/admin/index.html">Dashboard</a>
+    <a class="btn btn-ghost btn-sm" href="/">Store</a>
+    <button class="btn btn-ghost btn-sm" id="preview-toggle" type="button">Preview</button>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════
+     MAIN SHELL
+═══════════════════════════════════════ -->
+<main class="creator-shell">
+
+  <!-- ── LEFT RAIL ── -->
+  <aside class="editor-rail">
+
+    <!-- Load / New -->
+    <section class="panel">
+      <div class="panel-head">
+        <div><p class="eyebrow">Catalogue</p><h2>Load product</h2></div>
+      </div>
+      <label class="field-label" for="product-select">Existing product</label>
+      <select id="product-select" class="field field-select">
+        <option value="">Loading products…</option>
+      </select>
+      <div class="inline-actions">
+        <button class="btn btn-primary" id="new-series-btn" type="button">New series</button>
+        <button class="btn btn-ghost" id="new-collection-btn" type="button">New collection</button>
+      </div>
+    </section>
+
+    <!-- Details -->
+    <section class="panel">
+      <div class="panel-head">
+        <div><p class="eyebrow">Details</p><h2>Core fields</h2></div>
+      </div>
+      <label class="field-label" for="f-name">Name</label>
+      <input id="f-name" class="field" type="text" placeholder="Saturn Rings Arc">
+      <label class="field-label" for="f-slug">Slug</label>
+      <input id="f-slug" class="field" type="text" placeholder="saturn-rings-arc">
+      <div class="field-grid two">
+        <div>
+          <label class="field-label" for="f-category">Category</label>
+          <input id="f-category" class="field" type="text" placeholder="planetary">
+        </div>
+        <div>
+          <label class="field-label" for="f-accent">Accent / mood</label>
+          <input id="f-accent" class="field" type="text" placeholder="Warm gold">
+        </div>
+      </div>
+      <div class="field-grid two">
+        <div>
+          <label class="field-label" for="f-price">Full set price</label>
+          <input id="f-price" class="field" type="number" step="0.01" placeholder="229">
+        </div>
+        <div>
+          <label class="field-label" for="f-plate-unit-price">Individual plate price</label>
+          <input id="f-plate-unit-price" class="field" type="number" step="0.01" placeholder="34.99">
+        </div>
+      </div>
+      <label class="field-label" for="f-price-label">Price label</label>
+      <input id="f-price-label" class="field" type="text" placeholder="GBP price range">
+      <div class="field-grid two">
+        <div>
+          <label class="field-label" for="f-size">Display size</label>
+          <input id="f-size" class="field" type="text" placeholder="Large panoramic">
+        </div>
+        <div>
+          <label class="field-label" for="f-material">Material</label>
+          <input id="f-material" class="field" type="text" placeholder="Aluminium composite">
+        </div>
+      </div>
+      <label class="field-label" for="f-short">Short line</label>
+      <input id="f-short" class="field" type="text" placeholder="A premium hexagonal plate set">
+      <label class="field-label" for="f-description">Description</label>
+      <textarea id="f-description" class="field textarea" placeholder="Write the full product description..."></textarea>
+      <label class="field-label" for="f-note">Note</label>
+      <textarea id="f-note" class="field textarea" placeholder="Optional production or edition note..."></textarea>
+      <div class="toggle-grid">
+        <label class="toggle-row"><input id="f-is-collection" type="checkbox"><span>Collection</span></label>
+        <label class="toggle-row"><input id="f-is-bundle" type="checkbox"><span>Bundle</span></label>
+        <label class="toggle-row"><input id="f-is-published" type="checkbox" checked><span>Published</span></label>
+      </div>
+      <div id="bundle-panel" style="display:none;margin-top:14px">
+        <div class="panel-head" style="padding:0;margin-bottom:10px">
+          <div><p class="eyebrow">Bundle</p><h2>Bundle details</h2></div>
+        </div>
+        <label class="field-label" for="f-bundle-price">Bundle price</label>
+        <input id="f-bundle-price" class="field" type="text" placeholder="199.00">
+        <label class="field-label" for="f-bundle-items">Included product slugs</label>
+        <textarea id="f-bundle-items" class="field textarea" placeholder="one-product-slug&#10;another-product-slug"></textarea>
+        <div class="bundle-builder" id="bundle-builder" aria-label="Bundle builder">
+          <div class="bundle-builder-top">
+            <div class="bundle-builder-title">
+              Drag &amp; drop builder
+              <span class="bundle-builder-sub">Drag series/collections into the bundle, reorder, remove.</span>
+            </div>
+            <input id="bundle-library-search" class="field bundle-builder-search" type="text" placeholder="Search catalogue…">
+          </div>
+          <div class="bundle-builder-grid">
+            <div class="bundle-builder-col">
+              <div class="bundle-builder-col-head">Series &amp; collections</div>
+              <div class="bundle-library-list" id="bundle-library-list"></div>
+            </div>
+            <div class="bundle-builder-col">
+              <div class="bundle-builder-col-head">Bundle contents</div>
+              <div class="bundle-drop-zone" id="bundle-drop-zone">
+                <div class="bundle-drop-hint" id="bundle-drop-hint">Drop products here…</div>
+                <div class="bundle-drop-list" id="bundle-drop-list"></div>
+              </div>
+              <div class="bundle-builder-note">You can still edit the slug list above if you prefer.</div>
+            </div>
+          </div>
+        </div>
+        <label class="field-label" for="f-bundle-text">Bundle text</label>
+        <textarea id="f-bundle-text" class="field textarea" placeholder="Short description shown on bundle cards."></textarea>
+      </div>
+    </section>
+
+    <!-- Imagery -->
+    <section class="panel">
+      <div class="panel-head">
+        <div><p class="eyebrow">Imagery</p><h2>Images</h2></div>
+      </div>
+      <label class="field-label" for="f-image">Main image URL</label>
+      <input id="f-image" class="field" type="url" placeholder="https://...">
+      <div class="inline-actions">
+        <label class="btn btn-ghost btn-sm btn-upload" for="f-image-file">Import main image</label>
+        <input id="f-image-file" type="file" accept="image/*" hidden>
+      </div>
+      <label class="field-label" for="f-main-zoom">Main image zoom</label>
+      <input id="f-main-zoom" class="field" type="range" min="1" max="2.5" step="0.05" value="1">
+      <div class="img-thumb-wrap" id="thumb-main"><div class="img-thumb-empty">No image</div></div>
+      <label class="field-label" for="f-wall-image">Wall preview URL</label>
+      <input id="f-wall-image" class="field" type="url" placeholder="https://...">
+      <div class="inline-actions">
+        <label class="btn btn-ghost btn-sm btn-upload" for="f-wall-image-file">Import wall image</label>
+        <input id="f-wall-image-file" type="file" accept="image/*" hidden>
+      </div>
+      <label class="toggle-row"><input id="f-auto-mockup" type="checkbox"><span>Auto mockup updates</span></label>
+      <div class="img-thumb-wrap" id="thumb-wall"><div class="img-thumb-empty">No image</div></div>
+      <label class="field-label" for="f-panel-hint">Plate hint text</label>
+      <input id="f-panel-hint" class="field" type="text" placeholder="Select your arrangement below">
+    </section>
+
+    <!-- Plates -->
+    <section class="panel">
+      <div class="panel-head">
+        <div><p class="eyebrow">Plates</p><h2>Arrangement</h2></div>
+        <button class="btn btn-ghost btn-sm" id="rebuild-panels-btn" type="button">Rebuild</button>
+      </div>
+      <div class="field-grid two">
+        <div>
+          <label class="field-label" for="f-pieces">Plates</label>
+          <input id="f-pieces" class="field" type="number" min="1" max="24" value="6">
+        </div>
+        <div>
+          <label class="field-label" for="layout-preset">Layout preset</label>
+          <select id="layout-preset" class="field field-select">
+            <option value="auto">Auto</option>
+            <option value="line">Line</option>
+            <option value="arc">Arc</option>
+            <option value="cluster">Cluster</option>
+            <option value="honeycomb">Honeycomb</option>
+          </select>
+        </div>
+      </div>
+      <div class="panel-editor-toolbar">
+        <button class="btn btn-ghost btn-sm" id="auto-layout-btn" type="button">Auto layout</button>
+        <button class="btn btn-ghost btn-sm" id="sort-layout-btn" type="button">Tidy rows</button>
+      </div>
+      <div class="panel-list-head">
+        <span>#</span><span>Name</span><span>Image URL</span><span>Fit</span><span>Zoom</span><span>X</span><span>Y</span><span>Row</span><span>Col</span>
+      </div>
+      <div id="panel-list" class="panel-list"></div>
+    </section>
+
+    <!-- Save -->
+    <section class="panel">
+      <div class="panel-head">
+        <div><p class="eyebrow">Actions</p><h2>Save product</h2></div>
+      </div>
+      <div class="inline-actions">
+        <button class="btn btn-primary" id="save-btn" type="button">Save</button>
+        <button class="btn btn-ghost" id="sync-btn" type="button">Sync</button>
+        <button class="btn btn-ghost" id="export-png-btn" type="button">Export PNGs</button>
+      </div>
+      <div class="export-results" id="export-results"></div>
+    </section>
+
+  </aside>
+
+  <div class="rail-resizer" id="rail-resizer" role="separator" aria-label="Resize editor sidebar" aria-orientation="vertical"></div>
+
+  <!-- ── PREVIEW STAGE ── -->
+  <section class="preview-stage" id="preview-stage">
+    <div class="preview-header">
+      <div>
+        <p class="eyebrow">Live preview</p>
+        <h2 id="preview-title">Untitled product</h2>
+      </div>
+      <div class="view-tabs" id="view-tabs">
+        <button class="view-tab is-active" data-view="main">Main</button>
+        <button class="view-tab" data-view="wall">Wall</button>
+        <button class="view-tab" data-view="panels">Plates</button>
+      </div>
+    </div>
+
+    <div class="preview-grid">
+
+      <!-- Media card -->
+      <div class="preview-card media-card">
+        <div class="preview-view" id="view-main">
+          <div class="preview-media-wrap">
+            <img id="preview-main-image" class="preview-media" alt="" src="">
+            <div id="preview-main-empty" class="preview-empty">Add a main image URL on the left to preview it here.</div>
+          </div>
+        </div>
+
+        <div class="preview-view" id="view-wall" style="display:none">
+          <div class="preview-media-wrap preview-wall-wrap">
+            <img id="preview-wall-image" class="preview-media" alt="" src="">
+            <div id="preview-wall-empty" class="preview-empty">Add a wall image URL to preview the in-room mockup.</div>
+          </div>
+        </div>
+
+        <div class="preview-view" id="view-panels" style="display:none">
+          <div class="panels-composite-wrap">
+            <div class="panels-bg-layer" id="panels-bg-layer">
+              <div class="panels-bg-empty" id="panels-bg-empty">Add a main image to see plates composited on it.</div>
+            </div>
+            <div class="panels-hex-layer" id="panels-hex-layer"></div>
+            <div class="panels-overlay-label">Plate arrangement preview</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Meta card -->
+      <div class="preview-card meta-card">
+        <span class="preview-badge" id="preview-badge">Series</span>
+        <h3 id="preview-name">Untitled product</h3>
+        <p id="preview-short" class="preview-short">Add a short product line.</p>
+        <div class="preview-price-row">
+          <span id="preview-price">£0.00</span>
+          <span id="preview-price-label"></span>
+        </div>
+        <p id="preview-description" class="preview-description">Your description will appear here.</p>
+        <div class="preview-meta-pills" id="preview-meta-pills"></div>
+      </div>
+
+      <!-- Arrangement card -->
+      <div class="preview-card arrangement-card">
+        <div class="arrangement-head">
+          <div>
+            <p class="eyebrow">Arrangement</p>
+            <h3>Hex plate layout</h3>
+          </div>
+          <span class="arrangement-count" id="arrangement-count">0 plates</span>
+        </div>
+        <div class="arrangement-wrap">
+          <div id="hex-preview" class="hex-preview"></div>
+        </div>
+        <div class="plate-customizer" id="plate-customizer">
+          <div class="plate-customizer-head">
+            <div>
+              <p class="eyebrow">Selected plate</p>
+              <h4 id="custom-plate-title">Plate 1</h4>
+            </div>
+            <span id="custom-plate-coords">Row 0 / Col 0</span>
+          </div>
+          <div class="field-grid four">
+            <label class="mini-field">Fit
+              <select id="custom-fit" class="field field-select">
+                <option value="contain">Contain</option>
+                <option value="cover">Cover</option>
+              </select>
+            </label>
+            <label class="mini-field">Zoom
+              <input id="custom-zoom" class="field" type="range" min="0.2" max="3" step="0.05">
+            </label>
+            <label class="mini-field">X
+              <input id="custom-x" class="field" type="range" min="0" max="100" step="1">
+            </label>
+            <label class="mini-field">Y
+              <input id="custom-y" class="field" type="range" min="0" max="100" step="1">
+            </label>
+          </div>
+        </div>
+        <p class="arrangement-hint">Each plate shows a cropped region of the main image. Individual plate image URLs override this.</p>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ─── State ─── */
+  var state = {
+    products: [],
+    currentId: null,
+    panelNames: [],
+    panelImages: [],
+    panelPositions: [],
+    panelTransforms: [],
+    activePanel: 0,
+    activeView: 'main',
+    isSaving: false
+  };
+
+  /* ─── Element cache ─── */
+  var E = {};
+  var bundleDragState = { active: false, droppedInside: false, payload: null };
+  var autoMockupTimer = null;
+  var autoMockupInFlight = false;
+  var suppressAutoMockup = false;
+
+  /* ─── Hex geometry constants ─── */
+  var HEX_H = 112;
+  var HEX_W = 97;
+  var ROW_PITCH = 84;   /* vertical distance between row origins (HEX_H * 0.75) */
+  var COL_PITCH = 97;   /* horizontal distance between col origins */
+  var ODD_OFFSET = 48;  /* half COL_PITCH for odd-row offset */
+  var HEX_CLIP = 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)';
+
+  var loadSeq = 0;
+
+  document.addEventListener('DOMContentLoaded', function () {
+    cacheEls();
+    bindAuth();
+    bindUI();
+    if (sessionStorage.getItem('admin') === '1') {
+      E.authScreen.style.display = 'none';
+      initCreator();
+    }
+  });
+
+  function cacheEls() {
+    E.authScreen   = document.getElementById('auth-screen');
+    E.authPw       = document.getElementById('auth-pw');
+    E.authErr      = document.getElementById('auth-err');
+    E.authBtn      = document.getElementById('auth-btn');
+    E.statusText   = document.getElementById('status-text');
+    E.statusDot    = document.getElementById('status-dot');
+    E.productSel   = document.getElementById('product-select');
+    E.creatorShell = document.querySelector('.creator-shell');
+    E.editorRail   = document.querySelector('.editor-rail');
+    E.railResizer  = document.getElementById('rail-resizer');
+    E.previewStage = document.getElementById('preview-stage');
+    E.panelList    = document.getElementById('panel-list');
+    E.bundlePanel  = document.getElementById('bundle-panel');
+    E.bundleBuilder = document.getElementById('bundle-builder');
+    E.bundleLibrarySearch = document.getElementById('bundle-library-search');
+    E.bundleLibraryList = document.getElementById('bundle-library-list');
+    E.bundleDropZone = document.getElementById('bundle-drop-zone');
+    E.bundleDropHint = document.getElementById('bundle-drop-hint');
+    E.bundleDropList = document.getElementById('bundle-drop-list');
+    E.exportResults = document.getElementById('export-results');
+
+    E.f = {
+      name:         document.getElementById('f-name'),
+      slug:         document.getElementById('f-slug'),
+      category:     document.getElementById('f-category'),
+      accent:       document.getElementById('f-accent'),
+      price:        document.getElementById('f-price'),
+      unitPrice:    document.getElementById('f-plate-unit-price'),
+      priceLabel:   document.getElementById('f-price-label'),
+      size:         document.getElementById('f-size'),
+      material:     document.getElementById('f-material'),
+      short:        document.getElementById('f-short'),
+      description:  document.getElementById('f-description'),
+      note:         document.getElementById('f-note'),
+      isCollection: document.getElementById('f-is-collection'),
+      isBundle:     document.getElementById('f-is-bundle'),
+      isPublished:  document.getElementById('f-is-published'),
+      bundlePrice:  document.getElementById('f-bundle-price'),
+      bundleItems:  document.getElementById('f-bundle-items'),
+      bundleText:   document.getElementById('f-bundle-text'),
+      image:        document.getElementById('f-image'),
+      imageFile:    document.getElementById('f-image-file'),
+      mainZoom:     document.getElementById('f-main-zoom'),
+      wallImage:    document.getElementById('f-wall-image'),
+      wallImageFile: document.getElementById('f-wall-image-file'),
+      autoMockup:   document.getElementById('f-auto-mockup'),
+      panelHint:    document.getElementById('f-panel-hint'),
+      pieces:       document.getElementById('f-pieces'),
+      layoutPreset: document.getElementById('layout-preset')
+    };
+
+    E.prev = {
+      title:            document.getElementById('preview-title'),
+      badge:            document.getElementById('preview-badge'),
+      name:             document.getElementById('preview-name'),
+      short:            document.getElementById('preview-short'),
+      price:            document.getElementById('preview-price'),
+      priceLabel:       document.getElementById('preview-price-label'),
+      description:      document.getElementById('preview-description'),
+      metaPills:        document.getElementById('preview-meta-pills'),
+      mainImage:        document.getElementById('preview-main-image'),
+      wallImage:        document.getElementById('preview-wall-image'),
+      mainEmpty:        document.getElementById('preview-main-empty'),
+      wallEmpty:        document.getElementById('preview-wall-empty'),
+      panelsBgLayer:    document.getElementById('panels-bg-layer'),
+      panelsBgEmpty:    document.getElementById('panels-bg-empty'),
+      panelsHexLayer:   document.getElementById('panels-hex-layer'),
+      arrangementCount: document.getElementById('arrangement-count'),
+      hexPreview:       document.getElementById('hex-preview'),
+      thumbMain:        document.getElementById('thumb-main'),
+      thumbWall:        document.getElementById('thumb-wall'),
+      customTitle:      document.getElementById('custom-plate-title'),
+      customCoords:     document.getElementById('custom-plate-coords'),
+      customFit:        document.getElementById('custom-fit'),
+      customZoom:       document.getElementById('custom-zoom'),
+      customX:          document.getElementById('custom-x'),
+      customY:          document.getElementById('custom-y')
+    };
+
+    E.views = {
+      main:   document.getElementById('view-main'),
+      wall:   document.getElementById('view-wall'),
+      panels: document.getElementById('view-panels')
+    };
+  }
+
+  /* ─── Auth ─── */
+  function bindAuth() {
+    E.authBtn.addEventListener('click', doAuth);
+    E.authPw.addEventListener('keydown', function (e) { if (e.key === 'Enter') doAuth(); });
+  }
+
+  function doAuth() {
+    var pw = E.authPw.value.trim();
+    if (!pw) { E.authErr.style.display = 'block'; return; }
+    fetch('/.netlify/functions/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pw })
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (d && d.ok) {
+        sessionStorage.setItem('admin', '1');
+        sessionStorage.setItem('admin_pw', pw);
+        E.authScreen.style.display = 'none';
+        initCreator();
+      } else {
+        E.authErr.style.display = 'block';
+        E.authPw.value = '';
+      }
+    })
+    .catch(function () { E.authErr.style.display = 'block'; });
+  }
+
+  /* ─── UI bindings ─── */
+  function bindUI() {
+    E.productSel.addEventListener('change', function () { loadProduct(this.value); });
+    document.getElementById('new-series-btn').addEventListener('click', function () { createBlank(false); });
+    document.getElementById('new-collection-btn').addEventListener('click', function () { createBlank(true); });
+    document.getElementById('rebuild-panels-btn').addEventListener('click', rebuildPanelEditors);
+    document.getElementById('auto-layout-btn').addEventListener('click', applyPresetLayout);
+    document.getElementById('sort-layout-btn').addEventListener('click', tidyPositions);
+    document.getElementById('save-btn').addEventListener('click', saveProduct);
+    document.getElementById('sync-btn').addEventListener('click', syncProduct);
+    document.getElementById('export-png-btn').addEventListener('click', exportPlatePNGs);
+    document.getElementById('preview-toggle').addEventListener('click', function () {
+      E.previewStage.classList.toggle('is-open');
+    });
+
+    document.getElementById('view-tabs').addEventListener('click', function (e) {
+      var btn = e.target.closest('.view-tab');
+      if (!btn) return;
+      var view = btn.getAttribute('data-view');
+      if (!view) return;
+      document.querySelectorAll('.view-tab').forEach(function (b) { b.classList.remove('is-active'); });
+      btn.classList.add('is-active');
+      state.activeView = view;
+      renderPreview();
+    });
+
+    Object.keys(E.f).forEach(function (key) {
+      var el = E.f[key];
+      var evt = (el.type === 'checkbox' || el.tagName === 'SELECT') ? 'change' : 'input';
+      el.addEventListener(evt, function () {
+        if (key === 'pieces') {
+          ensurePanelArrays();
+          rebuildPanelEditors();
+        }
+        if (key === 'price' || key === 'unitPrice' || key === 'pieces') syncPriceLabel();
+        if (key === 'layoutPreset') applyPresetLayout();
+        if (key === 'isBundle') updateBundlePanel();
+        if (key === 'bundleItems') renderBundleBuilder();
+        if (key === 'name' && !E.f.slug.dataset.touched) {
+          E.f.slug.value = slugify(E.f.name.value);
+        }
+        if (key === 'image') updateThumb('main', E.f.image.value.trim());
+        if (key === 'wallImage') updateThumb('wall', E.f.wallImage.value.trim());
+        renderPreview();
+        queueAutoMockup();
+      });
+    });
+
+    E.f.slug.addEventListener('input', function () { E.f.slug.dataset.touched = '1'; });
+    if (E.f.imageFile) {
+      E.f.imageFile.addEventListener('change', function () { importImageFromFile(E.f.imageFile, E.f.image); });
+    }
+    if (E.f.wallImageFile) {
+      E.f.wallImageFile.addEventListener('change', function () { importImageFromFile(E.f.wallImageFile, E.f.wallImage); });
+    }
+    if (E.f.autoMockup) {
+      E.f.autoMockup.addEventListener('change', function () {
+        if (E.f.autoMockup.checked) queueAutoMockup(250);
+      });
+    }
+    initResizableRail();
+    bindPlateCustomizer();
+    bindBundleBuilder();
+  }
+
+  function importImageFromFile(input, targetField) {
+    var file = input && input.files && input.files[0];
+    if (!file || !targetField) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      targetField.value = String(reader.result || '');
+      targetField.dispatchEvent(new Event('input', { bubbles: true }));
+      setStatus('Imported ' + file.name, 'success');
+    };
+    reader.onerror = function () { setStatus('Could not import file', 'error'); };
+    reader.readAsDataURL(file);
+    input.value = '';
+  }
+
+  function queueAutoMockup(delay) {
+    if (suppressAutoMockup || !E.f || !E.f.autoMockup || !E.f.autoMockup.checked) return;
+    var ms = Number.isFinite(delay) ? delay : 1400;
+    clearTimeout(autoMockupTimer);
+    autoMockupTimer = setTimeout(runAutoMockup, ms);
+  }
+
+  function runAutoMockup() {
+    if (!E.f || !E.f.autoMockup || !E.f.autoMockup.checked) return;
+    if (autoMockupInFlight) return;
+    var productId = (state.currentId || E.f.slug.value || '').trim();
+    if (!productId) return;
+    autoMockupInFlight = true;
+    requestJson('/.netlify/functions/generate-mockup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId: productId })
+    })
+    .then(function (body) {
+      var rows = body && Array.isArray(body.results) ? body.results : [];
+      var row = rows.find(function (item) {
+        return item && item.success && (item.productId === productId || item.slug === productId);
+      }) || rows.find(function (item) { return item && item.success; });
+      if (!row || !row.wall_image) return;
+      suppressAutoMockup = true;
+      E.f.wallImage.value = row.wall_image;
+      updateThumb('wall', row.wall_image);
+      renderPreview();
+      suppressAutoMockup = false;
+      setStatus('Auto mockup refreshed', 'success');
+    })
+    .catch(function () {})
+    .finally(function () { autoMockupInFlight = false; });
+  }
+
+  function initResizableRail() {
+    if (!E.creatorShell || !E.editorRail || !E.railResizer) return;
+    var storedWidth = parseInt(localStorage.getItem('creator_rail_width') || '', 10);
+    if (Number.isFinite(storedWidth)) applyRailWidth(storedWidth);
+
+    E.railResizer.addEventListener('pointerdown', function (event) {
+      if (window.matchMedia('(max-width: 1060px)').matches) return;
+      event.preventDefault();
+      var startX = event.clientX;
+      var current = parseFloat(getComputedStyle(E.creatorShell).getPropertyValue('--rail-width')) || E.editorRail.getBoundingClientRect().width || 460;
+      E.railResizer.classList.add('is-dragging');
+      document.body.classList.add('is-resizing-rail');
+      E.railResizer.setPointerCapture(event.pointerId);
+
+      function onMove(moveEvent) {
+        applyRailWidth(current + (moveEvent.clientX - startX));
+      }
+      function onUp() {
+        E.railResizer.classList.remove('is-dragging');
+        document.body.classList.remove('is-resizing-rail');
+        E.railResizer.removeEventListener('pointermove', onMove);
+        E.railResizer.removeEventListener('pointerup', onUp);
+        E.railResizer.removeEventListener('pointercancel', onUp);
+        var resolved = parseFloat(getComputedStyle(E.creatorShell).getPropertyValue('--rail-width')) || E.editorRail.getBoundingClientRect().width || 460;
+        localStorage.setItem('creator_rail_width', String(Math.round(resolved)));
+      }
+      E.railResizer.addEventListener('pointermove', onMove);
+      E.railResizer.addEventListener('pointerup', onUp);
+      E.railResizer.addEventListener('pointercancel', onUp);
+    });
+  }
+
+  function applyRailWidth(value) {
+    if (!E.creatorShell) return;
+    var min = 320;
+    var max = Math.max(min, window.innerWidth - 360);
+    var clamped = Math.max(min, Math.min(max, parseFloat(value) || 460));
+    E.creatorShell.style.setProperty('--rail-width', clamped + 'px');
+  }
+
+  function bindBundleBuilder() {
+    if (E.bundleLibrarySearch) {
+      E.bundleLibrarySearch.addEventListener('input', function () { renderBundleBuilder(); });
+    }
+    if (E.bundleLibraryList) {
+      E.bundleLibraryList.addEventListener('dragstart', function (e) {
+        var item = e.target.closest('.bundle-lib-item');
+        if (!item) return;
+        var slug = item.getAttribute('data-slug') || '';
+        if (!slug) return;
+        e.dataTransfer.setData('text/plain', JSON.stringify({ slug: slug, from: 'library' }));
+        e.dataTransfer.effectAllowed = 'copy';
+      });
+    }
+    if (E.bundleDropZone) {
+      E.bundleDropZone.addEventListener('dragover', function (e) {
+        if (!E.f.isBundle.checked) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+        E.bundleDropZone.classList.add('is-dragover');
+      });
+      E.bundleDropZone.addEventListener('dragleave', function () {
+        E.bundleDropZone.classList.remove('is-dragover');
+      });
+      E.bundleDropZone.addEventListener('drop', function (e) {
+        if (!E.f.isBundle.checked) return;
+        e.preventDefault();
+        E.bundleDropZone.classList.remove('is-dragover');
+        applyBundleDrop(e);
+      });
+    }
+    if (E.bundleDropList) {
+      E.bundleDropList.addEventListener('dragstart', function (e) {
+        var item = e.target.closest('.bundle-drop-item');
+        if (!item) return;
+        var slug = item.getAttribute('data-slug') || '';
+        var idx = parseInt(item.getAttribute('data-idx') || '', 10);
+        if (!slug || !Number.isFinite(idx)) return;
+        var payload = { slug: slug, from: 'bundle', index: idx };
+        bundleDragState = { active: true, droppedInside: false, payload: payload };
+        e.dataTransfer.setData('text/plain', JSON.stringify(payload));
+        e.dataTransfer.effectAllowed = 'move';
+      });
+      E.bundleDropList.addEventListener('dragover', function (e) {
+        if (!E.f.isBundle.checked) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        var over = e.target.closest('.bundle-drop-item');
+        E.bundleDropList.querySelectorAll('.bundle-drop-item').forEach(function (el) {
+          el.classList.toggle('is-over', el === over);
+        });
+      });
+      E.bundleDropList.addEventListener('drop', function (e) {
+        if (!E.f.isBundle.checked) return;
+        e.preventDefault();
+        bundleDragState.droppedInside = true;
+        E.bundleDropList.querySelectorAll('.bundle-drop-item').forEach(function (el) { el.classList.remove('is-over'); });
+        applyBundleDrop(e);
+      });
+      E.bundleDropList.addEventListener('dragend', function () {
+        if (!bundleDragState.active) return;
+        if (!bundleDragState.droppedInside) removeBundleDraggedItem(bundleDragState.payload);
+        bundleDragState = { active: false, droppedInside: false, payload: null };
+      });
+      E.bundleDropList.addEventListener('click', function (e) {
+        var btn = e.target.closest('.bundle-drop-remove');
+        if (!btn) return;
+        var slug = btn.getAttribute('data-slug') || '';
+        if (!slug) return;
+        setBundleItems(getBundleItems().filter(function (s) { return s !== slug; }));
+      });
+    }
+    if (E.bundleDropZone) {
+      E.bundleDropZone.addEventListener('drop', function () { bundleDragState.droppedInside = true; });
+    }
+  }
+
+  function removeBundleDraggedItem(payload) {
+    if (!payload || payload.from !== 'bundle') return;
+    var items = getBundleItems();
+    if (!items.length) return;
+    var idx = Number.isFinite(payload.index) ? payload.index : -1;
+    if (idx >= 0 && idx < items.length && items[idx] === payload.slug) {
+      items.splice(idx, 1);
+      setBundleItems(items);
+      return;
+    }
+    var fallbackIdx = items.indexOf(String(payload.slug || '').trim());
+    if (fallbackIdx >= 0) {
+      items.splice(fallbackIdx, 1);
+      setBundleItems(items);
+    }
+  }
+
+  function bindPlateCustomizer() {
+    if (!E.prev.customFit) return;
+    E.prev.customFit.addEventListener('change', function () {
+      updateActivePanelTransform({ fit: E.prev.customFit.value });
+    });
+    E.prev.customZoom.addEventListener('input', function () {
+      updateActivePanelTransform({ scale: clampNumber(E.prev.customZoom.value, 0.2, 3, 1) });
+    });
+    E.prev.customX.addEventListener('input', function () {
+      updateActivePanelTransform({ x: clampNumber(E.prev.customX.value, 0, 100, 50) });
+    });
+    E.prev.customY.addEventListener('input', function () {
+      updateActivePanelTransform({ y: clampNumber(E.prev.customY.value, 0, 100, 50) });
+    });
+  }
+
+  /* ─── Load products ─── */
+  function initCreator() {
+    setStatus('Loading products…', 'loading');
+    loadProductCatalogue()
+    .then(function (result) {
+      if (result.stale) return;
+      if (result.products.length) {
+        loadProduct(productKey(result.products[0]));
+      } else {
+        createBlank(false);
+      }
+      setStatus('Ready', 'ready');
+    })
+    .catch(function () {
+      createBlank(false);
+      setStatus('Could not load products', 'error');
+    });
+  }
+
+  function loadProductCatalogue() {
+    var seq = ++loadSeq;
+    return fetchProducts()
+      .then(function (products) {
+        if (seq !== loadSeq) return { stale: true, products: state.products };
+        state.products = products;
+        populateSelect();
+        if (state.currentId) E.productSel.value = state.currentId;
+        return { stale: false, products: state.products };
+      }, function (err) {
+        if (seq !== loadSeq) return { stale: true, products: state.products, error: err };
+        throw err;
+      });
+  }
+
+  function fetchProducts() {
+    return Promise.all([
+      requestJson('/.netlify/functions/load-products', { cache: 'no-store' }),
+      requestJson('/.netlify/functions/load-catalogue', { cache: 'no-store' }).catch(function () { return { bundles: [] }; })
+    ]).then(function (results) {
+      return extractProductList(results[0])
+        .concat(Array.isArray(results[1].bundles) ? results[1].bundles : [])
+        .filter(Boolean)
+        .map(normaliseProductPayload);
+    });
+  }
+
+  function extractProductList(data) {
+    var list = [];
+    if (Array.isArray(data)) {
+      list = data;
+    } else if (data && Array.isArray(data.products)) {
+      list = data.products.concat(Array.isArray(data.bundles) ? data.bundles : []);
+    } else if (data && Array.isArray(data.data)) {
+      list = data.data;
+    } else {
+      throw new Error('Product response did not include a product list');
+    }
+    return list;
+  }
+
+  function populateSelect() {
+    E.productSel.innerHTML = '';
+    if (!state.products.length) {
+      var empty = document.createElement('option');
+      empty.value = '';
+      empty.textContent = 'No saved products';
+      E.productSel.appendChild(empty);
+      return;
+    }
+    var placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = '— select a product —';
+    E.productSel.appendChild(placeholder);
+    state.products.forEach(function (p) {
+      var opt = document.createElement('option');
+      opt.value = productKey(p);
+      opt.textContent = p.name || p.slug || 'Untitled';
+      E.productSel.appendChild(opt);
+    });
+  }
+
+  function loadProduct(id) {
+    if (!id) return false;
+    var p = findProduct(id);
+    if (!p) return false;
+    state.currentId = productKey(p);
+    state.activePanel = 0;
+    E.productSel.value = state.currentId;
+
+    E.f.name.value         = p.name || '';
+    E.f.slug.value         = p.slug || '';
+    E.f.slug.dataset.touched = '1';
+    E.f.category.value     = p.category || '';
+    E.f.accent.value       = p.accent || '';
+    E.f.price.value        = p.price || '';
+    E.f.unitPrice.value    = p.plateUnitPrice || '';
+    E.f.priceLabel.value   = p.priceLabel || '';
+    E.f.size.value         = p.size || '';
+    E.f.material.value     = p.material || '';
+    E.f.short.value        = p.short || '';
+    E.f.description.value  = p.description || '';
+    E.f.note.value         = p.note || '';
+    E.f.isCollection.checked = !!p.isCollection;
+    E.f.isBundle.checked   = !!p.isBundle;
+    E.f.isPublished.checked = p.isPublished !== false;
+    E.f.bundlePrice.value  = p.isBundle ? (p.bundlePrice || p.price || '') : '';
+    E.f.bundleItems.value  = Array.isArray(p.bundleItems) ? p.bundleItems.join('\n') : '';
+    E.f.bundleText.value   = p.bundleText || p.text || '';
+    E.f.image.value        = p.image || '';
+    E.f.mainZoom.value     = p.mainZoom || 1;
+    E.f.wallImage.value    = p.wallImage || '';
+    E.f.panelHint.value    = p.panelHint || '';
+    E.f.pieces.value       = parseInt(p.plateCount || p.pieces, 10) || 1;
+    syncPriceLabel();
+
+    state.panelNames     = Array.isArray(p.plateNames) ? p.plateNames.slice() : (Array.isArray(p.panelNames) ? p.panelNames.slice() : []);
+    state.panelImages    = Array.isArray(p.plateImages) ? p.plateImages.slice() : (Array.isArray(p.panelImages) ? p.panelImages.slice() : []);
+    var loadedMap = p.plateMap || p.panelMap || {};
+    state.panelPositions = (loadedMap && Array.isArray(loadedMap.positions))
+      ? loadedMap.positions.map(function (x) { return { row: parseInt(x.row, 10) || 0, col: parseInt(x.col, 10) || 0 }; })
+      : [];
+    state.panelTransforms = (loadedMap && Array.isArray(loadedMap.transforms))
+      ? loadedMap.transforms.map(normalisePanelTransform)
+      : [];
+
+    ensurePanelArrays();
+    updateBundlePanel();
+    rebuildPanelEditors();
+    updateThumb('main', p.image || '');
+    updateThumb('wall', p.wallImage || '');
+    renderPreview();
+    setStatus('Loaded ' + (p.name || 'product'), 'ready');
+    return true;
+  }
+
+  function createBlank(isCollection) {
+    loadSeq++;
+    state.currentId = null;
+    state.activePanel = 0;
+    E.productSel.value = '';
+    E.f.slug.dataset.touched = '';
+    Object.keys(E.f).forEach(function (k) {
+      var el = E.f[k];
+      if (el.type === 'checkbox') { el.checked = k === 'isPublished'; }
+      else if (k === 'pieces') { el.value = 6; }
+      else if (k === 'layoutPreset') { el.value = 'auto'; }
+      else { el.value = ''; }
+    });
+    E.f.isCollection.checked = !!isCollection;
+    E.f.unitPrice.value = '34.99';
+    E.f.price.value = (6 * 34.99 * 0.9).toFixed(2);
+    E.f.mainZoom.value = 1;
+    syncPriceLabel();
+    state.panelNames = [];
+    state.panelImages = [];
+    state.panelPositions = [];
+    state.panelTransforms = [];
+    ensurePanelArrays();
+    applyPresetLayout();
+    rebuildPanelEditors();
+    updateThumb('main', '');
+    updateThumb('wall', '');
+    renderPreview();
+    updateBundlePanel();
+    setStatus('New draft', 'ready');
+  }
+
+  /* ─── Panel arrays ─── */
+  function syncPriceLabel() {
+    var count = Math.max(1, parseInt(E.f.pieces.value, 10) || 1);
+    var setPrice = parseFloat(E.f.price.value || 0);
+    var unitPrice = parseFloat(E.f.unitPrice.value || 0);
+    if (!unitPrice && setPrice) {
+      unitPrice = setPrice / count;
+      E.f.unitPrice.value = unitPrice.toFixed(2);
+    }
+    if (!E.f.priceLabel.value && setPrice && unitPrice) {
+      E.f.priceLabel.value = 'Complete set GBP ' + setPrice.toFixed(2) + ' / GBP ' + unitPrice.toFixed(2) + ' per plate';
+    }
+  }
+
+  function ensurePanelArrays() {
+    var count = Math.max(1, parseInt(E.f.pieces.value, 10) || 1);
+    var fallback = autoLayout(count);
+    while (state.panelNames.length < count) state.panelNames.push('');
+    while (state.panelImages.length < count) state.panelImages.push('');
+    while (state.panelTransforms.length < count) state.panelTransforms.push(defaultPanelTransform());
+    while (state.panelPositions.length < count) {
+      state.panelPositions.push(fallback[state.panelPositions.length] || { row: 0, col: state.panelPositions.length });
+    }
+    state.panelNames = state.panelNames.slice(0, count);
+    state.panelImages = state.panelImages.slice(0, count);
+    state.panelTransforms = state.panelTransforms.slice(0, count).map(normalisePanelTransform);
+    state.panelPositions = state.panelPositions.slice(0, count).map(function (pos, idx) {
+      var fallbackPos = fallback[idx] || { row: 0, col: idx };
+      return {
+        row: Number.isFinite(parseInt(pos && pos.row, 10)) ? parseInt(pos.row, 10) : fallbackPos.row,
+        col: Number.isFinite(parseInt(pos && pos.col, 10)) ? parseInt(pos.col, 10) : fallbackPos.col
+      };
+    });
+  }
+
+  function rebuildPanelEditors() {
+    ensurePanelArrays();
+    E.panelList.innerHTML = '';
+    state.panelPositions.forEach(function (pos, i) {
+      var row = document.createElement('div');
+      row.className = 'panel-row';
+      row.innerHTML =
+        '<div class="panel-index">' + (i + 1) + '</div>' +
+        '<input class="field pn" type="text" placeholder="Plate name">' +
+        '<input class="field pi" type="url" placeholder="https://...">' +
+        '<select class="field pf"><option value="contain">Contain</option><option value="cover">Cover</option></select>' +
+        '<input class="field pz" type="number" min="0.2" max="3" step="0.05" title="Zoom">' +
+        '<input class="field px" type="number" min="0" max="100" step="1" title="Horizontal position">' +
+        '<input class="field py" type="number" min="0" max="100" step="1" title="Vertical position">' +
+        '<input class="field pr" type="number" step="1">' +
+        '<input class="field pc" type="number" step="1">';
+
+      var nameIn  = row.querySelector('.pn');
+      var imgIn   = row.querySelector('.pi');
+      var fitIn   = row.querySelector('.pf');
+      var zoomIn  = row.querySelector('.pz');
+      var xIn     = row.querySelector('.px');
+      var yIn     = row.querySelector('.py');
+      var rowIn   = row.querySelector('.pr');
+      var colIn   = row.querySelector('.pc');
+      var transform = normalisePanelTransform(state.panelTransforms[i]);
+
+      nameIn.value = state.panelNames[i] || '';
+      imgIn.value  = state.panelImages[i] || '';
+      fitIn.value   = transform.fit;
+      zoomIn.value  = transform.scale;
+      xIn.value     = transform.x;
+      yIn.value     = transform.y;
+      rowIn.value  = pos.row;
+      colIn.value  = pos.col;
+
+      nameIn.addEventListener('input', function () { state.panelNames[i] = nameIn.value; renderPreview(); });
+      imgIn.addEventListener('input',  function () { state.panelImages[i] = imgIn.value; renderPreview(); });
+      fitIn.addEventListener('change', function () { state.panelTransforms[i].fit = fitIn.value; renderPreview(); });
+      zoomIn.addEventListener('input', function () { state.panelTransforms[i].scale = clampNumber(zoomIn.value, 0.2, 3, 1); renderPreview(); });
+      xIn.addEventListener('input',    function () { state.panelTransforms[i].x = clampNumber(xIn.value, 0, 100, 50); renderPreview(); });
+      yIn.addEventListener('input',    function () { state.panelTransforms[i].y = clampNumber(yIn.value, 0, 100, 50); renderPreview(); });
+      rowIn.addEventListener('input',  function () { state.panelPositions[i].row = parseInt(rowIn.value, 10) || 0; renderPreview(); });
+      colIn.addEventListener('input',  function () { state.panelPositions[i].col = parseInt(colIn.value, 10) || 0; renderPreview(); });
+
+      E.panelList.appendChild(row);
+    });
+    renderPreview();
+  }
+
+  /* ─── Layout presets ─── */
+  function applyPresetLayout() {
+    ensurePanelArrays();
+    var count  = state.panelPositions.length;
+    var preset = E.f.layoutPreset.value || 'auto';
+    var pos    = [];
+
+    if (preset === 'line') {
+      for (var i = 0; i < count; i++) pos.push({ row: 0, col: i });
+    } else if (preset === 'arc') {
+      for (var j = 0; j < count; j++) {
+        pos.push({ row: (j === 0 || j === count - 1) ? 1 : 0, col: j });
+      }
+    } else if (preset === 'cluster') {
+      var cluster = [
+        {row:0,col:1},{row:1,col:0},{row:1,col:1},{row:1,col:2},
+        {row:2,col:0},{row:2,col:1},{row:2,col:2},{row:2,col:3},
+        {row:3,col:1},{row:3,col:2}
+      ];
+      for (var c = 0; c < count; c++) pos.push(cluster[c] || { row: Math.floor(c/3), col: c%3 });
+    } else if (preset === 'honeycomb') {
+      var honey = [
+        {row:0,col:1},{row:1,col:0},{row:1,col:1},{row:1,col:2},
+        {row:2,col:0},{row:2,col:1},{row:2,col:2},{row:2,col:3},
+        {row:3,col:1},{row:3,col:2},{row:4,col:1},{row:4,col:2}
+      ];
+      for (var h = 0; h < count; h++) pos.push(honey[h] || { row: Math.floor(h/4), col: h%4 });
+    } else {
+      pos = autoLayout(count);
+    }
+
+    state.panelPositions = pos;
+    rebuildPanelEditors();
+  }
+
+  function tidyPositions() {
+    var sorted = state.panelPositions.map(function (p, idx) {
+      return { row: parseInt(p.row,10)||0, col: parseInt(p.col,10)||0, idx: idx };
+    }).sort(function (a, b) { return a.row !== b.row ? a.row - b.row : a.col - b.col; });
+
+    var nn = [], ni = [], nt = [], np = [];
+    sorted.forEach(function (item) {
+      nn.push(state.panelNames[item.idx] || '');
+      ni.push(state.panelImages[item.idx] || '');
+      nt.push(normalisePanelTransform(state.panelTransforms[item.idx]));
+      np.push({ row: item.row, col: item.col });
+    });
+    state.panelNames = nn; state.panelImages = ni; state.panelTransforms = nt; state.panelPositions = np;
+    rebuildPanelEditors();
+  }
+
+  function autoLayout(count) {
+    var presets = {
+      1:[[0,0]],
+      2:[[0,0],[0,1]],
+      3:[[0,0],[0,1],[1,0]],
+      4:[[0,0],[0,1],[1,0],[1,1]],
+      5:[[0,1],[1,0],[1,1],[1,2],[2,1]],
+      6:[[0,0],[0,1],[0,2],[1,0],[1,1],[1,2]],
+      7:[[0,1],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]],
+      8:[[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1]],
+      9:[[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]],
+      10:[[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[1,3],[2,0],[2,1],[2,2]],
+      11:[[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[1,3],[2,0],[2,1],[2,2],[2,3]],
+      12:[[0,0],[0,1],[0,2],[0,3],[1,0],[1,1],[1,2],[1,3],[2,0],[2,1],[2,2],[2,3]]
+    };
+    if (presets[count]) {
+      return presets[count].map(function (p) { return { row: p[0], col: p[1] }; });
+    }
+    var positions = [], cols = Math.max(3, Math.ceil(Math.sqrt(count)));
+    var rows = Math.ceil(count / cols);
+    var placed = 0;
+    for (var r = 0; r < rows && placed < count; r++) {
+      var rowCols = Math.min(cols, count - placed);
+      var offset = Math.floor((cols - rowCols) / 2);
+      for (var c = 0; c < rowCols; c++) {
+        positions.push({ row: r, col: c + offset });
+        placed++;
+      }
+    }
+    return positions;
+  }
+
+  /* ─── Thumb previews in rail ─── */
+  function updateThumb(which, url) {
+    var wrap = which === 'main' ? E.prev.thumbMain : E.prev.thumbWall;
+    if (!wrap) return;
+    if (url) {
+      wrap.innerHTML = '<img src="' + url + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:10px">';
+    } else {
+      wrap.innerHTML = '<div class="img-thumb-empty">No image</div>';
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     PREVIEW RENDERING
+     ═══════════════════════════════════════════════════════════════ */
+
+  function renderPreview() {
+    var name        = E.f.name.value.trim() || 'Untitled product';
+    var isCollection = E.f.isCollection.checked;
+    var isBundle    = E.f.isBundle.checked;
+    var image       = E.f.image.value.trim();
+    var imageZoom   = clampNumber(E.f.mainZoom.value, 1, 2.5, 1);
+    var wallImage   = E.f.wallImage.value.trim();
+    var shortLine   = E.f.short.value.trim() || 'Add a short product line.';
+    var description = E.f.description.value.trim() || 'Your description will appear here.';
+    var price       = parseFloat((isBundle && E.f.bundlePrice.value) || E.f.price.value || 0);
+    var count       = Math.max(1, parseInt(E.f.pieces.value, 10) || 1);
+
+    E.prev.title.textContent       = name;
+    E.prev.name.textContent        = name;
+    E.prev.badge.textContent       = isBundle ? 'Bundle' : (isCollection ? 'Collection' : 'Series');
+    E.prev.short.textContent       = shortLine;
+    E.prev.description.textContent = description;
+    E.prev.price.textContent       = '£' + price.toFixed(2);
+    E.prev.priceLabel.textContent  = E.f.priceLabel.value || '';
+    E.prev.arrangementCount.textContent = count + ' plate' + (count === 1 ? '' : 's');
+
+    var pills = [];
+    if (E.f.size.value.trim()) pills.push(E.f.size.value.trim());
+    if (E.f.material.value.trim()) pills.push(E.f.material.value.trim());
+    if (E.f.category.value.trim()) pills.push(E.f.category.value.trim());
+    E.prev.metaPills.innerHTML = pills.map(function (p) {
+      return '<span class="meta-pill">' + p + '</span>';
+    }).join('');
+
+    Object.keys(E.views).forEach(function (v) {
+      E.views[v].style.display = v === state.activeView ? '' : 'none';
+    });
+
+    if (image) {
+      E.prev.mainImage.src = image;
+      E.prev.mainImage.style.transform = 'scale(' + imageZoom + ')';
+      E.prev.mainImage.style.display = '';
+      E.prev.mainEmpty.style.display = 'none';
+    } else {
+      E.prev.mainImage.src = '';
+      E.prev.mainImage.style.transform = '';
+      E.prev.mainImage.style.display = 'none';
+      E.prev.mainEmpty.style.display = '';
+    }
+
+    if (wallImage) {
+      E.prev.wallImage.src = wallImage;
+      E.prev.wallImage.style.display = '';
+      E.prev.wallEmpty.style.display = 'none';
+    } else {
+      E.prev.wallImage.src = '';
+      E.prev.wallImage.style.display = 'none';
+      E.prev.wallEmpty.style.display = '';
+    }
+
+    renderPanelsView(image, imageZoom);
+    renderHexGrid();
+    syncPlateCustomizer();
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     PANELS COMPOSITE VIEW  (Plates tab — SVG overlay on bg image)
+
+     The main image is shown as a background.  On top we draw an
+     SVG where each hex tile is a clip-path window that reveals
+     the same image underneath a semi-transparent dark overlay,
+     plus an outline stroke and a numeric label.
+
+     Key fix: the SVG <image> must be sized and positioned to match
+     the background layer exactly, accounting for zoom.  We use the
+     SVG viewBox so coordinates are in CSS-pixel space.
+     ══════════════════════════════════════════════════════════════ */
+
+  function renderPanelsView(mainImageUrl, mainZoom) {
+    var bgLayer  = E.prev.panelsBgLayer;
+    var bgEmpty  = E.prev.panelsBgEmpty;
+    var hexLayer = E.prev.panelsHexLayer;
+    var zoom = clampNumber(mainZoom, 1, 2.5, 1);
+
+    if (mainImageUrl) {
+      bgLayer.style.backgroundImage    = 'url(' + mainImageUrl + ')';
+      bgLayer.style.backgroundSize     = (100 * zoom) + '%';
+      bgLayer.style.backgroundPosition = 'center';
+      bgEmpty.style.display = 'none';
+    } else {
+      bgLayer.style.backgroundImage = '';
+      bgEmpty.style.display = '';
+    }
+
+    renderOutlinePreviewSVG(hexLayer, mainImageUrl, zoom);
+  }
+
+  /*
+   * renderOutlinePreviewSVG  — rewritten
+   *
+   * Correct approach:
+   *   1. Compute pixel positions for each hex tile (relative to bounds origin).
+   *   2. Build an SVG whose viewBox matches those pixel coordinates.
+   *   3. The SVG fills its container via width/height="100%" so the browser
+   *      scales it to fit — we do NOT need to know the container's actual px size.
+   *   4. A dark rect covers the whole viewBox.
+   *   5. For each hex:  clipPath + <image> punches a window through the dark rect,
+   *      showing the source image behind it.  The <image> must span the FULL viewBox
+   *      so that the visible region inside each hex clip is the correct crop.
+   *   6. An outline polygon and a text label complete each tile.
+   *
+   * The image <image href> uses the same URL as the background.  Because the SVG
+   * <image> is sized to the full viewBox and uses preserveAspectRatio="xMidYMid slice"
+   * it matches the CSS background-size:cover rendering.  Zoom is handled by shrinking
+   * the effective image area inside the viewBox (see zoomedW/H calculation).
+   */
+  function renderOutlinePreviewSVG(hexLayer, mainImageUrl, zoom) {
+    hexLayer.innerHTML = '';
+    ensurePanelArrays();
+    if (!state.panelPositions.length) return;
+
+    var pixelPositions = getPreviewPixelPositions();
+    var bounds = getPreviewBounds(pixelPositions);
+
+    /* Add padding around the grid so strokes aren't clipped */
+    var PAD = 6;
+    var vbX = bounds.minX - PAD;
+    var vbY = bounds.minY - PAD;
+    var vbW = bounds.width  + PAD * 2;
+    var vbH = bounds.height + PAD * 2;
+
+    var parts = [];
+    parts.push(
+      '<svg xmlns="http://www.w3.org/2000/svg"',
+      ' width="100%" height="100%"',
+      ' viewBox="' + vbX + ' ' + vbY + ' ' + vbW + ' ' + vbH + '"',
+      ' style="position:absolute;inset:0;overflow:visible"',
+      '>'
+    );
+
+    /* Dark overlay rect */
+    parts.push('<rect x="' + vbX + '" y="' + vbY + '" width="' + vbW + '" height="' + vbH + '" fill="rgba(0,0,0,0.38)"/>');
+
+    if (mainImageUrl) {
+      /*
+       * The image must replicate how the background layer renders the photo.
+       * The background-layer is a div with background-size: (100*zoom)% center.
+       * In SVG terms: we want the image to fill the viewBox with cover scaling,
+       * then zoom it about the centre.
+       *
+       * We achieve this by:
+       *   - Placing a <image> that covers the full viewBox (preserveAspectRatio slice)
+       *   - Wrapping it in a transform that scales about the centre of the viewBox
+       *
+       * This matches the CSS `background-size: Xvw center` behaviour.
+       */
+      var cx = vbX + vbW / 2;
+      var cy = vbY + vbH / 2;
+
+      parts.push('<defs>');
+      pixelPositions.forEach(function (pos, idx) {
+        var pts = hexPointsStr(pos.x, pos.y, HEX_W, HEX_H);
+        parts.push('<clipPath id="hcp' + idx + '"><polygon points="' + pts + '"/></clipPath>');
+      });
+      parts.push('</defs>');
+
+      pixelPositions.forEach(function (pos, idx) {
+        var safeUrl = escapeSvgAttr(mainImageUrl);
+        /* Each tile: clip to hex, then show full zoomed image (only the clipped region is visible) */
+        parts.push(
+          '<g clip-path="url(#hcp' + idx + ')">',
+            '<g transform="scale(' + zoom + ') translate(' + (cx * (1 - 1/zoom) / zoom) + ',' + (cy * (1 - 1/zoom) / zoom) + ')">',
+              '<image href="' + safeUrl + '"',
+              ' x="' + vbX + '" y="' + vbY + '"',
+              ' width="' + vbW + '" height="' + vbH + '"',
+              ' preserveAspectRatio="xMidYMid slice"',
+              '/>',
+            '</g>',
+          '</g>'
+        );
+      });
+    }
+
+    /* Outlines and labels on top */
+    pixelPositions.forEach(function (pos, idx) {
+      var pts = hexPointsStr(pos.x, pos.y, HEX_W, HEX_H);
+      var tileCx = pos.x + HEX_W / 2;
+      var tileCy = pos.y + HEX_H / 2;
+      parts.push(
+        '<polygon points="' + pts + '" fill="none" stroke="rgba(255,255,255,0.72)" stroke-width="1.5"/>',
+        '<text x="' + tileCx + '" y="' + (tileCy + 5) + '"',
+        ' text-anchor="middle" dominant-baseline="middle"',
+        ' font-family="\'DM Mono\',monospace" font-size="14" fill="rgba(255,255,255,0.9)"',
+        ' style="text-shadow:0 1px 4px rgba(0,0,0,0.9)">',
+        (idx + 1),
+        '</text>'
+      );
+    });
+
+    parts.push('</svg>');
+    hexLayer.innerHTML = parts.join('');
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     ARRANGEMENT CARD  — hex grid with per-tile image crop
+
+     Each hex div has a clipped inner div.  The inner div contains
+     an <img> whose CSS positions it so the correct region is visible
+     through the hex clip.
+
+     The fix:
+       • Compute the full bounding box of the grid (bounds).
+       • For each tile at pixel position (pos.x, pos.y) relative to
+         bounds.minX/minY, the visible crop of the source image is
+         simply the rectangle starting at (pos.x, pos.y) within the
+         full grid canvas.
+       • We size the <img> to cover the full bounding box (zoomed),
+         then offset it by -(pos.x - bounds.minX) and -(pos.y - bounds.minY)
+         to bring the correct region into view.
+       • Zoom expands the image uniformly about the canvas centre so
+         tiles near the centre see a zoomed-in version, matching the
+         server-side render logic.
+     ══════════════════════════════════════════════════════════════ */
+
+  function renderHexGrid() {
+    ensurePanelArrays();
+    var wrap      = E.prev.hexPreview;
+    var mainImage = E.f.image.value.trim();
+    renderPixelHexGrid(wrap, mainImage);
+  }
+
+  function renderPixelHexGrid(wrap, mainImage) {
+    var pixelPositions = getPreviewPixelPositions();
+    var bounds = getPreviewBounds(pixelPositions);
+    wrap.innerHTML = '';
+    if (!pixelPositions.length) return;
+
+    var gridW = Math.round(Math.max(1, bounds.width));
+    var gridH = Math.round(Math.max(1, bounds.height));
+    var zoom  = clampNumber(E.f.mainZoom.value, 1, 2.5, 1);
+
+    /* The zoomed canvas dimensions (what the image renders at) */
+    var canvasW = Math.round(gridW * zoom);
+    var canvasH = Math.round(gridH * zoom);
+
+    /* Offset to centre the zoom (zoom happens about the canvas centre) */
+    var zoomOffX = Math.round((canvasW - gridW) / 2);
+    var zoomOffY = Math.round((canvasH - gridH) / 2);
+
+    wrap.style.position = 'relative';
+    wrap.style.display = 'block';
+    wrap.style.width = gridW + 'px';
+    wrap.style.height = gridH + 'px';
+    wrap.style.maxWidth = '';
+    wrap.style.margin = '0 auto';
+
+    pixelPositions.forEach(function (pos, idx) {
+      /* Tile's top-left relative to the bounds origin */
+      var tileLeft = Math.round(pos.x - bounds.minX);
+      var tileTop  = Math.round(pos.y - bounds.minY);
+
+      var hex = document.createElement('div');
+      hex.className = 'hex-cell-preview' + (idx === state.activePanel ? ' is-selected' : '');
+      hex.dataset.idx = idx;
+      hex.style.cssText = [
+        'position:absolute',
+        'left:' + tileLeft + 'px',
+        'top:' + tileTop + 'px',
+        'width:' + HEX_W + 'px',
+        'height:' + HEX_H + 'px',
+        'margin:0',
+        'overflow:visible'
+      ].join(';');
+
+      /* Inner clipped fill */
+      var inner = document.createElement('div');
+      inner.style.cssText = [
+        'position:absolute',
+        'inset:0',
+        'clip-path:' + HEX_CLIP,
+        'overflow:hidden'
+      ].join(';');
+
+      var individualUrl = getUsablePlateImage(state.panelImages, idx, mainImage);
+
+      if (individualUrl) {
+        /* Individual plate image: use transform-based fit/pan */
+        var t = normalisePanelTransform(state.panelTransforms[idx]);
+        var img = document.createElement('img');
+        img.src = individualUrl;
+        img.alt = '';
+        img.style.cssText = [
+          'position:absolute',
+          'inset:0',
+          'width:100%',
+          'height:100%',
+          'object-fit:' + t.fit,
+          'object-position:' + t.x + '% ' + t.y + '%',
+          'transform:scale(' + t.scale + ')',
+          'transform-origin:' + t.x + '% ' + t.y + '%',
+          'display:block',
+          'pointer-events:none',
+          'user-select:none'
+        ].join(';');
+        inner.appendChild(img);
+
+      } else if (mainImage) {
+        /*
+         * Main image crop:
+         *   - Image is sized to canvasW × canvasH (the full grid, zoomed)
+         *   - Offset so the tile's region is visible:
+         *       left = -(tileLeft * zoom + zoomOffX)
+         *       top  = -(tileTop  * zoom + zoomOffY)
+         *
+         *   This works because:
+         *     The zoomed image at (0,0) maps grid pixel (gx,gy) to canvas pixel
+         *     (gx*zoom + zoomOffX, gy*zoom + zoomOffY).
+         *     We want canvas pixel (tileLeft*zoom+zoomOffX, tileTop*zoom+zoomOffY)
+         *     to appear at (0,0) inside this tile's clip region.
+         *     So we offset the image by the negative of that.
+         */
+        var imgLeft = -(tileLeft * zoom + zoomOffX);
+        var imgTop  = -(tileTop  * zoom + zoomOffY);
+
+        var img = document.createElement('img');
+        img.src = mainImage;
+        img.alt = '';
+        img.style.cssText = [
+          'position:absolute',
+          'display:block',
+          'pointer-events:none',
+          'user-select:none',
+          'max-width:none',
+          'width:' + canvasW + 'px',
+          'height:' + canvasH + 'px',
+          'left:' + Math.round(imgLeft) + 'px',
+          'top:' + Math.round(imgTop) + 'px',
+          'object-fit:cover'
+        ].join(';');
+        inner.style.background = '#050505';
+        inner.appendChild(img);
+
+      } else {
+        /* No image — show a neutral fill */
+        inner.style.background = '#2a2825';
+      }
+
+      /* Number label */
+      var label = document.createElement('span');
+      label.className = 'hex-label-preview';
+      label.textContent = idx + 1;
+
+      hex.appendChild(inner);
+      hex.appendChild(label);
+      hex.addEventListener('click', function () { selectPanel(idx); });
+      bindDraggableHex(hex, idx, pixelPositions, bounds);
+      wrap.appendChild(hex);
+    });
+  }
+
+  /* ─── Pixel coordinates for the arrangement preview ─── */
+
+  function getPreviewPixelPositions() {
+    ensurePanelArrays();
+    return state.panelPositions.map(function (pos) {
+      return gridToPreviewPixel(parseInt(pos.row, 10) || 0, parseInt(pos.col, 10) || 0);
+    });
+  }
+
+  function gridToPreviewPixel(row, col) {
+    return {
+      x: col * COL_PITCH + (row % 2 !== 0 ? ODD_OFFSET : 0),
+      y: row * ROW_PITCH
+    };
+  }
+
+  function getPreviewBounds(positions) {
+    if (!positions.length) return { minX: 0, minY: 0, width: HEX_W, height: HEX_H };
+    var minX = Math.min.apply(null, positions.map(function (p) { return p.x; }));
+    var minY = Math.min.apply(null, positions.map(function (p) { return p.y; }));
+    var maxX = Math.max.apply(null, positions.map(function (p) { return p.x + HEX_W; }));
+    var maxY = Math.max.apply(null, positions.map(function (p) { return p.y + HEX_H; }));
+    return { minX: minX, minY: minY, width: maxX - minX, height: maxY - minY };
+  }
+
+  /* ─── Draggable hex in arrangement card ─── */
+
+  function bindDraggableHex(hex, idx, pixelPositions, bounds) {
+    hex.addEventListener('pointerdown', function (event) {
+      if (event.button !== undefined && event.button !== 0) return;
+      event.preventDefault();
+      selectPanel(idx, true);
+
+      var startX   = event.clientX;
+      var startY   = event.clientY;
+      var startPos = pixelPositions[idx] || gridToPreviewPixel(0, idx);
+      var snapped  = state.panelPositions[idx] || { row: 0, col: idx };
+      var moved    = false;
+      hex.classList.add('is-dragging');
+      hex.setPointerCapture(event.pointerId);
+
+      function move(e) {
+        var target = { x: startPos.x + e.clientX - startX, y: startPos.y + e.clientY - startY };
+        snapped = nearestFreeGridPosition(target.x, target.y, idx);
+        var preview = gridToPreviewPixel(snapped.row, snapped.col);
+        hex.style.left = Math.round(preview.x - bounds.minX) + 'px';
+        hex.style.top  = Math.round(preview.y - bounds.minY) + 'px';
+        moved = true;
+      }
+
+      function up() {
+        hex.classList.remove('is-dragging');
+        hex.removeEventListener('pointermove', move);
+        hex.removeEventListener('pointerup', up);
+        hex.removeEventListener('pointercancel', up);
+        if (moved) {
+          state.panelPositions[idx] = snapped;
+          rebuildPanelEditors();
+        }
+      }
+
+      hex.addEventListener('pointermove', move);
+      hex.addEventListener('pointerup', up);
+      hex.addEventListener('pointercancel', up);
+    });
+  }
+
+  function nearestFreeGridPosition(x, y, ignoreIdx) {
+    var maxRow = 0, maxCol = 0;
+    state.panelPositions.forEach(function (pos) {
+      maxRow = Math.max(maxRow, parseInt(pos.row, 10) || 0);
+      maxCol = Math.max(maxCol, parseInt(pos.col, 10) || 0);
+    });
+    var best = null;
+    for (var r = 0; r <= maxRow + 5; r++) {
+      for (var c = 0; c <= maxCol + 5; c++) {
+        if (isGridOccupied(r, c, ignoreIdx)) continue;
+        var px = gridToPreviewPixel(r, c);
+        var dist = Math.pow(px.x - x, 2) + Math.pow(px.y - y, 2);
+        if (!best || dist < best.distance) best = { row: r, col: c, distance: dist };
+      }
+    }
+    return best ? { row: best.row, col: best.col } : { row: 0, col: 0 };
+  }
+
+  function isGridOccupied(row, col, ignoreIdx) {
+    return state.panelPositions.some(function (pos, idx) {
+      return idx !== ignoreIdx && (parseInt(pos.row, 10) || 0) === row && (parseInt(pos.col, 10) || 0) === col;
+    });
+  }
+
+  /* ─── Plate selection & customizer ─── */
+
+  function selectPanel(idx, skipRender) {
+    ensurePanelArrays();
+    state.activePanel = Math.max(0, Math.min(state.panelPositions.length - 1, parseInt(idx, 10) || 0));
+    if (!skipRender) renderPreview();
+    else syncPlateCustomizer();
+  }
+
+  function updateActivePanelTransform(patch) {
+    ensurePanelArrays();
+    var idx = Math.max(0, Math.min(state.panelTransforms.length - 1, state.activePanel || 0));
+    var current = normalisePanelTransform(state.panelTransforms[idx]);
+    Object.keys(patch || {}).forEach(function (key) { current[key] = patch[key]; });
+    state.panelTransforms[idx] = normalisePanelTransform(current);
+    renderPreview();
+  }
+
+  function syncPlateCustomizer() {
+    if (!E.prev.customFit) return;
+    ensurePanelArrays();
+    var idx = Math.max(0, Math.min(state.panelPositions.length - 1, state.activePanel || 0));
+    state.activePanel = idx;
+    var transform = normalisePanelTransform(state.panelTransforms[idx]);
+    var pos = state.panelPositions[idx] || { row: 0, col: 0 };
+    var name = state.panelNames[idx] || ('Plate ' + (idx + 1));
+    E.prev.customTitle.textContent = name;
+    E.prev.customCoords.textContent = 'Row ' + (parseInt(pos.row, 10) || 0) + ' / Col ' + (parseInt(pos.col, 10) || 0);
+    E.prev.customFit.value   = transform.fit;
+    E.prev.customZoom.value  = transform.scale;
+    E.prev.customX.value     = transform.x;
+    E.prev.customY.value     = transform.y;
+  }
+
+  /* ─── Utilities ─── */
+
+  function defaultPanelTransform() {
+    return { fit: 'contain', scale: 1, x: 50, y: 50 };
+  }
+
+  function normalisePanelTransform(value) {
+    value = value && typeof value === 'object' ? value : {};
+    return {
+      fit:   value.fit === 'cover' ? 'cover' : 'contain',
+      scale: clampNumber(value.scale != null ? value.scale : value.zoom, 0.2, 3, 1),
+      x:     clampNumber(value.x != null ? value.x : value.positionX, 0, 100, 50),
+      y:     clampNumber(value.y != null ? value.y : value.positionY, 0, 100, 50)
+    };
+  }
+
+  function clampNumber(value, min, max, fallback) {
+    var n = parseFloat(value);
+    return Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : fallback;
+  }
+
+  function getUsablePlateImage(plateImages, idx, mainImage) {
+    var image = (plateImages[idx] || '').trim();
+    if (!image || sameImageUrl(image, mainImage)) return '';
+    return image;
+  }
+
+  function sameImageUrl(a, b) {
+    if (!a || !b) return false;
+    return normaliseImageUrl(a) === normaliseImageUrl(b);
+  }
+
+  function normaliseImageUrl(value) {
+    var raw = String(value || '').trim();
+    try {
+      var url = new URL(raw, window.location.origin);
+      return (url.origin + url.pathname).replace(/\/+$/, '').toLowerCase();
+    } catch (err) {
+      return raw.split(/[?#]/)[0].replace(/\/+$/, '').toLowerCase();
+    }
+  }
+
+  /*
+   * hexPointsStr(x, y, w, h)
+   * Returns SVG polygon points string for a flat-top hex with
+   * top-left corner at (x, y) and size w×h.
+   * Vertex order: top-centre, top-right, bottom-right, bottom-centre, bottom-left, top-left
+   */
+  function hexPointsStr(x, y, w, h) {
+    return [
+      (x + w * 0.5) + ',' + y,
+      (x + w)       + ',' + (y + h * 0.25),
+      (x + w)       + ',' + (y + h * 0.75),
+      (x + w * 0.5) + ',' + (y + h),
+      x             + ',' + (y + h * 0.75),
+      x             + ',' + (y + h * 0.25)
+    ].join(' ');
+  }
+
+  function escapeSvgAttr(value) {
+    return String(value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  function escapeHtml(value) {
+    return String(value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  /* ─── Bundle helpers ─── */
+
+  function updateBundlePanel() {
+    if (!E.bundlePanel) return;
+    var show = !!(E.f && E.f.isBundle && E.f.isBundle.checked);
+    E.bundlePanel.style.display = show ? '' : 'none';
+    if (show && E.f.bundlePrice && !E.f.bundlePrice.value) {
+      E.f.bundlePrice.value = E.f.price.value || '';
+    }
+    if (E.bundleBuilder) E.bundleBuilder.style.display = show ? '' : 'none';
+    if (show) renderBundleBuilder();
+  }
+
+  function splitBundleItems(value) {
+    return String(value || '').split(/[\n,]+/).map(function (item) { return item.trim(); }).filter(Boolean);
+  }
+
+  function getBundleItems() {
+    if (!E.f || !E.f.bundleItems) return [];
+    return splitBundleItems(E.f.bundleItems.value);
+  }
+
+  function setBundleItems(items) {
+    if (!E.f || !E.f.bundleItems) return;
+    var next = (Array.isArray(items) ? items : []).map(function (x) { return String(x || '').trim(); }).filter(Boolean);
+    E.f.bundleItems.value = next.join('\n');
+    renderBundleBuilder();
+    renderPreview();
+  }
+
+  function findCatalogueProduct(slug) {
+    var target = String(slug || '').trim();
+    if (!target) return null;
+    for (var i = 0; i < state.products.length; i++) {
+      var p = state.products[i];
+      if (!p) continue;
+      if (String(p.slug || p.id || '') === target) return p;
+    }
+    return null;
+  }
+
+  function renderBundleBuilder() {
+    if (!E.bundleBuilder || !E.f || !E.f.isBundle) return;
+    if (!E.f.isBundle.checked) return;
+
+    var query = (E.bundleLibrarySearch && E.bundleLibrarySearch.value ? E.bundleLibrarySearch.value : '')
+      .trim().toLowerCase();
+
+    var candidates = state.products
+      .filter(function (p) { return p && !(p.isBundle || p.recordType === 'bundle'); })
+      .filter(function (p) { return !!(p.slug || p.id); })
+      .filter(function (p) {
+        if (!query) return true;
+        var name = String(p.name || '').toLowerCase();
+        var slug = String(p.slug || p.id || '').toLowerCase();
+        var cat  = String(p.category || '').toLowerCase();
+        return name.indexOf(query) >= 0 || slug.indexOf(query) >= 0 || cat.indexOf(query) >= 0;
+      });
+
+    if (E.bundleLibraryList) {
+      E.bundleLibraryList.innerHTML = candidates.length
+        ? candidates.map(function (p) {
+            var key  = String(p.slug || p.id || '');
+            var type = p.isCollection ? 'Collection' : 'Series';
+            var thumb = p.image ? '<img src="' + escapeHtml(p.image) + '" alt="">' : '<div class="bundle-lib-thumb-empty"></div>';
+            return '<div class="bundle-lib-item" draggable="true" data-slug="' + escapeHtml(key) + '">' +
+              '<div class="bundle-lib-thumb">' + thumb + '</div>' +
+              '<div class="bundle-lib-meta">' +
+                '<div class="bundle-lib-name">' + escapeHtml(p.name || key) + '</div>' +
+                '<div class="bundle-lib-sub">' +
+                  '<span class="bundle-lib-tag">' + escapeHtml(type) + '</span>' +
+                  '<span class="bundle-lib-slug">' + escapeHtml(key) + '</span>' +
+                '</div>' +
+              '</div>' +
+            '</div>';
+          }).join('')
+        : '<div class="bundle-empty">No matching products.</div>';
+    }
+
+    var items = getBundleItems();
+    if (E.bundleDropHint) E.bundleDropHint.style.display = items.length ? 'none' : '';
+
+    if (E.bundleDropList) {
+      E.bundleDropList.innerHTML = items.length
+        ? items.map(function (slug, idx) {
+            var p     = findCatalogueProduct(slug);
+            var label = (p && p.name) ? p.name : slug;
+            var thumb = (p && p.image)
+              ? '<img src="' + escapeHtml(p.image) + '" alt="">'
+              : '<div class="bundle-drop-thumb-empty"></div>';
+            return '<div class="bundle-drop-item" draggable="true" data-slug="' + escapeHtml(slug) + '" data-idx="' + idx + '">' +
+              '<div class="bundle-drop-handle" aria-hidden="true">⋮⋮</div>' +
+              '<div class="bundle-drop-thumb">' + thumb + '</div>' +
+              '<div class="bundle-drop-meta">' +
+                '<div class="bundle-drop-name">' + escapeHtml(label) + '</div>' +
+                '<div class="bundle-drop-slug">' + escapeHtml(slug) + '</div>' +
+              '</div>' +
+              '<button class="bundle-drop-remove" type="button" data-slug="' + escapeHtml(slug) + '" aria-label="Remove">&times;</button>' +
+            '</div>';
+          }).join('')
+        : '';
+    }
+  }
+
+  function parseDragPayload(e) {
+    var raw = (e && e.dataTransfer && e.dataTransfer.getData) ? e.dataTransfer.getData('text/plain') : '';
+    if (!raw) return null;
+    try {
+      var parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object') return parsed;
+    } catch (err) {}
+    return { slug: raw, from: 'library' };
+  }
+
+  function applyBundleDrop(e) {
+    var payload = parseDragPayload(e);
+    if (!payload || !payload.slug) return;
+
+    var items = getBundleItems();
+    var slug  = String(payload.slug || '').trim();
+    if (!slug) return;
+
+    var targetItem = e.target && e.target.closest ? e.target.closest('.bundle-drop-item') : null;
+    var dropIndex  = targetItem ? parseInt(targetItem.getAttribute('data-idx') || '', 10) : items.length;
+    if (!Number.isFinite(dropIndex) || dropIndex < 0) dropIndex = items.length;
+
+    if (payload.from === 'bundle' && Number.isFinite(payload.index)) {
+      var fromIndex = payload.index;
+      if (fromIndex >= 0 && fromIndex < items.length) {
+        var moved = items.splice(fromIndex, 1)[0];
+        if (fromIndex < dropIndex) dropIndex -= 1;
+        slug = moved || slug;
+      }
+    } else {
+      var existingIndex = items.indexOf(slug);
+      if (existingIndex >= 0) {
+        items.splice(existingIndex, 1);
+        if (existingIndex < dropIndex) dropIndex -= 1;
+      }
+    }
+
+    items.splice(Math.min(dropIndex, items.length), 0, slug);
+    setBundleItems(items);
+  }
+
+  /* ─── Save / Sync ─── */
+
+  function buildPayload() {
+    ensurePanelArrays();
+    syncPriceLabel();
+    var pieces    = Math.max(1, parseInt(E.f.pieces.value, 10) || 1);
+    var unitPrice = parseFloat(E.f.unitPrice.value || 0);
+    var setPrice  = parseFloat(E.f.price.value || 0);
+    var plateMap  = {
+      version: 2,
+      geometry: 'pointy_hex',
+      positions: state.panelPositions.map(function (p) {
+        return { row: parseInt(p.row,10)||0, col: parseInt(p.col,10)||0 };
+      }),
+      transforms: state.panelTransforms.map(normalisePanelTransform),
+      mockup: {}
+    };
+    var slug        = E.f.slug.value.trim() || slugify(E.f.name.value);
+    var name        = E.f.name.value.trim();
+    var isBundle    = E.f.isBundle.checked;
+    var bundleItems = splitBundleItems(E.f.bundleItems.value);
+    var bundleText  = E.f.bundleText.value.trim() || E.f.short.value.trim();
+    var bundlePrice = (E.f.bundlePrice.value || E.f.price.value || '').trim();
+    return {
+      slug, name,
+      category:     E.f.category.value.trim(),
+      price:        setPrice,
+      price_label:  E.f.priceLabel.value.trim(),
+      plate_count:  pieces,
+      plate_unit_price: unitPrice,
+      plate_set_price: setPrice,
+      short:        E.f.short.value.trim(),
+      description:  E.f.description.value.trim(),
+      note:         E.f.note.value.trim(),
+      accent:       E.f.accent.value.trim(),
+      size:         E.f.size.value.trim(),
+      material:     E.f.material.value.trim(),
+      pieces,
+      panel_hint:   E.f.panelHint.value.trim(),
+      image:        E.f.image.value.trim(),
+      main_zoom:    clampNumber(E.f.mainZoom.value, 1, 2.5, 1),
+      wall_image:   E.f.wallImage.value.trim(),
+      is_collection: E.f.isCollection.checked,
+      isBundle,
+      is_published: E.f.isPublished.checked,
+      plate_names:  state.panelNames.slice(),
+      plate_images: state.panelImages.slice(),
+      plate_map:    plateMap,
+      panel_names:  state.panelNames.slice(),
+      panel_images: state.panelImages.slice(),
+      panel_map:    plateMap,
+      bundleItems, bundleText, bundlePrice,
+      bundle_items: bundleItems,
+      bundle_text:  bundleText,
+      bundle_price: bundlePrice,
+      bundle: { slug, name, price: bundlePrice, items: bundleItems, text: bundleText }
+    };
+  }
+
+  function saveProduct() {
+    if (state.isSaving) { setStatus('Save already in progress', 'saving'); return; }
+    var payload = buildPayload();
+    if (!payload.name || !payload.slug) { setStatus('Name and slug are required', 'error'); return; }
+    state.isSaving = true;
+    setStatus('Saving...', 'saving');
+    requestJson('/.netlify/functions/save-product', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-password': getAdminPassword() },
+      body: JSON.stringify(payload)
+    })
+    .then(function (body) {
+      if (!body || body.ok !== true) {
+        throw new Error((body && (body.error || body.message)) || 'Save was not confirmed by the server');
+      }
+      upsertProduct(payload);
+      populateSelect();
+      state.currentId = payload.slug;
+      E.productSel.value = state.currentId;
+      loadProduct(payload.slug);
+      setStatus('Saved', 'success');
+      return loadProductCatalogue()
+        .then(function (result) {
+          if (result.stale) return;
+          upsertProduct(payload);
+          populateSelect();
+          if (state.currentId) E.productSel.value = state.currentId;
+        })
+        .catch(function () {});
+    })
+    .then(function () { state.isSaving = false; },
+          function (err) {
+            state.isSaving = false;
+            setStatus((err && err.message) || 'Save failed', 'error');
+          });
+  }
+
+  function syncProduct() {
+    var payload  = buildPayload();
+    var products = state.products
+      .filter(function (p) { return !(p.isBundle || p.recordType === 'bundle'); })
+      .map(ensureProductHasPlateMap);
+    var found = false;
+    products = products.map(function (p) {
+      if (productKey(p) === payload.slug) { found = true; return payload; }
+      return p;
+    });
+    if (!found && !payload.isBundle) products.push(payload);
+
+    setStatus('Syncing catalogue maps...', 'saving');
+    fetch('/.netlify/functions/sync-catalogue', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-password': getAdminPassword() },
+      body: JSON.stringify({ password: getAdminPassword(), products: products, preserveMissing: true })
+    })
+    .then(function (r) { return parseJsonResponse(r).then(function (body) { if (!r.ok) throw makeRequestError(r, body); return body; }); })
+    .then(function () { setStatus('Catalogue maps synced', 'success'); return loadProductCatalogue(); })
+    .catch(function (err) { setStatus((err && err.message) || 'Sync failed', 'error'); });
+  }
+
+  function exportPlatePNGs() {
+    var payload = buildPayload();
+    if (!payload.slug || !payload.name) { setStatus('Name and slug are required before export', 'error'); return; }
+    if (!payload.image && !payload.plate_images.some(function (url) { return String(url || '').trim(); })) {
+      setStatus('Add a main image or individual plate images before export', 'error');
+      return;
+    }
+    if (E.exportResults) E.exportResults.innerHTML = '<p>Exporting plate PNGs...</p>';
+    setStatus('Exporting plate PNGs...', 'saving');
+    requestJson('/.netlify/functions/export-plates', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-password': getAdminPassword() },
+      body: JSON.stringify({ password: getAdminPassword(), product: payload })
+    })
+    .then(function (body) {
+      if (!body || body.ok !== true) throw new Error((body && (body.error || body.message)) || 'Export failed');
+      renderExportResults(body);
+      setStatus('Exported ' + ((body.files || []).length) + ' plate PNGs', 'success');
+    })
+    .catch(function (err) {
+      if (E.exportResults) E.exportResults.innerHTML = '<p class="export-error">' + escapeHtml((err && err.message) || 'Export failed') + '</p>';
+      setStatus((err && err.message) || 'Export failed', 'error');
+    });
+  }
+
+  function renderExportResults(data) {
+    if (!E.exportResults) return;
+    var files = Array.isArray(data.files) ? data.files : [];
+    if (!files.length) { E.exportResults.innerHTML = '<p>No PNG files returned.</p>'; return; }
+    var dims = data.dimensions || {};
+    E.exportResults.innerHTML =
+      '<p>Frame-safe transparent PNGs: ' +
+        (dims.exportedWidth || '?') + ' x ' + (dims.exportedHeight || '?') +
+        ' px, 5 mm frame inset.</p>' +
+      '<div class="export-file-list">' +
+        files.map(function (file) {
+          return '<div class="export-file-item">' +
+            escapeHtml(file.filename || ('Plate ' + ((file.index || 0) + 1))) +
+          '</div>';
+        }).join('') +
+      '</div>' +
+      '<p class="export-note">Downloading all PNGs…</p>';
+    downloadAllExportFiles(files);
+  }
+
+  function downloadAllExportFiles(files) {
+    if (!Array.isArray(files) || !files.length) return;
+    var i = 0;
+    function next() {
+      if (i >= files.length) return;
+      var file = files[i++];
+      downloadExportFile(file && file.url, file && file.filename);
+      setTimeout(next, 250);
+    }
+    next();
+  }
+
+  function downloadExportFile(url, filename) {
+    var safeUrl = String(url || '').trim();
+    if (!safeUrl) return;
+    var name = String(filename || '').trim();
+    fetch(safeUrl, { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error('Download failed'); return r.blob(); })
+      .then(function (blob) {
+        var objUrl = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = objUrl; a.download = name || ''; a.rel = 'noopener'; a.style.display = 'none';
+        document.body.appendChild(a); a.click();
+        setTimeout(function () { URL.revokeObjectURL(objUrl); a.remove(); }, 2000);
+      })
+      .catch(function () {
+        var a = document.createElement('a');
+        a.href = safeUrl; a.download = name || ''; a.rel = 'noopener'; a.style.display = 'none';
+        document.body.appendChild(a); a.click();
+        setTimeout(function () { a.remove(); }, 50);
+      });
+  }
+
+  function ensureProductHasPlateMap(product) {
+    var copy = {};
+    Object.keys(product || {}).forEach(function (key) { copy[key] = product[key]; });
+    var count = Math.max(1, parseInt(copy.plateCount || copy.plate_count || copy.pieces, 10) || 1);
+    var map = copy.plateMap || copy.plate_map || copy.panelMap || copy.panel_map || {};
+    var hasPositions = map && Array.isArray(map.positions) && map.positions.length > 0;
+    if (!hasPositions) {
+      map = { version: 2, geometry: 'pointy_hex', positions: autoLayout(count), transforms: [], mockup: {} };
+    }
+    copy.plateMap = map; copy.panelMap = map; copy.plate_map = map; copy.panel_map = map;
+    return copy;
+  }
+
+  /* ─── Request helpers ─── */
+
+  function getAdminPassword() { return sessionStorage.getItem('admin_pw') || ''; }
+
+  function requestJson(url, options) {
+    return fetch(url, options || {}).then(function (response) {
+      return parseJsonResponse(response).then(function (body) {
+        if (!response.ok) throw makeRequestError(response, body);
+        return body;
+      }, function (parseErr) {
+        if (!response.ok) throw makeRequestError(response, null);
+        throw parseErr;
+      });
+    });
+  }
+
+  function parseJsonResponse(response) {
+    return response.text().then(function (text) {
+      if (!text) return null;
+      try { return JSON.parse(text); }
+      catch (err) { throw new Error('Invalid JSON response from server'); }
+    });
+  }
+
+  function makeRequestError(response, body) {
+    var message = body && (body.error || body.message);
+    if (!message) message = 'Request failed (' + response.status + ' ' + (response.statusText || 'Error') + ')';
+    var err = new Error(message);
+    err.status = response.status; err.body = body;
+    return err;
+  }
+
+  /* ─── Product data helpers ─── */
+
+  function normaliseProductPayload(product) {
+    product = product || {};
+    var normalised = {};
+    Object.keys(product).forEach(function (key) { normalised[key] = product[key]; });
+
+    var plateCount   = parseInt(withDefault(readField(product, ['plateCount','plate_count','pieces']), 1), 10) || 1;
+    var plateNames   = readBestArray(product, ['plateNames','plate_names','panelNames','panel_names']);
+    var plateImages  = readBestArray(product, ['plateImages','plate_images','panelImages','panel_images']);
+    var plateMap     = readBestMap(product, ['plateMap','plate_map','panelMap','panel_map']);
+    if (!plateMap || typeof plateMap !== 'object') plateMap = {};
+    var isBundle     = !!withDefault(readField(product, ['isBundle','is_bundle']), false);
+    var bundleItems  = arrayCopy(readField(product, ['bundleItems','itemSlugs','items']));
+    bundleItems = bundleItems.map(function (item) {
+      return typeof item === 'string' ? item : (item && (item.slug || item.id || item.label || item.name)) || '';
+    }).filter(Boolean);
+
+    normalised.id            = readField(product, ['id']);
+    normalised.slug          = withDefault(readField(product, ['slug']), '');
+    normalised.name          = withDefault(readField(product, ['name']), '');
+    normalised.category      = withDefault(readField(product, ['category']), '');
+    normalised.price         = withDefault(readField(product, ['price','plateSetPrice','plate_set_price']), '');
+    normalised.priceLabel    = withDefault(readField(product, ['priceLabel','price_label']), '');
+    normalised.short         = withDefault(readField(product, ['short']), '');
+    normalised.description   = withDefault(readField(product, ['description']), '');
+    normalised.note          = withDefault(readField(product, ['note']), '');
+    normalised.accent        = withDefault(readField(product, ['accent']), '');
+    normalised.size          = withDefault(readField(product, ['size']), '');
+    normalised.material      = withDefault(readField(product, ['material']), '');
+    normalised.pieces        = plateCount;
+    normalised.plateCount    = plateCount;
+    normalised.plateUnitPrice = withDefault(readField(product, ['plateUnitPrice','plate_unit_price']), '');
+    normalised.plateSetPrice = withDefault(readField(product, ['plateSetPrice','plate_set_price','price']), '');
+    normalised.panelHint     = withDefault(readField(product, ['panelHint','panel_hint']), '');
+    normalised.image         = withDefault(readField(product, ['image']), '');
+    normalised.mainZoom      = withDefault(readField(product, ['mainZoom','main_zoom']), 1);
+    normalised.wallImage     = withDefault(readField(product, ['wallImage','wall_image']), '');
+    normalised.wallSourceImage = withDefault(readField(product, ['wallSourceImage','wall_source_image']), '');
+    normalised.isCollection  = !!withDefault(readField(product, ['isCollection','is_collection']), false);
+    normalised.isBundle      = isBundle;
+    normalised.isPublished   = withDefault(readField(product, ['isPublished','is_published']), true) !== false;
+    normalised.plateNames    = plateNames;
+    normalised.plateImages   = plateImages;
+    normalised.plateMap      = plateMap;
+    normalised.bundlePrice   = withDefault(readField(product, ['bundlePrice','price']), '');
+    normalised.bundleItems   = bundleItems;
+    normalised.bundleText    = withDefault(readField(product, ['bundleText','text','short','description']), '');
+    normalised.panelNames    = plateNames;
+    normalised.panelImages   = plateImages;
+    normalised.panelMap      = plateMap;
+    return normalised;
+  }
+
+  function readField(source, keys) {
+    for (var i = 0; i < keys.length; i++) {
+      if (Object.prototype.hasOwnProperty.call(source, keys[i]) && source[keys[i]] !== undefined && source[keys[i]] !== null) {
+        return source[keys[i]];
+      }
+    }
+    return undefined;
+  }
+
+  function readBestArray(source, keys) {
+    var arrays = [];
+    keys.forEach(function (key) {
+      if (!source || !Object.prototype.hasOwnProperty.call(source, key)) return;
+      var arr = arrayFromField(source[key]);
+      if (arr.length) arrays.push(arr);
+    });
+    return (arrays.find(function (arr) {
+      return arr.some(function (value) { return value !== undefined && value !== null && String(value).trim() !== ''; });
+    }) || arrays[0] || []).slice();
+  }
+
+  function arrayFromField(value) {
+    if (Array.isArray(value)) return value;
+    if (value && typeof value === 'object') {
+      if (Array.isArray(value.images)) return value.images;
+      if (Array.isArray(value.items)) return value.items;
+      return Object.keys(value).sort(function (a, b) { return (parseInt(a,10)||0)-(parseInt(b,10)||0); }).map(function (k) { return value[k]; });
+    }
+    return [];
+  }
+
+  function readBestMap(source, keys) {
+    var maps = [];
+    keys.forEach(function (key) {
+      var map = source && source[key];
+      if (map && typeof map === 'object' && !Array.isArray(map) && Array.isArray(map.positions)) maps.push(map);
+    });
+    return maps.find(function (map) { return map.positions.length > 0; }) || maps[0] || {};
+  }
+
+  function withDefault(value, fallback) { return value === undefined || value === null ? fallback : value; }
+  function arrayCopy(value) { return Array.isArray(value) ? value.slice() : []; }
+  function productKey(product) { var key = product && (product.slug || product.id); return key === undefined || key === null ? '' : String(key); }
+
+  function findProduct(id) {
+    var target = id === undefined || id === null ? '' : String(id);
+    for (var i = 0; i < state.products.length; i++) {
+      if (productKey(state.products[i]) === target) return state.products[i];
+    }
+    return null;
+  }
+
+  function upsertProduct(product) {
+    var normalised = normaliseProductPayload(product);
+    var key = productKey(normalised);
+    if (!key) return null;
+    for (var i = 0; i < state.products.length; i++) {
+      if (productKey(state.products[i]) === key) { state.products[i] = normalised; return normalised; }
+    }
+    state.products.unshift(normalised);
+    return normalised;
+  }
+
+  function slugify(v) {
+    return (v || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  }
+
+  function setStatus(text, mode) {
+    E.statusText.textContent = text;
+    E.statusDot.className = 'status-dot' + (mode ? ' is-' + mode : '');
+  }
+
+})();
+</script>
+</body>
+</html>atalogue editor.</p>
     <label class="field-label" for="auth-pw">Password</label>
     <input id="auth-pw" class="field" type="password" placeholder="Team password" autocomplete="current-password">
     <p class="auth-error" id="auth-err">Incorrect password.</p>
