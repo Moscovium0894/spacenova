@@ -19,7 +19,6 @@ const PRODUCT_SELECT = [
   'wall_image',
   'wall_source_image',
   'is_collection',
-  'is_bundle',
   'is_published',
   'in_stock',
   'deleted_at',
