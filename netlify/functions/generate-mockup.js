@@ -446,8 +446,11 @@ async function createIndividualPlateSlice(sourceBuffer, innerW, innerH, innerMas
   const positionX = transform.x / 100;
   const positionY = transform.y / 100;
 
-  let overlay = await sharp(sourceBuffer)
-    .rotate()
+  let overlaySharp = sharp(sourceBuffer).rotate();
+  if (transform.rotate) {
+    overlaySharp = overlaySharp.rotate(transform.rotate, { background: { r: 5, g: 5, b: 5, alpha: 1 } });
+  }
+  let overlay = await overlaySharp
     .resize(resizedW, resizedH, { fit: 'fill', withoutEnlargement: false })
     .png()
     .toBuffer();
@@ -499,7 +502,9 @@ function getPlateTransforms(product, count) {
 }
 
 function getMainZoom(product) {
-  return clampNumber(product && (product.main_zoom ?? product.mainZoom), 1, 2.5, 1);
+  const map = product && (product.plate_map || product.plateMap || product.panel_map || product.panelMap);
+  const mapZoom = map && map.mockup && (map.mockup.mainZoom ?? map.mockup.main_zoom);
+  return clampNumber(product && (product.main_zoom ?? product.mainZoom ?? mapZoom), 1, 2.5, 1);
 }
 
 function getIndividualPlateImage(value, mainImageUrl) {
@@ -514,7 +519,8 @@ function normaliseTransform(transform) {
     fit: item.fit === 'cover' ? 'cover' : 'contain',
     x: clampNumber(item.x ?? item.positionX, 0, 100, 50),
     y: clampNumber(item.y ?? item.positionY, 0, 100, 50),
-    scale: clampNumber(item.scale ?? item.zoom, 0.2, 3, 1)
+    scale: clampNumber(item.scale ?? item.zoom, 0.2, 10, 1),
+    rotate: clampNumber(item.rotate ?? item.rotation, -180, 180, 0)
   };
 }
 
