@@ -122,6 +122,12 @@ button { font-family: inherit; }
 }
 .nav-link:hover { background: rgba(0,0,0,.05); color: #111; }
 .nav-link.active { color: #111; background: rgba(0,0,0,.06); }
+.nav-link.nav-cta {
+  color: #fff;
+  background: #111;
+  box-shadow: 0 8px 22px rgba(0,0,0,.18);
+}
+.nav-link.nav-cta:hover { background: #000; color: #fff; }
 
 .nav-spacer { flex: 1 1 auto; min-width: 0; }
 
@@ -1583,6 +1589,13 @@ body.panel-open { overflow: hidden; }
   line-height: 1.04;
   letter-spacing: -.02em;
   color: #111;
+}
+.inner-hero-actions {
+  margin-top: 18px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 /* ── Show burger on mobile breakpoint ── */

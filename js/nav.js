@@ -8,6 +8,47 @@
 
   var nav = document.getElementById('main-nav');
   if (nav) {
+    // Ensure "Create your own set" entry exists across pages without duplicating HTML in every file.
+    (function ensureCreateYourOwnLink() {
+      var href = '/create.html';
+      try {
+        var navLinks = nav.querySelector('.nav-links');
+        if (navLinks && !navLinks.querySelector('a[href="' + href + '"]')) {
+          var link = document.createElement('a');
+          link.className = 'nav-link nav-cta';
+          link.href = href;
+          link.textContent = 'Create your own set';
+
+          var shopLink = navLinks.querySelector('a[href="/shop.html"]');
+          if (shopLink && shopLink.nextSibling) {
+            navLinks.insertBefore(link, shopLink.nextSibling);
+          } else {
+            navLinks.appendChild(link);
+          }
+        }
+
+        var mobilePanel = document.getElementById('mobile-panel');
+        if (mobilePanel && !mobilePanel.querySelector('a[href="' + href + '"]')) {
+          var mpBody = mobilePanel.querySelector('.mp-body');
+          if (mpBody) {
+            var mpLink = document.createElement('a');
+            mpLink.className = 'mp-item';
+            mpLink.href = href;
+            mpLink.textContent = 'Create your own set';
+
+            var mpShop = mpBody.querySelector('a[href="/shop.html"]');
+            if (mpShop && mpShop.nextSibling) {
+              mpBody.insertBefore(mpLink, mpShop.nextSibling);
+            } else {
+              mpBody.insertBefore(mpLink, mpBody.firstChild);
+            }
+          }
+        }
+      } catch (e) {
+        // Non-fatal: keep nav usable even if markup differs on a page.
+      }
+    })();
+
     var onScroll = function() {
       if (window.scrollY > 40) {
         nav.classList.add('nav-scrolled');

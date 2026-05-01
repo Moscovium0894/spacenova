@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Create your own Spacenova hexagon set from your own images. Export a set file to make it real in the creator.">
+  <meta name="theme-color" content="#ffffff">
+  <title>Create Your Own Set — SPACENOVA</title>
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="512x512" href="/Spacenovafavicon.png">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/Spacenovafavicon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/checkout-layout.css">
+  <link rel="stylesheet" href="/css/consumer-creator.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.amplitude.com/script/f0c226ac70c239db75e483dbcb0c72ec.js"></script>
+  <script src="https://cdn.amplitude.com/script/f0c226ac70c239db75e483dbcb0c72ec.engagement.js"></script>
+  <script src="/js/amplitude-init.js"></script>
+</head>
+<body class="page-inner">
+<a class="skip-link" href="#main-content">Skip to main content</a>
+
+<nav id="main-nav">
+  <div class="nav-inner">
+    <a class="nav-logo" href="/"><img class="nav-logo-img" src="/spacenovalogocropped.png" alt="Spacenova"><div class="nav-logo-mark"></div></a>
+    <div class="nav-links">
+      <a class="nav-link" href="/shop.html">Shop</a>
+      <a class="nav-link" href="/about.html">About</a>
+      <div class="nav-more-wrap" id="nav-more-wrap">
+        <button class="nav-link nav-more-btn" id="nav-more-btn" aria-haspopup="true" aria-expanded="false">More <span class="nav-chevron">&#9662;</span></button>
+        <div class="nav-dropdown" id="nav-dropdown" role="menu">
+          <div class="ndd-section">Help</div>
+          <a class="ndd-item" href="/contact.html" role="menuitem">Contact Us</a>
+          <a class="ndd-item" href="/shipping.html" role="menuitem">Shipping</a>
+          <a class="ndd-item" href="/returns.html" role="menuitem">Returns</a>
+          <a class="ndd-item" href="/faq.html" role="menuitem">FAQ</a>
+          <div class="ndd-divider"></div>
+          <div class="ndd-section">Company</div>
+          <a class="ndd-item" href="/press.html" role="menuitem">Press</a>
+        </div>
+      </div>
+    </div>
+    <div class="nav-spacer"></div>
+    <button class="nav-basket-btn" id="basket-toggle-btn" aria-label="Open basket">
+      <svg class="basket-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <path d="M16 10a4 4 0 01-8 0"/>
+      </svg>
+      <span class="basket-btn-label">Basket</span>
+      <span class="basket-badge" id="basket-badge"></span>
+    </button>
+    <button class="burger-btn" id="burger-btn" aria-label="Open menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<div class="mobile-backdrop" id="mobile-backdrop"></div>
+<div class="mobile-panel" id="mobile-panel" aria-hidden="true">
+  <div class="mp-head">
+    <span class="mp-title">Menu</span>
+    <button class="mp-close" id="mp-close" aria-label="Close menu">&times;</button>
+  </div>
+  <div class="mp-body">
+    <div class="mp-section-label">Shop</div>
+    <a class="mp-item" href="/shop.html">Shop</a>
+    <a class="mp-item" href="/about.html">About</a>
+    <div class="mp-divider"></div>
+    <div class="mp-section-label">Help</div>
+    <a class="mp-item" href="/contact.html">Contact Us</a>
+    <a class="mp-item" href="/shipping.html">Shipping</a>
+    <a class="mp-item" href="/returns.html">Returns</a>
+    <a class="mp-item" href="/faq.html">FAQ</a>
+    <div class="mp-divider"></div>
+    <div class="mp-section-label">Company</div>
+    <a class="mp-item" href="/press.html">Press</a>
+    <div class="mp-divider"></div>
+    <button class="mp-basket-row" id="mp-basket-btn">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <path d="M16 10a4 4 0 01-8 0"/>
+      </svg>
+      View Basket
+      <span class="mp-badge" id="mp-badge"></span>
+    </button>
+  </div>
+</div>
+
+<main id="main-content" class="page-main">
+  <div class="inner-hero">
+    <div class="section-eyebrow">Custom</div>
+    <h1>Create Your Own Set</h1>
+    <p>Upload a photo, pick a layout, tweak the crop per hexagon, then export a <span class="mono">.spacenova-set.json</span> file. It’s not a real product until you import it in the creator and make it real.</p>
+  </div>
+
+  <section class="section">
+    <div class="consumer-creator-grid">
+      <div class="cc-panel">
+        <div class="cc-status" id="cc-status" role="status" aria-live="polite">Ready.</div>
+
+        <label class="field-label" for="cc-set-name">Set name</label>
+        <input id="cc-set-name" class="field" type="text" placeholder="Family Memories — Summer 2026">
+
+        <div class="field-grid two">
+          <div>
+            <label class="field-label" for="cc-email">Your email (optional)</label>
+            <input id="cc-email" class="field" type="email" placeholder="you@example.com" autocomplete="email">
+          </div>
+          <div>
+            <label class="field-label" for="cc-pieces">Hexagons</label>
+            <select id="cc-pieces" class="field field-select">
+              <option value="3">3</option>
+              <option value="5">5</option>
+              <option value="6" selected>6</option>
+              <option value="7">7</option>
+              <option value="9">9</option>
+              <option value="12">12</option>
+              <option value="18">18</option>
+              <option value="24">24</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-grid two">
+          <div>
+            <label class="field-label" for="cc-layout">Layout</label>
+            <select id="cc-layout" class="field field-select">
+              <option value="auto" selected>Auto</option>
+              <option value="line">Line</option>
+              <option value="arc">Arc</option>
+              <option value="cluster">Cluster</option>
+              <option value="honeycomb">Honeycomb</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label">Images</label>
+            <div class="cc-toggle-row" role="group" aria-label="Image mode">
+              <label class="cc-radio"><input type="radio" name="cc-mode" value="single" checked> One image</label>
+              <label class="cc-radio"><input type="radio" name="cc-mode" value="perHex"> One per hex</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="cc-block" id="cc-single-block">
+          <label class="field-label" for="cc-main-file">Main image</label>
+          <input id="cc-main-file" class="field" type="file" accept="image/*">
+          <label class="field-label" for="cc-main-zoom">Main zoom</label>
+          <input id="cc-main-zoom" class="field" type="range" min="1" max="2.5" step="0.05" value="1">
+          <p class="cc-hint">Tip: drag hexes in the preview to change the arrangement.</p>
+        </div>
+
+        <div class="cc-block" id="cc-perhex-block" style="display:none">
+          <p class="cc-hint">Select a hex, then upload an image and adjust the crop.</p>
+        </div>
+
+        <div class="cc-divider"></div>
+
+        <div class="cc-block">
+          <div class="cc-subhead">
+            <div>
+              <div class="section-eyebrow">Selected</div>
+              <div class="cc-title" id="cc-selected-title">Hex 1</div>
+            </div>
+            <div class="cc-subhead-actions">
+              <button class="btn btn-ghost" id="cc-open-crop" type="button">Crop</button>
+              <button class="btn btn-ghost" id="cc-reset-hex" type="button">Reset</button>
+            </div>
+          </div>
+
+          <div class="cc-crop-row">
+            <div class="cc-crop-preview" id="cc-crop-preview" aria-label="Hex crop preview"></div>
+            <div class="cc-crop-controls">
+              <label class="field-label" for="cc-hex-file">Hex image</label>
+              <input id="cc-hex-file" class="field" type="file" accept="image/*">
+
+              <div class="field-grid two">
+                <label class="mini-field">Fit
+                  <select id="cc-fit" class="field field-select">
+                    <option value="contain">Contain</option>
+                    <option value="cover" selected>Cover</option>
+                  </select>
+                </label>
+                <div class="mini-field">
+                  <div class="field-label" style="margin-bottom:6px">Zoom</div>
+                  <div class="cc-zoom-btns">
+                    <button class="btn btn-ghost btn-sm" id="cc-zoom-out" type="button" aria-label="Zoom out">−</button>
+                    <button class="btn btn-ghost btn-sm" id="cc-zoom-in" type="button" aria-label="Zoom in">+</button>
+                  </div>
+                </div>
+              </div>
+              <div class="field-grid two">
+                <label class="mini-field">X
+                  <input id="cc-x" class="field" type="range" min="0" max="100" step="1">
+                </label>
+                <label class="mini-field">Y
+                  <input id="cc-y" class="field" type="range" min="0" max="100" step="1">
+                </label>
+              </div>
+              <p class="cc-hint">Use “Crop” for a bigger editor. Drag to pan, scroll to zoom.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="cc-divider"></div>
+
+        <div class="cc-actions">
+          <button class="btn btn-ghost" id="cc-reset-all" type="button">Start over</button>
+          <button class="btn btn-primary" id="cc-download" type="button">Download set file</button>
+          <button class="btn btn-ghost" id="cc-email-btn" type="button">Email set file</button>
+        </div>
+        <p class="cc-hint">Exported files can be imported at <span class="mono">/admin/creator.html</span>. They do not publish anything by themselves.</p>
+      </div>
+
+      <div class="cc-panel">
+        <div class="cc-preview-head">
+          <div>
+            <div class="section-eyebrow">Preview</div>
+            <div class="cc-title">Your layout</div>
+          </div>
+          <div class="cc-preview-meta" id="cc-preview-meta">0 hexes</div>
+        </div>
+        <div class="cc-hex-wrap">
+          <div id="cc-hex-preview" class="hex-preview"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer id="main-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <img class="footer-logo" src="/spacenovalogocropped.png" alt="Spacenova">
+      <p>Metallic-coated composite hexagons with premium acrylic reverse-printed depth for your home.</p>
+    </div>
+    <div class="footer-col"><h4>Shop</h4><a href="/shop.html">All Series</a><a href="/create.html">Create Your Own</a></div>
+    <div class="footer-col"><h4>Help</h4><a href="/shipping.html">Shipping</a><a href="/returns.html">Returns</a><a href="/faq.html">FAQ</a><a href="/contact.html">Contact</a></div>
+    <div class="footer-col"><h4>Company</h4><a href="/about.html">About</a><a href="/press.html">Press</a></div>
+  </div>
+  <div class="footer-bottom"><span>&copy; 2026 Spacenova Ltd.</span><span>Made for the cosmos</span></div>
+</footer>
+
+<div id="basket-overlay"></div>
+<div id="basket-drawer">
+  <div class="drawer-body" id="basket-body"></div>
+  <div class="drawer-footer" id="basket-footer" style="display:none"></div>
+</div>
+
+<!-- Crop popup -->
+<div class="cc-modal" id="cc-crop-modal" aria-hidden="true">
+  <div class="cc-modal-backdrop" id="cc-crop-backdrop"></div>
+  <div class="cc-modal-card" role="dialog" aria-modal="true" aria-label="Crop editor">
+    <div class="cc-modal-head">
+      <div>
+        <div class="section-eyebrow">Crop</div>
+        <div class="cc-title" id="cc-modal-title">Hex</div>
+      </div>
+      <button class="cc-modal-close" id="cc-crop-close" type="button" aria-label="Close crop editor">&times;</button>
+    </div>
+    <div class="cc-modal-body">
+      <div class="cc-modal-preview">
+        <div class="cc-crop-preview cc-crop-preview-lg" id="cc-crop-preview-lg" aria-label="Large hex crop preview"></div>
+        <p class="cc-hint" style="margin-top:10px">Drag to pan. Scroll to zoom. Use X/Y for fine-tuning.</p>
+      </div>
+      <div class="cc-modal-controls">
+        <div class="field-grid two">
+          <label class="mini-field">Fit
+            <select id="cc-fit-lg" class="field field-select">
+              <option value="contain">Contain</option>
+              <option value="cover" selected>Cover</option>
+            </select>
+          </label>
+          <div class="mini-field">
+            <div class="field-label" style="margin-bottom:6px">Zoom</div>
+            <div class="cc-zoom-btns">
+              <button class="btn btn-ghost btn-sm" id="cc-zoom-out-lg" type="button" aria-label="Zoom out">−</button>
+              <button class="btn btn-ghost btn-sm" id="cc-zoom-in-lg" type="button" aria-label="Zoom in">+</button>
+            </div>
+          </div>
+        </div>
+        <div class="field-grid two">
+          <label class="mini-field">X
+            <input id="cc-x-lg" class="field" type="range" min="0" max="100" step="1">
+          </label>
+          <label class="mini-field">Y
+            <input id="cc-y-lg" class="field" type="range" min="0" max="100" step="1">
+          </label>
+        </div>
+        <div class="cc-modal-actions">
+          <button class="btn btn-ghost" id="cc-reset-hex-lg" type="button">Reset</button>
+          <button class="btn btn-primary" id="cc-crop-done" type="button">Done</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/basket.js"></script>
+<script src="/js/nav.js"></script>
+<script src="/js/consumer-creator.js"></script>
+</body>
+</html>

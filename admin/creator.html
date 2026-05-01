@@ -72,6 +72,16 @@
       </div>
     </section>
 
+    <!-- Consumer import -->
+    <section class="panel">
+      <div class="panel-head">
+        <div><p class="eyebrow">Consumer</p><h2>Import set file</h2></div>
+      </div>
+      <label class="field-label" for="consumer-set-file">.spacenova-set.json</label>
+      <input id="consumer-set-file" class="field" type="file" accept=".json,application/json">
+      <p class="hint">Imports a consumer-exported set into this editor. Nothing becomes real until you save/publish/export.</p>
+    </section>
+
     <!-- Details -->
     <section class="panel">
       <div class="panel-head">
@@ -403,6 +413,7 @@
     E.bundleDropHint = document.getElementById('bundle-drop-hint');
     E.bundleDropList = document.getElementById('bundle-drop-list');
     E.exportResults = document.getElementById('export-results');
+    E.consumerSetFile = document.getElementById('consumer-set-file');
 
     E.f = {
       name:         document.getElementById('f-name'),
@@ -509,6 +520,9 @@
     document.getElementById('save-btn').addEventListener('click', saveProduct);
     document.getElementById('sync-btn').addEventListener('click', syncProduct);
     document.getElementById('export-png-btn').addEventListener('click', exportPlatePNGs);
+    if (E.consumerSetFile) {
+      E.consumerSetFile.addEventListener('change', importConsumerSetFile);
+    }
     document.getElementById('preview-toggle').addEventListener('click', function () {
       E.previewStage.classList.toggle('is-open');
     });
@@ -579,6 +593,107 @@
     };
     reader.readAsDataURL(file);
     input.value = '';
+  }
+
+  function importConsumerSetFile() {
+    var file = E.consumerSetFile && E.consumerSetFile.files && E.consumerSetFile.files[0];
+    if (!file) return;
+
+    var reader = new FileReader();
+    reader.onload = function () {
+      try {
+        var payload = JSON.parse(String(reader.result || '{}'));
+        if (!payload || payload.type !== 'spacenova_consumer_set') {
+          throw new Error('Not a Spacenova consumer set file');
+        }
+
+        var plateMap = payload.plateMap || payload.plate_map || payload.panelMap || payload.panel_map || {};
+        var plateCount = parseInt(payload.plateCount || (plateMap.positions && plateMap.positions.length) || 0, 10) || 6;
+        var name = String(payload.setName || payload.name || 'Consumer Set').trim();
+        var slug = slugify(name || 'consumer-set');
+
+        loadDraftProduct({
+          name: name,
+          slug: slug,
+          category: 'custom',
+          accent: '',
+          price: '',
+          plateUnitPrice: '',
+          priceLabel: '',
+          size: '',
+          material: '',
+          short: payload.short || payload.description || '',
+          description: payload.description || '',
+          note: 'Imported from consumer set file' + (payload.createdAt ? (' (' + payload.createdAt + ')') : ''),
+          isCollection: false,
+          isBundle: false,
+          isPublished: false,
+          image: payload.image || payload.mainImage || payload.main_image || '',
+          mainZoom: payload.mainZoom || 1,
+          wallImage: payload.wallImage || payload.wall_image || '',
+          panelHint: 'Custom imported set',
+          plateCount: plateCount,
+          plateNames: Array.isArray(payload.plateNames) ? payload.plateNames : [],
+          plateImages: Array.isArray(payload.plateImages) ? payload.plateImages : [],
+          plateMap: plateMap
+        }, file.name);
+      } catch (err) {
+        setStatus((err && err.message) || 'Failed to import set file', 'error');
+      }
+    };
+    reader.onerror = function () { setStatus('Could not read file', 'error'); };
+    reader.readAsText(file);
+    E.consumerSetFile.value = '';
+  }
+
+  function loadDraftProduct(p, label) {
+    state.currentId = null;
+    state.activePanel = 0;
+    if (E.productSel) E.productSel.value = '';
+
+    E.f.name.value         = p.name || '';
+    E.f.slug.value         = p.slug || '';
+    E.f.slug.dataset.touched = '1';
+    E.f.category.value     = p.category || '';
+    E.f.accent.value       = p.accent || '';
+    E.f.price.value        = p.price || '';
+    E.f.unitPrice.value    = p.plateUnitPrice || '';
+    E.f.priceLabel.value   = p.priceLabel || '';
+    E.f.size.value         = p.size || '';
+    E.f.material.value     = p.material || '';
+    E.f.short.value        = p.short || '';
+    E.f.description.value  = p.description || '';
+    E.f.note.value         = p.note || '';
+    E.f.isCollection.checked = !!p.isCollection;
+    E.f.isBundle.checked   = !!p.isBundle;
+    E.f.isPublished.checked = p.isPublished !== false;
+    E.f.bundlePrice.value  = '';
+    E.f.bundleItems.value  = '';
+    E.f.bundleText.value   = '';
+    E.f.image.value        = p.image || '';
+    E.f.mainZoom.value     = p.mainZoom || 1;
+    E.f.wallImage.value    = p.wallImage || '';
+    E.f.panelHint.value    = p.panelHint || '';
+    E.f.pieces.value       = parseInt(p.plateCount || p.pieces, 10) || 1;
+    syncPriceLabel();
+
+    state.panelNames     = Array.isArray(p.plateNames) ? p.plateNames.slice() : [];
+    state.panelImages    = Array.isArray(p.plateImages) ? p.plateImages.slice() : [];
+    var loadedMap = p.plateMap || {};
+    state.panelPositions = (loadedMap && Array.isArray(loadedMap.positions))
+      ? loadedMap.positions.map(function (x) { return { row: parseInt(x.row, 10) || 0, col: parseInt(x.col, 10) || 0 }; })
+      : [];
+    state.panelTransforms = (loadedMap && Array.isArray(loadedMap.transforms))
+      ? loadedMap.transforms.map(normalisePanelTransform)
+      : [];
+
+    ensurePanelArrays();
+    updateBundlePanel();
+    rebuildPanelEditors();
+    updateThumb('main', p.image || '');
+    updateThumb('wall', p.wallImage || '');
+    renderPreview();
+    setStatus('Imported ' + (label || 'set file') + ' (draft)', 'success');
   }
 
   function queueAutoMockup(delay) {
@@ -1232,8 +1347,8 @@
       bgEmpty.style.display = '';
     }
 
-    /* Draw SVG hex outlines on top */
-    renderOutlineHexSVG(hexLayer, mainImageUrl);
+    /* Draw SVG hex outlines on top (must match zoom + background crop) */
+    renderOutlinePreviewSVG(hexLayer, mainImageUrl, zoom);
   }
 
   /* Draws an SVG with transparent hex outlines + numbered labels over the image */
@@ -1343,30 +1458,100 @@
     wrap.innerHTML = '';
     if (!pixelPositions.length) return;
 
+    var gridW = Math.round(Math.max(1, bounds.width));
+    var gridH = Math.round(Math.max(1, bounds.height));
+    var zoom  = clampNumber(E.f.mainZoom.value, 1, 2.5, 1);
+
+    /* The zoomed canvas dimensions (what the image renders at) */
+    var canvasW = Math.round(gridW * zoom);
+    var canvasH = Math.round(gridH * zoom);
+
+    /* Offset to centre the zoom (zoom happens about the canvas centre) */
+    var zoomOffX = Math.round((canvasW - gridW) / 2);
+    var zoomOffY = Math.round((canvasH - gridH) / 2);
+
     wrap.style.position = 'relative';
     wrap.style.display = 'block';
-    wrap.style.width = Math.round(Math.max(1, bounds.width)) + 'px';
-    wrap.style.height = Math.round(Math.max(1, bounds.height)) + 'px';
+    wrap.style.width = gridW + 'px';
+    wrap.style.height = gridH + 'px';
     wrap.style.maxWidth = '';
     wrap.style.margin = '0 auto';
 
     pixelPositions.forEach(function (pos, idx) {
+      /* Tile's top-left relative to the bounds origin */
+      var tileLeft = Math.round(pos.x - bounds.minX);
+      var tileTop  = Math.round(pos.y - bounds.minY);
+
       var hex = document.createElement('div');
       hex.className = 'hex-cell-preview' + (idx === state.activePanel ? ' is-selected' : '');
       hex.dataset.idx = idx;
-      hex.style.position = 'absolute';
-      hex.style.left = Math.round(pos.x - bounds.minX) + 'px';
-      hex.style.top = Math.round(pos.y - bounds.minY) + 'px';
-      hex.style.width = HEX_W + 'px';
-      hex.style.height = HEX_H + 'px';
-      hex.style.margin = '0';
-      hex.style.background = 'transparent';
-      hex.style.overflow = 'visible';
+      hex.style.cssText = [
+        'position:absolute',
+        'left:' + tileLeft + 'px',
+        'top:' + tileTop + 'px',
+        'width:' + HEX_W + 'px',
+        'height:' + HEX_H + 'px',
+        'margin:0',
+        'overflow:visible'
+      ].join(';');
 
-      var fill = platePreviewFill(mainImage, state.panelImages, idx, pixelPositions, bounds, state.panelTransforms[idx], clampNumber(E.f.mainZoom.value, 1, 2.5, 1));
+      /* Inner clipped fill */
       var inner = document.createElement('div');
-      inner.style.cssText = 'position:absolute;inset:0;clip-path:' + HEX_CLIP + ';overflow:hidden;' + fill.style;
-      inner.innerHTML = fill.html;
+      inner.style.cssText = [
+        'position:absolute',
+        'inset:0',
+        'clip-path:' + HEX_CLIP,
+        'overflow:hidden',
+        'background:#2a2825'
+      ].join(';');
+
+      var individualUrl = getUsablePlateImage(state.panelImages, idx, mainImage);
+
+      if (individualUrl) {
+        /* Individual plate image: use transform-based fit/pan */
+        var t = normalisePanelTransform(state.panelTransforms[idx]);
+        var img = document.createElement('img');
+        img.src = individualUrl;
+        img.alt = '';
+        img.style.cssText = [
+          'position:absolute',
+          'inset:0',
+          'width:100%',
+          'height:100%',
+          'object-fit:' + t.fit,
+          'object-position:' + t.x + '% ' + t.y + '%',
+          'transform:scale(' + t.scale + ')',
+          'transform-origin:' + t.x + '% ' + t.y + '%',
+          'display:block',
+          'pointer-events:none',
+          'user-select:none'
+        ].join(';');
+        inner.style.background = '#050505';
+        inner.appendChild(img);
+
+      } else if (mainImage) {
+        /* Main image crop matches server-side export logic */
+        var imgLeft = -(tileLeft * zoom + zoomOffX);
+        var imgTop  = -(tileTop  * zoom + zoomOffY);
+
+        var mainImg = document.createElement('img');
+        mainImg.src = mainImage;
+        mainImg.alt = '';
+        mainImg.style.cssText = [
+          'position:absolute',
+          'display:block',
+          'pointer-events:none',
+          'user-select:none',
+          'max-width:none',
+          'width:' + canvasW + 'px',
+          'height:' + canvasH + 'px',
+          'left:' + Math.round(imgLeft) + 'px',
+          'top:' + Math.round(imgTop) + 'px',
+          'object-fit:cover'
+        ].join(';');
+        inner.style.background = '#050505';
+        inner.appendChild(mainImg);
+      }
 
       var label = document.createElement('span');
       label.className = 'hex-label-preview';
@@ -1419,45 +1604,66 @@
     });
   }
 
-  function renderOutlinePreviewSVG(hexLayer, mainImageUrl) {
+  function renderOutlinePreviewSVG(hexLayer, mainImageUrl, zoom) {
+    hexLayer.innerHTML = '';
+    ensurePanelArrays();
     var pixelPositions = getPreviewPixelPositions();
     if (!pixelPositions.length) return;
 
     var bounds = getPreviewBounds(pixelPositions);
-    var pad = 4;
-    var minX = bounds.minX - pad;
-    var minY = bounds.minY - pad;
-    var svgW = bounds.width + pad * 2;
-    var svgH = bounds.height + pad * 2;
+    var PAD = 6;
+    var vbX = bounds.minX - PAD;
+    var vbY = bounds.minY - PAD;
+    var vbW = bounds.width + PAD * 2;
+    var vbH = bounds.height + PAD * 2;
     var image = escapeSvgAttr(mainImageUrl || '');
-    var svgParts = [
-      '<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="',
-      minX + ' ' + minY + ' ' + svgW + ' ' + svgH,
-      '">'
-    ];
+    var safeZoom = clampNumber(zoom, 1, 2.5, 1);
+    var cx = vbX + vbW / 2;
+    var cy = vbY + vbH / 2;
 
-    svgParts.push('<rect x="' + minX + '" y="' + minY + '" width="' + svgW + '" height="' + svgH + '" fill="rgba(0,0,0,0.35)"/>');
+    var parts = [];
+    parts.push(
+      '<svg xmlns="http://www.w3.org/2000/svg"',
+      ' width="100%" height="100%"',
+      ' viewBox="' + vbX + ' ' + vbY + ' ' + vbW + ' ' + vbH + '"',
+      ' style="position:absolute;inset:0;overflow:visible"',
+      '>'
+    );
+    parts.push('<rect x="' + vbX + '" y="' + vbY + '" width="' + vbW + '" height="' + vbH + '" fill="rgba(0,0,0,0.38)"/>');
+
+    if (mainImageUrl) {
+      parts.push('<defs>');
+      pixelPositions.forEach(function (pos, idx) {
+        parts.push('<clipPath id="hcp' + idx + '"><polygon points="' + hexPoints(pos.x, pos.y) + '"/></clipPath>');
+      });
+      parts.push('</defs>');
+    }
+
     pixelPositions.forEach(function (pos, idx) {
       var pts = hexPoints(pos.x, pos.y);
-      var cx = pos.x + HEX_W / 2;
-      var cy = pos.y + HEX_H / 2;
-      var id = 'hp' + idx;
-      svgParts.push(
-        '<clipPath id="' + id + '"><polygon points="' + pts + '"/></clipPath>' +
-        '<image href="' + image + '" x="' + bounds.minX + '" y="' + bounds.minY +
-        '" width="' + bounds.width + '" height="' + bounds.height +
-        '" preserveAspectRatio="xMidYMid slice" clip-path="url(#' + id + ')"/>'
-      );
-      svgParts.push('<polygon points="' + pts + '" fill="none" stroke="rgba(255,255,255,0.75)" stroke-width="2"/>');
-      svgParts.push(
-        '<text x="' + cx + '" y="' + (cy + 5) + '" text-anchor="middle" dominant-baseline="middle"' +
+      var tx = pos.x + HEX_W / 2;
+      var ty = pos.y + HEX_H / 2;
+
+      if (mainImageUrl) {
+        parts.push(
+          '<image href="' + image + '" x="' + vbX + '" y="' + vbY + '" width="' + vbW + '" height="' + vbH + '"',
+          ' preserveAspectRatio="xMidYMid slice"',
+          ' transform="translate(' + cx + ' ' + cy + ') scale(' + safeZoom + ') translate(' + (-cx) + ' ' + (-cy) + ')"',
+          ' clip-path="url(#hcp' + idx + ')"/>'
+        );
+      }
+
+      parts.push('<polygon points="' + pts + '" fill="none" stroke="rgba(255,255,255,0.75)" stroke-width="2"/>');
+      parts.push(
+        '<text x="' + tx + '" y="' + (ty + 5) + '" text-anchor="middle" dominant-baseline="middle"' +
         ' font-family="\'DM Mono\', monospace" font-size="14" fill="rgba(255,255,255,0.92)"' +
         ' style="text-shadow: 0 1px 4px rgba(0,0,0,0.8)">' +
         (idx + 1) + '</text>'
       );
     });
-    svgParts.push('</svg>');
-    hexLayer.innerHTML = svgParts.join('');
+
+    parts.push('</svg>');
+    hexLayer.innerHTML = parts.join('');
   }
 
   function getPreviewPixelPositions() {

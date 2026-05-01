@@ -54,8 +54,13 @@ function safeZipPath(value) {
 function normaliseUrl(raw) {
   const value = String(raw || '').trim();
   if (!value) return '';
+  // Data/blob URLs must be preserved as-is (do not URI-encode path segments).
+  // These are used by the admin creator "Import image" flow (FileReader -> data: URL),
+  // and are fetchable in modern Node runtimes.
+  if (/^(data|blob):/i.test(value)) return value;
   try {
     const url = new URL(value);
+    if (url.protocol === 'data:' || url.protocol === 'blob:') return value;
     url.pathname = url.pathname
       .split('/')
       .map(part => encodeURIComponent(decodeURIComponent(part)))
