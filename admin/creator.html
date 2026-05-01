@@ -370,12 +370,17 @@
   var HEX_CLIP = 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)';
 
   var loadSeq = 0;
+  var IS_CONSUMER = /(^|[?&])consumer=1(&|$)/.test(window.location.search);
 
   document.addEventListener('DOMContentLoaded', function () {
     cacheEls();
-    bindAuth();
+    if (!IS_CONSUMER) bindAuth();
     bindUI();
-    if (sessionStorage.getItem('admin') === '1') {
+    if (IS_CONSUMER) {
+      E.authScreen.style.display = 'none';
+      initCreator();
+      applyConsumerMode();
+    } else if (sessionStorage.getItem('admin') === '1') {
       E.authScreen.style.display = 'none';
       initCreator();
     }
@@ -468,6 +473,38 @@
     };
   }
 
+
+
+  function applyConsumerMode() {
+    document.title = 'Create Your Own Set — SPACENOVA';
+    ['new-series-btn','new-collection-btn','save-btn','sync-btn','export-png-btn','f-price','f-plate-unit-price','f-price-label','f-bundle-price','f-bundle-items','f-bundle-text','f-is-bundle','f-is-published'].forEach(function(id){
+      var el = document.getElementById(id);
+      if (!el) return;
+      var row = el.closest('.field-row') || el.closest('.field-grid') || el.closest('.toggle-row') || el.parentElement;
+      if (row) row.style.display = 'none'; else el.style.display='none';
+    });
+    var actionBar = document.querySelector('.editor-actions');
+    if (actionBar && !document.getElementById('consumer-send-btn')) {
+      var btn = document.createElement('button');
+      btn.id='consumer-send-btn';
+      btn.className='btn btn-primary';
+      btn.type='button';
+      btn.textContent='Email Draft File';
+      btn.addEventListener('click', sendConsumerDraft);
+      actionBar.appendChild(btn);
+    }
+  }
+
+  function sendConsumerDraft(){
+    var payload = buildPayload();
+    var email = window.prompt('Enter your email for reply:');
+    if (!email) { setStatus('Email is required', 'error'); return; }
+    payload.customerEmail = email.trim();
+    payload.draftOnly = true;
+    requestJson('/.netlify/functions/submit-custom-set', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })
+      .then(function(){ setStatus('Draft emailed. It will not become real until manually created.', 'success'); })
+      .catch(function(err){ setStatus((err && err.message) || 'Draft send failed', 'error'); });
+  }
   /* ─── Auth ─── */
   function bindAuth() {
     E.authBtn.addEventListener('click', doAuth);
@@ -1441,9 +1478,10 @@
           'max-width:none',
           'width:' + canvasW + 'px',
           'height:' + canvasH + 'px',
-          'left:' + Math.round(imgLeft) + 'px',
-          'top:' + Math.round(imgTop) + 'px',
-          'object-fit:cover'
+          'left:' + imgLeft.toFixed(3) + 'px',
+          'top:' + imgTop.toFixed(3) + 'px',
+          'object-fit:cover',
+          'image-rendering:auto'
         ].join(';');
         inner.style.background = '#050505';
         inner.appendChild(img);
