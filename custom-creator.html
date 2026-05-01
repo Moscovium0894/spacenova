@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Create Your Own Set — SPACENOVA</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .creator-wrap{max-width:1200px;margin:40px auto;padding:0 20px;display:grid;grid-template-columns:1.1fr 1fr;gap:24px}
+    .creator-card{background:#111;border:1px solid #2a2a2a;border-radius:16px;padding:20px}
+    .creator-preview{position:relative;min-height:420px;background:#060606;border-radius:14px;overflow:hidden}
+    .hex{position:absolute;width:116px;height:132px;clip-path:polygon(25% 6%,75% 6%,100% 50%,75% 94%,25% 94%,0 50%);border:1px solid rgba(255,255,255,.2)}
+    .hex img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform-origin:center}
+    .grid{position:relative;width:100%;height:100%}
+    .controls .field{margin-bottom:12px}
+    .controls label{display:block;margin-bottom:6px;color:#ddd}
+    .hint{color:#aaa;font-size:.92rem}
+    @media (max-width: 980px){.creator-wrap{grid-template-columns:1fr}}
+  </style>
+</head>
+<body class="page-inner">
+<nav id="main-nav"><div class="nav-inner"><a class="nav-logo" href="/"><img class="nav-logo-img" src="/spacenovalogocropped.png" alt="Spacenova"></a><div class="nav-links"><a class="nav-link" href="/shop.html">Shop</a><a class="nav-link active" href="/custom-creator.html">Create Your Own Set</a></div></div></nav>
+<main class="page-main">
+  <div class="inner-hero"><div class="section-eyebrow">Custom Builder</div><h1>Create Your Own Hex Set</h1><p>Upload an image, tune crop/zoom, export a creator file, and email it to production queue. This will stay draft-only until manually approved in creator.</p></div>
+  <div class="creator-wrap">
+    <section class="creator-card controls">
+      <div class="field"><label for="cc-name">Set name</label><input id="cc-name" class="field-input" type="text" placeholder="Family Memory Wall"></div>
+      <div class="field"><label for="cc-email">Your email</label><input id="cc-email" class="field-input" type="email" placeholder="you@example.com"></div>
+      <div class="field"><label for="cc-image">Main image</label><input id="cc-image" type="file" accept="image/*"></div>
+      <div class="field"><label for="cc-count">Hexagons</label><input id="cc-count" type="range" min="3" max="12" value="6"><span id="cc-count-label">6</span></div>
+      <div class="field"><label for="cc-zoom">Crop zoom</label><input id="cc-zoom" type="range" min="1" max="2.6" step="0.05" value="1.2"></div>
+      <div class="field"><label for="cc-filetype">Export type</label><select id="cc-filetype"><option value="json">.json</option><option value="snova">.snova</option></select></div>
+      <button class="btn btn-primary" id="cc-download">Download Creator File</button>
+      <button class="btn btn-ghost" id="cc-email-send" style="margin-left:8px">Send to Email Queue</button>
+      <p class="hint" id="cc-status">Draft only. No production is triggered.</p>
+    </section>
+    <section class="creator-card"><div class="creator-preview"><div id="cc-grid" class="grid"></div></div></section>
+  </div>
+</main>
+<script src="/js/custom-creator.js"></script>
+</body>
+</html>
